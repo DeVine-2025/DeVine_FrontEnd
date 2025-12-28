@@ -1,3 +1,99 @@
 @theme{
+    --color-white000: #FFFFFF;
+    --color-gray-05: #F8F9FB;
+    --color-gray-10: #F3F5FC;
+    --color-gray-50: #D4DAE7;
+    --color-gray-200: #9EA6BA;
+    --color-gray-300: #939AAE;
+    --color-gray-400: #7F8596;
+    --color-gray-500: #606673;
+    --color-gray-600: #41444D;
+    --color-gray-700: #2F323A;
+    --color-gray-800: #212328;
+    --color-gray-900: #191B1E;
 
+    --color-primary-001: #4E49FF;
+    --color-primary-002: #7E7AE8;
+
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+}
+
+
+@layer utilities {
+    .Display1 {
+        font-family: var(--font-pretendard);
+        font-size: 5.6rem;
+        line-height: 128.6%;
+        letter-spacing: -0.0319em;
+    }
+
+    .Title1 {
+        font-family: var(--font-pretendard);
+        font-size: 3.6rem;
+        line-height: 133.4%;
+        letter-spacing: -0.027em;
+    }
+
+    .Title2 {
+        font-family: var(--font-pretendard);
+        font-size: 2.8rem;
+        line-height: 135.8%;
+        letter-spacing: -0.0236em;
+    }
+
+    .Title3 {
+        font-family: var(--font-pretendard);
+        font-size: 2.4rem;
+        line-height: 133.4%;
+        letter-spacing: -0.023em;
+    }
+
+    .Heading2 {
+        font-family: var(--font-pretendard);
+        font-size: 2.0rem;
+        line-height: 140%;
+        letter-spacing: -0.012em;
+    }
+
+    .Headline1 {
+        font-family: var(--font-pretendard);
+        font-size: 1.8rem;
+        line-height: 144.5%;
+        letter-spacing: -0.002em;
+    }
+
+    .Body1 {
+        font-family: var(--font-pretendard);
+        font-size: 1.6rem;
+        line-height: 150%;
+        letter-spacing: 0.0057em;
+    }
+
+    .Label1 {
+        font-family: var(--font-pretendard);
+        font-size: 1.4rem;
+        line-height: 142.9%;
+        letter-spacing: 0.0145em;
+    }
+
+    .Caption1 {
+        font-family: var(--font-pretendard);
+        font-size: 1.2rem;
+        line-height: 133.4%;
+        letter-spacing: 0.0252em;
+    }
+
+    :lang(en) .Display1,
+    :lang(en) .Title1,
+    :lang(en) .Title2,
+    :lang(en) .Title3,
+    :lang(en) .Heading2,
+    :lang(en) .Headline1,
+    :lang(en) .Body1,
+    :lang(en) .Label1,
+    :lang(en) .Caption1 {
+        font-weight: 500;
+    }
 }
