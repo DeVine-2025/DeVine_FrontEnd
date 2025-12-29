@@ -18,6 +18,13 @@
     --font-weight-regular: 400;
     --font-weight-medium: 500;
     --font-weight-bold: 700;
+
+    --color-menu-text: var(--color-white);
+
+}
+
+[data-theme='light'] {
+    --color-menu-text: #000000;
 }
 
 
