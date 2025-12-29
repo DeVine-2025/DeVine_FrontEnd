@@ -1,138 +1,94 @@
-# React + TypeScript + Vite
+###
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 👨‍👩‍👧 팀원 소개
 
-## Biome 설정 및 사용 방법
+| [<img src="https://github.com/seongmin-noh.png" width="200px">](https://github.com/seongmin-noh) | [<img src="https://github.com/MunSuyoung.png" width="200px">](https://github.com/MunSuyoung) | [<img src="https://github.com/hyeyoon23.png" width="200px">](https://github.com/hyeyoon23) | [<img src="https://github.com/choikyungsoo.png" width="200px">](https://github.com/choikyungsoo) |
+| :------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: |
+| [노승민](https://github.com/seongmin-noh) | [문수영](https://github.com/MunSuyoung) | [이혜윤](https://github.com/hyeyoon23) | [최경수](https://github.com/choikyungsoo) |
 
-이 프로젝트는 코드 포맷팅과 린팅을 위해 [Biome](https://biomejs.dev/)을 사용합니다.
 
-### 📋 주요 기능
+<br>
 
-- **코드 포맷팅**: 일관된 코드 스타일 유지
-- **린팅**: 코드 품질 및 오류 검사
-- **자동 정렬**: Import 문 및 CSS 클래스 자동 정렬
-- **자동 수정**: 수정 가능한 문제 자동 해결
+## 🛠 Tech Stack
 
-### 🚀 사용 방법
+| 역할                     | 종류                                                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| **Library**              | ![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)                         |
+| **Programming Language** | ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)          |
+| **Styling**              | ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)     |
+| **Data Fetching**        | ![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?style=flat&logo=react-query&logoColor=white) |
+| **Formatting**           | ![Biome](https://img.shields.io/badge/Biome-5A56F7?style=flat&logo=biome&logoColor=white)                         |
+| **Package Manager**      | ![yarn](https://img.shields.io/badge/yarn-F69220?style=flat&logo=yarn&logoColor=white)                            |
+| **Deployment**           | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white)                      |
 
-#### 1. 명령어로 실행
+---
 
-```bash
-# 코드 검사 (오류 확인만)
-yarn lint
+<br>
 
-# 코드 검사 및 자동 수정
-yarn lint:fix
+<details>
+<summary><b style="font-size:1.7rem">📁 파일/폴더 컨벤션</b></summary>
 
-# 포맷팅 및 정렬 (포맷팅 + 린트 수정)
-yarn format
-```
+- **폴더/파일명**: kebab-case
+- **컴포넌트**: PascalCase
+- **함수/훅/유틸**: camelCase
+- **상수**: UPPER_SNAKE_CASE
+- **역할 접미사** 권장: `-page`, `-layout`, `-view`, `-card`, `-modal` …
+- **훅 파일명**: `use-*.ts`
 
-#### 2. 저장 시 자동 포맷팅
+> 상세: [`coding.md`](./docs/coding.md), [`file-folder.md`](./docs/file-folder.md)
 
-파일을 저장하면 자동으로 포맷팅 및 정렬이 적용됩니다.
+</details>
 
-**필수 조건**: Cursor 또는 VS Code에서 **Biome 확장 프로그램**이 설치되어 있어야 합니다.
+<br>
 
-- [Biome 확장 프로그램 설치 (VS Code)](https://marketplace.visualstudio.com/items?itemName=biomejs.biome)
-- Cursor에서는 VS Code 확장 프로그램과 동일하게 설치 가능
+<details>
+<summary><b style="font-size:1.7rem">🎨 스타일 가이드</b></summary>
 
-### ⚙️ 설정 파일
+- 전역 기준: `10px = 1rem`
+- 전역 스타일 진입점
+  - `theme.css` → 컬러/타이포/그라데이션/레이어 토큰
+  - `custom-utilities.css` → 자주 쓰는 Tailwind 조합 축약
+- Inline style 금지 → 새 유틸 추가 또는 CSS 변수 활용
+- **z-index**: 의미 기반 유틸 사용, 임의 숫자 금지
+- **단위**: rem 사용 (단, border-radius는 px 유지)
 
-- `biome.json`: Biome 설정 파일
-- `.vscode/settings.json`: 에디터 자동 포맷팅 설정
+> 상세: [`style-guide.md`](./docs/style-guide.md)
 
-### 📝 주요 규칙
+</details>
 
-현재 프로젝트에서 적용된 주요 Biome 규칙:
+<br>
 
-- ✅ Import 문 자동 정렬
-- ✅ CSS 클래스 자동 정렬 (Tailwind CSS)
-- ✅ 사용하지 않는 import 제거
-- ✅ Non-null assertion 금지
-- ✅ Button 요소에 명시적 type 속성 필수
-- ✅ 단일 따옴표 사용
-- ✅ Trailing comma 사용
+<details>
+<summary><b style="font-size:1.7rem">📁 절대 경로(alias)</b></summary>
 
-### 🔧 설정 커스터마이징
+- `@pages` → `src/pages`
+- `@styles`, `@components`, `@hooks`, `@libs`, `@constants`, `@utils`, `@apis`, `@assets`, `@types` → `src/shared/*`
+- 단일 소스: `tsconfig.json`의 `paths` 기준, Vite 플러그인으로 동기화
 
-`biome.json` 파일을 수정하여 규칙을 커스터마이징할 수 있습니다.
+> 상세: [`absolute-paths.md`](./docs/absolute-paths.md)
+</details>
+<br />
 
-```json
-{
-  "linter": {
-    "rules": {
-      "recommended": true,
-      // 여기에 추가 규칙 설정
-    }
-  }
-}
-```
+<details>
+<summary><b style="font-size:1.7rem">📑 Commit Convention</b></summary>
+우리 프로젝트는 다음과 같은 커밋 규칙을 따릅니다.
+<br />
 
-자세한 설정 옵션은 [Biome 공식 문서](https://biomejs.dev/reference/configuration)를 참고하세요.
+| 타입           | 의미                      |
+| ------------ | ----------------------- |
+| **feat**     | 새로운 기능 추가               |
+| **fix**      | 버그 수정                   |
+| **chore**    | 빌드/도구/패키지 설정 등 잡무 변경    |
+| **style**    | 코드 스타일 변경 (포맷팅, 세미콜론 등) |
+| **hotfix**   | 긴급 버그 수정                |
+| **docs**     | 문서 관련 변경 (README 등)     |
+| **refactor** | 코드 리팩터링 (기능 변화 없음)      |
+| **test**     | 테스트 코드 추가/수정            |
+| **init**     | 프로젝트 초기 설정/세팅           |
+| **build**    | 빌드 관련 변경 (배포, 빌드 설정 등)  |
 
-Currently, two official plugins are available:
+- scope: 선택 (비워도 허용)
+- subject: 마침표 금지
+- header: 최대 100자
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+</details>
