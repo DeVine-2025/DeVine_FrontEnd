@@ -1,5 +1,7 @@
 import { cn } from '@libs/cn';
 import type { ReactNode } from 'react';
+import BookmarkIcon from '@assets/icons/bookmark.svg?react';
+import BookmarkFilled from '@assets/icons/bookmark-filled.svg?react';
 
 export type BadgeTone = 'blue' | 'green' | 'pink' | 'orange';
 
@@ -58,31 +60,34 @@ export default function ProfileCard({
   size = 'md',
   className,
 }: ProfileCardProps) {
-  const sizeStyles =
-    size === 'sm'
-      ? { avatar: 'w-12 h-12', padding: 'p-4', gap: 'gap-3' }
-      : { avatar: 'w-14 h-14', padding: 'p-6', gap: 'gap-4' };
+  const normalize = (s: string) => (s ?? '').replace(/\s+/g, '').toLowerCase();
+
+  const rootSizeClass =
+    size === 'sm' ? 'card-size-sm' : 'card-container-md card-size-md';
+  const avatarClass = size === 'sm' ? 'card-avatar-sm' : 'card-avatar-md';
 
   const meta =
     location && experience
       ? `${location} | ${experience}`
       : location || experience || '';
 
+  // 역할 배지와 중복되는 항목은 배지 리스트에서 제거
+  const filteredBadges = badges?.filter(({ label }) => normalize(label) !== normalize(role));
+
   return (
     <article
       className={cn(
-        'bg-card-bg border border-card-border rounded-2xl shadow-sm flex flex-col',
-        sizeStyles.padding,
-        sizeStyles.gap,
+        'bg-profile-card-bg rounded-2xl flex flex-col border border-transparent',
+        rootSizeClass,
         className,
       )}
     >
       {/* 상단 영역 */}
-      <div className={cn('flex items-start', sizeStyles.gap)}>
+      <div className="flex items-start gap-4">
         <img
           src={profileImageUrl}
           alt={profileImageAlt ?? nickname}
-          className={cn(sizeStyles.avatar, 'rounded-full object-cover flex-shrink-0')}
+          className={cn(avatarClass, 'rounded-full object-cover flex-shrink-0')}
           loading="lazy"
         />
 
@@ -107,15 +112,18 @@ export default function ProfileCard({
           {meta && <div className="Label1 text-card-muted mt-1 truncate">{meta}</div>}
         </div>
 
-        {/* 북마크 버튼(아이콘은 팀 에셋으로 교체) */}
+        {/* 북마크 버튼 */}
         <button
           type="button"
           aria-pressed={bookmarked}
           onClick={() => onBookmarkChange?.(!bookmarked, id)}
           className="ml-auto p-1 rounded-md hover:opacity-80"
         >
-          {/* 아이콘 자리 */}
-          <span className="Label1 text-card-muted">{bookmarked ? '★' : '☆'}</span>
+          {bookmarked ? (
+            <BookmarkFilled aria-hidden="true" className="w-13 h-10 text-card-title" />
+          ) : (
+            <BookmarkIcon aria-hidden="true" className="w-13 h-10 text-card-muted" />
+          )}
         </button>
       </div>
 
@@ -125,9 +133,9 @@ export default function ProfileCard({
       )}
 
       {/* 배지 리스트(포지션/프로젝트 등) */}
-      {badges && badges.length > 0 && (
+      {filteredBadges && filteredBadges.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          {badges.map(({ label, tone }, idx) => (
+          {filteredBadges.map(({ label, tone }, idx) => (
             <span
               key={`${label}-${idx}`}
               className={cn('rounded-full px-3 py-1 Label1', badgeToneToClass[tone])}
@@ -150,14 +158,13 @@ export default function ProfileCard({
         </div>
       )}
 
-      {/* 구분선 */}
       {(recommendationReason ?? '') !== '' && (
         <div className="border-t border-divider" />
       )}
 
       {/* 추천 이유 */}
       {recommendationReason && (
-        <div className="bg-card-profile-reason-bg rounded-xl p-4">
+        <div className="bg-card-profile-reason-bg rounded-xl p-10">
           <p className="Body1 text-card-title">{recommendationReason}</p>
         </div>
       )}
