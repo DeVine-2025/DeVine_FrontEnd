@@ -62,4 +62,25 @@
         display: none;
     }
 
+    /* Card size presets */
+    .card-size-sm {
+        @apply p-6 gap-4;
+    }
+
+    .card-size-md {
+        @apply p-6 gap-4;
+    }
+
+    .card-container-md {
+        @apply w-[632px] h-[224px];
+    }
+
+    .card-avatar-sm {
+        @apply w-[60px] h-[60px];
+    }
+
+    .card-avatar-md {
+        @apply w-14 h-14;
+    }
+
 }
