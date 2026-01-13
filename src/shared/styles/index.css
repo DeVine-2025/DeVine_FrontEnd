@@ -4,6 +4,9 @@
 @import "./font.css";
 @import "./custom-utilities.css";
 @import "./reset.css";
+@import "./tokens/common-card-theme.css";
+@import "./tokens/common-badge-theme.css";
+@import "./tokens/profile-card-theme.css";
 
 @layer base {
     :root{
