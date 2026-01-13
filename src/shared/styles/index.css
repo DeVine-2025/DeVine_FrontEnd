@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "./font.css";
 @import "./theme.css";
-@import "./font.css";
 @import "./custom-utilities.css";
 @import "./reset.css";
 
@@ -37,7 +36,5 @@
         display: none;
     }
 
-    [data-theme="dark"] {
-        background-color: var(--color-gray-900);
-    }
+    
 }

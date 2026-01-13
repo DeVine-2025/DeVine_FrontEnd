@@ -1,30 +1,83 @@
-@theme{
-    --color-white000: #FFFFFF;
-    --color-gray-05: #F8F9FB;
-    --color-gray-10: #F3F5FC;
-    --color-gray-50: #D4DAE7;
-    --color-gray-200: #9EA6BA;
-    --color-gray-300: #939AAE;
-    --color-gray-400: #7F8596;
-    --color-gray-500: #606673;
-    --color-gray-600: #41444D;
-    --color-gray-700: #2F323A;
-    --color-gray-800: #212328;
-    --color-gray-900: #191B1E;
+@theme {
+    /* ===========================
+       UI (다크모드 기본)
+       =========================== */
 
-    --color-primary-001: #4E49FF;
-    --color-primary-002: #7E7AE8;
+    --ui-bg: #191B1E;
+    --ui-50: #212328;
+    --ui-100: #2F323A;
+    --ui-200: #41444D;
+    --ui-300: #606673;
+    --ui-400: #7F8596;
+    --ui-500: #939AAE;
+    --ui-600: #9EA6BA;
+    --ui-700: #D4DAE7;
+    --ui-800: #F3F5FC;
+    --ui-900: #F8F9FB;
+    --ui-1000: #FFFFFF;
+
+    /* ===========================
+       Badge Tokens (다크모드)
+       =========================== */
+
+    --badge-text-primary: #7E7AFF;
+    --badge-bg-primary: #1E1D4D;
+
+    --badge-text-blue: #499FD4;
+    --badge-bg-blue: #1C3341;
+
+    --badge-text-green: #1D8C72;
+    --badge-bg-green: #17342F;
+
+    --badge-text-pink: #DB50B3;
+    --badge-bg-pink: #352731;
+
+    --badge-text-orange: #D98363;
+    --badge-bg-orange: #463229;
+
 
     --font-weight-regular: 400;
     --font-weight-medium: 500;
     --font-weight-bold: 700;
-
-    --color-menu-text: var(--color-white);
-
 }
 
 [data-theme='light'] {
-    --color-menu-text: #000000;
+    /* ===========================
+       UI (라이트모드)
+       =========================== */
+
+
+    --ui-bg: #FFFFFF;
+    --ui-50: #F8F9FB;
+    --ui-100: #F3F5FC;
+    --ui-200: #D4DAE7;
+    --ui-300: #9EA6BA;
+    --ui-400: #939AAE;
+    --ui-500: #7F8596;
+    --ui-600: #606673;
+    --ui-700: #41444D;
+    --ui-800: #2F323A;
+    --ui-900: #212328;
+    --ui-1000: #191B1E;
+
+    /* ===========================
+       Badge Tokens (라이트모드)
+       =========================== */
+
+    --badge-text-primary: #4E49FF;
+    --badge-bg-primary: #EEEDFF;
+
+    --badge-text-blue: #499FD4;
+    --badge-bg-blue: #EEF9FF;
+
+    --badge-text-green: #1D8C72;
+    --badge-bg-green: #F5FFFD;
+
+    --badge-text-pink: #DB50B3;
+    --badge-bg-pink: #FFF0FB;
+
+    --badge-text-orange: #D98363;
+    --badge-bg-orange: #FFF4F0;
 }
 
 
