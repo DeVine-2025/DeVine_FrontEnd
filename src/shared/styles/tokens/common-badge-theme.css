@@ -4,12 +4,15 @@
     --color-badge-text-green: #1D8C72;
     --color-badge-text-pink: #DB50B3;
     --color-badge-text-orange: #D98363;
+    --color-badge-text-gray: #9EA6BA;
   
     /* 배지 배경 색상 (다크 기본값) */
     --color-badge-bg-blue: #1C3341;
     --color-badge-bg-green: #17342F;
     --color-badge-bg-pink: #352731;
     --color-badge-bg-orange: #463229;
+    --color-badge-bg-gray: #2F3239;
+
   }
   
   [data-theme="light"] {
@@ -18,4 +21,5 @@
     --color-badge-bg-green: #F5FFFD;
     --color-badge-bg-pink: #FFF0FB;
     --color-badge-bg-orange: #FFF4F0;
+    --color-badge-bg-gray: #F3F5FC;
   }
