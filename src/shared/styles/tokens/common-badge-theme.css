@@ -1,0 +1,21 @@
+@theme {
+    /* 배지 텍스트 색상 (두 모드 공통, 라이트에 따로 정의 불필요) */
+    --color-badge-text-blue: #499FD4;
+    --color-badge-text-green: #1D8C72;
+    --color-badge-text-pink: #DB50B3;
+    --color-badge-text-orange: #D98363;
+  
+    /* 배지 배경 색상 (다크 기본값) */
+    --color-badge-bg-blue: #1C3341;
+    --color-badge-bg-green: #17342F;
+    --color-badge-bg-pink: #352731;
+    --color-badge-bg-orange: #463229;
+  }
+  
+  [data-theme="light"] {
+    /* 배지 배경 색상 (라이트 모드) */
+    --color-badge-bg-blue: #EEF9FF;
+    --color-badge-bg-green: #F5FFFD;
+    --color-badge-bg-pink: #FFF0FB;
+    --color-badge-bg-orange: #FFF4F0;
+  }

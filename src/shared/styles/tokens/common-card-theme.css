@@ -1,0 +1,26 @@
+@theme {
+    /* 카드 공통 색상 토큰 (다크 기본값) */
+    --color-card-bg: var(--color-gray-800);
+    --color-card-border: var(--color-gray-700);
+    --color-card-title: var(--color-white000);
+    --color-card-text: var(--color-gray-300);
+    --color-card-muted: var(--color-gray-500);
+    --color-card-divider: var(--color-gray-600);
+    --color-divider: var(--color-gray-600);
+    --color-card-section-bg: transparent;
+    --color-profile-card-bg: #212328;
+  }
+  
+  [data-theme="light"] {
+    /* 라이트 모드용 값 덮어쓰기 */
+    --color-card-bg: #FFFFFF;
+    --color-card-border: #D4DAE7;
+    --color-card-title: #191B1E;
+    --color-card-text: #606673;
+    --color-card-muted: #9EA6BA;
+    --color-card-divider: #D4DAE7;
+    --color-divider: #D4DAE7;
+
+    --color-card-section-bg: #F8F9FB;
+    --color-profile-card-bg: #F8F9FB;
+  }
