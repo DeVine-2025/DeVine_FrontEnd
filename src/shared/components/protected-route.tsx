@@ -1,8 +1,8 @@
 import { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 
 interface ProtectedRouteProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
@@ -13,7 +13,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   //   return <Navigate to="/login" replace />;
   // }
 
-  return <>{children}</>;
+  // 레이아웃 라우트로 사용될 때는 Outlet을 렌더링
+  // children이 있으면 기존 방식대로 children을 렌더링 (하위 호환성)
+  return children ? <>{children}</> : <Outlet />;
 };
 
 export default ProtectedRoute;

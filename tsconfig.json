@@ -27,6 +27,7 @@
       "@store/*": ["src/shared/store/*"],
       "@types/*": ["src/shared/types/*"],
       "@contexts/*": ["src/shared/contexts/*"],
+      "@pages": ["src/pages"],
       "@pages/*": ["src/pages/*"]
     }
   },
