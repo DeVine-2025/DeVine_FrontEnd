@@ -83,4 +83,17 @@
         @apply w-14 h-14;
     }
 
+    /* Project size presets */
+    .project-size-sm {
+        @apply w-[270px] h-[230px];
+    }
+
+    .project-size-md {
+        @apply w-[540px] h-[200px];
+    }
+
+    .project-size-lg {
+        @apply w-[1080px] h-[200px];
+    }
+
 }
