@@ -26,6 +26,7 @@
         height: 100%;
         flex-direction: column;
         scroll-behavior: smooth;
+        background-color: #191B1E;
     }
 
     #root {
@@ -39,5 +40,9 @@
         display: none;
     }
 
+    [data-theme='light'] html,
+    [data-theme='light'] body {
+        background-color: #FFFFFF;
+    }
     
 }
