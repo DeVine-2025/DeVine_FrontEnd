@@ -6,6 +6,7 @@
 @import "./tokens/common-card-theme.css";
 @import "./tokens/common-badge-theme.css";
 @import "./tokens/profile-card-theme.css";
+@import "./tokens/auth-theme.css";
 
 @layer base {
     :root{

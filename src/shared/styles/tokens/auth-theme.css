@@ -1,0 +1,13 @@
+@theme {
+    /* Auth page tokens (theme-aware via UI tokens) */
+    --color-auth-bg: var(--ui-bg);
+    --color-auth-text: var(--ui-1000);
+    --color-auth-desc: var(--ui-1000);
+
+    /* Auth button tokens (fixed across themes) */
+    --color-auth-btn-dark-bg: #2F323A;
+    --color-auth-btn-dark-text: #FFFFFF;
+    --color-auth-btn-light-bg: #FFFFFF;
+    --color-auth-btn-light-text: #191B1E;
+    --color-auth-btn-light-border: #D4DAE7;
+}
