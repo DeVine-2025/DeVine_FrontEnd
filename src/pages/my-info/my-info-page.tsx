@@ -3,4 +3,3 @@ const MyInfoPage = () => {
 };
 
 export default MyInfoPage;
-

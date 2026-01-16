@@ -3,4 +3,3 @@ const ProposedPage = () => {
 };
 
 export default ProposedPage;
-

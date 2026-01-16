@@ -1,23 +1,23 @@
-import RootLayout from '@layouts/root-layout';
 import ProtectedRoute from '@components/protected-route';
+import RootLayout from '@layouts/root-layout';
 import {
-  MainPage,
-  SignupPage,
-  LoginPage,
-  SearchPage,
-  ProjectSearchPage,
+  AppliedPage,
+  CompletedPage,
   DeveloperSearchPage,
+  InProgressPage,
+  LoginPage,
+  MainPage,
+  MatchingPage,
+  MyInfoPage,
+  MyProjectPage,
+  PmPage,
+  ProjectSearchPage,
+  ProposedPage,
+  RecommendDeveloperPage,
   RecommendPage,
   RecommendProjectPage,
-  RecommendDeveloperPage,
-  MatchingPage,
-  AppliedPage,
-  InProgressPage,
-  CompletedPage,
-  ProposedPage,
-  PmPage,
-  MyProjectPage,
-  MyInfoPage,
+  SearchPage,
+  SignupPage,
 } from '@pages';
 import { createBrowserRouter } from 'react-router-dom';
 

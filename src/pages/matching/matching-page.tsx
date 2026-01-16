@@ -3,4 +3,3 @@ const MatchingPage = () => {
 };
 
 export default MatchingPage;
-

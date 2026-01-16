@@ -3,4 +3,3 @@ const ProjectSearchPage = () => {
 };
 
 export default ProjectSearchPage;
-

@@ -26,6 +26,7 @@
         height: 100%;
         flex-direction: column;
         scroll-behavior: smooth;
+        background-color: var(--ui-bg);
     }
 
     #root {

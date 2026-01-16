@@ -3,4 +3,3 @@ const InProgressPage = () => {
 };
 
 export default InProgressPage;
-

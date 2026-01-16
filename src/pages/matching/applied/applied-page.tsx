@@ -3,4 +3,3 @@ const AppliedPage = () => {
 };
 
 export default AppliedPage;
-

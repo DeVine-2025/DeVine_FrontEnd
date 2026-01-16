@@ -1,7 +1,7 @@
-import { cn } from '@libs/cn';
-import type { ReactNode } from 'react';
 import BookmarkIcon from '@assets/icons/bookmark.svg?react';
 import BookmarkFilled from '@assets/icons/bookmark-filled.svg?react';
+import { cn } from '@libs/cn';
+import type { ReactNode } from 'react';
 
 export type BadgeTone = 'blue' | 'green' | 'pink' | 'orange';
 
@@ -62,14 +62,11 @@ export default function ProfileCard({
 }: ProfileCardProps) {
   const normalize = (s: string) => (s ?? '').replace(/\s+/g, '').toLowerCase();
 
-  const rootSizeClass =
-    size === 'sm' ? 'card-size-sm' : 'card-container-md card-size-md';
+  const rootSizeClass = size === 'sm' ? 'card-size-sm' : 'card-container-md card-size-md';
   const avatarClass = size === 'sm' ? 'card-avatar-sm' : 'card-avatar-md';
 
   const meta =
-    location && experience
-      ? `${location} | ${experience}`
-      : location || experience || '';
+    location && experience ? `${location} | ${experience}` : location || experience || '';
 
   // 역할 배지와 중복되는 항목은 배지 리스트에서 제거
   const filteredBadges = badges?.filter(({ label }) => normalize(label) !== normalize(role));
@@ -77,7 +74,7 @@ export default function ProfileCard({
   return (
     <article
       className={cn(
-        'bg-profile-card-bg rounded-2xl flex flex-col border border-transparent',
+        'flex flex-col rounded-2xl border border-transparent bg-profile-card-bg',
         rootSizeClass,
         className,
       )}
@@ -87,16 +84,16 @@ export default function ProfileCard({
         <img
           src={profileImageUrl}
           alt={profileImageAlt ?? nickname}
-          className={cn(avatarClass, 'rounded-full object-cover flex-shrink-0')}
+          className={cn(avatarClass, 'flex-shrink-0 rounded-full object-cover')}
           loading="lazy"
         />
 
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           {/* 역할 배지 */}
           {role && roleTone && (
             <span
               className={cn(
-                'inline-flex rounded-full px-3 py-1 Label1',
+                'Label1 inline-flex rounded-full px-3 py-1',
                 // 역할 배지 톤은 서버 값(roleTone) 사용, 없으면 배지 미표시
                 badgeToneToClass[roleTone],
               )}
@@ -106,10 +103,10 @@ export default function ProfileCard({
           )}
 
           {/* 닉네임 */}
-          <div className="mt-2 Title2 text-card-title truncate">{nickname}</div>
+          <div className="Title2 mt-2 truncate text-card-title">{nickname}</div>
 
           {/* 메타(지역 | 경력) */}
-          {meta && <div className="Label1 text-card-muted mt-1 truncate">{meta}</div>}
+          {meta && <div className="Label1 mt-1 truncate text-card-muted">{meta}</div>}
         </div>
 
         {/* 북마크 버튼 */}
@@ -117,20 +114,18 @@ export default function ProfileCard({
           type="button"
           aria-pressed={bookmarked}
           onClick={() => onBookmarkChange?.(!bookmarked, id)}
-          className="ml-auto p-1 rounded-md hover:opacity-80"
+          className="ml-auto rounded-md p-1 hover:opacity-80"
         >
           {bookmarked ? (
-            <BookmarkFilled aria-hidden="true" className="w-13 h-10 text-card-title" />
+            <BookmarkFilled aria-hidden="true" className="h-10 w-13 text-card-title" />
           ) : (
-            <BookmarkIcon aria-hidden="true" className="w-13 h-10 text-card-muted" />
+            <BookmarkIcon aria-hidden="true" className="h-10 w-13 text-card-muted" />
           )}
         </button>
       </div>
 
       {/* 소개 */}
-      {introduction && (
-        <p className="Body1 text-card-text line-clamp-2">{introduction}</p>
-      )}
+      {introduction && <p className="Body1 line-clamp-2 text-card-text">{introduction}</p>}
 
       {/* 배지 리스트(포지션/프로젝트 등) */}
       {filteredBadges && filteredBadges.length > 0 && (
@@ -138,7 +133,7 @@ export default function ProfileCard({
           {filteredBadges.map(({ label, tone }, idx) => (
             <span
               key={`${label}-${idx}`}
-              className={cn('rounded-full px-3 py-1 Label1', badgeToneToClass[tone])}
+              className={cn('Label1 rounded-full px-3 py-1', badgeToneToClass[tone])}
             >
               {label}
             </span>
@@ -158,13 +153,11 @@ export default function ProfileCard({
         </div>
       )}
 
-      {(recommendationReason ?? '') !== '' && (
-        <div className="border-t border-divider" />
-      )}
+      {(recommendationReason ?? '') !== '' && <div className="border-divider border-t" />}
 
       {/* 추천 이유 */}
       {recommendationReason && (
-        <div className="bg-card-profile-reason-bg rounded-xl p-10">
+        <div className="rounded-xl bg-card-profile-reason-bg p-10">
           <p className="Body1 text-card-title">{recommendationReason}</p>
         </div>
       )}

@@ -3,4 +3,3 @@ const DeveloperSearchPage = () => {
 };
 
 export default DeveloperSearchPage;
-
