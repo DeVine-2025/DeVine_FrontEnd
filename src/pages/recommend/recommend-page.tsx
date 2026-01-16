@@ -106,7 +106,7 @@ const RecommendPage = () => {
           <h2 className="mb-[2rem] font-semibold text-2xl text-[var(--ui-900)]">추천 개발자</h2>
           <div className="grid gap-[2rem] md:grid-cols-2 lg:grid-cols-3">
             {recommendedDevelopers.map((developer) => (
-              <ProfileCard key={developer.id} {...developer} />
+              <ProfileCard nickname={''} profileImageUrl={''} key={developer.id} {...developer} />
             ))}
           </div>
         </section>
