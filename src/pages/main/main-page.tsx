@@ -1,4 +1,3 @@
-// src/pages/main/main-page.tsx
 import { useThemeStore } from '@store/theme';
 
 const MainPage = () => {
