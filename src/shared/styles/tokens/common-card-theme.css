@@ -7,8 +7,13 @@
     --color-card-muted: var(--color-gray-500);
     --color-card-divider: var(--color-gray-600);
     --color-divider: var(--color-gray-600);
+
     --color-card-section-bg: transparent;
     --color-profile-card-bg: #212328;
+    --color-surface-tab: #2F323A;
+    --color-tab-bg-active: #191B1E;
+    --color-tab-text-active: #FFFFFF;
+    --color-tab-text-inactive: #9EA6BA;
   }
   
   [data-theme="light"] {
@@ -23,4 +28,8 @@
 
     --color-card-section-bg: #F8F9FB;
     --color-profile-card-bg: #F8F9FB;
+    --color-surface-tab: #F3F5FC;
+    --color-tab-bg-active: #FFFFFF;
+    --color-tab-text-active: #212328;
+    --color-tab-text-inactive: #606673;
   }
