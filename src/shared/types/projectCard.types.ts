@@ -13,7 +13,7 @@ export type ProjectRole = {
   tone: BadgeTone;
   current: number;
   total: number;
-  techStack?: TechStackItem[];
+  techStack?: readonly TechStackItem[];
 };
 
 export type ProjectCardProps = {

@@ -6,7 +6,7 @@ export default function SearchTabs() {
   const inactiveClass = 'text-tab-text-inactive hover:text-tab-text-active';
 
   return (
-    <div className="w-[280px] rounded-2xl bg-surface-tab p-2">
+    <div className="mb-5 w-[280px] rounded-2xl bg-surface-tab p-2">
       <div className="grid grid-cols-2 gap-2">
         <NavLink
           to="project"
