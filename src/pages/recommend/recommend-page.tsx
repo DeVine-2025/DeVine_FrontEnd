@@ -1,5 +1,14 @@
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+
 const RecommendPage = () => {
-  return <div>추천 프로젝트/개발자 페이지입니다</div>;
+  const location = useLocation();
+
+  // /recommend로 직접 접근하면 /recommend/project로 리다이렉트
+  if (location.pathname === '/recommend') {
+    return <Navigate to="/recommend/project" replace />;
+  }
+
+  return <Outlet />;
 };
 
 export default RecommendPage;
