@@ -1,8 +1,8 @@
 @theme {
     /* 카드 공통 색상 토큰 (다크 기본값) */
-    --color-card-bg: #191B1E;
-    --color-card-border: #41444D;
-    --color-card-title: var(--color-white);
+    --color-card-bg: var(--ui-bg);
+    --color-card-border: var(--ui-200);
+    --color-card-title: var(--color-white000);
     --color-card-text: var(--color-gray-300);
     --color-card-muted: var(--color-gray-500);
     --color-card-divider: var(--color-gray-600);
