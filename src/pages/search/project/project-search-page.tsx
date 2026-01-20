@@ -24,7 +24,7 @@ export default function ProjectSearchPage() {
         </button>
       </header>
 
-      <div className="h-px w-full bg-white/10" />
+      <div className="h-px w-full bg-card-border" />
 
       {/* 필터 */}
       <div className="flex flex-wrap gap-4">
