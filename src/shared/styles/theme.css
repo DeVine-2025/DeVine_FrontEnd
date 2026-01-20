@@ -39,6 +39,16 @@
     --font-weight-regular: 400;
     --font-weight-medium: 500;
     --font-weight-bold: 700;
+
+    /* ===========================
+             반응형 설정
+       =========================== */
+
+    --breakpoint-tablet: 744px;
+    --breakpoint-phone: 390px;
+
+    --breakpoint-tablet-max: 743px;
+    --breakpoint-phone-max: 389px;
 }
 
 [data-theme='light'] {
