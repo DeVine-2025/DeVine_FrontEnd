@@ -4,6 +4,8 @@ import DarkLogo from '@assets/icons/logo-dark.svg?react';
 import LightLogo from '@assets/icons/logo-light.svg?react';
 import AlarmIcon from '@assets/icons/alarm.svg?react';
 import AlarmLightIcon from '@assets/icons/alarm-light.svg?react';
+import AlarmDarkHoverIcon from '@assets/icons/alarm-dark-hover.svg?react';
+import AlarmLightHoverIcon from '@assets/icons/alarm-light-hover.svg?react';
 import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
 import ModeLightIcon from '@assets/icons/mode-light.svg?react';
 import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
@@ -82,12 +84,18 @@ const Header = () => {
         {/* 알림 */}
         <button
           type="button"
-          className="bg-[var(--ui-bg)] flex-row-center p-[0.4rem] rounded-[8px] size-[3.6rem]"
+          className="bg-[var(--ui-bg)] flex-row-center p-[0.4rem] rounded-[8px] size-[3.6rem] group relative"
         >
           {theme === 'dark' ? (
-            <AlarmIcon className="size-[2.4rem]" />
+            <>
+              <AlarmIcon className="size-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
+              <AlarmDarkHoverIcon className="size-[2.4rem] absolute opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            </>
           ) : (
-            <AlarmLightIcon className="size-[2.4rem]" />
+            <>
+              <AlarmLightIcon className="size-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
+              <AlarmLightHoverIcon className="size-[2.4rem] absolute opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            </>
           )}
         </button>
 
