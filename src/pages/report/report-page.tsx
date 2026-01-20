@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import TabMenu from '@pages/report/components/tab-menu';
+import ReportCard from '@pages/report/components/report-card';
 
 const ReportPage = () => {
   const [activeTab, setActiveTab] = useState('전체');
@@ -8,21 +9,30 @@ const ReportPage = () => {
 
   return (
     <div>
-      <div className="h-full">
-        <div className="flex max-w-[144rem] gap-[1.2rem] pl-[10rem]">
-          {tabs.map(tab => (
-            <TabMenu
-              key={tab}
-              text={tab}
-              isActive={activeTab === tab}
-              onClick={() => setActiveTab(tab)}
-            />
-          ))}
-        </div>
+      <div className="w-full">
+        <div className="max-w-[144rem] px-[8rem]">
+          <div className="flex gap-[1.2rem]">
+            {tabs.map(tab => (
+              <TabMenu
+                key={tab}
+                text={tab}
+                isActive={activeTab === tab}
+                onClick={() => setActiveTab(tab)}
+              />
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-[1.6rem] mt-[3.3rem]">
+            <ReportCard type="create"/>
+            <ReportCard type="main"/>
+            <ReportCard type="main"/>
+            <ReportCard type="main"/>
+          </div>
         </div>
 
       </div>
-      );
-      };
+
+    </div>
+  );
+};
 
       export default ReportPage;
