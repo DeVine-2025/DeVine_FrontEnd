@@ -78,6 +78,15 @@
 
     --badge-text-orange: #D98363;
     --badge-bg-orange: #FFF4F0;
+
+
+    /* ===========================
+             반응형 설정
+   =========================== */
+
+    --breakpoint-desktop: 144rem;
+    --breakpoint-tablet: 74.4rem;
+    --breakpoint-phone: 39rem;
 }
 
 
