@@ -25,14 +25,14 @@ const DeveloperSearchPage = () => {
       {/* 추천 개발자 카드 */}
       <div className="scrollbar-hide flex justify-center gap-6 overflow-x-auto">
         {PROFILE_CARD_LIST.map((profile) => (
-          <ProfileCard key={profile.id} {...profile} />
+          <ProfileCard key={profile.id} {...profile} size="sm" />
         ))}
       </div>
 
       {/* 구분선 */}
       <div className="h-px w-full bg-card-border" />
 
-      {/* 개발자 리스트 (세로) */}
+      {/* 개발자 리스트 */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">개발자 리스트</div>
     </section>
   );
