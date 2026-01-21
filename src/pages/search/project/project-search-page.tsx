@@ -1,5 +1,7 @@
 import ChevronDownIcon from '@assets/icons/chevron-down.svg?react';
 import ProjectLg from '@components/common/ProjectLg';
+import ProjectSm from '@components/common/ProjectSm';
+import { useNavigate } from 'react-router-dom';
 import {
   PROJECT_FILTERS,
   PROJECT_LIST,
@@ -8,6 +10,8 @@ import {
 } from 'src/mocks/project.mock';
 
 export default function ProjectSearchPage() {
+  const navigate = useNavigate();
+
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
       {/* 추천 프로젝트 */}
@@ -18,11 +22,28 @@ export default function ProjectSearchPage() {
 
         <button
           type="button"
+          onClick={() => navigate('/recommend')}
           className="inline-flex cursor-pointer items-center gap-2 text-card-muted text-lg hover:opacity-80"
         >
           더 많은 추천 프로젝트 보러가기 <span aria-hidden="true">›</span>
         </button>
       </header>
+
+      <div className="scrollbar-hide flex justify-center gap-6 overflow-x-auto">
+        {RECOMMENDED_PROJECTS.map((p) => (
+          <ProjectSm
+            key={p.id}
+            categoryLabel={p.categoryLabel}
+            deadlineLabel={p.deadlineLabel}
+            title={p.title}
+            location={p.location}
+            period={p.period}
+            mode={p.mode}
+            roles={[...PROJECT_ROLES]}
+            bookmarked={p.bookmarked}
+          />
+        ))}
+      </div>
 
       <div className="h-px w-full bg-card-border" />
 
