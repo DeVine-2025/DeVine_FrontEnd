@@ -140,14 +140,14 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
     </div>
   ) : null;
 
-  const Due = dueLabel ? <p className="text-badge-text-gray text-xl">{dueLabel}</p> : null;
+  const Due = dueLabel ? <p className="w-[65px] text-badge-text-gray text-xl">{dueLabel}</p> : null;
 
   const Bookmark = (
     <button
       type="button"
       aria-pressed={bookmarked}
       onClick={() => onBookmarkChange?.(!bookmarked)}
-      className="w-[40px] cursor-pointer hover:opacity-80"
+      className="w-[30px] cursor-pointer hover:opacity-80"
     >
       {bookmarked ? (
         <BookmarkIcon aria-hidden="true" className="h-11 w-9 text-card-muted" />
