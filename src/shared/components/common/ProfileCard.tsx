@@ -1,7 +1,7 @@
-import { cn } from '@libs/cn';
-import type { ReactNode } from 'react';
 import BookmarkIcon from '@assets/icons/bookmark.svg?react';
 import BookmarkFilled from '@assets/icons/bookmark-filled.svg?react';
+import { cn } from '@libs/cn';
+import type { ReactNode } from 'react';
 
 export type BadgeTone = 'blue' | 'green' | 'pink' | 'orange';
 
@@ -19,11 +19,7 @@ export type ProfileCardProps = {
   profileImageAlt?: string;
   id?: string;
 
-  location?: string;
-  experience?: string;
-
   introduction?: string;
-  recommendationReason?: string;
 
   badges?: Array<{ label: string; tone: BadgeTone }>;
   techStack?: TechStackItem[];
@@ -49,55 +45,46 @@ export default function ProfileCard({
   profileImageUrl,
   profileImageAlt,
   id,
-  location,
-  experience,
   introduction,
-  recommendationReason,
   badges,
   techStack,
   bookmarked = false,
   onBookmarkChange,
-  size = 'md',
+  size = 'sm',
   className,
 }: ProfileCardProps) {
-  const normalize = (s: string) => (s ?? '').replace(/\s+/g, '').toLowerCase();
-
-  const rootSizeClass =
-    size === 'sm' ? 'card-size-sm' : 'card-container-md card-size-md';
+  const rootSizeClass = size === 'sm' ? 'card-size-sm' : 'card-size-md';
   const avatarClass = size === 'sm' ? 'card-avatar-sm' : 'card-avatar-md';
 
-  const meta =
-    location && experience
-      ? `${location} | ${experience}`
-      : location || experience || '';
-
-  // 역할 배지와 중복되는 항목은 배지 리스트에서 제거
-  const filteredBadges = badges?.filter(({ label }) => normalize(label) !== normalize(role));
+  const maxTech = 4;
+  const shownTech = (techStack ?? []).slice(0, maxTech);
+  const restCount = Math.max((techStack?.length ?? 0) - maxTech, 0);
 
   return (
     <article
       className={cn(
-        'bg-profile-card-bg rounded-2xl flex flex-col border border-transparent',
+        'flex flex-col rounded-2xl border border-transparent bg-filter-bg',
         rootSizeClass,
         className,
       )}
     >
       {/* 상단 영역 */}
-      <div className="flex items-start gap-4">
+      <div className="flex items-center gap-4">
+        {/* 프로필 이미지 */}
         <img
           src={profileImageUrl}
           alt={profileImageAlt ?? nickname}
-          className={cn(avatarClass, 'rounded-full object-cover flex-shrink-0')}
+          className={cn(avatarClass, 'shrink-0 rounded-full object-cover', 'ring-2 ring-white/40')}
           loading="lazy"
         />
 
-        <div className="flex-1 min-w-0">
+        {/* 역할 + 닉네임 */}
+        <div className="flex min-w-0 flex-col gap-4 pl-2">
           {/* 역할 배지 */}
           {role && roleTone && (
             <span
               className={cn(
-                'inline-flex rounded-full px-3 py-1 Label1',
-                // 역할 배지 톤은 서버 값(roleTone) 사용, 없으면 배지 미표시
+                'inline-flex w-fit items-center whitespace-nowrap rounded-lg px-3 py-1 font-semibold text-base',
                 badgeToneToClass[roleTone],
               )}
             >
@@ -106,10 +93,7 @@ export default function ProfileCard({
           )}
 
           {/* 닉네임 */}
-          <div className="mt-2 Title2 text-card-title truncate">{nickname}</div>
-
-          {/* 메타(지역 | 경력) */}
-          {meta && <div className="Label1 text-card-muted mt-1 truncate">{meta}</div>}
+          <div className="truncate font-medium text-[16px] text-card-title">{nickname}</div>
         </div>
 
         {/* 북마크 버튼 */}
@@ -117,28 +101,27 @@ export default function ProfileCard({
           type="button"
           aria-pressed={bookmarked}
           onClick={() => onBookmarkChange?.(!bookmarked, id)}
-          className="ml-auto p-1 rounded-md hover:opacity-80"
+          className="ml-auto cursor-pointer self-start hover:opacity-80"
         >
           {bookmarked ? (
-            <BookmarkFilled aria-hidden="true" className="w-13 h-10 text-card-title" />
+            <BookmarkFilled aria-hidden="true" className="h-10 w-10 text-card-muted" />
           ) : (
-            <BookmarkIcon aria-hidden="true" className="w-13 h-10 text-card-muted" />
+            <BookmarkIcon aria-hidden="true" className="h-10 w-10 text-card-muted" />
           )}
         </button>
       </div>
 
-      {/* 소개 */}
-      {introduction && (
-        <p className="Body1 text-card-text line-clamp-2">{introduction}</p>
-      )}
-
-      {/* 배지 리스트(포지션/프로젝트 등) */}
-      {filteredBadges && filteredBadges.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          {filteredBadges.map(({ label, tone }, idx) => (
+      {/* 배지 */}
+      {badges && badges.length > 0 && (
+        <div className="flex flex-wrap gap-4">
+          {badges.map(({ label, tone }, idx) => (
             <span
               key={`${label}-${idx}`}
-              className={cn('rounded-full px-3 py-1 Label1', badgeToneToClass[tone])}
+              className={cn(
+                'inline-flex items-center rounded-xl px-4 py-2',
+                'font-semibold text-[10px] text-badge-text-gray',
+                'bg-badge-bg-gray',
+              )}
             >
               {label}
             </span>
@@ -146,26 +129,21 @@ export default function ProfileCard({
         </div>
       )}
 
+      {/* 소개 */}
+      {introduction && <p className="line-clamp-2 pl-2 text-card-text text-lg">{introduction}</p>}
+
       {/* 스킬 */}
       {techStack && techStack.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-4">
           {techStack.map((s) => (
-            <div key={s.id} className="flex items-center gap-1">
+            <div
+              key={s.id}
+              className="flex items-center gap-1 rounded-3xl border border-card-border bg-surface-tab px-4 py-1"
+            >
               {s.icon}
-              <span className="Label1 text-card-text">{s.name}</span>
+              <span className="text-card-text text-lg">{s.name}</span>
             </div>
           ))}
-        </div>
-      )}
-
-      {(recommendationReason ?? '') !== '' && (
-        <div className="border-t border-divider" />
-      )}
-
-      {/* 추천 이유 */}
-      {recommendationReason && (
-        <div className="bg-card-profile-reason-bg rounded-xl p-10">
-          <p className="Body1 text-card-title">{recommendationReason}</p>
         </div>
       )}
     </article>
