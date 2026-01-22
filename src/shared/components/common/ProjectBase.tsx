@@ -1,14 +1,7 @@
 import BookmarkIcon from '@assets/icons/bookmark.svg?react';
 import PersonIcon from '@assets/icons/person.svg?react';
 import type { ProjectCardBaseProps } from 'src/shared/types/projectCard.types.ts';
-export type BadgeTone = 'blue' | 'green' | 'pink' | 'orange';
-
-const badgeToneToClass: Record<BadgeTone, string> = {
-  blue: 'bg-badge-bg-blue text-badge-text-blue',
-  green: 'bg-badge-bg-green text-badge-text-green',
-  pink: 'bg-badge-bg-pink text-badge-text-pink',
-  orange: 'bg-badge-bg-orange text-badge-text-orange',
-};
+import { badgeToneToClass } from '../../types/badgeTone';
 
 export default function ProjectBase(props: ProjectCardBaseProps) {
   const {
