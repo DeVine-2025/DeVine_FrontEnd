@@ -35,7 +35,7 @@ const DeveloperSearchPage = () => {
       {/* 개발자 리스트 */}
       <div className="flex flex-col gap-4">
         {PROFILE_CARD_LIST.map((profile) => (
-          <ProfileCard key={profile.id} {...profile} size="lg" />
+          <ProfileCard key={profile.id} {...profile} size="md" />
         ))}
       </div>
     </section>
