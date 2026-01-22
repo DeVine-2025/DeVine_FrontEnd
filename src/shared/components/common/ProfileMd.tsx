@@ -1,6 +1,6 @@
 import { cn } from '@libs/cn';
 import type { ProfileCardProps } from '../../types/profileCard.types';
-import { BadgeRow, HeaderBlock, Intro, TechChips } from './ProfileBase';
+import { BadgeList, HeaderBlock, Intro, TechChips } from './ProfileBase';
 
 export default function ProfileCardMd(props: ProfileCardProps) {
   return (
@@ -14,7 +14,7 @@ export default function ProfileCardMd(props: ProfileCardProps) {
         />
 
         <div className="mt-6">
-          <BadgeRow badges={props.badges} pillClass="px-4 py-2 text-sm" />
+          <BadgeList badges={props.badges} className="px-4 py-2 text-sm" />
         </div>
 
         <div className="mt-6">

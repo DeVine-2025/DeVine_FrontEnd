@@ -1,12 +1,10 @@
 import { cn } from '@libs/cn';
 import type { ProfileCardProps } from '../../types/profileCard.types';
-import { BadgeRow, HeaderBlock, Intro, TechChips } from './ProfileBase';
+import { BadgeList, HeaderBlock, Intro, TechChips } from './ProfileBase';
 
 export default function ProfileCardSm(props: ProfileCardProps) {
   return (
-    <article
-      className={cn('flex flex-col rounded-2xl bg-filter-bg', 'card-size-sm', props.className)}
-    >
+    <article className={cn('rounded-2xl bg-filter-bg', 'card-size-sm')}>
       <HeaderBlock
         {...props}
         avatarClass="card-avatar-sm"
@@ -14,15 +12,15 @@ export default function ProfileCardSm(props: ProfileCardProps) {
         titleClass="text-[16px] font-medium"
       />
 
-      <div className="mt-6">
-        <BadgeRow badges={props.badges} pillClass="px-4 py-2 text-[10px]" />
+      <div>
+        <BadgeList badges={props.badges} className="mt-6 gap-3" />
       </div>
 
-      <div className="mt-6">
+      <div className="mt-2">
         <Intro introduction={props.introduction} />
       </div>
 
-      <div className="mt-6">
+      <div className="mt-2">
         <TechChips techStack={props.techStack} max={4} />
       </div>
     </article>

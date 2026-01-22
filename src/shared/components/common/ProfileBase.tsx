@@ -4,6 +4,11 @@ import { cn } from '@libs/cn';
 import { badgeToneToClass } from '../../types/badgeTone';
 import type { ProfileCardProps, TechStackItem } from '../../types/profileCard.types';
 
+type BadgeListProps = {
+  badges?: ProfileCardProps['badges'];
+  className?: string;
+};
+
 export function HeaderBlock({
   role,
   roleTone,
@@ -72,27 +77,25 @@ export function HeaderBlock({
   );
 }
 
-export function BadgeRow({
-  badges,
-  pillClass,
-}: {
-  badges?: ProfileCardProps['badges'];
-  pillClass: string;
-}) {
+type BadgeProps = {
+  label: string;
+};
+
+export function Badge({ label }: BadgeProps) {
+  return (
+    <span className="inline-flex items-center whitespace-nowrap rounded-xl bg-badge-bg-gray px-4 py-2 font-semibold text-[10px] text-badge-text-gray">
+      {label}
+    </span>
+  );
+}
+
+export function BadgeList({ badges, className }: BadgeListProps) {
   if (!badges?.length) return null;
 
   return (
-    <div className="flex flex-wrap gap-4">
-      {badges.map(({ label }, idx) => (
-        <span
-          key={`${label}-${idx}`}
-          className={cn(
-            'inline-flex items-center rounded-xl bg-badge-bg-gray font-semibold text-badge-text-gray',
-            pillClass,
-          )}
-        >
-          {label}
-        </span>
+    <div className={cn('flex flex-wrap gap-4', className)}>
+      {badges.map(({ id, label }) => (
+        <Badge key={id ?? label} label={label} />
       ))}
     </div>
   );
