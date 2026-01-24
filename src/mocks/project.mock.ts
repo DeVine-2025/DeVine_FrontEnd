@@ -61,7 +61,7 @@ export const PROJECT_FILTERS = [
   '예상 기간',
 ] as const;
 
-// 리스트용 프로젝트
+// 리스트용 프로젝트 (추천 페이지용 적합도 필드 포함)
 export type ProjectListItem = {
   id: string;
   categoryLabel: string;
@@ -72,6 +72,10 @@ export type ProjectListItem = {
   mode: string;
   dueLabel: string;
   bookmarked?: boolean;
+  techSuitability?: number;
+  domainSuitability?: number;
+  growthPotential?: number;
+  overallScore?: number;
 };
 
 export const PROJECT_LIST: ProjectListItem[] = [
@@ -85,6 +89,10 @@ export const PROJECT_LIST: ProjectListItem[] = [
     mode: '온라인/오프라인',
     dueLabel: '오늘 마감',
     bookmarked: false,
+    techSuitability: 4,
+    domainSuitability: 4,
+    growthPotential: 3,
+    overallScore: 95,
   },
   {
     id: 'p-2',
@@ -96,6 +104,10 @@ export const PROJECT_LIST: ProjectListItem[] = [
     mode: '온라인',
     dueLabel: '오늘 마감',
     bookmarked: true,
+    techSuitability: 5,
+    domainSuitability: 4,
+    growthPotential: 4,
+    overallScore: 92,
   },
   {
     id: 'p-3',
@@ -107,6 +119,10 @@ export const PROJECT_LIST: ProjectListItem[] = [
     mode: '온라인/오프라인',
     dueLabel: '마감 7일 전',
     bookmarked: false,
+    techSuitability: 3,
+    domainSuitability: 5,
+    growthPotential: 4,
+    overallScore: 88,
   },
   {
     id: 'p-4',
@@ -118,6 +134,10 @@ export const PROJECT_LIST: ProjectListItem[] = [
     mode: '온라인',
     dueLabel: '26.01.05.',
     bookmarked: false,
+    techSuitability: 4,
+    domainSuitability: 3,
+    growthPotential: 5,
+    overallScore: 90,
   },
   {
     id: 'p-5',
@@ -129,6 +149,10 @@ export const PROJECT_LIST: ProjectListItem[] = [
     mode: '온라인',
     dueLabel: '마감 3일 전',
     bookmarked: true,
+    techSuitability: 4,
+    domainSuitability: 4,
+    growthPotential: 3,
+    overallScore: 85,
   },
   {
     id: 'p-6',
@@ -140,6 +164,10 @@ export const PROJECT_LIST: ProjectListItem[] = [
     mode: '온라인/오프라인',
     dueLabel: '마감 10일 전',
     bookmarked: false,
+    techSuitability: 3,
+    domainSuitability: 5,
+    growthPotential: 4,
+    overallScore: 87,
   },
   {
     id: 'p-7',
@@ -151,6 +179,10 @@ export const PROJECT_LIST: ProjectListItem[] = [
     mode: '온라인',
     dueLabel: '26.01.12.',
     bookmarked: false,
+    techSuitability: 5,
+    domainSuitability: 4,
+    growthPotential: 4,
+    overallScore: 91,
   },
   {
     id: 'p-8',
@@ -162,6 +194,10 @@ export const PROJECT_LIST: ProjectListItem[] = [
     mode: '오프라인',
     dueLabel: '마감 14일 전',
     bookmarked: true,
+    techSuitability: 4,
+    domainSuitability: 4,
+    growthPotential: 3,
+    overallScore: 89,
   },
   {
     id: 'p-9',
@@ -173,6 +209,10 @@ export const PROJECT_LIST: ProjectListItem[] = [
     mode: '온라인',
     dueLabel: '26.01.20.',
     bookmarked: false,
+    techSuitability: 4,
+    domainSuitability: 5,
+    growthPotential: 5,
+    overallScore: 93,
   },
   {
     id: 'p-10',
@@ -184,6 +224,10 @@ export const PROJECT_LIST: ProjectListItem[] = [
     mode: '온라인',
     dueLabel: '마감 5일 전',
     bookmarked: false,
+    techSuitability: 3,
+    domainSuitability: 3,
+    growthPotential: 5,
+    overallScore: 82,
   },
 ];
 
