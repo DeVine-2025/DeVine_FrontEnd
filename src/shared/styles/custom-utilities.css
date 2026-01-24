@@ -64,15 +64,15 @@
 
     /* Card size presets */
     .card-size-sm {
-        @apply p-6 gap-4;
+        @apply  w-[280px] h-[240px] p-8 flex flex-col gap-3;
     }
 
     .card-size-md {
-        @apply p-6 gap-4;
+        @apply max-w-[580px] h-[180px] p-10;
     }
 
-    .card-container-md {
-        @apply w-[632px] h-[224px];
+    .card-size-lg {
+        @apply max-w-[1180px] h-[180px] p-10;
     }
 
     .card-avatar-sm {
@@ -80,7 +80,7 @@
     }
 
     .card-avatar-md {
-        @apply w-14 h-14;
+        @apply w-[80px] h-[80px];
     }
 
     /* Project size presets */

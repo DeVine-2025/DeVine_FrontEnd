@@ -1,14 +1,7 @@
 import BookmarkIcon from '@assets/icons/bookmark.svg?react';
 import PersonIcon from '@assets/icons/person.svg?react';
 import type { ProjectCardBaseProps } from 'src/shared/types/projectCard.types.ts';
-export type BadgeTone = 'blue' | 'green' | 'pink' | 'orange';
-
-const badgeToneToClass: Record<BadgeTone, string> = {
-  blue: 'bg-badge-bg-blue text-badge-text-blue',
-  green: 'bg-badge-bg-green text-badge-text-green',
-  pink: 'bg-badge-bg-pink text-badge-text-pink',
-  orange: 'bg-badge-bg-orange text-badge-text-orange',
-};
+import { badgeToneToClass } from '../../types/badgeTone';
 
 export default function ProjectBase(props: ProjectCardBaseProps) {
   const {
@@ -140,14 +133,14 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
     </div>
   ) : null;
 
-  const Due = dueLabel ? <p className="text-badge-text-gray text-xl">{dueLabel}</p> : null;
+  const Due = dueLabel ? <p className="w-[65px] text-badge-text-gray text-xl">{dueLabel}</p> : null;
 
   const Bookmark = (
     <button
       type="button"
       aria-pressed={bookmarked}
       onClick={() => onBookmarkChange?.(!bookmarked)}
-      className="w-[40px] cursor-pointer hover:opacity-80"
+      className="w-[30px] cursor-pointer hover:opacity-80"
     >
       {bookmarked ? (
         <BookmarkIcon aria-hidden="true" className="h-11 w-9 text-card-muted" />
