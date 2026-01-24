@@ -96,4 +96,65 @@
         @apply w-[1080px] h-[200px];
     }
 
+    /* 애니메이션 */
+    @keyframes slide-in-right {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slide-out-right {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    .animate-slide-in-right {
+        animation: slide-in-right 0.5s ease-out;
+    }
+
+    .animate-slide-out-right {
+        animation: slide-out-right 1s ease-out;
+    }
+
+    @keyframes modal-pop-in {
+        from {
+            opacity: 0;
+            transform: scale(0.96) translateY(-8px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .animate-modal-pop-in {
+        animation: modal-pop-in 0.25s ease-out;
+    }
+
+    @keyframes modal-pop-out {
+        from {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: scale(0.96) translateY(-8px);
+        }
+    }
+
+    .animate-modal-pop-out {
+        animation: modal-pop-out 0.2s ease-in;
+    }
+
 }
