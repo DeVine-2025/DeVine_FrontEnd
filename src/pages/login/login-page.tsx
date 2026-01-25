@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import GithubIcon from '@assets/icons/github.svg?react';
 import GoogleIcon from '@assets/icons/google.svg?react';
+import AgreementList from '@components/onboarding/AgreementList';
 
 const LoginPage = () => {
+  const [isAgreementOpen, setIsAgreementOpen] = useState(false);
+  const [loginProvider, setLoginProvider] = useState<'github' | 'google' | null>(null);
+
   return (
     <div className="bg-[var(--color-auth-bg)] text-[var(--color-auth-text)]">
       <main className="mx-auto flex min-h-screen w-full max-w-[360px] flex-col items-center justify-center px-6 text-center sm:max-w-[600px] sm:px-10 lg:max-w-[1200px] lg:px-16">
@@ -16,6 +21,10 @@ const LoginPage = () => {
         <div className="mt-30 flex w-full max-w-[360px] flex-col gap-3 font-semibold text-[16px] sm:max-w-[420px]">
           <button
             type="button"
+            onClick={() => {
+              setLoginProvider('github');
+              setIsAgreementOpen(true);
+            }}
             className="flex h-[48px] w-full items-center justify-center gap-4 rounded-[12px] px-4 whitespace-nowrap bg-[var(--color-auth-btn-dark-bg)] text-[var(--color-auth-btn-dark-text)]"
           >
             <GithubIcon className="h-9 w-9" aria-hidden="true" />
@@ -23,6 +32,10 @@ const LoginPage = () => {
           </button>
           <button
             type="button"
+            onClick={() => {
+              setLoginProvider('google');
+              setIsAgreementOpen(true);
+            }}
             className="flex h-[48px] w-full items-center justify-center gap-4 rounded-[12px] px-4 whitespace-nowrap bg-[var(--color-auth-btn-light-bg)] text-[var(--color-auth-btn-light-text)] border border-[var(--color-auth-btn-light-border)]"
           >
             <GoogleIcon className="h-7 w-7" aria-hidden="true" />
@@ -30,6 +43,13 @@ const LoginPage = () => {
           </button>
         </div>
       </main>
+      {isAgreementOpen && (
+        <AgreementList
+          onClose={() => setIsAgreementOpen(false)}
+          onConfirm={() => setIsAgreementOpen(false)}
+          loginProvider={loginProvider ?? 'google'}
+        />
+      )}
     </div>
   );
 };
