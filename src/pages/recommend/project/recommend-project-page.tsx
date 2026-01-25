@@ -15,7 +15,7 @@ const RecommendProjectPage = () => {
           <button
             key={label}
             type="button"
-            className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-filter-bg px-5 py-3 font-medium text-filter-text text-xl"
+            className="inline-flex cursor-pointer items-center gap-3 rounded-full bg-filter-bg px-6 py-[14px] font-semibold text-filter-text text-2xl"
           >
             {label}
             <ChevronDownIcon aria-hidden="true" className="h-4 w-4" />

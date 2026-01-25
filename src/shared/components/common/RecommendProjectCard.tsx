@@ -1,5 +1,4 @@
 import BookmarkFilledIcon from '@assets/icons/bookmark-filled.svg?react';
-import BookmarkIcon from '@assets/icons/bookmark.svg?react';
 import PersonIcon from '@assets/icons/person.svg?react';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
 import type { RecommendProjectCardProps } from 'src/shared/types/recommendProjectCard.types';
@@ -75,7 +74,7 @@ export default function RecommendProjectCard({
           ) : null}
         </div>
 
-        <div className="flex w-[372px] shrink-0 flex-col gap-[16px]">
+        <div className="flex w-[372px] shrink-0 self-start -translate-y-[3px] flex-col gap-[16px]">
           <div className="flex flex-col gap-[12px]">
             <div className="flex items-center gap-[4px]">
               {categoryLabel ? (
@@ -95,32 +94,32 @@ export default function RecommendProjectCard({
             </p>
           </div>
 
-          <p className="Caption1 font-semibold text-[var(--ui-600)]">
+          <p className="Caption1 mt-[32px] font-semibold text-[var(--ui-600)]">
             {[location, period, mode].filter(Boolean).join(' · ')}
           </p>
         </div>
 
-        <div className="flex h-[132px] w-[202px] shrink-0 flex-col items-center justify-center gap-[12px]">
+        <div className="flex h-[132px] w-[202px] shrink-0 translate-y-[16px] flex-col items-center justify-center gap-[12px]">
           {roles?.slice(0, 3).map((r) => (
-            <div key={r.key} className="flex w-full items-center gap-[12px]">
+            <div key={r.key} className="grid w-full grid-cols-[96px_56px_1px_1fr] items-center gap-x-[12px]">
               <span
-                className={`Caption1 flex items-center justify-center rounded-[8px] px-[8px] py-[4px] font-semibold ${
+                className={`Label1 inline-flex w-fit max-w-[96px] justify-self-center items-center justify-center truncate rounded-[8px] px-[12px] py-[6px] font-semibold ${
                   toneToClass[r.tone] ?? ''
                 }`}
               >
                 {r.label}
               </span>
 
-              <div className="flex items-center gap-[4px] text-[var(--ui-500)]">
+              <div className="flex w-[56px] items-center gap-[4px] text-[var(--ui-400)]">
                 <PersonIcon aria-hidden className="h-[16px] w-[16px]" />
-                <span className="Caption1 font-semibold text-[var(--ui-700)]">
-                  {r.current}/{r.total}
-                </span>
+                <span className="Caption1 font-semibold text-[var(--ui-1000)]">{r.current}</span>
+                <span className="Caption1 font-semibold text-[var(--ui-500)]">/</span>
+                <span className="Caption1 font-semibold text-[var(--ui-400)]">{r.total}</span>
               </div>
 
               <span className="h-[10px] w-px bg-[var(--ui-300)]" />
 
-              <div className="flex items-center gap-[4px]">
+              <div className="flex items-center gap-[4px] overflow-hidden">
                 {r.techStack?.slice(0, 5).map((t) => (
                   <span key={t.id} className="inline-flex h-[20px] w-[20px] items-center justify-center">
                     {t.icon}
@@ -130,27 +129,23 @@ export default function RecommendProjectCard({
             </div>
           ))}
         </div>
-
-        <div className="Body1 flex h-[132px] w-[100px] shrink-0 items-center justify-center text-center font-semibold text-[var(--ui-500)]">
-          {dueLabel}
-        </div>
-
-        <button
-          type="button"
-          aria-pressed={bookmarked}
-          onClick={(e) => {
-            e.stopPropagation();
-            onBookmarkChange?.(!bookmarked);
-          }}
-          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center hover:opacity-80"
-        >
-          {bookmarked ? (
-            <BookmarkFilledIcon aria-hidden className="h-[24px] w-[24px] text-[var(--ui-200)]" />
-          ) : (
-            <BookmarkIcon aria-hidden className="h-[24px] w-[24px] text-[var(--ui-200)]" />
-          )}
-        </button>
       </div>
+
+      <div className="Body1 absolute right-[140px] top-1/2 flex w-[100px] -translate-y-1/2 items-center justify-center text-center font-semibold text-[var(--ui-500)]">
+        {dueLabel}
+      </div>
+
+      <button
+        type="button"
+        aria-pressed={bookmarked}
+        onClick={(e) => {
+          e.stopPropagation();
+          onBookmarkChange?.(!bookmarked);
+        }}
+        className="absolute right-[24px] top-1/2 flex h-[60px] w-[60px] -translate-y-1/2 items-center justify-center hover:opacity-80"
+      >
+        <BookmarkFilledIcon aria-hidden className="h-[40px] w-[40px] text-[var(--ui-200)]" />
+      </button>
 
       {hasSuitability && suitabilityText ? (
         <div className="absolute bottom-[24px] left-[24px] w-[908px] rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">

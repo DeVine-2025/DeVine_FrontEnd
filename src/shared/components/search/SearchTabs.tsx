@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 
 export default function SearchTabs() {
-  const baseTabClass = 'Label1 rounded-xl py-3 text-center font-semibold transition-colors';
+  const baseTabClass = 'Body1 rounded-xl py-3 text-center font-semibold transition-colors';
   const activeClass = 'bg-tab-bg-active text-tab-text-active';
   const inactiveClass = 'text-tab-text-inactive hover:text-tab-text-active';
 
