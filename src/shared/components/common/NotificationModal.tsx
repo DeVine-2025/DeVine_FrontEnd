@@ -54,7 +54,7 @@ const NotificationModal = ({ isOpen, onClose, notifications }: NotificationModal
     <div className="fixed inset-0 z-50 pointer-events-none">
       <div
         ref={modalRef}
-        className={`absolute top-[7.6rem] right-[32rem] tablet:right-[18rem] max-[743px]:right-[10rem] max-[391px]:right-[5rem] w-[376px] h-[260px] bg-[var(--ui-bg)] border border-[var(--ui-200)] rounded-[16px] rounded-t-[8px] shadow-lg pointer-events-auto overflow-hidden ${
+        className={`absolute top-[7.6rem] right-[32rem] tablet:right-[18rem] max-[743px]:right-[10rem] max-[391px]:right-[5rem] w-[376px] h-[260px] bg-[var(--ui-bg)] border border-[var(--ui-200)] rounded-[16px] shadow-lg pointer-events-auto overflow-hidden ${
           isClosing ? 'animate-modal-pop-out' : 'animate-modal-pop-in'
         }`}
       >
@@ -62,7 +62,7 @@ const NotificationModal = ({ isOpen, onClose, notifications }: NotificationModal
           {notifications.slice(0, 2).map((notification) => (
             <div
               key={notification.id}
-              className="flex-1 flex flex-col min-h-0 border-b border-[var(--ui-200)] last:border-b-0 first:rounded-t-[8px] last:rounded-b-[16px] px-[2.4rem] py-[1.6rem]"
+              className="flex-1 flex flex-col min-h-0 border-b border-[var(--ui-200)] last:border-b-0 first:rounded-t-[16px] last:rounded-b-[16px] px-[2.4rem] py-[1.6rem]"
             >
               <div
                 onClick={handleClose}

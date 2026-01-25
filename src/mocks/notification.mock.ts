@@ -11,7 +11,7 @@ export const NOTIFICATIONS: NotificationItem[] = [
     id: '1',
     title: '프로젝트 제안이 들어왔어요',
     description: '[닉네임] 님이 제안한 프로젝트를 지금 확인해보세요.',
-    timestamp: '4시간 전',
+    timestamp: '14시간 전',
     isRead: false,
   },
   {
