@@ -15,29 +15,14 @@ import ModeDarkHoverIcon from '@assets/icons/mode-dark-hover.svg?react';
 import MenuIcon from '@assets/icons/menu.svg?react';
 import MenuClosedIcon from '@assets/icons/menu-closed.svg?react';
 import NotificationModal from '@components/common/NotificationModal';
-
+import { NOTIFICATIONS } from 'src/mocks/notification.mock';
 const Header = () => {
   const { theme, toggleTheme } = useThemeStore();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  const notifications = [
-    {
-      id: '1',
-      title: '프로젝트 제안이 들어왔어요!',
-      description: '[닉네임] 님이 제안한 프로젝트를 지금 확인해보세요.',
-      timestamp: '4시간 전',
-      isRead: false,
-    },
-    {
-      id: '2',
-      title: 'Text',
-      description: 'Text',
-      timestamp: '4시간 전',
-      isRead: true,
-    },
-  ];
+  const notifications = NOTIFICATIONS;
 
   const navItems = [
     { path: '/search', label: '프로젝트/개발자 보기' },

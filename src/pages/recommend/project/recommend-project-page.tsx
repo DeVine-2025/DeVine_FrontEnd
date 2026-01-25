@@ -8,7 +8,7 @@ import {
 
 const RecommendProjectPage = () => {
   return (
-    <div className="-ml-28 mx-auto flex w-full max-w-[1180px] flex-col gap-10">
+    <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
       {/* 필터 */}
       <div className="flex flex-wrap gap-4">
         {PROJECT_FILTERS.map((label) => (
