@@ -1,5 +1,5 @@
 import BookmarkFilledIcon from '@assets/icons/bookmark-filled.svg?react';
-import PersonIcon from '@assets/icons/person.svg?react';
+import AvatarIcon from '@assets/icons/avatar.svg?react';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
 
 type RecommendDeveloperTech = {
@@ -74,7 +74,7 @@ export default function RecommendDeveloperCard({
           <img src={profileImageUrl} alt={nickname} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[var(--ui-300)]">
-            <PersonIcon aria-hidden className="h-[28px] w-[28px]" />
+            <AvatarIcon aria-hidden className="h-[64px] w-[64px]" />
           </div>
         )}
       </div>
@@ -132,17 +132,17 @@ export default function RecommendDeveloperCard({
           e.stopPropagation();
           onBookmarkChange?.(!bookmarked);
         }}
-        className="group absolute right-[24px] top-1/2 flex h-[60px] w-[60px] -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-300)]"
+        className="group absolute right-[24px] top-1/2 flex h-[52px] w-[52px] -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-300)]"
       >
         <BookmarkFilledIcon
           aria-hidden
-          className="h-[40px] w-[40px] text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-active:scale-[0.98] group-hover:text-[var(--ui-300)]"
+          className="h-[32px] w-[32px] text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-active:scale-[0.98] group-hover:text-[var(--ui-300)]"
         />
       </button>
 
       {/* 하단 매칭 문구 */}
       <div className="absolute left-[24px] top-[182px] flex items-center justify-center rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
-        <p className="Headline1 font-medium text-[var(--ui-1000)]">
+        <p className="Body1 font-medium text-[var(--ui-1000)]">
           <span className="text-[var(--badge-text-primary)]">[{matchedProjectName}]</span>
           {matchedReason}
         </p>

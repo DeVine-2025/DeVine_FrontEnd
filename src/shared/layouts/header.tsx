@@ -81,7 +81,7 @@ const Header = () => {
           </nav>
         </div>
 
-        {/* 오른쪽: 액션 버튼들 */}
+        {/* 액션 버튼들 */}
         <div className="flex-items-center gap-[1.2rem] tablet:gap-[0.8rem] phone:gap-[0.6rem] flex-nowrap shrink-0">
           {/* 다크모드 토글 */}
           <button

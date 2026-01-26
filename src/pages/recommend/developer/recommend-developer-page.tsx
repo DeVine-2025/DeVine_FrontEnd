@@ -4,7 +4,7 @@ import DomainDropdown from '@components/recommend/DomainDropdown';
 import MyProjectDropdown from '@components/recommend/MyProjectDropdown';
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 import { useState } from 'react';
-import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
+import { PROFILE_CARD_LIST } from 'src/mocks/recommendDeveloper.mock';
 
 const DEVELOPER_FILTERS = ['내 프로젝트 선택', '포지션 / 기술스택', '관심 도메인'] as const;
 

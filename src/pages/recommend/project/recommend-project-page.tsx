@@ -5,7 +5,7 @@ import ExpectedPeriodDropdown from '@components/recommend/ExpectedPeriodDropdown
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 import ProjectTypeDropdown from '@components/recommend/ProjectTypeDropdown';
 import { useState } from 'react';
-import { PROJECT_FILTERS, PROJECT_LIST, PROJECT_ROLES } from 'src/mocks/project.mock';
+import { PROJECT_FILTERS, PROJECT_LIST, PROJECT_ROLES } from 'src/mocks/recommendProject.mock';
 
 const RecommendProjectPage = () => {
   const [openFilter, setOpenFilter] = useState<null | (typeof PROJECT_FILTERS)[number]>(null);
