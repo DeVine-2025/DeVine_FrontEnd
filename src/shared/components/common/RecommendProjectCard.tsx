@@ -142,9 +142,12 @@ export default function RecommendProjectCard({
           e.stopPropagation();
           onBookmarkChange?.(!bookmarked);
         }}
-        className="absolute right-[24px] top-1/2 flex h-[60px] w-[60px] -translate-y-1/2 items-center justify-center hover:opacity-80"
+        className="group absolute right-[24px] top-1/2 flex h-[60px] w-[60px] -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-300)]"
       >
-        <BookmarkFilledIcon aria-hidden className="h-[40px] w-[40px] text-[var(--ui-200)]" />
+        <BookmarkFilledIcon
+          aria-hidden
+          className="h-[40px] w-[40px] text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-active:scale-[0.98] group-hover:text-[var(--ui-300)]"
+        />
       </button>
 
       {hasSuitability && suitabilityText ? (
