@@ -54,7 +54,7 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
     ) : null;
 
   const Title = (
-    <h3 className="line-clamp-2 pl-1 font-semibold text-3xl text-card-title leading-snug">
+    <h3 className="line-clamp-2 pl-1 font-semibold text-[16px] text-card-title leading-snug">
       {title}
     </h3>
   );
@@ -101,7 +101,7 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
   ) : null;
 
   const RolesMd = roles?.length ? (
-    <div className="grid grid-cols-2 gap-x-10 gap-y-6">
+    <div className="grid grid-cols-2 gap-x-10 gap-y-7">
       {roles.slice(0, 2).map((r) => (
         <div key={r.key} className="flex flex-col gap-3">
           <span
@@ -140,12 +140,12 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
       type="button"
       aria-pressed={bookmarked}
       onClick={() => onBookmarkChange?.(!bookmarked)}
-      className="w-[30px] cursor-pointer hover:opacity-80"
+      className="cursor-pointer hover:opacity-80"
     >
       {bookmarked ? (
-        <BookmarkIcon aria-hidden="true" className="h-11 w-9 text-card-muted" />
+        <BookmarkIcon aria-hidden="true" className="h-9 w-9 text-card-muted" />
       ) : (
-        <BookmarkIcon aria-hidden="true" className="h-10 w-10 text-card-muted" />
+        <BookmarkIcon aria-hidden="true" className="h-9 w-9 text-card-muted" />
       )}
     </button>
   );

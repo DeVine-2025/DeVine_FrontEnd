@@ -15,9 +15,9 @@ export default function ProjectLg(props: ProjectCardProps) {
             {Meta}
           </div>
 
-          <div className="ml-auto flex w-[300px] shrink-0 items-center justify-end gap-13">
+          <div className="ml-auto flex w-[320px] shrink-0 items-center justify-end gap-17 pr-10">
             {RolesLg}
-            {props.dueLabel && <div className="flex items-center">{Due}</div>}
+            {props.dueLabel && <div className="flex text-center">{Due}</div>}
             {Bookmark}
           </div>
         </article>

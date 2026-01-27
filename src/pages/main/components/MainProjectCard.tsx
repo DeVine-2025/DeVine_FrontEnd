@@ -19,17 +19,23 @@ export default function MainProjectCard(props: ProjectCardProps) {
     <ProjectBase
       {...props}
       render={({ HeaderBadges, Bookmark }) => (
-        <article className="flex w-[280px] shrink-0 flex-col gap-4 rounded-3xl bg-profile-card-bg p-4">
-          <div className="relative flex justify-center">
-            {thumbnail}
-            <div className="absolute right-3 top-3 scale-75">{Bookmark}</div>
+        <article className="w-[280px] shrink-0 overflow-hidden rounded-3xl bg-profile-card-bg">
+          <div className="relative h-[160px] w-full bg-profile-card-bg">
+            {thumbnail ? (
+              <img
+                src={props.thumbnailUrl}
+                alt={props.thumbnailAlt}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full" />
+            )}
+            <div className="absolute top-4 right-4 z-10">{Bookmark}</div>
           </div>
-          <div className="flex flex-wrap gap-2">{HeaderBadges}</div>
-          <div className="flex flex-col gap-2">
-            <p className="line-clamp-2 text-[12px] font-semibold text-card-title">
-              {props.title}
-            </p>
-            {metaText && <p className="text-[10px] text-card-muted">{metaText}</p>}
+          <div className="flex flex-col gap-2 px-6 py-5">
+            <div className="flex gap-2">{HeaderBadges}</div>
+            <p className="line-clamp-2 font-semibold text-card-title text-xl">{props.title}</p>
+            <p className="text-base text-card-muted">{metaText}</p>
           </div>
         </article>
       )}

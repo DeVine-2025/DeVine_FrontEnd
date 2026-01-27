@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import MainProjectCard from './components/MainProjectCard';
-import MainProfileCard from './components/MainProfileCard';
-import MainProjectLg from './components/MainProjectLg';
 import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
+import MainProfileCard from './components/MainProfileCard';
+import MainProjectCard from './components/MainProjectCard';
+import MainProjectLg from './components/MainProjectLg';
 
 const USER_ROLE_KEY = 'userRole';
 
@@ -19,7 +19,7 @@ const MainPage = () => {
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-14">
       <section className="flex flex-col gap-6">
-        <h2 className="Heading2 font-semibold text-card-title">
+        <h2 className="Heading2 pt-5 font-semibold text-card-title">
           이번주 모두가 주목하는 프로젝트
         </h2>
         <div className="scrollbar-hide flex gap-6 overflow-x-auto">
