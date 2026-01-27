@@ -54,7 +54,7 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
     ) : null;
 
   const Title = (
-    <h3 className="line-clamp-2 pl-1 font-semibold text-2xl text-card-title leading-snug">
+    <h3 className="line-clamp-2 pl-1 font-semibold text-3xl text-card-title leading-snug">
       {title}
     </h3>
   );

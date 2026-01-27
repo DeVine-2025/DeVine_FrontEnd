@@ -22,8 +22,12 @@ const domainOptions = [
   'AI/데이터',
 ];
 
+const USER_ROLE_KEY = 'userRole';
+
 const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
-  const [role, setRole] = useState<'pm' | 'dev' | null>('pm');
+  const [role, setRole] = useState<'pm' | 'dev' | null>(
+    (localStorage.getItem(USER_ROLE_KEY) as 'pm' | 'dev' | null) ?? 'pm',
+  );
   const [domains, setDomains] = useState<string[]>([]);
 
   const canProceed = useMemo(() => role !== null && domains.length > 0, [role, domains]);
@@ -38,6 +42,11 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
       }
       return [...prev, value];
     });
+  };
+
+  const handleRoleChange = (nextRole: 'pm' | 'dev') => {
+    setRole(nextRole);
+    localStorage.setItem(USER_ROLE_KEY, nextRole);
   };
 
   return (
@@ -60,7 +69,7 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
                   <button
                     key={option.key}
                     type="button"
-                    onClick={() => setRole(option.key as 'pm' | 'dev')}
+                    onClick={() => handleRoleChange(option.key as 'pm' | 'dev')}
                     className="flex items-center gap-3 text-[var(--ui-900)]"
                     aria-pressed={selected}
                   >
