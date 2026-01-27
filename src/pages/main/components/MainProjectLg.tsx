@@ -1,5 +1,6 @@
 import type { ProjectCardProps } from 'src/shared/types/projectCard.types.ts';
 import ProjectBase from '@components/common/ProjectBase';
+import { cn } from '@libs/cn';
 
 type MainProjectLgProps = ProjectCardProps & {
   scoreSummary?: string;
@@ -16,9 +17,16 @@ export default function MainProjectLg(props: MainProjectLgProps) {
   return (
     <ProjectBase
       {...props}
-      render={({ Thumbnail, HeaderBadges, Title, Meta, RolesLg, Due, Bookmark }) => (
+      render={({ Thumbnail, HeaderBadges, Title, Meta, RolesLg, Due, Bookmark, CardActionProps }) => (
         <div className="w-full max-w-[1180px] rounded-2xl p-[1px]" style={{ backgroundImage: borderGradient }}>
-          <article className="flex w-full flex-col gap-4 rounded-2xl bg-card-bg p-8">
+          <article
+            {...CardActionProps}
+            className={cn(
+              'flex w-full flex-col gap-4 rounded-2xl bg-card-bg p-8',
+              props.onClick && 'cursor-pointer',
+              props.className,
+            )}
+          >
             <div className="flex items-center gap-8">
               {Thumbnail}
 
