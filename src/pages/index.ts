@@ -31,4 +31,8 @@ export { default as ProjectSearchPage } from './search/project/project-search-pa
 export { default as SearchPage } from './search/search-page';
 
 export { default as SignupPage } from './signup/signup-page';
+<<<<<<< HEAD
 export { default as SsoCallbackPage } from './auth/sso-callback-page';
+=======
+export { default as ProjectDetailPage } from './detail/project-detail-page';
+>>>>>>> 974e56c (fix: ProjectDetailPage export 경로를 detail 폴더로 변경)
