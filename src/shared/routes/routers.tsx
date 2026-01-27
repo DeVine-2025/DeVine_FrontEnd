@@ -16,7 +16,9 @@ import {
   CompletedPage,
   ProposedPage,
   PmPage,
+  ReportMainPage,
   ReportPage,
+  ReportCreatePage,
   MyProjectPage,
   MyInfoPage,
 } from '@pages';
@@ -59,7 +61,11 @@ export const router = createBrowserRouter([
               { path: 'pm', element: <PmPage /> },
             ],
           },
-          { path: 'report', element: <ReportPage/> },
+          { path: 'report', element: <ReportMainPage/>, children:[
+              { index: true,  element: <ReportPage /> },
+              { path: 'create', element: <ReportCreatePage/>},
+            ]},
+
           { path: 'my-project', element: <MyProjectPage /> },
           { path: 'my-info', element: <MyInfoPage /> },
         ],

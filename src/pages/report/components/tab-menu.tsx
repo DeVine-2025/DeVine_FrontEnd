@@ -9,8 +9,9 @@ type TabMenuProps = {
 
 const TabMenu = ({ text , isActive, onClick } : TabMenuProps) => {
   return (
-    <div
+    <button
       onClick={onClick}
+      type="button"
       className={cn(
         'inline-flex items-center justify-center cursor-pointer rounded-[32px] px-[2.4rem] py-[1.2rem] border-2',
         isActive
@@ -19,7 +20,7 @@ const TabMenu = ({ text , isActive, onClick } : TabMenuProps) => {
       )}
     >
       <p className={cn("Headline1", isActive ? "text-[var(--ui-bg)]" : "text-[var(--ui-400)]")}>{text}</p>
-    </div>
+    </button>
   );
 };
 
