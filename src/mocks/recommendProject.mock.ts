@@ -1,57 +1,4 @@
-// 추천 프로젝트 (상단 카드)
-export type RecommendedProject = {
-  id: string;
-  categoryLabel: string;
-  deadlineLabel: string;
-  title: string;
-  location: string;
-  period: string;
-  mode: string;
-  bookmarked?: boolean;
-};
-
-export const RECOMMENDED_PROJECTS: RecommendedProject[] = [
-  {
-    id: 'rec-1',
-    categoryLabel: '모바일/앱',
-    deadlineLabel: '라이프스타일',
-    title: '프로젝트 제목이 들어가는 자리입니다. 프로젝트 제목이 들어가는 자리입니다.',
-    location: '서울 강남구',
-    period: '3개월',
-    mode: '온라인/오프라인',
-    bookmarked: false,
-  },
-  {
-    id: 'rec-2',
-    categoryLabel: '모바일/앱',
-    deadlineLabel: '라이프스타일',
-    title: '프로젝트 제목이 들어가는 자리입니다. 프로젝트 제목이 들어가는 자리입니다.',
-    location: '서울 강남구',
-    period: '3개월',
-    mode: '온라인/오프라인',
-    bookmarked: true,
-  },
-  {
-    id: 'rec-3',
-    categoryLabel: '모바일/앱',
-    deadlineLabel: '라이프스타일',
-    title: '프로젝트 제목이 들어가는 자리입니다. 프로젝트 제목이 들어가는 자리입니다.',
-    location: '서울 강남구',
-    period: '3개월',
-    mode: '온라인/오프라인',
-    bookmarked: false,
-  },
-  {
-    id: 'rec-4',
-    categoryLabel: '모바일/앱',
-    deadlineLabel: '라이프스타일',
-    title: '프로젝트 제목이 들어가는 자리입니다. 프로젝트 제목이 들어가는 자리입니다.',
-    location: '서울 강남구',
-    period: '3개월',
-    mode: '온라인/오프라인',
-    bookmarked: false,
-  },
-];
+// 추천 프로젝트 페이지 전용 목데이터
 
 // 필터 라벨
 export const PROJECT_FILTERS = [
@@ -231,7 +178,7 @@ export const PROJECT_LIST: ProjectListItem[] = [
   },
 ];
 
-// 공통 역할 (ProjectLg용)
+// 공통 역할 (RecommendProjectCard용 roles)
 export const PROJECT_ROLES = [
   {
     key: 'fe',
@@ -258,3 +205,4 @@ export const PROJECT_ROLES = [
     techStack: [],
   },
 ] as const;
+

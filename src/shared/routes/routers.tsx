@@ -41,6 +41,7 @@ export const router = createBrowserRouter([
         path: 'recommend',
         element: <RecommendPage />,
         children: [
+          { index: true, element: <Navigate to="project" replace /> },
           { path: 'project', element: <RecommendProjectPage /> },
           { path: 'developer', element: <RecommendDeveloperPage /> },
         ],
