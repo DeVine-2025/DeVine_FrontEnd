@@ -1,6 +1,14 @@
-const SearchPage = () => {
-  return <div>프로젝트/개발자 검색 페이지입니다</div>;
-};
+import SearchTabs from '@components/search/SearchTabs';
+import { Outlet } from 'react-router-dom';
 
-export default SearchPage;
+export default function SearchPage() {
+  return (
+    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-6">
+      <SearchTabs />
 
+      <div>
+        <Outlet />
+      </div>
+    </section>
+  );
+}

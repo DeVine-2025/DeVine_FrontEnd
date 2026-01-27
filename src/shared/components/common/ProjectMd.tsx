@@ -6,9 +6,12 @@ export default function ProjectMd(props: ProjectCardProps) {
     <ProjectBase
       {...props}
       render={({ Thumbnail, HeaderBadges, Title, Meta, RolesMd, Bookmark }) => (
-        <article className="relative h-[200px] w-full max-w-[580px] rounded-2xl border border-card-border bg-card-bg px-8 py-7">
+        <article
+          className={`w-[290px] shrink-0 rounded-3xl bg-card-bg px-9 py-10 ${
+            props.className ?? ''
+          }`}
+        >
           <div className="absolute top-6 right-0 text-card-muted">{Bookmark}</div>
-
           <div className="flex gap-8">
             <div className="shrink-0">{Thumbnail}</div>
 

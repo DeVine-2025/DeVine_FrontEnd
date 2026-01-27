@@ -1,28 +1,28 @@
-import RootLayout from '@layouts/root-layout';
 import ProtectedRoute from '@components/protected-route';
+import RootLayout from '@layouts/root-layout';
 import {
-  MainPage,
-  SignupPage,
-  LoginPage,
-  SearchPage,
-  ProjectSearchPage,
+  AppliedPage,
+  CompletedPage,
   DeveloperSearchPage,
+  InProgressPage,
+  LoginPage,
+  MainPage,
+  MatchingPage,
+  MyInfoPage,
+  MyProjectPage,
+  PmPage,
+  ProjectSearchPage,
+  ProposedPage,
+  RecommendDeveloperPage,
   RecommendPage,
   RecommendProjectPage,
-  RecommendDeveloperPage,
-  MatchingPage,
-  AppliedPage,
-  InProgressPage,
-  CompletedPage,
-  ProposedPage,
-  PmPage,
+  SearchPage,
+  SignupPage,
   ReportMainPage,
   ReportPage,
   ReportCreatePage,
-  MyProjectPage,
-  MyInfoPage,
 } from '@pages';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 export const router = createBrowserRouter([
   {
@@ -35,6 +35,7 @@ export const router = createBrowserRouter([
         path: 'search',
         element: <SearchPage />,
         children: [
+          { index: true, element: <Navigate to="project" replace /> },
           { path: 'project', element: <ProjectSearchPage /> },
           { path: 'developer', element: <DeveloperSearchPage /> },
         ],
