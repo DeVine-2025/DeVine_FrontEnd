@@ -8,9 +8,13 @@ import {
   PROJECT_ROLES,
   RECOMMENDED_PROJECTS,
 } from 'src/mocks/project.mock';
+import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
 
 export default function ProjectSearchPage() {
   const navigate = useNavigate();
+  const handleProjectClick = (project: RecommendedProject | ProjectListItem) => {
+    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+  };
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
@@ -41,6 +45,7 @@ export default function ProjectSearchPage() {
             mode={p.mode}
             roles={[...PROJECT_ROLES]}
             bookmarked={p.bookmarked}
+            onClick={() => handleProjectClick(p)}
           />
         ))}
       </div>
@@ -76,7 +81,7 @@ export default function ProjectSearchPage() {
             dueLabel={p.dueLabel}
             bookmarked={p.bookmarked}
             onBookmarkChange={(next) => console.log('bookmark', p.id, next)}
-            onClick={() => console.log('click project', p.id)}
+            onClick={() => handleProjectClick(p)}
           />
         ))}
       </div>
