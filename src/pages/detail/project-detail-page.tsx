@@ -157,7 +157,7 @@ const ProjectDetailPage = () => {
             </button>
             <button
               type="button"
-              className="h-[44px] w-[240px] rounded-[12px] bg-[var(--badge-text-primary)] px-6 font-semibold text-white hover:opacity-80"
+              className="h-[44px] w-[240px] rounded-[12px] bg-[#4E49FF] px-6 font-semibold text-white hover:opacity-80"
             >
               지원하기
             </button>
@@ -176,13 +176,13 @@ const ProjectDetailPage = () => {
               <div className="flex items-center gap-6">
                 <span className="min-w-[84px] text-base">도메인</span>
                 <span className="text-base font-semibold text-card-title">
-                  {project.deadlineLabel ?? '금융'}
+                  {project.deadlineLabel ?? '추후 결정 예정'}
                 </span>
               </div>
               <div className="flex items-center gap-6">
                 <span className="min-w-[84px] text-base">진행 장소</span>
                 <span className="text-base font-semibold text-card-title">
-                  {project.location ?? '서울 강남구'}
+                  {project.location ?? '추후 결정 예정'}
                 </span>
               </div>
               <div className="flex items-center gap-6">
@@ -194,13 +194,13 @@ const ProjectDetailPage = () => {
               <div className="flex items-center gap-6">
                 <span className="min-w-[84px] text-base">진행 기간</span>
                 <span className="text-base font-semibold text-card-title">
-                  {project.period ?? '1개월'}
+                  {project.period ?? '추후 결정 예정'}
                 </span>
               </div>
               <div className="flex items-center gap-6">
                 <span className="min-w-[84px] text-base">모집 마감일</span>
                 <span className="text-base font-semibold text-card-title">
-                  {project.dueLabel ?? '26.01.08'}
+                  {project.dueLabel ?? '추후 결정 예정'}
                 </span>
               </div>
             </div>
