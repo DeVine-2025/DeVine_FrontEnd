@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
-import MainProfileCard from './components/MainProfileCard';
-import MainProjectCard from './components/MainProjectCard';
-import MainProjectLg from './components/MainProjectLg';
+import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
+import RecommendProjectCard from '@components/common/RecommendProjectCard';
+import MainProjectCard from '@components/common/MainProjectCard';
 
 const USER_ROLE_KEY = 'userRole';
 
@@ -51,14 +51,21 @@ const MainPage = () => {
           >
             {isPm
               ? recommendedProfiles.map((profile) => (
-                  <MainProfileCard
+                  <RecommendDeveloperCard
                     key={profile.id}
-                    {...profile}
-                    matchReason="의 Java/Springboot 요구사항과 일치합니다."
+                    role={profile.role}
+                    roleTone={profile.roleTone}
+                    nickname={profile.nickname}
+                    profileImageUrl={profile.profileImageUrl}
+                    introduction={profile.introduction}
+                    domains={profile.badges?.map((badge) => ({ label: badge.label }))}
+                    techStack={profile.techStack}
+                    bookmarked={profile.bookmarked}
+                    matchedReason="의 Java/Springboot 요구사항과 일치합니다."
                   />
                 ))
               : recommendedProjects.map((project) => (
-                  <MainProjectLg
+                  <RecommendProjectCard
                     key={project.id}
                     categoryLabel={project.categoryLabel}
                     deadlineLabel={project.deadlineLabel}
@@ -69,6 +76,10 @@ const MainPage = () => {
                     roles={[...PROJECT_ROLES]}
                     dueLabel={project.dueLabel}
                     bookmarked={project.bookmarked}
+                    techSuitability={project.techSuitability}
+                    domainSuitability={project.domainSuitability}
+                    growthPotential={project.growthPotential}
+                    overallScore={project.overallScore}
                   />
                 ))}
           </div>
