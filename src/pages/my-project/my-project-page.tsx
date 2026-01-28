@@ -1,6 +1,7 @@
 import ProfileCard from '@components/common/ProfileCard';
 import MainProjectCard from '@pages/main/components/MainProjectCard';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 import { PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 
@@ -12,6 +13,7 @@ const MyProjectPage = () => {
   const [projectTab, setProjectTab] = useState<ProjectTab>('ongoing');
 
   const highlightProjects = RECOMMENDED_PROJECTS.slice(0, 4);
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen">
@@ -32,21 +34,44 @@ const MyProjectPage = () => {
 
             <button
               type="button"
-              className="flex cursor-pointer items-center gap-2 font-medium text-[13px] text-gray-600 hover:text-gray-900"
+              onClick={() => navigate('/')}
+              className="inline-flex cursor-pointer items-center gap-2 text-card-muted text-xl hover:opacity-80"
             >
-              더보기 <span className="text-[16px] leading-none">›</span>
+              더보기 <span aria-hidden="true">›</span>
             </button>
           </div>
 
           <div className="mt-4 flex flex-col gap-4">
             {PROFILE_CARD_LIST.map((profile) => (
-              <ProfileCard key={profile.id} {...profile} size="lg" />
+              <ProfileCard
+                key={profile.id}
+                {...profile}
+                size="lg"
+                action={
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      className="cursor-pointer rounded-xl bg-[#4E49FF] px-3 py-2 font-medium text-[12px] text-my-tab-inactive"
+                      onClick={() => console.log('수락', profile.id)}
+                    >
+                      수락하기
+                    </button>
+                    <button
+                      type="button"
+                      className="cursor-pointer rounded-xl bg-surface-tab px-3 py-2 font-medium text-[12px] text-my-tab-text"
+                      onClick={() => console.log('거절', profile.id)}
+                    >
+                      거절하기
+                    </button>
+                  </div>
+                }
+              />
             ))}
           </div>
         </section>
 
         {/* 구분선 */}
-        <div className="my-12 h-[10px] w-full bg-gray-100" />
+        <div className="-translate-x-1/2 relative right-1/2 left-1/2 my-15 h-[15px] w-screen bg-profile-card-bg" />
 
         {/* ===== 하단 ===== */}
         <section>

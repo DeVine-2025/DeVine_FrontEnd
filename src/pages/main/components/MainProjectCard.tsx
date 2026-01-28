@@ -20,7 +20,7 @@ export default function MainProjectCard(props: ProjectCardProps) {
       {...props}
       render={({ HeaderBadges, Bookmark }) => (
         <article className="w-[280px] shrink-0 overflow-hidden rounded-3xl bg-profile-card-bg">
-          <div className="relative h-[160px] w-full bg-profile-card-bg">
+          <div className="relative h-[160px] w-full overflow-hidden rounded-3xl bg-profile-card-bg">
             {thumbnail ? (
               <img
                 src={props.thumbnailUrl}
@@ -28,7 +28,7 @@ export default function MainProjectCard(props: ProjectCardProps) {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="h-full w-full" />
+              <div className="h-full w-full object-cover" />
             )}
             <div className="absolute top-4 right-4 z-10">{Bookmark}</div>
           </div>
