@@ -95,7 +95,7 @@ function Tabs<T extends string>({
   items: { value: T; label: string }[];
 }) {
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-4">
       {items.map((t) => {
         const active = t.value === value;
         return (
@@ -104,10 +104,10 @@ function Tabs<T extends string>({
             type="button"
             onClick={() => onChange(t.value)}
             className={[
-              'rounded-full border px-4 py-2 font-medium text-[13px] transition',
+              'rounded-full border px-6 py-2.5 font-medium text-[13px] transition',
               active
-                ? 'border-gray-900 bg-gray-900 text-white'
-                : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
+                ? 'bg-my-tab-active text-tab-bg-active'
+                : 'border-my-tab-border bg-my-tab-inactive text-my-tab-text',
             ].join(' ')}
           >
             {t.label}
