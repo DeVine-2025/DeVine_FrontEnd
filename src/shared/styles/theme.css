@@ -16,6 +16,7 @@
     --ui-900: #F8F9FB;
     --ui-1000: #FFFFFF;
 
+    --color-primary : #4E49FF;
     /* ===========================
        Badge Tokens (다크모드)
        =========================== */
@@ -118,6 +119,13 @@
         font-size: 2.4rem;
         line-height: 133.4%;
         letter-spacing: -0.023em;
+    }
+
+    .Heading1 {
+        font-family: var(--font-pretendard);
+        font-size: 2.2rem;
+        line-height: 140%;
+        letter-spacing: -0.012em;
     }
 
     .Heading2 {

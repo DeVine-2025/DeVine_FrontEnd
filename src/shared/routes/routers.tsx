@@ -18,6 +18,9 @@ import {
   RecommendProjectPage,
   SearchPage,
   SignupPage,
+  ReportMainPage,
+  ReportPage,
+  ReportCreatePage,
 } from '@pages';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
@@ -60,6 +63,11 @@ export const router = createBrowserRouter([
               { path: 'pm', element: <PmPage /> },
             ],
           },
+          { path: 'report', element: <ReportMainPage/>, children:[
+              { index: true,  element: <ReportPage /> },
+              { path: 'create', element: <ReportCreatePage/>},
+            ]},
+
           { path: 'my-project', element: <MyProjectPage /> },
           { path: 'my-info', element: <MyInfoPage /> },
         ],

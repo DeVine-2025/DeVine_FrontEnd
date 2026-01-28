@@ -13,5 +13,8 @@ export { default as InProgressPage } from './matching/in-progress/in-progress-pa
 export { default as CompletedPage } from './matching/completed/completed-page';
 export { default as ProposedPage } from './matching/proposed/proposed-page';
 export { default as PmPage } from './matching/pm/pm-page';
+export { default as ReportMainPage } from './report/report-main-page';
+export { default as ReportPage } from './report/report-page';
+export { default as ReportCreatePage } from './report/report-create-page';
 export { default as MyProjectPage } from './my-project/my-project-page';
 export { default as MyInfoPage } from './my-info/my-info-page';

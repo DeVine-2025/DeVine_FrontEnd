@@ -27,7 +27,7 @@ const Header = () => {
   const navItems = [
     { path: '/search', label: '프로젝트/개발자 보기' },
     { path: '/recommend', label: '추천 프로젝트/개발자' },
-    { path: '/matching', label: '리포트' },
+    { path: '/report', label: '리포트' },
     { path: '/my-project', label: '내 프로젝트' },
   ];
 
