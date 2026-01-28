@@ -10,7 +10,7 @@ type Props = {
   onChangeProjectTab: (tab: ProjectTab) => void;
 };
 
-const MyPMBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
+const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
   const highlightProjects = useMemo(() => RECOMMENDED_PROJECTS.slice(0, 4), []);
 
   return (
@@ -45,4 +45,4 @@ const MyPMBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
   );
 };
 
-export default MyPMBottomSection;
+export default MyBottomSection;

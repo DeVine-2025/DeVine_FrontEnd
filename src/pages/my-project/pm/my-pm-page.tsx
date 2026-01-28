@@ -1,4 +1,4 @@
-import MyPMBottomSection, { type ProjectTab } from '@components/myProject/MyPMBottomSection';
+import MyPMBottomSection, { type ProjectTab } from '@components/myProject/MyBottomSection';
 import MyPMTopSection, { type DevTab } from '@components/myProject/MyPMTopSection';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
