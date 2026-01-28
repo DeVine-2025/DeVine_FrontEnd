@@ -9,6 +9,7 @@ export { default as ProposedPage } from './matching/proposed/proposed-page';
 export { default as MyInfoPage } from './my-info/my-info-page';
 export { default as MyDeveloperPage } from './my-project/developer/my-developer-page';
 export { default as MyProjectPage } from './my-project/my-project-page';
+export { default as MyPMDevelopersPage } from './my-project/pm/my-pm-dev-page';
 export { default as MyPMPage } from './my-project/pm/my-pm-page';
 export { default as RecommendDeveloperPage } from './recommend/developer/recommend-developer-page';
 export { default as RecommendProjectPage } from './recommend/project/recommend-project-page';

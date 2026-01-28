@@ -8,14 +8,14 @@ const MyProjectTabs = () => {
     <div className="mb-5 w-[280px] rounded-2xl bg-surface-tab p-2">
       <div className="grid grid-cols-2 gap-2">
         <NavLink
-          to="my-pm-project"
+          to="pm"
           className={({ isActive }) => `${baseTabClass} ${isActive ? activeClass : inactiveClass}`}
         >
           PM
         </NavLink>
 
         <NavLink
-          to="my-developer-project"
+          to="dev"
           className={({ isActive }) => `${baseTabClass} ${isActive ? activeClass : inactiveClass}`}
         >
           개발자
