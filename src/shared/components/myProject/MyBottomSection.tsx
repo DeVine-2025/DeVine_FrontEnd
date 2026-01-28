@@ -1,5 +1,5 @@
 import Tabs from '@components/tab/CommonTabs';
-import MainProjectCard from '@pages/main/components/MainProjectCard';
+import MainProjectCard from '@components/common/MainProjectCard';
 import { useMemo } from 'react';
 import { PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 
