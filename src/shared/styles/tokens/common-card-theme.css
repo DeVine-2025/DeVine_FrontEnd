@@ -14,6 +14,11 @@
     --color-tab-bg-active: #191B1E;
     --color-tab-text-active: #FFFFFF;
     --color-tab-text-inactive: #9EA6BA;
+    --color-my-tab-active: #F8F9FB;
+    --color-my-tab-inactive: #191B1E;
+    --color-my-tab-border: #41444D;
+    --color-my-tab-text: #7F8596;
+
     --color-filter-text: #D4DAE7;
     --color-filter-bg: #212328;
 
@@ -46,6 +51,11 @@
     --color-tab-bg-active: #FFFFFF;
     --color-tab-text-active: #212328;
     --color-tab-text-inactive: #606673;
+    --color-my-tab-active: #212328;
+    --color-my-tab-inactive: #fff;
+    --color-my-tab-border: #D4DAE7;
+    --color-my-tab-text: #939AAE;
+
     --color-filter-text: #41444D;
     --color-filter-bg: #F8F9FB;
 
