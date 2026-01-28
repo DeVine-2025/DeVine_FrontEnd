@@ -5,9 +5,9 @@ import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useThemeStore } from '@store/theme';
-import BasicProfileSection from '@components/onboarding/BasicProfileSection';
-import AdditionalProfileSection from '@components/onboarding/AdditionalProfileSection';
-import GithubRepoSelectionSection from '@components/onboarding/GithubRepoSelectionSection';
+import BasicProfileSection from './BasicProfileSection';
+import AdditionalProfileSection from './AdditionalProfileSection';
+import GithubRepoSelectionSection from './GithubRepoSelectionSection';
 import ProfilePage from '@pages/login/profile-page';
 
 type AgreementListProps = {
