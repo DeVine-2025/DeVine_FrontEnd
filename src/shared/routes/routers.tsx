@@ -19,6 +19,9 @@ import {
   RecommendDeveloperPage,
   RecommendPage,
   RecommendProjectPage,
+  ReportCreatePage,
+  ReportMainPage,
+  ReportPage,
   SearchPage,
   SignupPage,
 } from '@pages';
@@ -44,6 +47,7 @@ export const router = createBrowserRouter([
         path: 'recommend',
         element: <RecommendPage />,
         children: [
+          { index: true, element: <Navigate to="project" replace /> },
           { path: 'project', element: <RecommendProjectPage /> },
           { path: 'developer', element: <RecommendDeveloperPage /> },
         ],
@@ -60,6 +64,14 @@ export const router = createBrowserRouter([
               { path: 'completed', element: <CompletedPage /> },
               { path: 'proposed', element: <ProposedPage /> },
               { path: 'pm', element: <PmPage /> },
+            ],
+          },
+          {
+            path: 'report',
+            element: <ReportMainPage />,
+            children: [
+              { index: true, element: <ReportPage /> },
+              { path: 'create', element: <ReportCreatePage /> },
             ],
           },
           {
