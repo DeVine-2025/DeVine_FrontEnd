@@ -27,16 +27,28 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
         {PROJECT_LIST.map((p) => (
           <ProjectLg
             key={p.id}
-            categoryLabel={p.categoryLabel}
-            deadlineLabel={p.deadlineLabel}
-            title={p.title}
-            location={p.location}
-            period={p.period}
-            mode={p.mode}
+            {...p}
             roles={[...PROJECT_ROLES]}
-            dueLabel={p.dueLabel}
-            bookmarked={p.bookmarked}
-            onBookmarkChange={(next) => console.log('bookmark', p.id, next)}
+            showBookmark={false}
+            showDue={false}
+            action={
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  className="cursor-pointer rounded-xl bg-[#4E49FF] px-3 py-2 font-medium text-[12px] text-my-tab-inactive"
+                  onClick={() => console.log('수락', p.id)}
+                >
+                  수락하기
+                </button>
+                <button
+                  type="button"
+                  className="cursor-pointer rounded-xl bg-surface-tab px-3 py-2 font-medium text-[12px] text-my-tab-text"
+                  onClick={() => console.log('거절', p.id)}
+                >
+                  거절하기
+                </button>
+              </div>
+            }
             onClick={() => console.log('click project', p.id)}
           />
         ))}
