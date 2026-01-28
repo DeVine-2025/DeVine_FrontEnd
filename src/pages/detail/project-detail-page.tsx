@@ -139,7 +139,7 @@ const ProjectDetailPage = () => {
           <div className="flex flex-col gap-3 lg:mt-[230px] lg:items-end">
             <button
               type="button"
-              className="inline-flex h-[44px] w-[240px] items-center justify-center gap-2 rounded-[12px] border border-[var(--contact-btn-border)] bg-[var(--contact-btn-bg)] px-6 text-[var(--contact-btn-text)] hover:opacity-80"
+              className="inline-flex h-[44px] w-[240px] items-center justify-center gap-2 rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-6 text-[var(--ui-500)] hover:opacity-80"
             >
               <svg
                 className="h-5 w-5"
@@ -215,7 +215,7 @@ const ProjectDetailPage = () => {
                 {MOCK_TECH_STACK.map((tech) => (
                   <span
                     key={tech}
-                    className="inline-flex items-center rounded-full border border-[var(--tech-chip-border)] bg-[var(--tech-chip-bg)] px-3 py-1 text-sm text-[var(--ui-800)]"
+                    className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
                   >
                     {tech}
                   </span>
@@ -232,7 +232,7 @@ const ProjectDetailPage = () => {
                 {MOCK_TECH_STACK.map((tech) => (
                   <span
                     key={`be-${tech}`}
-                    className="inline-flex items-center rounded-full border border-[var(--tech-chip-border)] bg-[var(--tech-chip-bg)] px-3 py-1 text-sm text-[var(--ui-800)]"
+                    className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
                   >
                     {tech}
                   </span>
@@ -249,7 +249,7 @@ const ProjectDetailPage = () => {
                 {MOCK_INFRA_STACK.map((tech) => (
                   <span
                     key={`infra-${tech}`}
-                    className="inline-flex items-center rounded-full border border-[var(--tech-chip-border)] bg-[var(--tech-chip-bg)] px-3 py-1 text-sm text-[var(--ui-800)]"
+                    className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
                   >
                     {tech}
                   </span>
