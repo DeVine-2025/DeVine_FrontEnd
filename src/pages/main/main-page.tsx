@@ -95,7 +95,7 @@ const MainPage = () => {
                 </div>
                 <Link
                   to="/login"
-                  className="Body1 inline-flex h-[40px] items-center justify-center rounded-xl bg-[var(--badge-text-primary)] px-6 font-semibold text-white"
+                className="Body1 inline-flex h-[40px] items-center justify-center rounded-xl bg-[#4E49FF] px-6 font-semibold text-white"
                 >
                   로그인하기
                 </Link>
