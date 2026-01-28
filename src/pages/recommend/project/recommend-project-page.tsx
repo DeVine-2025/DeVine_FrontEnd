@@ -48,8 +48,8 @@ const RecommendProjectPage = () => {
                   onClick={() => setOpenFilter((prev) => (prev === label ? null : label))}
                   className={
                     isApplied
-                      ? 'inline-flex max-w-[260px] cursor-pointer items-center gap-[10px] rounded-full border border-[var(--badge-bg-primary)] bg-[var(--badge-bg-primary)] px-5 py-[12px] font-semibold text-[var(--badge-text-primary)] text-xl'
-                      : 'inline-flex max-w-[260px] cursor-pointer items-center gap-[10px] rounded-full border border-transparent bg-filter-bg px-5 py-[12px] font-semibold text-filter-text text-xl'
+                      ? 'inline-flex max-w-[260px] cursor-pointer items-center gap-[8px] rounded-full border border-[var(--badge-bg-primary)] bg-[var(--badge-bg-primary)] px-4 py-[10px] font-semibold text-[var(--badge-text-primary)] text-lg'
+                      : 'inline-flex max-w-[260px] cursor-pointer items-center gap-[8px] rounded-full border border-transparent bg-filter-bg px-4 py-[10px] font-semibold text-filter-text text-lg'
                   }
                 >
                   <span className="truncate">{displayLabel}</span>
@@ -57,8 +57,8 @@ const RecommendProjectPage = () => {
                     aria-hidden="true"
                     className={
                       isApplied
-                        ? 'h-[14px] w-[14px] text-[var(--badge-text-primary)]'
-                        : 'h-[14px] w-[14px]'
+                        ? 'h-[12px] w-[12px] text-[var(--badge-text-primary)]'
+                        : 'h-[12px] w-[12px]'
                     }
                   />
                 </button>

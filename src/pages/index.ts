@@ -15,3 +15,4 @@ export { default as ProposedPage } from './matching/proposed/proposed-page';
 export { default as PmPage } from './matching/pm/pm-page';
 export { default as MyProjectPage } from './my-project/my-project-page';
 export { default as MyInfoPage } from './my-info/my-info-page';
+export { default as ProjectCreatePage } from './project-create/project-create-page';

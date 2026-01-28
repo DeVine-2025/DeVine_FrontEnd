@@ -1,169 +1,207 @@
-@theme {
-    /* ===========================
-       UI (다크모드 기본)
-       =========================== */
+    @theme {
+        /* ===========================
+        UI Color aliases (Tailwind token용)
+        - 예: bg-ui-bg, text-ui-900, border-ui-200
+        =========================== */
 
-    --ui-bg: #191B1E;
-    --ui-50: #212328;
-    --ui-100: #2F323A;
-    --ui-200: #41444D;
-    --ui-300: #606673;
-    --ui-400: #7F8596;
-    --ui-500: #939AAE;
-    --ui-600: #9EA6BA;
-    --ui-700: #D4DAE7;
-    --ui-800: #F3F5FC;
-    --ui-900: #F8F9FB;
-    --ui-1000: #FFFFFF;
+        --color-ui-bg: var(--ui-bg);
+        --color-ui-50: var(--ui-50);
+        --color-ui-100: var(--ui-100);
+        --color-ui-200: var(--ui-200);
+        --color-ui-300: var(--ui-300);
+        --color-ui-400: var(--ui-400);
+        --color-ui-500: var(--ui-500);
+        --color-ui-600: var(--ui-600);
+        --color-ui-700: var(--ui-700);
+        --color-ui-800: var(--ui-800);
+        --color-ui-900: var(--ui-900);
+        --color-ui-1000: var(--ui-1000);
 
-    /* ===========================
-       Badge Tokens (다크모드)
-       =========================== */
+        /* ===========================
+        Badge Color aliases (Tailwind token용)
+        - 예: text-badge-text-primary, bg-badge-bg-primary
+        =========================== */
 
-    --badge-text-primary: #7E7AFF;
-    --badge-bg-primary: #1E1D4D;
+        --color-badge-text-primary: var(--badge-text-primary);
+        --color-badge-bg-primary: var(--badge-bg-primary);
 
-    --badge-text-blue: #499FD4;
-    --badge-bg-blue: #1C3341;
+        --color-badge-text-blue: var(--badge-text-blue);
+        --color-badge-bg-blue: var(--badge-bg-blue);
 
-    --badge-text-green: #1D8C72;
-    --badge-bg-green: #17342F;
+        --color-badge-text-green: var(--badge-text-green);
+        --color-badge-bg-green: var(--badge-bg-green);
 
-    --badge-text-pink: #DB50B3;
-    --badge-bg-pink: #352731;
+        --color-badge-text-pink: var(--badge-text-pink);
+        --color-badge-bg-pink: var(--badge-bg-pink);
 
-    --badge-text-orange: #D98363;
-    --badge-bg-orange: #463229;
+        --color-badge-text-orange: var(--badge-text-orange);
+        --color-badge-bg-orange: var(--badge-bg-orange);
 
+        /* ===========================
+        UI (다크모드 기본)
+        =========================== */
 
-    --font-weight-regular: 400;
-    --font-weight-medium: 500;
-    --font-weight-bold: 700;
+        --ui-bg: #191B1E;
+        --ui-50: #212328;
+        --ui-100: #2F323A;
+        --ui-200: #41444D;
+        --ui-300: #606673;
+        --ui-400: #7F8596;
+        --ui-500: #939AAE;
+        --ui-600: #9EA6BA;
+        --ui-700: #D4DAE7;
+        --ui-800: #F3F5FC;
+        --ui-900: #F8F9FB;
+        --ui-1000: #FFFFFF;
 
-    /* ===========================
-             반응형 설정
-       =========================== */
+        /* ===========================
+        Badge Tokens (다크모드)
+        =========================== */
 
-    --breakpoint-tablet: 744px;
-    --breakpoint-phone: 390px;
+        --badge-text-primary: #7E7AFF;
+        --badge-bg-primary: #1E1D4D;
 
-    --breakpoint-tablet-max: 743px;
-    --breakpoint-phone-max: 389px;
-}
+        --badge-text-blue: #499FD4;
+        --badge-bg-blue: #1C3341;
 
-[data-theme='light'] {
-    /* ===========================
-       UI (라이트모드)
-       =========================== */
+        --badge-text-green: #1D8C72;
+        --badge-bg-green: #17342F;
 
+        --badge-text-pink: #DB50B3;
+        --badge-bg-pink: #352731;
 
-    --ui-bg: #FFFFFF;
-    --ui-50: #F8F9FB;
-    --ui-100: #F3F5FC;
-    --ui-200: #D4DAE7;
-    --ui-300: #9EA6BA;
-    --ui-400: #939AAE;
-    --ui-500: #7F8596;
-    --ui-600: #606673;
-    --ui-700: #41444D;
-    --ui-800: #2F323A;
-    --ui-900: #212328;
-    --ui-1000: #191B1E;
-
-    /* ===========================
-       Badge Tokens (라이트모드)
-       =========================== */
-
-    --badge-text-primary: #4E49FF;
-    --badge-bg-primary: #EEEDFF;
-
-    --badge-text-blue: #499FD4;
-    --badge-bg-blue: #EEF9FF;
-
-    --badge-text-green: #1D8C72;
-    --badge-bg-green: #F5FFFD;
-
-    --badge-text-pink: #DB50B3;
-    --badge-bg-pink: #FFF0FB;
-
-    --badge-text-orange: #D98363;
-    --badge-bg-orange: #FFF4F0;
-}
+        --badge-text-orange: #D98363;
+        --badge-bg-orange: #463229;
 
 
-@layer utilities {
-    .Display1 {
-        font-family: var(--font-pretendard);
-        font-size: 5.6rem;
-        line-height: 128.6%;
-        letter-spacing: -0.0319em;
+        --font-weight-regular: 400;
+        --font-weight-medium: 500;
+        --font-weight-bold: 700;
+
+        /* ===========================
+                반응형 설정
+        =========================== */
+
+        --breakpoint-tablet: 744px;
+        --breakpoint-phone: 390px;
+
+        --breakpoint-tablet-max: 743px;
+        --breakpoint-phone-max: 389px;
     }
 
-    .Title1 {
-        font-family: var(--font-pretendard);
-        font-size: 3.6rem;
-        line-height: 133.4%;
-        letter-spacing: -0.027em;
+    [data-theme='light'] {
+        /* ===========================
+        UI (라이트모드)
+        =========================== */
+
+
+        --ui-bg: #FFFFFF;
+        --ui-50: #F8F9FB;
+        --ui-100: #F3F5FC;
+        --ui-200: #D4DAE7;
+        --ui-300: #9EA6BA;
+        --ui-400: #939AAE;
+        --ui-500: #7F8596;
+        --ui-600: #606673;
+        --ui-700: #41444D;
+        --ui-800: #2F323A;
+        --ui-900: #212328;
+        --ui-1000: #191B1E;
+
+        /* ===========================
+        Badge Tokens (라이트모드)
+        =========================== */
+
+        --badge-text-primary: #4E49FF;
+        --badge-bg-primary: #EEEDFF;
+
+        --badge-text-blue: #499FD4;
+        --badge-bg-blue: #EEF9FF;
+
+        --badge-text-green: #1D8C72;
+        --badge-bg-green: #F5FFFD;
+
+        --badge-text-pink: #DB50B3;
+        --badge-bg-pink: #FFF0FB;
+
+        --badge-text-orange: #D98363;
+        --badge-bg-orange: #FFF4F0;
     }
 
-    .Title2 {
-        font-family: var(--font-pretendard);
-        font-size: 2.8rem;
-        line-height: 135.8%;
-        letter-spacing: -0.0236em;
-    }
 
-    .Title3 {
-        font-family: var(--font-pretendard);
-        font-size: 2.4rem;
-        line-height: 133.4%;
-        letter-spacing: -0.023em;
-    }
+    @layer utilities {
+        .Display1 {
+            font-family: var(--font-pretendard);
+            font-size: 5.6rem;
+            line-height: 128.6%;
+            letter-spacing: -0.0319em;
+        }
 
-    .Heading2 {
-        font-family: var(--font-pretendard);
-        font-size: 2.0rem;
-        line-height: 140%;
-        letter-spacing: -0.012em;
-    }
+        .Title1 {
+            font-family: var(--font-pretendard);
+            font-size: 3.6rem;
+            line-height: 133.4%;
+            letter-spacing: -0.027em;
+        }
 
-    .Headline1 {
-        font-family: var(--font-pretendard);
-        font-size: 1.8rem;
-        line-height: 144.5%;
-        letter-spacing: -0.002em;
-    }
+        .Title2 {
+            font-family: var(--font-pretendard);
+            font-size: 2.8rem;
+            line-height: 135.8%;
+            letter-spacing: -0.0236em;
+        }
 
-    .Body1 {
-        font-family: var(--font-pretendard);
-        font-size: 1.6rem;
-        line-height: 150%;
-        letter-spacing: 0.0057em;
-    }
+        .Title3 {
+            font-family: var(--font-pretendard);
+            font-size: 2.4rem;
+            line-height: 133.4%;
+            letter-spacing: -0.023em;
+        }
 
-    .Label1 {
-        font-family: var(--font-pretendard);
-        font-size: 1.4rem;
-        line-height: 142.9%;
-        letter-spacing: 0.0145em;
-    }
+        .Heading2 {
+            font-family: var(--font-pretendard);
+            font-size: 2.0rem;
+            line-height: 140%;
+            letter-spacing: -0.012em;
+        }
 
-    .Caption1 {
-        font-family: var(--font-pretendard);
-        font-size: 1.2rem;
-        line-height: 133.4%;
-        letter-spacing: 0.0252em;
-    }
+        .Headline1 {
+            font-family: var(--font-pretendard);
+            font-size: 1.8rem;
+            line-height: 144.5%;
+            letter-spacing: -0.002em;
+        }
 
-    :lang(en) .Display1,
-    :lang(en) .Title1,
-    :lang(en) .Title2,
-    :lang(en) .Title3,
-    :lang(en) .Heading2,
-    :lang(en) .Headline1,
-    :lang(en) .Body1,
-    :lang(en) .Label1,
-    :lang(en) .Caption1 {
-        font-weight: 500;
+        .Body1 {
+            font-family: var(--font-pretendard);
+            font-size: 1.6rem;
+            line-height: 150%;
+            letter-spacing: 0.0057em;
+        }
+
+        .Label1 {
+            font-family: var(--font-pretendard);
+            font-size: 1.4rem;
+            line-height: 142.9%;
+            letter-spacing: 0.0145em;
+        }
+
+        .Caption1 {
+            font-family: var(--font-pretendard);
+            font-size: 1.2rem;
+            line-height: 133.4%;
+            letter-spacing: 0.0252em;
+        }
+
+        :lang(en) .Display1,
+        :lang(en) .Title1,
+        :lang(en) .Title2,
+        :lang(en) .Title3,
+        :lang(en) .Heading2,
+        :lang(en) .Headline1,
+        :lang(en) .Body1,
+        :lang(en) .Label1,
+        :lang(en) .Caption1 {
+            font-weight: 500;
+        }
     }
-}

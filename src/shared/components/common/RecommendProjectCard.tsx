@@ -53,7 +53,7 @@ export default function RecommendProjectCard({
             }
           : undefined
       }
-      className={`relative h-[238px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
+      className={`relative h-[230px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
         onClick ? 'cursor-pointer' : ''
       }`}
       style={{
@@ -78,18 +78,18 @@ export default function RecommendProjectCard({
           <div className="flex flex-col gap-[12px]">
             <div className="flex items-center gap-[4px]">
               {categoryLabel ? (
-                <span className="Caption1 flex h-[28px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[8px] py-[4px] font-semibold text-[var(--ui-600)]">
+                <span className="Caption1 flex h-[24px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] py-[3px] font-semibold text-[11px] text-[var(--ui-600)]">
                   {categoryLabel}
                 </span>
               ) : null}
               {deadlineLabel ? (
-                <span className="Caption1 flex h-[28px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[8px] py-[4px] font-semibold text-[var(--ui-600)]">
+                <span className="Caption1 flex h-[24px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] py-[3px] font-semibold text-[11px] text-[var(--ui-600)]">
                   {deadlineLabel}
                 </span>
               ) : null}
             </div>
 
-            <p className="Headline1 w-[372px] whitespace-pre-wrap font-semibold text-[var(--ui-1000)]">
+            <p className="Body1 w-[372px] whitespace-pre-wrap font-semibold text-[var(--ui-1000)]">
               {title}
             </p>
           </div>
@@ -103,7 +103,7 @@ export default function RecommendProjectCard({
           {roles?.slice(0, 3).map((r) => (
             <div key={r.key} className="grid w-full grid-cols-[96px_56px_1px_1fr] items-center gap-x-[12px]">
               <span
-                className={`Label1 inline-flex w-fit max-w-[96px] justify-self-center items-center justify-center truncate rounded-[8px] px-[12px] py-[6px] font-semibold ${
+                className={`Caption1 inline-flex w-fit max-w-[96px] justify-self-center items-center justify-center truncate rounded-[8px] px-[10px] py-[4px] font-semibold ${
                   toneToClass[r.tone] ?? ''
                 }`}
               >
@@ -131,7 +131,7 @@ export default function RecommendProjectCard({
         </div>
       </div>
 
-      <div className="Body1 absolute right-[140px] top-1/2 flex w-[100px] -translate-y-1/2 items-center justify-center text-center font-semibold text-[var(--ui-500)]">
+      <div className="Caption1 absolute right-[140px] top-1/2 flex w-[100px] -translate-y-1/2 items-center justify-center text-center font-semibold text-[var(--ui-500)]">
         {dueLabel}
       </div>
 
@@ -142,17 +142,17 @@ export default function RecommendProjectCard({
           e.stopPropagation();
           onBookmarkChange?.(!bookmarked);
         }}
-        className="group absolute right-[24px] top-1/2 flex h-[52px] w-[52px] -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-300)]"
+        className="group absolute right-[24px] top-1/2 flex h-[48px] w-[48px] -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-300)]"
       >
         <BookmarkFilledIcon
           aria-hidden
-          className="h-[32px] w-[32px] text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-active:scale-[0.98] group-hover:text-[var(--ui-300)]"
+          className="h-[28px] w-[28px] text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-active:scale-[0.98] group-hover:text-[var(--ui-300)]"
         />
       </button>
 
       {hasSuitability && suitabilityText ? (
         <div className="absolute bottom-[24px] left-[24px] w-[908px] rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
-          <p className="Body1 font-medium text-[var(--ui-1000)]">{suitabilityText}</p>
+          <p className="Caption1 font-medium text-[var(--ui-1000)]">{suitabilityText}</p>
         </div>
       ) : null}
     </article>
