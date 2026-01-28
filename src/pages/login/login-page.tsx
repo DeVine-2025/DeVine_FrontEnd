@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import GithubIcon from '@assets/icons/github.svg?react';
 import GoogleIcon from '@assets/icons/google.svg?react';
-import AgreementList from '@components/onboarding/AgreementList';
+import AgreementList from 'src/pages/signup/AgreementList';
 
 const LoginPage = () => {
   const [isAgreementOpen, setIsAgreementOpen] = useState(false);

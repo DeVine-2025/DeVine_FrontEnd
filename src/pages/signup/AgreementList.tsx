@@ -5,9 +5,9 @@ import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useThemeStore } from '@store/theme';
-import BasicProfileSection from '@components/onboarding/BasicProfileSection';
-import AdditionalProfileSection from '@components/onboarding/AdditionalProfileSection';
-import GithubRepoSelectionSection from '@components/onboarding/GithubRepoSelectionSection';
+import BasicProfileSection from './BasicProfileSection';
+import AdditionalProfileSection from './AdditionalProfileSection';
+import GithubRepoSelectionSection from './GithubRepoSelectionSection';
 import ProfilePage from '@pages/login/profile-page';
 
 type AgreementListProps = {
@@ -120,7 +120,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
               className="relative flex items-center gap-3 rounded-2xl bg-[var(--ui-50)] px-5 py-4 text-left"
             >
               {allChecked ? (
-                <CheckboxCheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
+                <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
               ) : (
                 <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
               )}
@@ -137,7 +137,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                   className="flex items-center gap-3 text-left"
                 >
                   {serviceAgreed ? (
-                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
+                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
                   ) : (
                     <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
                   )}
@@ -157,7 +157,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                   className="flex items-center gap-3 text-left"
                 >
                   {privacyAgreed ? (
-                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
+                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
                   ) : (
                     <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
                   )}
@@ -177,7 +177,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                   className="flex items-center gap-3 text-left"
                 >
                   {marketingAgreed ? (
-                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
+                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
                   ) : (
                     <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
                   )}
@@ -198,7 +198,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
             disabled={!requiredAgreed}
             className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
               requiredAgreed
-                ? 'bg-[var(--badge-text-primary)] text-white'
+                ? 'bg-[#4E49FF] text-white'
                 : 'bg-[var(--ui-50)] text-[var(--ui-300)]'
             }`}
           >
