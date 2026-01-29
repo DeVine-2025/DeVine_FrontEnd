@@ -61,21 +61,17 @@ export default function SelectDropdown({
           if (disabled) return;
           setOpen((v) => !v);
         }}
-        className={`relative flex h-[44px] w-full items-center rounded-[12px] border bg-[var(--ui-bg)] px-[12px] text-left transition-colors ${
-          disabled ? 'cursor-not-allowed border-[var(--ui-200)] opacity-60' : ''
-        } ${
-          open
-            ? 'border-[#4E49FF] shadow-[0_0_0_2px_rgba(78,73,255,0.15)]'
-            : 'border-[var(--ui-200)]'
-        }`}
+        className={`relative flex h-[44px] w-full items-center rounded-[12px] border bg-ui-bg px-[12px] text-left transition-colors ${
+          disabled ? 'cursor-not-allowed border-ui-200 opacity-60' : ''
+        } ${open ? 'border-[#4E49FF] shadow-[0_0_0_2px_rgba(78,73,255,0.15)]' : 'border-ui-200'}`}
       >
         {selectedLabel ? (
-          <span className="Caption1 font-medium text-[var(--ui-900)]">{selectedLabel}</span>
+          <span className="Caption1 font-medium text-ui-900">{selectedLabel}</span>
         ) : (
-          <span className="Caption1 text-[var(--ui-400)]">{placeholder}</span>
+          <span className="Caption1 text-ui-400">{placeholder}</span>
         )}
 
-        <span className="absolute right-[10px] top-1/2 -translate-y-1/2 inline-flex h-[28px] w-[28px] items-center justify-center text-[var(--ui-400)]">
+        <span className="absolute right-[10px] top-1/2 -translate-y-1/2 inline-flex h-[28px] w-[28px] items-center justify-center text-ui-400">
           <UnderVectorIcon
             aria-hidden
             className={`h-[9px] w-[16px] transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
@@ -86,7 +82,7 @@ export default function SelectDropdown({
       {open && (
         <div
           role="listbox"
-          className="absolute left-0 top-[calc(100%+10px)] z-50 w-full overflow-hidden rounded-[16px] border border-[var(--ui-200)] bg-[var(--ui-bg)] shadow-[0px_12px_24px_0px_rgba(0,0,0,0.18)]"
+          className="absolute left-0 top-[calc(100%+10px)] z-50 w-full overflow-hidden rounded-[16px] border border-ui-200 bg-ui-bg shadow-[0px_12px_24px_0px_rgba(0,0,0,0.18)]"
         >
           <div className="max-h-[240px] overflow-auto py-[8px]">
             {options.map((opt) => {
@@ -108,10 +104,10 @@ export default function SelectDropdown({
                   <span
                     aria-hidden
                     className={`absolute inset-x-[10px] inset-y-[4px] rounded-[12px] transition-colors ${
-                      isSelected ? 'bg-[var(--ui-50)]' : 'bg-transparent group-hover:bg-[var(--ui-50)]'
+                      isSelected ? 'bg-ui-100' : 'bg-transparent group-hover:bg-ui-50'
                     }`}
                   />
-                  <span className="Caption1 relative z-10 font-medium text-[var(--ui-900)]">
+                  <span className="Caption1 relative z-10 font-medium text-ui-900">
                     {opt.label}
                   </span>
                 </button>
