@@ -1,20 +1,24 @@
-import { Link } from 'react-router-dom';
-import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
-import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
+import { Link, useNavigate } from 'react-router-dom';
+import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
-import MainProjectCard from '@components/common/MainProjectCard';
-
-const USER_ROLE_KEY = 'userRole';
+import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
+import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
+import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
+import { useAuthStore } from '@store/auth';
 
 const MainPage = () => {
-  const userRole = localStorage.getItem(USER_ROLE_KEY) as 'pm' | 'dev' | null;
+  const navigate = useNavigate();
+  const userRole = useAuthStore((state) => state.role);
   const isLoggedIn = userRole === 'pm' || userRole === 'dev';
   const isPm = userRole === 'pm';
 
   const highlightProjects = RECOMMENDED_PROJECTS.slice(0, 4);
   const recommendedProfiles = PROFILE_CARD_LIST.slice(0, 3);
   const recommendedProjects = PROJECT_LIST.slice(0, 3);
+  const handleProjectClick = (project: RecommendedProject | ProjectListItem) => {
+    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+  };
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-14">
@@ -34,6 +38,7 @@ const MainPage = () => {
               mode={project.mode}
               roles={[...PROJECT_ROLES]}
               bookmarked={project.bookmarked}
+              onClick={() => handleProjectClick(project)}
             />
           ))}
         </div>
@@ -80,6 +85,7 @@ const MainPage = () => {
                     domainSuitability={project.domainSuitability}
                     growthPotential={project.growthPotential}
                     overallScore={project.overallScore}
+                    onClick={() => handleProjectClick(project)}
                   />
                 ))}
           </div>
