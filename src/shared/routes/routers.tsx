@@ -8,7 +8,10 @@ import {
   LoginPage,
   MainPage,
   MatchingPage,
+  MyDeveloperPage,
   MyInfoPage,
+  MyPMDevelopersPage,
+  MyPMPage,
   MyProjectPage,
   PmPage,
   ProjectCreatePage,
@@ -17,6 +20,9 @@ import {
   RecommendDeveloperPage,
   RecommendPage,
   RecommendProjectPage,
+  ReportCreatePage,
+  ReportMainPage,
+  ReportPage,
   SearchPage,
   SignupPage,
 } from '@pages';
@@ -61,8 +67,29 @@ export const router = createBrowserRouter([
               { path: 'pm', element: <PmPage /> },
             ],
           },
+<<<<<<< HEAD
           { path: 'my-project', element: <MyProjectPage /> },
           { path: 'project/create', element: <ProjectCreatePage /> },
+=======
+          {
+            path: 'report',
+            element: <ReportMainPage />,
+            children: [
+              { index: true, element: <ReportPage /> },
+              { path: 'create', element: <ReportCreatePage /> },
+            ],
+          },
+          {
+            path: 'my-project',
+            element: <MyProjectPage />,
+            children: [
+              { index: true, element: <Navigate to="pm" replace /> },
+              { path: 'pm', element: <MyPMPage /> },
+              { path: 'pm/developers', element: <MyPMDevelopersPage /> },
+              { path: 'dev', element: <MyDeveloperPage /> },
+            ],
+          },
+>>>>>>> origin/develope
           { path: 'my-info', element: <MyInfoPage /> },
         ],
       },

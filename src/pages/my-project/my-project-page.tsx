@@ -1,6 +1,14 @@
-const MyProjectPage = () => {
-  return <div>내 프로젝트 페이지입니다</div>;
-};
+import MyProjectTabs from '@components/tab/MyProjectTabs';
+import { Outlet } from 'react-router-dom';
 
-export default MyProjectPage;
+export default function MyProjectPage() {
+  return (
+    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-6">
+      <MyProjectTabs />
 
+      <div>
+        <Outlet />
+      </div>
+    </section>
+  );
+}

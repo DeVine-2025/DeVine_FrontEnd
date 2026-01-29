@@ -17,10 +17,17 @@
         --color-ui-900: var(--ui-900);
         --color-ui-1000: var(--ui-1000);
 
+<<<<<<< HEAD
         /* ===========================
         Badge Color aliases (Tailwind token용)
         - 예: text-badge-text-primary, bg-badge-bg-primary
         =========================== */
+=======
+    --color-primary : #4E49FF;
+    /* ===========================
+       Badge Tokens (다크모드)
+       =========================== */
+>>>>>>> origin/develope
 
         --color-badge-text-primary: var(--badge-text-primary);
         --color-badge-bg-primary: var(--badge-bg-primary);
@@ -137,12 +144,28 @@
             letter-spacing: -0.0319em;
         }
 
+<<<<<<< HEAD
         .Title1 {
             font-family: var(--font-pretendard);
             font-size: 3.6rem;
             line-height: 133.4%;
             letter-spacing: -0.027em;
         }
+=======
+    .Heading1 {
+        font-family: var(--font-pretendard);
+        font-size: 2.2rem;
+        line-height: 140%;
+        letter-spacing: -0.012em;
+    }
+
+    .Heading2 {
+        font-family: var(--font-pretendard);
+        font-size: 2.0rem;
+        line-height: 140%;
+        letter-spacing: -0.012em;
+    }
+>>>>>>> origin/develope
 
         .Title2 {
             font-family: var(--font-pretendard);

@@ -166,7 +166,7 @@ const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionPr
             <button
               type="button"
               onClick={onNext}
-              className="Body1 h-[48px] w-full rounded-xl bg-[var(--badge-text-primary)] text-white"
+              className="Body1 h-[48px] w-full rounded-xl bg-[#1E1D4D] text-[#7E7AFF]"
             >
               건너뛰기
             </button>

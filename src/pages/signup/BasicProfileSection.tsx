@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
 
 type BasicProfileSectionProps = {
   onNext: () => void;
@@ -10,10 +11,20 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
   const [nickname, setNickname] = useState('');
 
   const hasWhitespace = useMemo(() => /\s/.test(nickname), [nickname]);
-  const isNicknameValid = useMemo(() => {
-    const trimmed = nickname.trim();
-    return trimmed.length > 0 && !hasWhitespace;
-  }, [nickname, hasWhitespace]);
+  const trimmedNickname = useMemo(() => nickname.trim(), [nickname]);
+  const isNicknameValid = useMemo(
+    () => trimmedNickname.length > 0 && !hasWhitespace,
+    [trimmedNickname, hasWhitespace],
+  );
+  const isDuplicateNickname = useMemo(() => {
+    if (!isNicknameValid) return false;
+    const normalizedNickname = trimmedNickname.toLowerCase();
+    const takenNicknames = ['디바인', 'devine', 'admin', '관리자'].map((item) =>
+      item.toLowerCase(),
+    );
+    return takenNicknames.indexOf(normalizedNickname) !== -1;
+  }, [isNicknameValid, trimmedNickname]);
+  const canUseNickname = isNicknameValid && !isDuplicateNickname;
   return (
     <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] px-10 pb-20 pt-10 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
       <div className="flex flex-col gap-8">
@@ -25,7 +36,7 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
           <div className="flex flex-col gap-4">
             <span className="Body1 text-[var(--ui-900)]">프로필 사진</span>
             <div className="flex items-center justify-center">
-              <div className="relative flex h-[88px] w-[88px] items-center justify-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-50)]">
+              <div className="relative flex h-[112px] w-[112px] items-center justify-center rounded-full bg-transparent">
                 <input
                   id="profileImage"
                   type="file"
@@ -51,14 +62,11 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
                     className="h-full w-full rounded-full object-cover"
                   />
                 ) : (
-                  <>
-                    <div className="h-6 w-6 rounded-full bg-[var(--ui-200)]" />
-                    <div className="absolute bottom-4 h-7 w-10 rounded-t-[999px] bg-[var(--ui-200)]" />
-                  </>
+                  <ProfilePlaceholderIcon className="h-full w-full" aria-hidden="true" />
                 )}
                 <label
                   htmlFor="profileImage"
-                  className="absolute -bottom-1 -right-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] text-[var(--ui-400)]"
+                  className="absolute -bottom-1 -right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-200)] text-xl text-white"
                 >
                   +
                 </label>
@@ -74,16 +82,26 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
               id="nickname"
               type="text"
               placeholder="닉네임을 입력해주세요"
-              className={`h-[48px] w-full rounded-2xl border bg-[var(--ui-50)] px-4 text-[var(--ui-900)] placeholder:text-[var(--ui-300)] ${
-                hasWhitespace ? 'border-[#FF4D4F]' : 'border-[var(--ui-100)]'
+              className={`h-[48px] w-full rounded-2xl border-2 bg-[var(--ui-50)] px-4 text-[var(--ui-900)] placeholder:text-[var(--ui-300)] ${
+                canUseNickname
+                  ? 'border-[#00BF40]'
+                  : hasWhitespace || isDuplicateNickname
+                    ? 'border-[#FF4242]'
+                    : 'border-[var(--ui-100)]'
               }`}
               value={nickname}
               onChange={(event) => setNickname(event.target.value)}
             />
             {hasWhitespace && (
-              <span className="Caption1 text-[#FF4D4F]">
-                공백은 사용할 수 없어요.
+              <span className="Caption1 text-[#FF4242]">공백은 사용할 수 없어요.</span>
+            )}
+            {!hasWhitespace && isDuplicateNickname && (
+              <span className="Caption1 text-[#FF4242]">
+                이미 누군가가 사용 중인 닉네임이에요
               </span>
+            )}
+            {!hasWhitespace && canUseNickname && (
+              <span className="Caption1 text-[#00BF40]">사용 가능한 닉네임이에요!</span>
             )}
           </div>
         </div>
@@ -93,10 +111,10 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
         <button
           type="button"
           onClick={onNext}
-          disabled={!isNicknameValid}
+          disabled={!canUseNickname}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
-            isNicknameValid
-              ? 'bg-[var(--badge-text-primary)] text-white'
+            canUseNickname
+              ? 'bg-[#4E49FF] text-white'
               : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
           }`}
         >

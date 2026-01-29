@@ -1,4 +1,64 @@
+<<<<<<< HEAD
 import SelectAllIcon from '@assets/icons/select-all.svg?react';
+=======
+import {
+  AwsOff,
+  AwsOn,
+  COff,
+  COn,
+  DjangoOff,
+  DjangoOn,
+  DockerOff,
+  DockerOn,
+  ExpressOff,
+  ExpressOn,
+  FirebaseOff,
+  FirebaseOn,
+  FlutterOff,
+  FlutterOn,
+  GoOff,
+  GoOn,
+  InfraReactOff,
+  InfraReactOn,
+  JavaOff,
+  JavaOn,
+  JavascriptOff,
+  JavascriptOn,
+  KotlinOff,
+  KotlinOn,
+  KubernetesOff,
+  KubernetesOn,
+  MongodbOff,
+  MongodbOn,
+  MysqlOff,
+  MysqlOn,
+  NestjsOff,
+  NestjsOn,
+  NextjsOff,
+  NextjsOn,
+  NodejsOff,
+  NodejsOn,
+  PhpOff,
+  PhpOn,
+  PythonOff,
+  PythonOn,
+  ReactnativeOff,
+  ReactnativeOn,
+  ReactOff,
+  ReactOn,
+  SelectAllIcon,
+  SpringOff,
+  SpringOn,
+  SvelteOff,
+  SvelteOn,
+  SwiftOff,
+  SwiftOn,
+  TypescriptOff,
+  TypescriptOn,
+  VuejsOff,
+  VuejsOn,
+} from '@assets/stackBadge';
+>>>>>>> origin/develope
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   BACKEND_DATABASE,
@@ -70,81 +130,72 @@ export default function PositionTechStackDropdown({
     };
   }, [open, onClose]);
 
-  const tabKeys =
-    activeTab === 'frontend'
-      ? [...FRONTEND_LANGUAGE_FRAMEWORK, ...FRONTEND_MOBILE].map((b) => b.key)
-      : activeTab === 'backend'
-        ? [...BACKEND_LANGUAGE, ...BACKEND_FRAMEWORK, ...BACKEND_DATABASE].map((b) => b.key)
-        : [...INFRA_CLOUD, ...INFRA_CONTAINER].map((b) => b.key);
+  const currentTabKeys = useMemo(() => {
+    const keys =
+      activeTab === 'frontend'
+        ? [...FRONTEND_LANGUAGE_FRAMEWORK, ...FRONTEND_MOBILE].map((b) => b.key)
+        : activeTab === 'backend'
+          ? [...BACKEND_LANGUAGE, ...BACKEND_FRAMEWORK, ...BACKEND_DATABASE].map((b) => b.key)
+          : [...INFRA_CLOUD, ...INFRA_CONTAINER].map((b) => b.key);
 
-  // "전체 선택"은 드롭다운 내 모든 라벨을 ON/OFF (탭 변경해도 유지)
-  const allKeys = Array.from(
-    new Set(
-      [
-        ...FRONTEND_LANGUAGE_FRAMEWORK,
-        ...FRONTEND_MOBILE,
-        ...BACKEND_LANGUAGE,
-        ...BACKEND_FRAMEWORK,
-        ...BACKEND_DATABASE,
-        ...INFRA_CLOUD,
-        ...INFRA_CONTAINER,
-      ].map((b) => b.key),
-    ),
-  );
-  const allSelected = allKeys.length > 0 && allKeys.every((k) => selected.has(k));
+    return Array.from(new Set(keys));
+  }, [activeTab]);
+
+  const currentTabKeySet = useMemo(() => new Set(currentTabKeys), [currentTabKeys]);
 
   const toggle = (key: string) => {
-    const next = new Set(selected);
+    const next = new Set(value);
     if (next.has(key)) next.delete(key);
     else next.add(key);
     onChange(Array.from(next));
   };
 
+  const tabAllSelected = currentTabKeys.length > 0 && currentTabKeys.every((k) => selected.has(k));
+
   const toggleAll = () => {
-    if (allKeys.length === 0) return;
-    if (allSelected) {
-      const next = value.filter((k) => allKeys.indexOf(k) === -1);
-      onChange(next);
+    if (currentTabKeys.length === 0) return;
+
+    if (tabAllSelected) {
+      onChange(value.filter((k) => !currentTabKeySet.has(k)));
       return;
     }
+
     const next = new Set(value);
-    for (const k of allKeys) next.add(k);
+    for (const k of currentTabKeys) next.add(k);
     onChange(Array.from(next));
   };
 
   const renderChip = (b: TechStackChip) => {
     const isOn = selected.has(b.key);
 
-    // 이미지 에셋이 있는 경우(Off/On)
+    const wrapperClass = [
+      'rounded-[999px] transition-transform duration-150 ease-out active:scale-[0.98]',
+      isOn ? 'ring-1 ring-[#4E49FF]' : 'ring-1 ring-transparent',
+    ].join(' ');
+
     if ('off' in b && 'on' in b) {
       return (
-        <button
-          key={b.key}
-          type="button"
-          onClick={() => toggle(b.key)}
-          className="transition-transform duration-150 ease-out active:scale-[0.98]"
-        >
+        <button key={b.key} type="button" onClick={() => toggle(b.key)} className={wrapperClass}>
           <img
             src={isOn ? b.on : b.off}
             alt={b.label}
-            className="h-[36px] w-auto select-none"
+            className="h-[36px] w-auto select-none rounded-[999px]"
             draggable={false}
           />
         </button>
       );
     }
 
-    // 에셋이 아직 없는 항목은 동일 톤의 텍스트 칩으로 임시 처리
     return (
       <button
         key={b.key}
         type="button"
         onClick={() => toggle(b.key)}
-        className={`inline-flex h-[36px] items-center gap-[8px] rounded-[24px] border px-[12px] py-[8px] text-left transition-transform duration-150 ease-out active:scale-[0.98] ${
-          isOn
-            ? 'border-[#4E49FF] bg-[var(--ui-100)]'
-            : 'border-[var(--ui-200)] bg-[var(--ui-100)]'
-        }`}
+        className={[
+          'inline-flex h-[36px] items-center gap-[8px] rounded-[24px] px-[12px] py-[8px] text-left transition-transform duration-150 ease-out active:scale-[0.98]',
+          'bg-[var(--ui-100)]',
+          isOn ? 'ring-[#4E49FF] ring-[1.5px]' : 'ring-[1.5px] ring-[var(--ui-200)]',
+        ].join(' ')}
       >
         <span className="Caption1 font-medium text-[var(--ui-800)]">{b.label}</span>
       </button>
@@ -232,7 +283,7 @@ export default function PositionTechStackDropdown({
   return (
     <div
       ref={ref}
-      className={`absolute left-0 top-[calc(100%+12px)] z-50 w-[358px] overflow-hidden rounded-[12px] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)] ${containerHeightClass}`}
+      className={`absolute top-[calc(100%+12px)] left-0 z-50 w-[358px] overflow-hidden rounded-[12px] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)] ${containerHeightClass}`}
     >
       <div className="px-[16px] pt-[16px]">
         <p className="Label1 font-medium text-[var(--ui-600)]">포지션/기술스택</p>
@@ -243,13 +294,13 @@ export default function PositionTechStackDropdown({
         <div ref={tabsContainerRef} className="w-full">
           <div
             ref={tabsRowRef}
-            className="flex w-fit items-center gap-[24px] text-[16px] font-semibold leading-[1.5] tracking-[0.0912px]"
+            className="flex w-fit items-center gap-[24px] font-semibold text-[16px] leading-[1.5] tracking-[0.0912px]"
           >
             <button
               ref={frontendTabRef}
               type="button"
               onClick={() => setActiveTab('frontend')}
-              className={activeTab === 'frontend' ? 'text-[var(--ui-700)]' : 'text-[var(--ui-400)]'}
+              className={`cursor-pointer ${activeTab === 'frontend' ? 'text-[var(--ui-700)]' : 'text-[var(--ui-400)]'}`}
             >
               프론트엔드
             </button>
@@ -257,7 +308,7 @@ export default function PositionTechStackDropdown({
               ref={backendTabRef}
               type="button"
               onClick={() => setActiveTab('backend')}
-              className={activeTab === 'backend' ? 'text-[var(--ui-700)]' : 'text-[var(--ui-400)]'}
+              className={`cursor-pointer ${activeTab === 'backend' ? 'text-[var(--ui-700)]' : 'text-[var(--ui-400)]'}`}
             >
               백엔드
             </button>
@@ -265,7 +316,7 @@ export default function PositionTechStackDropdown({
               ref={infraTabRef}
               type="button"
               onClick={() => setActiveTab('infra')}
-              className={activeTab === 'infra' ? 'text-[var(--ui-700)]' : 'text-[var(--ui-400)]'}
+              className={`cursor-pointer ${activeTab === 'infra' ? 'text-[var(--ui-700)]' : 'text-[var(--ui-400)]'}`}
             >
               인프라
             </button>
@@ -275,14 +326,14 @@ export default function PositionTechStackDropdown({
           <div className="relative mt-[8px] h-px w-full">
             <div
               ref={tabsAreaRef}
-              className="absolute left-0 top-0 h-px rounded-[24px] bg-[var(--ui-100)]"
+              className="absolute top-0 left-0 h-px rounded-[24px] bg-[var(--ui-100)]"
               style={{
                 width: `${tabsTrack.width}px`,
                 transform: `translateX(${tabsTrack.left}px)`,
               }}
             >
               <div
-                className="absolute left-0 top-0 h-px rounded-[24px] bg-[var(--ui-300)] transition-[transform,width] duration-200 ease-out"
+                className="absolute top-0 left-0 h-px rounded-[24px] bg-[var(--ui-300)] transition-[transform,width] duration-200 ease-out"
                 style={{
                   width: `${tabUnderline.width}px`,
                   transform: `translateX(${tabUnderline.left}px)`,
@@ -294,7 +345,7 @@ export default function PositionTechStackDropdown({
       </div>
 
       {/* 전체 선택 */}
-      <div className="absolute right-[16px] top-[93px] flex items-center gap-[4px]">
+      <div className="absolute top-[93px] right-[16px] flex items-center gap-[4px]">
         <button
           type="button"
           onClick={toggleAll}
@@ -329,26 +380,36 @@ export default function PositionTechStackDropdown({
           <div className="flex flex-col gap-[16px]">
             <div className="flex flex-col gap-[12px]">
               <p className="Label1 font-medium text-[var(--ui-700)]">언어</p>
-              <div className="flex flex-wrap gap-[4px]">{BACKEND_LANGUAGE.map((b) => renderChip(b))}</div>
+              <div className="flex flex-wrap gap-[4px]">
+                {BACKEND_LANGUAGE.map((b) => renderChip(b))}
+              </div>
             </div>
             <div className="flex flex-col gap-[12px]">
               <p className="Label1 font-medium text-[var(--ui-700)]">프레임워크</p>
-              <div className="flex flex-wrap gap-[4px]">{BACKEND_FRAMEWORK.map((b) => renderChip(b))}</div>
+              <div className="flex flex-wrap gap-[4px]">
+                {BACKEND_FRAMEWORK.map((b) => renderChip(b))}
+              </div>
             </div>
             <div className="flex flex-col gap-[12px]">
               <p className="Label1 font-medium text-[var(--ui-700)]">데이터베이스</p>
-              <div className="flex flex-wrap gap-[4px]">{BACKEND_DATABASE.map((b) => renderChip(b))}</div>
+              <div className="flex flex-wrap gap-[4px]">
+                {BACKEND_DATABASE.map((b) => renderChip(b))}
+              </div>
             </div>
           </div>
         ) : (
           <div className="flex flex-col gap-[16px]">
             <div className="flex flex-col gap-[12px]">
               <p className="Label1 font-medium text-[var(--ui-700)]">클라우드</p>
-              <div className="flex flex-wrap gap-[4px]">{INFRA_CLOUD.map((b) => renderChip(b))}</div>
+              <div className="flex flex-wrap gap-[4px]">
+                {INFRA_CLOUD.map((b) => renderChip(b))}
+              </div>
             </div>
             <div className="flex flex-col gap-[12px]">
               <p className="Label1 font-medium text-[var(--ui-700)]">컨테이너</p>
-              <div className="flex flex-wrap gap-[4px]">{INFRA_CONTAINER.map((b) => renderChip(b))}</div>
+              <div className="flex flex-wrap gap-[4px]">
+                {INFRA_CONTAINER.map((b) => renderChip(b))}
+              </div>
             </div>
           </div>
         )}
@@ -382,4 +443,3 @@ export default function PositionTechStackDropdown({
     </div>
   );
 }
-

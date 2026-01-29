@@ -1,7 +1,7 @@
+import MainProjectCard from '@components/common/MainProjectCard';
+import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
+import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import { Link } from 'react-router-dom';
-import MainProjectCard from './components/MainProjectCard';
-import MainProfileCard from './components/MainProfileCard';
-import MainProjectLg from './components/MainProjectLg';
 import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 
@@ -19,7 +19,7 @@ const MainPage = () => {
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-14">
       <section className="flex flex-col gap-6">
-        <h2 className="Heading2 font-semibold text-card-title">
+        <h2 className="Heading2 pt-5 font-semibold text-card-title">
           이번주 모두가 주목하는 프로젝트
         </h2>
         <div className="scrollbar-hide flex gap-6 overflow-x-auto">
@@ -51,14 +51,21 @@ const MainPage = () => {
           >
             {isPm
               ? recommendedProfiles.map((profile) => (
-                  <MainProfileCard
+                  <RecommendDeveloperCard
                     key={profile.id}
-                    {...profile}
-                    matchReason="의 Java/Springboot 요구사항과 일치합니다."
+                    role={profile.role}
+                    roleTone={profile.roleTone}
+                    nickname={profile.nickname}
+                    profileImageUrl={profile.profileImageUrl}
+                    introduction={profile.introduction}
+                    domains={profile.badges?.map((badge) => ({ label: badge.label }))}
+                    techStack={profile.techStack}
+                    bookmarked={profile.bookmarked}
+                    matchedReason="의 Java/Springboot 요구사항과 일치합니다."
                   />
                 ))
               : recommendedProjects.map((project) => (
-                  <MainProjectLg
+                  <RecommendProjectCard
                     key={project.id}
                     categoryLabel={project.categoryLabel}
                     deadlineLabel={project.deadlineLabel}
@@ -69,14 +76,18 @@ const MainPage = () => {
                     roles={[...PROJECT_ROLES]}
                     dueLabel={project.dueLabel}
                     bookmarked={project.bookmarked}
+                    techSuitability={project.techSuitability}
+                    domainSuitability={project.domainSuitability}
+                    growthPotential={project.growthPotential}
+                    overallScore={project.overallScore}
                   />
                 ))}
           </div>
 
           {!isLoggedIn && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex w-full max-w-[420px] flex-col items-center gap-4 rounded-3xl bg-[var(--ui-bg)] px-8 py-6 text-center shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
-                <div className="flex flex-col gap-2">
+              <div className="flex w-full max-w-[420px] flex-col items-center gap-10 rounded-3xl bg-[var(--ui-bg)] px-8 py-18 text-center shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
+                <div className="flex flex-col gap-3">
                   <span className="Body1 font-semibold text-card-title">로그인이 필요해요</span>
                   <span className="Caption1 text-card-muted">
                     로그인하면 추천 프로젝트를 확인할 수 있어요
@@ -84,7 +95,7 @@ const MainPage = () => {
                 </div>
                 <Link
                   to="/login"
-                  className="Body1 inline-flex h-[40px] items-center justify-center rounded-xl bg-[var(--badge-text-primary)] px-6 font-semibold text-white"
+                  className="inline-flex items-center justify-center rounded-xl bg-[#4E49FF] px-6 py-4 font-semibold text-white text-xl"
                 >
                   로그인하기
                 </Link>

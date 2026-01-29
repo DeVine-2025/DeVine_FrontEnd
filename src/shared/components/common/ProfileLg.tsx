@@ -1,5 +1,4 @@
 import BookmarkIcon from '@assets/icons/bookmark.svg?react';
-import BookmarkFilled from '@assets/icons/bookmark-filled.svg?react';
 import { cn } from '@libs/cn';
 import { badgeToneToClass } from '../../types/badgeTone';
 import type { ProfileCardProps } from '../../types/profileCard.types';
@@ -18,6 +17,7 @@ export default function ProfileCardLg(props: ProfileCardProps) {
     badges,
     introduction,
     techStack,
+    action,
     className,
   } = props;
 
@@ -59,18 +59,21 @@ export default function ProfileCardLg(props: ProfileCardProps) {
           <TechChips techStack={techStack} max={5} />
         </div>
 
-        <button
-          type="button"
-          aria-pressed={bookmarked}
-          onClick={() => onBookmarkChange?.(!bookmarked, id)}
-          className="ml-auto flex h-full cursor-pointer items-center pr-5 hover:opacity-80"
-        >
-          {bookmarked ? (
-            <BookmarkFilled aria-hidden="true" className="h-10 w-10 text-card-muted" />
-          ) : (
-            <BookmarkIcon aria-hidden="true" className="h-10 w-10 text-card-muted" />
+        <div className="ml-auto flex h-full items-center pr-5">
+          {action ?? (
+            <button
+              type="button"
+              aria-pressed={bookmarked}
+              onClick={() => onBookmarkChange?.(!bookmarked, id)}
+              className="inline-flex"
+            >
+              <BookmarkIcon
+                aria-hidden="true"
+                className="h-10 w-10 cursor-pointer text-card-muted"
+              />
+            </button>
           )}
-        </button>
+        </div>
       </div>
     </article>
   );

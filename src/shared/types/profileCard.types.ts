@@ -24,5 +24,6 @@ export type ProfileCardProps = {
   onBookmarkChange?: (next: boolean, id?: string) => void;
 
   size?: 'sm' | 'md' | 'lg';
+  action?: React.ReactNode;
   className?: string;
 };

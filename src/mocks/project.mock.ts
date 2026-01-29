@@ -29,7 +29,7 @@ export const RECOMMENDED_PROJECTS: RecommendedProject[] = [
     location: '서울 강남구',
     period: '3개월',
     mode: '온라인/오프라인',
-    bookmarked: true,
+    bookmarked: false,
   },
   {
     id: 'rec-3',

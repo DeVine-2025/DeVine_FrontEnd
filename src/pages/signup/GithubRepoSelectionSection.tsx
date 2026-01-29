@@ -46,7 +46,7 @@ const GithubRepoSelectionSection = ({ onBack }: GithubRepoSelectionSectionProps)
                   aria-pressed={selected}
                 >
                   {selected ? (
-                    <CheckboxCheckedIcon className="mt-1 h-7 w-7 shrink-0" aria-hidden="true" />
+                    <CheckboxCheckedIcon className="mt-1 h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
                   ) : (
                     <CheckboxUncheckedIcon className="mt-1 h-7 w-7 shrink-0" aria-hidden="true" />
                   )}
@@ -67,7 +67,7 @@ const GithubRepoSelectionSection = ({ onBack }: GithubRepoSelectionSectionProps)
           disabled={!canProceed}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
             canProceed
-              ? 'bg-[var(--badge-text-primary)] text-white'
+              ? 'bg-[#4E49FF] text-white'
               : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
           }`}
         >

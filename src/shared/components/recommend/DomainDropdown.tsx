@@ -47,10 +47,7 @@ export default function DomainDropdown({
 }: DomainDropdownProps) {
   const ref = useRef<HTMLDivElement | null>(null);
 
-  const realOptions = useMemo(
-    () => OPTIONS.filter((o) => o !== '전체') as unknown as string[],
-    [],
-  );
+  const realOptions = useMemo(() => OPTIONS.filter((o) => o !== '전체') as unknown as string[], []);
   const selected = useMemo(() => new Set(value.filter((v) => v !== '전체')), [value]);
 
   useEffect(() => {
@@ -93,15 +90,16 @@ export default function DomainDropdown({
   return (
     <div
       ref={ref}
-      className="absolute left-0 top-[calc(100%+12px)] z-50 w-[440px] overflow-hidden rounded-[12px] border border-[var(--ui-100)] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)]"
+      className="absolute top-[calc(100%+12px)] left-0 z-50 w-[380px] overflow-hidden rounded-[12px] border border-[var(--ui-100)] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)]"
     >
-      <div className="px-[16px] pb-[8px] pt-[16px]">
+      <div className="px-[16px] pt-[16px] pb-[8px]">
         <p className="Label1 font-medium text-[var(--ui-600)]">{title}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-x-[0px] pb-[8px]">
         {OPTIONS.map((opt) => {
-          const isChecked = opt === '전체' ? selected.size === realOptions.length : selected.has(opt);
+          const isChecked =
+            opt === '전체' ? selected.size === realOptions.length : selected.has(opt);
           return (
             <button
               key={opt}
@@ -129,14 +127,14 @@ export default function DomainDropdown({
         })}
       </div>
 
-      <div className="flex h-[52px] w-full items-center justify-end gap-[12px] px-[16px]">
+      <div className="flex w-full items-center justify-end gap-4 pr-5 pb-5">
         <button
           type="button"
           onClick={() => {
             onReset?.();
             onChange([]);
           }}
-          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-transparent px-[10px] text-[var(--ui-500)] hover:text-[var(--ui-700)]"
+          className="Label1 flex w-[60px] items-center justify-center rounded-xl bg-transparent p-3 text-[var(--ui-500)] hover:text-[var(--ui-700)]"
         >
           초기화
         </button>
@@ -146,7 +144,7 @@ export default function DomainDropdown({
             onApply?.();
             onClose();
           }}
-          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-[#4E49FF] px-[10px] text-white"
+          className="Label1 flex w-[60px] items-center justify-center rounded-xl bg-[#4E49FF] p-3 text-white"
         >
           저장
         </button>
@@ -154,4 +152,3 @@ export default function DomainDropdown({
     </div>
   );
 }
-
