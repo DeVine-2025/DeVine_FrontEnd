@@ -94,10 +94,14 @@ export function BadgeList({ badges, className }: BadgeListProps) {
 
   return (
     <div className={cn('flex flex-wrap gap-4', className)}>
-      {badges.map(({ id, label }) => (
-        <Badge key={id ?? label} label={label} />
+      {badges.map((badge, index) => (
+        <Badge
+          key={`${badge.label}-${index}`}
+          label={badge.label}
+        />
       ))}
     </div>
+
   );
 }
 
