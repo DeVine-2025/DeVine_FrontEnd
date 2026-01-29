@@ -21,3 +21,4 @@ export { default as DeveloperSearchPage } from './search/developer/developer-sea
 export { default as ProjectSearchPage } from './search/project/project-search-page';
 export { default as SearchPage } from './search/search-page';
 export { default as SignupPage } from './signup/signup-page';
+export { default as ProjectDetailPage } from './detail/project-detail-page';

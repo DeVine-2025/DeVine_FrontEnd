@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { ProjectCardProps } from 'src/shared/types/projectCard.types.ts';
+import { cn } from '@libs/cn';
 import ProjectBase from './ProjectBase';
 
 type ProjectLgProps = ProjectCardProps & {
@@ -17,8 +18,15 @@ export default function ProjectLg({
   return (
     <ProjectBase
       {...props}
-      render={({ Thumbnail, HeaderBadges, Title, Meta, RolesLg, Due, Bookmark }) => (
-        <article className="flex h-[180px] w-full max-w-[1180px] items-center gap-8 overflow-hidden rounded-2xl border border-card-border bg-card-bg p-8">
+      render={({ Thumbnail, HeaderBadges, Title, Meta, RolesLg, Due, Bookmark, CardActionProps }) => (
+        <article
+          {...CardActionProps}
+          className={cn(
+            'flex h-[180px] w-full max-w-[1180px] items-center gap-8 overflow-hidden rounded-2xl border border-card-border bg-card-bg p-8',
+            props.onClick && 'cursor-pointer',
+            props.className,
+          )}
+        >
           {Thumbnail}
 
           <div className="flex flex-1 flex-col justify-center gap-9">

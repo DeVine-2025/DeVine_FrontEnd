@@ -5,14 +5,24 @@ import ExpectedPeriodDropdown from '@components/recommend/ExpectedPeriodDropdown
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 import ProjectTypeDropdown from '@components/recommend/ProjectTypeDropdown';
 import { useState } from 'react';
-import { PROJECT_FILTERS, PROJECT_LIST, PROJECT_ROLES } from 'src/mocks/recommendProject.mock';
+import { useNavigate } from 'react-router-dom';
+import {
+  PROJECT_FILTERS,
+  PROJECT_LIST,
+  PROJECT_ROLES,
+  type ProjectListItem,
+} from 'src/mocks/recommendProject.mock';
 
 const RecommendProjectPage = () => {
+  const navigate = useNavigate();
   const [openFilter, setOpenFilter] = useState<null | (typeof PROJECT_FILTERS)[number]>(null);
   const [domains, setDomains] = useState<string[]>([]);
   const [expectedPeriods, setExpectedPeriods] = useState<string[]>([]);
   const [projectTypes, setProjectTypes] = useState<string[]>([]);
   const [techStacks, setTechStacks] = useState<string[]>([]);
+  const handleProjectClick = (project: ProjectListItem) => {
+    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+  };
 
   return (
     <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
@@ -125,7 +135,7 @@ const RecommendProjectPage = () => {
             growthPotential={p.growthPotential}
             overallScore={p.overallScore}
             onBookmarkChange={(next) => console.log('bookmark', p.id, next)}
-            onClick={() => console.log('click project', p.id)}
+            onClick={() => handleProjectClick(p)}
           />
         ))}
       </div>

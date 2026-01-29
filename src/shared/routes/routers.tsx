@@ -14,6 +14,7 @@ import {
   MyPMPage,
   MyProjectPage,
   PmPage,
+  ProjectDetailPage,
   ProjectSearchPage,
   ProposedPage,
   RecommendDeveloperPage,
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
       { index: true, element: <MainPage /> },
       { path: 'signup', element: <SignupPage /> },
       { path: 'login', element: <LoginPage /> },
+      { path: 'project/:projectId', element: <ProjectDetailPage /> },
       {
         path: 'search',
         element: <SearchPage />,
