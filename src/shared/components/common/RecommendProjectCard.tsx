@@ -74,7 +74,7 @@ export default function RecommendProjectCard({
           ) : null}
         </div>
 
-        <div className="flex w-[372px] shrink-0 self-start -translate-y-[3px] flex-col gap-[16px]">
+        <div className="-translate-y-[3px] flex w-[372px] shrink-0 flex-col gap-[16px] self-start">
           <div className="flex flex-col gap-[12px]">
             <div className="flex items-center gap-[4px]">
               {categoryLabel ? (
@@ -101,9 +101,12 @@ export default function RecommendProjectCard({
 
         <div className="flex h-[132px] w-[202px] shrink-0 translate-y-[16px] flex-col items-center justify-center gap-[12px]">
           {roles?.slice(0, 3).map((r) => (
-            <div key={r.key} className="grid w-full grid-cols-[96px_56px_1px_1fr] items-center gap-x-[12px]">
+            <div
+              key={r.key}
+              className="grid w-full grid-cols-[96px_56px_1px_1fr] items-center gap-x-[12px]"
+            >
               <span
-                className={`Label1 inline-flex w-fit max-w-[96px] justify-self-center items-center justify-center truncate rounded-[8px] px-[12px] py-[6px] font-semibold ${
+                className={`Label1 inline-flex w-fit max-w-[96px] items-center justify-center justify-self-center truncate rounded-[8px] px-[12px] py-[6px] font-semibold ${
                   toneToClass[r.tone] ?? ''
                 }`}
               >
@@ -121,7 +124,10 @@ export default function RecommendProjectCard({
 
               <div className="flex items-center gap-[4px] overflow-hidden">
                 {r.techStack?.slice(0, 5).map((t) => (
-                  <span key={t.id} className="inline-flex h-[20px] w-[20px] items-center justify-center">
+                  <span
+                    key={t.id}
+                    className="inline-flex h-[20px] w-[20px] items-center justify-center"
+                  >
                     {t.icon}
                   </span>
                 ))}
@@ -131,7 +137,7 @@ export default function RecommendProjectCard({
         </div>
       </div>
 
-      <div className="Body1 absolute right-[140px] top-1/2 flex w-[100px] -translate-y-1/2 items-center justify-center text-center font-semibold text-[var(--ui-500)]">
+      <div className="Body1 -translate-y-1/2 absolute top-1/2 right-[140px] flex w-[100px] items-center justify-center text-center font-semibold text-[var(--ui-500)]">
         {dueLabel}
       </div>
 
@@ -142,11 +148,11 @@ export default function RecommendProjectCard({
           e.stopPropagation();
           onBookmarkChange?.(!bookmarked);
         }}
-        className="group absolute right-[24px] top-1/2 flex h-[52px] w-[52px] -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-300)]"
+        className="group -translate-y-1/2 absolute top-1/2 right-[24px] flex h-[52px] w-[52px] items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--ui-300)] focus-visible:outline-offset-2"
       >
         <BookmarkFilledIcon
           aria-hidden
-          className="h-[32px] w-[32px] text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-active:scale-[0.98] group-hover:text-[var(--ui-300)]"
+          className="h-[32px] w-[32px] text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-hover:text-[var(--ui-300)] group-active:scale-[0.98]"
         />
       </button>
 

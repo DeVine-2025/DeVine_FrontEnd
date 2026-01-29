@@ -1,10 +1,17 @@
-import ChevronDownIcon from '@assets/icons/chevron-down.svg?react';
+import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
 import ProfileCard from '@components/common/ProfileCard';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PROFILE_CARD_LIST, PROFILE_FILTERS } from 'src/mocks/developer.mock';
+import { DEVELOPER_FILTERS, PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 
 const DeveloperSearchPage = () => {
   const navigate = useNavigate();
+
+  const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
+
+  const [interestDomains, setInterestDomains] = useState<string[]>([]);
+  const [myProjects, setMyProjects] = useState<string[]>([]);
+  const [techStacks, setTechStacks] = useState<string[]>([]);
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
@@ -34,18 +41,19 @@ const DeveloperSearchPage = () => {
       <div className="h-px w-full bg-card-border" />
 
       {/* 필터 */}
-      <div className="flex flex-wrap gap-4">
-        {PROFILE_FILTERS.map((label) => (
-          <button
-            key={label}
-            type="button"
-            className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-filter-bg px-5 py-3 font-medium text-filter-text text-xl"
-          >
-            {label}
-            <ChevronDownIcon aria-hidden="true" className="h-4 w-4" />
-          </button>
-        ))}
-      </div>
+      <DeveloperFilterBar
+        filters={DEVELOPER_FILTERS}
+        openFilter={openFilter}
+        setOpenFilter={setOpenFilter}
+        myProjects={myProjects}
+        setMyProjects={setMyProjects}
+        techStacks={techStacks}
+        setTechStacks={setTechStacks}
+        interestDomains={interestDomains}
+        setInterestDomains={setInterestDomains}
+        onApply={(key) => console.log('apply', key)}
+        onReset={(key) => console.log('reset', key)}
+      />
 
       {/* 개발자 리스트 */}
       <div className="flex flex-col gap-4">

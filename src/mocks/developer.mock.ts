@@ -25,8 +25,7 @@ export type ProfileCardProps = {
   bookmarked?: boolean;
 };
 
-// 필터 라벨
-export const PROFILE_FILTERS = ['포지션 / 기술스택', '관심 도메인'] as const;
+export const DEVELOPER_FILTERS = ['내 프로젝트 선택', '포지션 / 기술스택', '관심 도메인'] as const;
 
 export const PROFILE_CARD_LIST: ProfileCardProps[] = [
   {
