@@ -140,7 +140,7 @@ export default function RecommendProjectBase(props: RecommendProjectCardBaseProp
     </div>
   ) : null;
 
-  const Due = dueLabel ? <p className="w-[65px] text-badge-text-gray text-xl">{dueLabel}</p> : null;
+  const Due = dueLabel ? <p className="w-[65px] text-badge-text-gray text-lg">{dueLabel}</p> : null;
 
   const Bookmark = (
     <button

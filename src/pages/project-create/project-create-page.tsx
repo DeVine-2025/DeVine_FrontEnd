@@ -85,7 +85,7 @@ function InputLike({ placeholder, value }: { placeholder: string; value?: string
       onChange={() => {
         // (호환용)
       }}
-      className="h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] Caption1 font-medium tracking-[0.0912px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)] focus:outline-none focus:ring-2 focus:ring-[rgba(78,73,255,0.25)]"
+      className="h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] Caption1 font-medium tracking-[0.0912px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)] transition-colors focus:border-[#4E49FF] focus:outline-none"
     />
   );
 }
@@ -105,7 +105,7 @@ function InputField({
       value={value}
       placeholder={placeholder}
       onChange={handleChange}
-      className="h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] Caption1 font-medium tracking-[0.0912px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)] focus:outline-none focus:ring-2 focus:ring-[rgba(78,73,255,0.25)]"
+      className="h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] Caption1 font-medium tracking-[0.0912px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)] transition-colors focus:border-[#4E49FF] focus:outline-none"
     />
   );
 }

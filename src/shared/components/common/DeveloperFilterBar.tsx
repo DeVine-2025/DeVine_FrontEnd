@@ -40,7 +40,7 @@ export default function DeveloperFilterBar({
   onReset,
 }: Props) {
   const baseClass =
-    'inline-flex max-w-[260px] cursor-pointer items-center gap-[10px] rounded-full px-5 py-[12px] font-semibold text-xl transition-colors';
+    'inline-flex max-w-[260px] cursor-pointer items-center gap-[10px] rounded-full px-5 py-4 font-semibold text-xl transition-colors';
   const appliedClass =
     'border border-[var(--badge-bg-primary)] bg-[var(--badge-bg-primary)] text-[var(--badge-text-primary)]';
   const defaultClass = 'border border-transparent bg-filter-bg text-filter-text';
@@ -66,7 +66,7 @@ export default function DeveloperFilterBar({
         const uniq = Array.from(new Set(values));
         const shown = uniq.slice(0, 2);
         const rest = Math.max(0, uniq.length - shown.length);
-        const summary = `${shown.join(',')}${rest > 0 ? '…' : ''}`;
+        const summary = `${shown.join(', ')}${rest > 0 ? '…' : ''}`;
         const displayLabel = isApplied ? summary : label;
 
         return (

@@ -1,6 +1,17 @@
 import BookmarkFilledIcon from '@assets/icons/bookmark-filled.svg?react';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
+import { useThemeStore } from '@store/theme';
+import {
+  BACKEND_DATABASE,
+  BACKEND_FRAMEWORK,
+  BACKEND_LANGUAGE,
+  FRONTEND_LANGUAGE_FRAMEWORK,
+  FRONTEND_MOBILE,
+  INFRA_CLOUD,
+  INFRA_CONTAINER,
+  type TechStackChip,
+} from '@constants/position-tech-stack';
 
 type RecommendDeveloperTech = {
   id: string;
@@ -40,9 +51,47 @@ export default function RecommendDeveloperCard({
   onBookmarkChange,
   onClick,
 }: RecommendDeveloperCardProps) {
+  const { theme } = useThemeStore();
   const maxChips = 5;
   const chips = techStack?.slice(0, maxChips) ?? [];
   const overflow = (techStack?.length ?? 0) - chips.length;
+
+  const normalizeTechKey = (v: string) =>
+    v
+      .trim()
+      .toLowerCase()
+      .replaceAll(' ', '')
+      .replaceAll('.', '')
+      .replaceAll('-', '')
+      .replaceAll('_', '');
+
+  const ALL_TECH_STACK_BADGES: Array<Extract<TechStackChip, { off: string; on: string }>> = [
+    ...FRONTEND_LANGUAGE_FRAMEWORK,
+    ...FRONTEND_MOBILE,
+    ...BACKEND_LANGUAGE,
+    ...BACKEND_FRAMEWORK,
+    ...BACKEND_DATABASE,
+    ...INFRA_CLOUD,
+    ...INFRA_CONTAINER,
+  ].filter((b): b is Extract<TechStackChip, { off: string; on: string }> => 'off' in b && 'on' in b);
+
+  const TECH_BADGE_BY_NAME = new Map<string, Extract<TechStackChip, { off: string; on: string }>>(
+    ALL_TECH_STACK_BADGES.flatMap((b) => [
+      [normalizeTechKey(b.key), b],
+      [normalizeTechKey(b.label), b],
+    ]),
+  );
+
+  const findBadge = (name: string) => {
+    const normalized = normalizeTechKey(name);
+    // 목데이터/백엔드에서 들어올 수 있는 표기 흔들림 대응
+    const alias = normalized
+      .replaceAll('typescript', 'typescript')
+      .replaceAll('nextjs', 'nextjs')
+      .replaceAll('nodejs', 'nodejs')
+      .replaceAll('reactnative', 'reactnative');
+    return TECH_BADGE_BY_NAME.get(alias) ?? TECH_BADGE_BY_NAME.get(normalized) ?? null;
+  };
 
   return (
     <article
@@ -59,7 +108,7 @@ export default function RecommendDeveloperCard({
             }
           : undefined
       }
-      className={`relative h-[248px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
+      className={`relative h-[236px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
         onClick ? 'cursor-pointer' : ''
       }`}
       style={{
@@ -83,18 +132,18 @@ export default function RecommendDeveloperCard({
       <div className="absolute left-[104px] top-[24px] flex h-[142px] w-[394px] flex-col gap-[12px]">
         <div className="flex w-[220px] flex-col gap-[8px]">
           <span
-            className={`Label1 w-fit rounded-[8px] px-[8px] py-[4px] font-semibold ${badgeToneToClass[roleTone]}`}
+            className={`Caption1 inline-flex h-[24px] w-fit items-center rounded-[8px] px-[6px] font-semibold ${badgeToneToClass[roleTone]}`}
           >
             {role}
           </span>
 
-          <p className="Headline1 h-[26px] font-semibold text-[var(--ui-1000)]">{nickname}</p>
+          <p className="Body1 h-[26px] font-semibold text-[var(--ui-1000)]">{nickname}</p>
 
           <div className="flex flex-wrap gap-[8px]">
             {domains?.slice(0, 3).map((d) => (
               <span
                 key={d.label}
-                className="Label1 flex h-[28px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[8px] py-[4px] font-semibold text-[var(--ui-600)]"
+                className="Caption1 flex h-[24px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] font-semibold text-[var(--ui-600)]"
               >
                 {d.label}
               </span>
@@ -108,14 +157,32 @@ export default function RecommendDeveloperCard({
       </div>
 
       {/* 스택(우) */}
-      <div className="absolute left-[698px] top-[53px] flex h-[76px] w-[360px] flex-wrap items-center gap-[4px]">
+      <div className="absolute left-[698px] top-[50px] flex h-[76px] w-[360px] flex-wrap items-center gap-[4px]">
         {chips.map((t) => (
-          <span
-            key={t.id}
-            className="flex items-center gap-[8px] rounded-[24px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-[12px] py-[8px]"
-          >
-            {t.icon ? <span className="h-[20px] w-[20px]">{t.icon}</span> : null}
-            <span className="Caption1 font-medium text-[var(--ui-800)]">{t.name}</span>
+          <span key={t.id} className="inline-flex items-center">
+            {(() => {
+              const badge = findBadge(t.name);
+              if (badge) {
+                // 추천 카드의 기술스택은 "선택 상태"가 아니므로 Off 배지를 사용
+                const offSrc = theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off;
+                return (
+                  <img
+                    src={offSrc}
+                    alt={badge.label}
+                    className="h-[36px] w-auto select-none"
+                    draggable={false}
+                  />
+                );
+              }
+
+              // 에셋이 없는 항목(Figma 등)은 기존 pill fallback
+              return (
+                <span className="flex items-center gap-[8px] rounded-[24px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-[12px] py-[8px]">
+                  {t.icon ? <span className="h-[20px] w-[20px]">{t.icon}</span> : null}
+                  <span className="Caption1 font-medium text-[var(--ui-800)]">{t.name}</span>
+                </span>
+              );
+            })()}
           </span>
         ))}
 
@@ -141,8 +208,8 @@ export default function RecommendDeveloperCard({
       </button>
 
       {/* 하단 매칭 문구 */}
-      <div className="absolute left-[24px] top-[182px] flex items-center justify-center rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
-        <p className="Body1 font-medium text-[var(--ui-1000)]">
+      <div className="absolute left-[24px] top-[172px] flex items-center justify-center rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
+        <p className="Label1 font-medium text-[var(--ui-1000)]">
           <span className="text-[var(--badge-text-primary)]">[{matchedProjectName}]</span>
           {matchedReason}
         </p>

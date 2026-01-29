@@ -137,7 +137,7 @@ export default function RecommendProjectCard({
         </div>
       </div>
 
-      <div className="-translate-y-1/2 absolute top-1/2 right-[140px] flex w-[100px] items-center justify-center text-center font-semibold text-2xl text-[var(--ui-500)]">
+      <div className="-translate-y-1/2 absolute top-1/2 right-[140px] flex w-[100px] items-center justify-center text-center font-semibold text-xl text-[var(--ui-500)]">
         {dueLabel}
       </div>
 
