@@ -87,7 +87,7 @@ export default function ProjectTypeDropdown({
   return (
     <div
       ref={ref}
-      className="absolute left-0 top-[calc(100%+12px)] z-50 w-[220px] overflow-hidden rounded-[12px] border border-[var(--ui-100)] bg-[var(--ui-50)] shadow-[0px_12px_24px_0px_rgba(0,0,0,0.28)]"
+      className="animate-dropdown-slide-up absolute left-0 top-[calc(100%+12px)] z-50 w-[220px] overflow-hidden rounded-[12px] border border-[var(--ui-100)] bg-[var(--ui-50)] shadow-[0px_12px_24px_0px_rgba(0,0,0,0.28)]"
     >
       <div className="px-[16px] pb-[8px] pt-[16px]">
         <p className="Label1 font-medium text-[var(--ui-500)]">프로젝트 유형</p>

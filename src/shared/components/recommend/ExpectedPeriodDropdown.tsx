@@ -71,7 +71,7 @@ export default function ExpectedPeriodDropdown({
   return (
     <div
       ref={ref}
-      className="absolute left-0 top-[calc(100%+12px)] z-50 w-[220px] overflow-hidden rounded-[12px] border border-[var(--ui-100)] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)]"
+      className="animate-dropdown-slide-up absolute left-0 top-[calc(100%+12px)] z-50 w-[220px] overflow-hidden rounded-[12px] border border-[var(--ui-100)] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)]"
     >
       <div className="px-[16px] pb-[8px] pt-[16px]">
         <p className="Label1 font-medium text-[var(--ui-600)]">예상 기간</p>

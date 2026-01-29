@@ -1,5 +1,6 @@
 import SelectAllIcon from '@assets/icons/select-all.svg?react';
 import { useEffect, useMemo, useRef } from 'react';
+import { useThemeStore } from '@store/theme';
 
 import {
   BACKEND_DATABASE,
@@ -33,6 +34,7 @@ export default function PositionBasedTechStackDropdown({
   onReset,
   onApply,
 }: Props) {
+  const { theme } = useThemeStore();
   const ref = useRef<HTMLDivElement | null>(null);
   const selected = useMemo(() => new Set(value), [value]);
 
@@ -79,6 +81,8 @@ export default function PositionBasedTechStackDropdown({
   const renderChip = (b: TechStackChip) => {
     const isOn = selected.has(b.key);
     if ('off' in b && 'on' in b) {
+      const offSrc = theme === 'dark' ? (b.offDark ?? b.off) : b.off;
+      const onSrc = theme === 'dark' ? (b.onDark ?? b.on) : b.on;
       return (
         <button
           key={b.key}
@@ -86,7 +90,7 @@ export default function PositionBasedTechStackDropdown({
           onClick={() => toggle(b.key)}
           className="transition-transform duration-150 ease-out active:scale-[0.98]"
         >
-          <img src={isOn ? b.on : b.off} alt={b.label} className="h-[36px] w-auto select-none" draggable={false} />
+          <img src={isOn ? onSrc : offSrc} alt={b.label} className="h-[36px] w-auto select-none" draggable={false} />
         </button>
       );
     }

@@ -35,6 +35,7 @@ export const router = createBrowserRouter([
       { index: true, element: <MainPage /> },
       { path: 'signup', element: <SignupPage /> },
       { path: 'login', element: <LoginPage /> },
+
       {
         path: 'search',
         element: <SearchPage />,
@@ -44,6 +45,7 @@ export const router = createBrowserRouter([
           { path: 'developer', element: <DeveloperSearchPage /> },
         ],
       },
+
       {
         path: 'recommend',
         element: <RecommendPage />,
@@ -53,6 +55,7 @@ export const router = createBrowserRouter([
           { path: 'developer', element: <RecommendDeveloperPage /> },
         ],
       },
+
       {
         element: <ProtectedRoute />,
         children: [
@@ -67,10 +70,7 @@ export const router = createBrowserRouter([
               { path: 'pm', element: <PmPage /> },
             ],
           },
-<<<<<<< HEAD
-          { path: 'my-project', element: <MyProjectPage /> },
-          { path: 'project/create', element: <ProjectCreatePage /> },
-=======
+
           {
             path: 'report',
             element: <ReportMainPage />,
@@ -79,6 +79,7 @@ export const router = createBrowserRouter([
               { path: 'create', element: <ReportCreatePage /> },
             ],
           },
+
           {
             path: 'my-project',
             element: <MyProjectPage />,
@@ -89,7 +90,9 @@ export const router = createBrowserRouter([
               { path: 'dev', element: <MyDeveloperPage /> },
             ],
           },
->>>>>>> origin/develope
+
+          { path: 'project/create', element: <ProjectCreatePage /> },
+
           { path: 'my-info', element: <MyInfoPage /> },
         ],
       },

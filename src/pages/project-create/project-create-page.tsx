@@ -8,15 +8,26 @@ import Image from '@tiptap/extension-image';
 import PlusIcon from '@assets/icons/create-project/plus.svg?react';
 import UnderVectorIcon from '@assets/icons/create-project/under-vector.svg?react';
 import TablerIconH1 from '@assets/icons/create-project/tabler-icon-h-1.svg?react';
+import TablerIconH1Hover from '@assets/icons/create-project/tabler-icon-h-1-hover.svg?react';
 import TablerIconH2 from '@assets/icons/create-project/tabler-icon-h-2.svg?react';
+import TablerIconH2Hover from '@assets/icons/create-project/tabler-icon-h-2-hover.svg?react';
 import TablerIconBold from '@assets/icons/create-project/tabler-icon-bold.svg?react';
+import TablerIconBoldHover from '@assets/icons/create-project/tabler-icon-bold-hover.svg?react';
 import TablerIconItalic from '@assets/icons/create-project/tabler-icon-italic.svg?react';
+import TablerIconItalicHover from '@assets/icons/create-project/tabler-icon-italic-hover.svg?react';
 import TablerIconStrikethrough from '@assets/icons/create-project/tabler-icon-strikethrough.svg?react';
+import TablerIconStrikethroughHover from '@assets/icons/create-project/tabler-icon-strikethrough-hover.svg?react';
 import TablerIconUnderline from '@assets/icons/create-project/tabler-icon-underline.svg?react';
+import TablerIconUnderlineHover from '@assets/icons/create-project/tabler-icon-underline-hover.svg?react';
 import TablerIconListNumbers from '@assets/icons/create-project/tabler-icon-list-numbers.svg?react';
+import TablerIconListNumbersHover from '@assets/icons/create-project/tabler-icon-list-numbers-hover.svg?react';
 import TablerIconList from '@assets/icons/create-project/tabler-icon-list.svg?react';
+import TablerIconListHover from '@assets/icons/create-project/tabler-icon-list-hover.svg?react';
 import TablerIconPhoto from '@assets/icons/create-project/tabler-icon-photo.svg?react';
+import TablerIconPhotoHover from '@assets/icons/create-project/tabler-icon-photo-hover.svg?react';
 import TablerIconLink from '@assets/icons/create-project/tabler-icon-link.svg?react';
+import TablerIconLinkHover from '@assets/icons/create-project/tabler-icon-link-hover.svg?react';
+import XIcon from '@assets/icons/create-project/x.svg?react';
 import SelectDropdown from '@components/common/SelectDropdown';
 import PositionBasedTechStackDropdown from '@components/common/PositionBasedTechStackDropdown';
 import {
@@ -97,11 +108,13 @@ function ImageSlot({
   inputId,
   previewUrl,
   onChange,
+  onRemove,
 }: {
   label: string;
   inputId: string;
   previewUrl: string | null;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onRemove?: () => void;
 }) {
   return (
     <label
@@ -117,12 +130,26 @@ function ImageSlot({
       />
 
       {previewUrl ? (
-        <img
-          src={previewUrl}
-          alt={label}
-          className="h-full w-full object-cover"
-          draggable={false}
-        />
+        <>
+          <img
+            src={previewUrl}
+            alt={label}
+            className="h-full w-full object-cover"
+            draggable={false}
+          />
+          <button
+            type="button"
+            aria-label="사진 삭제"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRemove?.();
+            }}
+            className="absolute right-[10px] top-[10px] inline-flex h-[24px] w-[24px] items-center justify-center rounded-full border border-ui-200 bg-ui-bg/70 text-ui-700 backdrop-blur-[2px] hover:bg-ui-bg/85"
+          >
+            <XIcon aria-hidden className="h-[10px] w-[10px]" />
+          </button>
+        </>
       ) : (
         <>
           <p className="Body1 absolute left-1/2 top-[31px] w-[150px] -translate-x-1/2 text-center font-medium text-ui-400">
@@ -139,11 +166,13 @@ function ImageSlot({
 
 function ToolbarButton({
   Icon,
+  HoverIcon,
   label,
   onClick,
   active,
 }: {
   Icon: SvgIcon;
+  HoverIcon: SvgIcon;
   label: string;
   onClick?: () => void;
   active?: boolean;
@@ -152,12 +181,17 @@ function ToolbarButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex h-[20px] w-[20px] items-center justify-center transition-colors ${
-        active ? 'text-ui-700' : 'text-ui-400 hover:text-ui-700'
-      }`}
+      className="group flex h-[20px] w-[20px] items-center justify-center"
       aria-label={label}
     >
-      <Icon aria-hidden className="h-[20px] w-[20px]" />
+      {active ? (
+        <HoverIcon aria-hidden className="h-[20px] w-[20px]" />
+      ) : (
+        <>
+          <Icon aria-hidden className="h-[20px] w-[20px] group-hover:hidden" />
+          <HoverIcon aria-hidden className="hidden h-[20px] w-[20px] group-hover:block" />
+        </>
+      )}
     </button>
   );
 }
@@ -194,6 +228,16 @@ const ProjectCreatePage = () => {
       reader.readAsDataURL(file);
       // 재선택 허용
       e.target.value = '';
+    };
+  }, []);
+
+  const onRemoveImage = useMemo(() => {
+    return (index: number) => () => {
+      setImagePreviews((prev) => {
+        const next = [...prev];
+        next[index] = null;
+        return next;
+      });
     };
   }, []);
 
@@ -487,18 +531,21 @@ const ProjectCreatePage = () => {
                         inputId="project-image-0"
                         previewUrl={imagePreviews[0]}
                         onChange={onPickImage(0)}
+                        onRemove={onRemoveImage(0)}
                       />
                       <ImageSlot
                         label="사진 추가하기"
                         inputId="project-image-1"
                         previewUrl={imagePreviews[1]}
                         onChange={onPickImage(1)}
+                        onRemove={onRemoveImage(1)}
                       />
                       <ImageSlot
                         label="사진 추가하기"
                         inputId="project-image-2"
                         previewUrl={imagePreviews[2]}
                         onChange={onPickImage(2)}
+                        onRemove={onRemoveImage(2)}
                       />
                     </div>
                   </div>
@@ -521,12 +568,14 @@ const ProjectCreatePage = () => {
                           <div className="flex items-center gap-[8px]">
                             <ToolbarButton
                               Icon={TablerIconH1}
+                              HoverIcon={TablerIconH1Hover}
                               label="H1"
                               active={!!editor?.isActive('heading', { level: 1 })}
                               onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
                             />
                             <ToolbarButton
                               Icon={TablerIconH2}
+                              HoverIcon={TablerIconH2Hover}
                               label="H2"
                               active={!!editor?.isActive('heading', { level: 2 })}
                               onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -535,24 +584,28 @@ const ProjectCreatePage = () => {
                           <div className="flex items-center gap-[8px]">
                             <ToolbarButton
                               Icon={TablerIconBold}
+                              HoverIcon={TablerIconBoldHover}
                               label="굵게"
                               active={!!editor?.isActive('bold')}
                               onClick={() => editor?.chain().focus().toggleBold().run()}
                             />
                             <ToolbarButton
                               Icon={TablerIconItalic}
+                              HoverIcon={TablerIconItalicHover}
                               label="기울임"
                               active={!!editor?.isActive('italic')}
                               onClick={() => editor?.chain().focus().toggleItalic().run()}
                             />
                             <ToolbarButton
                               Icon={TablerIconStrikethrough}
+                              HoverIcon={TablerIconStrikethroughHover}
                               label="취소선"
                               active={!!editor?.isActive('strike')}
                               onClick={() => editor?.chain().focus().toggleStrike().run()}
                             />
                             <ToolbarButton
                               Icon={TablerIconUnderline}
+                              HoverIcon={TablerIconUnderlineHover}
                               label="밑줄"
                               active={!!editor?.isActive('underline')}
                               onClick={() => editor?.chain().focus().toggleUnderline().run()}
@@ -561,21 +614,29 @@ const ProjectCreatePage = () => {
                           <div className="flex items-center gap-[8px]">
                             <ToolbarButton
                               Icon={TablerIconListNumbers}
+                              HoverIcon={TablerIconListNumbersHover}
                               label="번호 목록"
                               active={!!editor?.isActive('orderedList')}
                               onClick={() => editor?.chain().focus().toggleOrderedList().run()}
                             />
                             <ToolbarButton
                               Icon={TablerIconList}
+                              HoverIcon={TablerIconListHover}
                               label="불릿 목록"
                               active={!!editor?.isActive('bulletList')}
                               onClick={() => editor?.chain().focus().toggleBulletList().run()}
                             />
                           </div>
                           <div className="flex items-center gap-[8px]">
-                            <ToolbarButton Icon={TablerIconPhoto} label="이미지" onClick={onToolbarPickImage} />
+                            <ToolbarButton
+                              Icon={TablerIconPhoto}
+                              HoverIcon={TablerIconPhotoHover}
+                              label="이미지"
+                              onClick={onToolbarPickImage}
+                            />
                             <ToolbarButton
                               Icon={TablerIconLink}
+                              HoverIcon={TablerIconLinkHover}
                               label="링크"
                               active={!!editor?.isActive('link')}
                               onClick={onToolbarLink}

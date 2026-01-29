@@ -55,6 +55,7 @@ export default function ProjectFiltersBar({
   const renderButton = (label: ProjectFilterKey) => {
     const values = getValues(label);
     const isApplied = values.length > 0;
+    const isOpen = openFilter === label;
 
     const uniq = Array.from(new Set(values));
     const shown = uniq.slice(0, 2);
@@ -63,21 +64,23 @@ export default function ProjectFiltersBar({
     const displayLabel = isApplied ? summary : label;
 
     const baseClass =
-      'inline-flex max-w-[260px] cursor-pointer items-center gap-[10px] rounded-full px-5 py-4 font-semibold text-xl';
+      'inline-flex max-w-[260px] cursor-pointer items-center gap-[10px] rounded-full px-5 py-4 font-semibold text-xl transition-colors';
     const appliedClass =
       'border border-[var(--badge-bg-primary)] bg-[var(--badge-bg-primary)] text-[var(--badge-text-primary)]';
     const defaultClass = 'border border-transparent bg-filter-bg text-filter-text';
+    // 프로젝트 등록 SelectDropdown 오픈 테두리/링과 동일
+    const openClass = 'border-[#4E49FF] shadow-[0_0_0_2px_rgba(78,73,255,0.15)]';
 
     return (
       <button
         type="button"
         onClick={() => setOpenFilter(openFilter === label ? null : label)}
-        className={`${baseClass} ${isApplied ? appliedClass : defaultClass}`}
+        className={`${baseClass} ${isApplied ? appliedClass : defaultClass} ${isOpen ? openClass : ''}`}
       >
         <span className="truncate">{displayLabel}</span>
         <ChevronDownIcon
           aria-hidden="true"
-          className={`h-[14px] w-[14px] ${isApplied ? 'text-[var(--badge-text-primary)]' : ''}`}
+          className={`h-[14px] w-[14px] transition-transform duration-150 ${isOpen ? 'rotate-180' : ''} ${isApplied ? 'text-[var(--badge-text-primary)]' : ''}`}
         />
       </button>
     );

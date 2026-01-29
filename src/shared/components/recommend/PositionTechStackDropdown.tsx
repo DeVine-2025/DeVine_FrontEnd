@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-import SelectAllIcon from '@assets/icons/select-all.svg?react';
-=======
 import {
   AwsOff,
   AwsOn,
@@ -58,7 +55,7 @@ import {
   VuejsOff,
   VuejsOn,
 } from '@assets/stackBadge';
->>>>>>> origin/develope
+import { useThemeStore } from '@store/theme';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   BACKEND_DATABASE,
@@ -88,6 +85,7 @@ export default function PositionTechStackDropdown({
   onReset,
   onClose,
 }: PositionTechStackDropdownProps) {
+  const { theme } = useThemeStore();
   const ref = useRef<HTMLDivElement | null>(null);
   const selected = useMemo(() => new Set(value), [value]);
 
@@ -174,10 +172,12 @@ export default function PositionTechStackDropdown({
     ].join(' ');
 
     if ('off' in b && 'on' in b) {
+      const offSrc = theme === 'dark' ? (b.offDark ?? b.off) : b.off;
+      const onSrc = theme === 'dark' ? (b.onDark ?? b.on) : b.on;
       return (
         <button key={b.key} type="button" onClick={() => toggle(b.key)} className={wrapperClass}>
           <img
-            src={isOn ? b.on : b.off}
+            src={isOn ? onSrc : offSrc}
             alt={b.label}
             className="h-[36px] w-auto select-none rounded-[999px]"
             draggable={false}
@@ -283,7 +283,7 @@ export default function PositionTechStackDropdown({
   return (
     <div
       ref={ref}
-      className={`absolute top-[calc(100%+12px)] left-0 z-50 w-[358px] overflow-hidden rounded-[12px] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)] ${containerHeightClass}`}
+      className={`animate-dropdown-slide-up absolute top-[calc(100%+12px)] left-0 z-50 w-[358px] overflow-hidden rounded-[12px] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)] ${containerHeightClass}`}
     >
       <div className="px-[16px] pt-[16px]">
         <p className="Label1 font-medium text-[var(--ui-600)]">포지션/기술스택</p>

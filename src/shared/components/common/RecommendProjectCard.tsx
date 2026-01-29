@@ -53,11 +53,7 @@ export default function RecommendProjectCard({
             }
           : undefined
       }
-<<<<<<< HEAD
-      className={`relative h-[230px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
-=======
       className={`relative h-[210px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
->>>>>>> origin/develope
         onClick ? 'cursor-pointer' : ''
       }`}
       style={{
@@ -93,11 +89,7 @@ export default function RecommendProjectCard({
               ) : null}
             </div>
 
-<<<<<<< HEAD
-            <p className="Body1 w-[372px] whitespace-pre-wrap font-semibold text-[var(--ui-1000)]">
-=======
             <p className="w-[372px] whitespace-pre-wrap font-semibold text-[15px] text-[var(--ui-1000)]">
->>>>>>> origin/develope
               {title}
             </p>
           </div>
@@ -114,11 +106,7 @@ export default function RecommendProjectCard({
               className="grid w-full grid-cols-[96px_56px_1px_1fr] items-center gap-x-[12px]"
             >
               <span
-<<<<<<< HEAD
-                className={`Caption1 inline-flex w-fit max-w-[96px] justify-self-center items-center justify-center truncate rounded-[8px] px-[10px] py-[4px] font-semibold ${
-=======
                 className={`Label2 inline-flex w-fit max-w-[96px] items-center justify-center justify-self-center truncate rounded-[8px] px-4 py-2 font-semibold ${
->>>>>>> origin/develope
                   toneToClass[r.tone] ?? ''
                 }`}
               >
@@ -149,11 +137,7 @@ export default function RecommendProjectCard({
         </div>
       </div>
 
-<<<<<<< HEAD
-      <div className="Caption1 absolute right-[140px] top-1/2 flex w-[100px] -translate-y-1/2 items-center justify-center text-center font-semibold text-[var(--ui-500)]">
-=======
       <div className="-translate-y-1/2 absolute top-1/2 right-[140px] flex w-[100px] items-center justify-center text-center font-semibold text-2xl text-[var(--ui-500)]">
->>>>>>> origin/develope
         {dueLabel}
       </div>
 
@@ -164,30 +148,17 @@ export default function RecommendProjectCard({
           e.stopPropagation();
           onBookmarkChange?.(!bookmarked);
         }}
-<<<<<<< HEAD
-        className="group absolute right-[24px] top-1/2 flex h-[48px] w-[48px] -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-300)]"
-      >
-        <BookmarkFilledIcon
-          aria-hidden
-          className="h-[28px] w-[28px] text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-active:scale-[0.98] group-hover:text-[var(--ui-300)]"
-=======
         className="group -translate-y-1/2 absolute top-1/2 right-[24px] flex h-[52px] w-[52px] items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--ui-300)] focus-visible:outline-offset-2"
       >
         <BookmarkFilledIcon
           aria-hidden
           className="h-12 w-12 text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-hover:text-[var(--ui-300)] group-active:scale-[0.98]"
->>>>>>> origin/develope
         />
       </button>
 
       {hasSuitability && suitabilityText ? (
-<<<<<<< HEAD
-        <div className="absolute bottom-[24px] left-[24px] w-[908px] rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
-          <p className="Caption1 font-medium text-[var(--ui-1000)]">{suitabilityText}</p>
-=======
         <div className="absolute bottom-[12px] left-[24px] w-[908px] rounded-2xl bg-[var(--ui-100)] px-6 py-3">
           <p className="font-medium text-[13px] text-[var(--ui-1000)]">{suitabilityText}</p>
->>>>>>> origin/develope
         </div>
       ) : null}
     </article>
