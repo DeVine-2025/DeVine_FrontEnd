@@ -1,8 +1,8 @@
 import BookmarkIcon from '@assets/icons/bookmark.svg?react';
 import BookmarkFilled from '@assets/icons/bookmark-filled.svg?react';
 import PersonIcon from '@assets/icons/person.svg?react';
-import type { RecommendProjectCardBaseProps } from 'src/shared/types/recommendProjectCard.types';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
+import type { RecommendProjectCardBaseProps } from 'src/shared/types/recommendProjectCard.types';
 
 /**
  * Recommend 전용 ProjectBase 복제본.
@@ -61,7 +61,7 @@ export default function RecommendProjectBase(props: RecommendProjectCardBaseProp
     ) : null;
 
   const Title = (
-    <h3 className="line-clamp-2 pl-1 font-semibold text-2xl text-card-title leading-snug">
+    <h3 className="line-clamp-2 pl-1 font-semibold text-[15px] text-card-title leading-snug">
       {title}
     </h3>
   );
@@ -91,7 +91,9 @@ export default function RecommendProjectBase(props: RecommendProjectCardBaseProp
             </span>
           </div>
 
-          <span className="justify-self-center text-card-muted/50">{r.techStack?.length ? '|' : ''}</span>
+          <span className="justify-self-center text-card-muted/50">
+            {r.techStack?.length ? '|' : ''}
+          </span>
 
           <div className="flex items-center gap-2">
             {r.techStack?.slice(0, 5).map((t) => (
@@ -165,4 +167,3 @@ export default function RecommendProjectBase(props: RecommendProjectCardBaseProp
     </>
   );
 }
-

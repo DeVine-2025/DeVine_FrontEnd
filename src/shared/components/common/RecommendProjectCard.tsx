@@ -53,7 +53,7 @@ export default function RecommendProjectCard({
             }
           : undefined
       }
-      className={`relative h-[238px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
+      className={`relative h-[210px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
         onClick ? 'cursor-pointer' : ''
       }`}
       style={{
@@ -74,7 +74,7 @@ export default function RecommendProjectCard({
           ) : null}
         </div>
 
-        <div className="-translate-y-[3px] flex w-[372px] shrink-0 flex-col gap-[16px] self-start">
+        <div className="-translate-y-[3px] gap flex w-[372px] shrink-0 flex-col">
           <div className="flex flex-col gap-[12px]">
             <div className="flex items-center gap-[4px]">
               {categoryLabel ? (
@@ -89,7 +89,7 @@ export default function RecommendProjectCard({
               ) : null}
             </div>
 
-            <p className="Headline1 w-[372px] whitespace-pre-wrap font-semibold text-[var(--ui-1000)]">
+            <p className="w-[372px] whitespace-pre-wrap font-semibold text-[15px] text-[var(--ui-1000)]">
               {title}
             </p>
           </div>
@@ -106,7 +106,7 @@ export default function RecommendProjectCard({
               className="grid w-full grid-cols-[96px_56px_1px_1fr] items-center gap-x-[12px]"
             >
               <span
-                className={`Label1 inline-flex w-fit max-w-[96px] items-center justify-center justify-self-center truncate rounded-[8px] px-[12px] py-[6px] font-semibold ${
+                className={`Label2 inline-flex w-fit max-w-[96px] items-center justify-center justify-self-center truncate rounded-[8px] px-4 py-2 font-semibold ${
                   toneToClass[r.tone] ?? ''
                 }`}
               >
@@ -114,10 +114,10 @@ export default function RecommendProjectCard({
               </span>
 
               <div className="flex w-[56px] items-center gap-[4px] text-[var(--ui-400)]">
-                <PersonIcon aria-hidden className="h-[16px] w-[16px]" />
-                <span className="Caption1 font-semibold text-[var(--ui-1000)]">{r.current}</span>
-                <span className="Caption1 font-semibold text-[var(--ui-500)]">/</span>
-                <span className="Caption1 font-semibold text-[var(--ui-400)]">{r.total}</span>
+                <PersonIcon aria-hidden className="h-7 w-7" />
+                <span className="Caption2 font-semibold text-[var(--ui-1000)]">{r.current}</span>
+                <span className="Caption2 font-semibold text-[var(--ui-500)]">/</span>
+                <span className="Caption2 font-semibold text-[var(--ui-400)]">{r.total}</span>
               </div>
 
               <span className="h-[10px] w-px bg-[var(--ui-300)]" />
@@ -137,7 +137,7 @@ export default function RecommendProjectCard({
         </div>
       </div>
 
-      <div className="Body1 -translate-y-1/2 absolute top-1/2 right-[140px] flex w-[100px] items-center justify-center text-center font-semibold text-[var(--ui-500)]">
+      <div className="-translate-y-1/2 absolute top-1/2 right-[140px] flex w-[100px] items-center justify-center text-center font-semibold text-2xl text-[var(--ui-500)]">
         {dueLabel}
       </div>
 
@@ -152,13 +152,13 @@ export default function RecommendProjectCard({
       >
         <BookmarkFilledIcon
           aria-hidden
-          className="h-[32px] w-[32px] text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-hover:text-[var(--ui-300)] group-active:scale-[0.98]"
+          className="h-12 w-12 text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-hover:text-[var(--ui-300)] group-active:scale-[0.98]"
         />
       </button>
 
       {hasSuitability && suitabilityText ? (
-        <div className="absolute bottom-[24px] left-[24px] w-[908px] rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
-          <p className="Body1 font-medium text-[var(--ui-1000)]">{suitabilityText}</p>
+        <div className="absolute bottom-[12px] left-[24px] w-[908px] rounded-2xl bg-[var(--ui-100)] px-6 py-3">
+          <p className="font-medium text-[13px] text-[var(--ui-1000)]">{suitabilityText}</p>
         </div>
       ) : null}
     </article>
