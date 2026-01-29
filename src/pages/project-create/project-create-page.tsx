@@ -38,6 +38,15 @@ import {
 
 type SvgIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
+type RecruitmentItem = {
+  id: string;
+  positionLabel: string;
+  countLabel: string;
+  techStackKeys: string[];
+};
+
+const makeId = () => `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
 function Label({ children }: { children: string }) {
   return (
     <p className="Headline1 font-medium text-[var(--ui-700)]">
@@ -209,6 +218,7 @@ const ProjectCreatePage = () => {
   const [recruitCount, setRecruitCount] = useState<string | null>(null);
   const [techStackOpen, setTechStackOpen] = useState(false);
   const [techStack, setTechStack] = useState<string[]>([]);
+  const [recruitments, setRecruitments] = useState<RecruitmentItem[]>([]);
   const [imagePreviews, setImagePreviews] = useState<Array<string | null>>([null, null, null]);
   const editorImageInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -247,6 +257,35 @@ const ProjectCreatePage = () => {
     if (recruitPosition === '인프라') return 'infra';
     return null;
   }, [recruitPosition]);
+
+  const canSaveRecruitment = Boolean(recruitPosition && recruitCount && techStack.length > 0);
+
+  const onSaveRecruitment = () => {
+    if (!recruitPosition || !recruitCount || techStack.length === 0) return;
+
+    const nextItem: RecruitmentItem = {
+      id: makeId(),
+      positionLabel: recruitPosition,
+      countLabel: recruitCount,
+      techStackKeys: [...techStack],
+    };
+
+    setRecruitments((prev) => {
+      const same = prev.some(
+        (r) =>
+          r.positionLabel === nextItem.positionLabel &&
+          r.countLabel === nextItem.countLabel &&
+          r.techStackKeys.join('|') === nextItem.techStackKeys.join('|'),
+      );
+      return same ? prev : [...prev, nextItem];
+    });
+
+    setTechStackOpen(false);
+  };
+
+  const onRemoveRecruitment = (id: string) => {
+    setRecruitments((prev) => prev.filter((r) => r.id !== id));
+  };
 
   // 포지션 변경 시 스택 정리
   useEffect(() => {
@@ -461,7 +500,9 @@ const ProjectCreatePage = () => {
                               type="button"
                               disabled={!positionKey}
                               onClick={() => setTechStackOpen((v) => !v)}
-                              className="relative flex h-[44px] w-full items-center rounded-[12px] border border-ui-200 bg-ui-bg px-[12px] text-left disabled:cursor-not-allowed disabled:opacity-60"
+                              className={`relative flex h-[44px] w-full items-center rounded-[12px] border bg-ui-bg px-[12px] text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                                techStackOpen ? 'border-[#4E49FF]' : 'border-ui-200'
+                              }`}
                             >
                               {techStack.length ? (
                                 <span className="Caption1 w-[calc(100%-36px)] truncate font-medium text-ui-900">
@@ -498,18 +539,54 @@ const ProjectCreatePage = () => {
 
                         <button
                           type="button"
-                          className="flex h-[44px] w-[80px] items-center justify-center rounded-[12px] bg-[var(--ui-50)] px-[12px] py-[10px] max-[1100px]:w-full"
+                          disabled={!canSaveRecruitment}
+                          onClick={onSaveRecruitment}
+                          className={`flex h-[44px] w-[80px] items-center justify-center rounded-[12px] px-[12px] py-[10px] max-[1100px]:w-full ${
+                            canSaveRecruitment ? 'bg-[#4E49FF]' : 'bg-[var(--ui-50)]'
+                          }`}
                         >
-                          <span className="Body1 font-medium text-[var(--ui-400)]">
+                          <span
+                            className={`Body1 font-medium ${
+                              canSaveRecruitment ? 'text-white' : 'text-[var(--ui-400)]'
+                            }`}
+                          >
                             저장
                           </span>
                         </button>
                       </div>
 
-                      <div className="h-[158px] w-full rounded-[16px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[16px]">
-                        <p className="Caption1 tracking-[0.0912px] text-[var(--ui-300)]">
-                          아직 등록된 모집 분야가 없습니다. 위에서 정보를 입력해 주세요.
-                        </p>
+                      <div className="h-[140px] w-full rounded-[16px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[12px]">
+                        {recruitments.length === 0 ? (
+                          <p className="Caption1 tracking-[0.0912px] text-[var(--ui-300)]">
+                            아직 등록된 모집 분야가 없습니다. 위에서 정보를 입력해 주세요.
+                          </p>
+                        ) : (
+                          <div className="flex max-h-full flex-col gap-[8px] overflow-auto pr-[4px]">
+                            {recruitments.map((r) => {
+                              const techSummary = r.techStackKeys
+                                .map((k) => TECH_STACK_LABEL_BY_KEY[k] ?? k)
+                                .join(', ');
+                              return (
+                                <div
+                                  key={r.id}
+                                  className="flex h-[38px] items-center justify-between gap-[10px] rounded-full bg-ui-50 px-[14px]"
+                                >
+                                  <span className="Caption1 w-[calc(100%-36px)] truncate font-medium text-ui-400">
+                                    {r.positionLabel} / {r.countLabel} / {techSummary}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    aria-label="모집 분야 삭제"
+                                    onClick={() => onRemoveRecruitment(r.id)}
+                                    className="inline-flex h-[24px] w-[24px] items-center justify-center text-ui-400 hover:text-ui-700"
+                                  >
+                                    <XIcon aria-hidden className="h-[10px] w-[10px]" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

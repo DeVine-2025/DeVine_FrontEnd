@@ -63,7 +63,7 @@ export default function SelectDropdown({
         }}
         className={`relative flex h-[44px] w-full items-center rounded-[12px] border bg-ui-bg px-[12px] text-left transition-colors ${
           disabled ? 'cursor-not-allowed border-ui-200 opacity-60' : ''
-        } ${open ? 'border-[#4E49FF] shadow-[0_0_0_2px_rgba(78,73,255,0.15)]' : 'border-ui-200'}`}
+        } ${open ? 'border-[#4E49FF]' : 'border-ui-200'}`}
       >
         {selectedLabel ? (
           <span className="Caption1 font-medium text-ui-900">{selectedLabel}</span>
