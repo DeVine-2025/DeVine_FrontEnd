@@ -1,6 +1,7 @@
-import ChevronDownIcon from '@assets/icons/chevron-down.svg?react';
+import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   PROJECT_FILTERS,
@@ -11,6 +12,12 @@ import {
 
 export default function ProjectSearchPage() {
   const navigate = useNavigate();
+
+  const [openFilter, setOpenFilter] = useState<null | (typeof PROJECT_FILTERS)[number]>(null);
+  const [domains, setDomains] = useState<string[]>([]);
+  const [expectedPeriods, setExpectedPeriods] = useState<string[]>([]);
+  const [projectTypes, setProjectTypes] = useState<string[]>([]);
+  const [techStacks, setTechStacks] = useState<string[]>([]);
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
@@ -48,18 +55,21 @@ export default function ProjectSearchPage() {
       <div className="h-px w-full bg-card-border" />
 
       {/* 필터 */}
-      <div className="flex flex-wrap gap-4">
-        {PROJECT_FILTERS.map((label) => (
-          <button
-            key={label}
-            type="button"
-            className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-filter-bg px-5 py-3 font-medium text-filter-text text-xl"
-          >
-            {label}
-            <ChevronDownIcon aria-hidden="true" className="h-4 w-4" />
-          </button>
-        ))}
-      </div>
+      <ProjectFiltersBar
+        filters={PROJECT_FILTERS}
+        openFilter={openFilter}
+        setOpenFilter={setOpenFilter}
+        projectTypes={projectTypes}
+        setProjectTypes={setProjectTypes}
+        domains={domains}
+        setDomains={setDomains}
+        expectedPeriods={expectedPeriods}
+        setExpectedPeriods={setExpectedPeriods}
+        techStacks={techStacks}
+        setTechStacks={setTechStacks}
+        onApply={(key) => console.log('apply', key)}
+        onReset={(key) => console.log('reset', key)}
+      />
 
       {/* 프로젝트 리스트 */}
       <div className="flex flex-col gap-6">

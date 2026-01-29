@@ -1,12 +1,12 @@
-import { Outlet } from 'react-router-dom';
-import Header from '@layouts/header';
 import Footer from '@layouts/footer';
+import Header from '@layouts/header';
+import { Outlet } from 'react-router-dom';
 
 const RootLayout = () => {
   return (
-    <div className='min-h-[100vh] flex flex-col'>
+    <div className="flex min-h-[100vh] flex-col">
       <Header />
-      <main className='flex-1'>
+      <main className="min-h-0 flex-1 py-12">
         <Outlet />
       </main>
       <Footer />

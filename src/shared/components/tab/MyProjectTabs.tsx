@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 
 const MyProjectTabs = () => {
-  const baseTabClass = 'rounded-xl py-3 text-xl text-center font-semibold transition-colors';
+  const baseTabClass = 'rounded-xl py-3 text-2xl text-center font-semibold transition-colors';
   const activeClass = 'bg-tab-bg-active text-tab-text-active';
   const inactiveClass = 'text-tab-text-inactive hover:text-tab-text-active';
   return (

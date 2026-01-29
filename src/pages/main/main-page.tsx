@@ -1,9 +1,9 @@
+import MainProjectCard from '@components/common/MainProjectCard';
+import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
+import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import { Link } from 'react-router-dom';
 import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
-import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
-import RecommendProjectCard from '@components/common/RecommendProjectCard';
-import MainProjectCard from '@components/common/MainProjectCard';
 
 const USER_ROLE_KEY = 'userRole';
 
@@ -86,8 +86,8 @@ const MainPage = () => {
 
           {!isLoggedIn && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex w-full max-w-[420px] flex-col items-center gap-4 rounded-3xl bg-[var(--ui-bg)] px-8 py-6 text-center shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
-                <div className="flex flex-col gap-2">
+              <div className="flex w-full max-w-[420px] flex-col items-center gap-10 rounded-3xl bg-[var(--ui-bg)] px-8 py-18 text-center shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
+                <div className="flex flex-col gap-3">
                   <span className="Body1 font-semibold text-card-title">로그인이 필요해요</span>
                   <span className="Caption1 text-card-muted">
                     로그인하면 추천 프로젝트를 확인할 수 있어요
@@ -95,7 +95,7 @@ const MainPage = () => {
                 </div>
                 <Link
                   to="/login"
-                className="Body1 inline-flex h-[40px] items-center justify-center rounded-xl bg-[#4E49FF] px-6 font-semibold text-white"
+                  className="inline-flex items-center justify-center rounded-xl bg-[#4E49FF] px-6 py-4 font-semibold text-white text-xl"
                 >
                   로그인하기
                 </Link>
