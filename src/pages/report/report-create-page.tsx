@@ -1,6 +1,6 @@
 import Checkbox from '@pages/report/components/checkbox';
 import { useState } from 'react';
-import {useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const CHECKBOX_ITEMS = [
   {
@@ -20,25 +20,22 @@ const CHECKBOX_ITEMS = [
   },
 ];
 
-
 const ReportCreatePage = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const navigate = useNavigate();
   const toggleCheckbox = (id: string) => {
-    setSelectedIds(prev =>
-      prev.includes(id)
-        ? prev.filter(itemId => itemId !== id)
-        : [...prev, id]
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id],
     );
   };
 
   return (
-    <div className="flex w-full justify-center items-center mt-[8rem]">
+    <div className="mt-[8rem] flex w-full items-center justify-center">
       <div className="w-[41.5rem] flex-col gap-[2.4rem]">
-        <p className="text-[var(--ui-1000)] Title3 font-bold">깃허브 레포지토리 목록</p>
+        <p className="Heading2 font-bold text-[var(--ui-1000)]">깃허브 레포지토리 목록</p>
         <div className="flex-col gap-[0.8rem]">
-          {CHECKBOX_ITEMS.map(item => (
+          {CHECKBOX_ITEMS.map((item) => (
             <Checkbox
               key={item.id}
               title={item.title}
@@ -49,15 +46,21 @@ const ReportCreatePage = () => {
           ))}
         </div>
         <div className="mt-[4.7rem] flex-col-center gap-[1.4rem]">
-          <button type="button"
-                  className="bg-primary Title3 text-white py-[1.6rem] w-full rounded-2xl cursor-pointer">생성하기
+          <button
+            type="button"
+            className="w-full cursor-pointer rounded-2xl bg-primary py-[1.6rem] text-2xl text-white"
+          >
+            생성하기
           </button>
-          <button type="button" className="text-[var(--ui-500)] Title3 py-[1.6rem] cursor-pointer" onClick={() => navigate(-1)}>돌아가기</button>
+          <button
+            type="button"
+            className="w-full cursor-pointer rounded-2xl bg-surface-tab py-[1.6rem] text-2xl text-[var(--ui-500)]"
+            onClick={() => navigate(-1)}
+          >
+            돌아가기
+          </button>
         </div>
-
       </div>
-
-
     </div>
   );
 };

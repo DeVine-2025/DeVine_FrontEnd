@@ -1,6 +1,6 @@
-import CheckIcon from "@assets/icons/check.svg?react";
+import CheckIcon from '@assets/icons/check.svg?react';
+import InformationIcon from '@assets/icons/information.svg?react';
 import { cn } from '@libs/cn';
-import InformationIcon from "@assets/icons/information.svg?react";
 
 type CheckboxProps = {
   title: string;
@@ -8,25 +8,30 @@ type CheckboxProps = {
   isExist?: boolean;
   isActive?: boolean;
   onClick?: () => void;
-}
+};
 
-const Checkbox = ({title, description, isExist, isActive, onClick}: CheckboxProps) => {
+const Checkbox = ({ title, description, isExist, isActive, onClick }: CheckboxProps) => {
   return (
-    <div className={cn('flex gap-[1.6rem] p-[1.2rem]', isExist && "bg-[var(--ui-50)] rounded-xl")}>
+    <div className={cn('flex gap-[1.6rem] p-[1.2rem]', isExist && 'rounded-xl bg-[var(--ui-50)]')}>
       <button
         type="button"
         onClick={onClick}
-        className={cn('w-[2.8rem] h-[2.8rem] cursor-pointer rounded-lg inline-block flex-row-center',
-        isActive ? "bg-primary" : "bg-[var(--ui-100)]")}>
+        className={cn(
+          'inline-block h-9 w-9 flex-row-center cursor-pointer rounded-lg',
+          isActive ? 'bg-primary' : 'bg-[var(--ui-100)]',
+        )}
+      >
         <CheckIcon />
       </button>
       <div className="flex-col gap-[0.4rem]">
-        {isExist && <div className="flex gap-[0.4rem] items-center">
-          <InformationIcon />
-          <p className="text-[var(--badge-text-primary)] Caption1">이미 생성된 리포트가 있어요</p>
-        </div>}
-        <p className="Heading2 text-[var(--ui-900)]">{title}</p>
-        <p className="Body1 text-[var(--ui-600)]">{description}</p>
+        {isExist && (
+          <div className="flex items-center gap-[0.4rem]">
+            <InformationIcon />
+            <p className="Caption1 text-[var(--badge-text-primary)]">이미 생성된 리포트가 있어요</p>
+          </div>
+        )}
+        <p className="text-3xl text-[var(--ui-900)]">{title}</p>
+        <p className="text-2xl text-[var(--ui-600)]">{description}</p>
       </div>
     </div>
   );
