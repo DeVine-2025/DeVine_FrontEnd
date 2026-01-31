@@ -213,7 +213,7 @@ const Header = () => {
               key={item.path}
               to={item.path}
               onClick={toggleMenu}
-              className={`Title3 font-bold text-ui-700 transition-colors duration-300 py-[0.4rem] relative transition-all duration-300 ease-out group inline-block ${
+              className={`Title3 font-bold text-ui-700 py-[0.4rem] relative transition-all duration-300 ease-out group inline-block ${
                 isMenuOpen ? 'animate-slide-in-right' : 'animate-slide-out-right'
               } ${
                 isActive(item.path)
