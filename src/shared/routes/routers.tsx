@@ -14,6 +14,7 @@ import {
   MyPMPage,
   MyProjectPage,
   PmPage,
+  ProjectCreatePage,
   ProjectSearchPage,
   ProposedPage,
   RecommendDeveloperPage,
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
       { index: true, element: <MainPage /> },
       { path: 'signup', element: <SignupPage /> },
       { path: 'login', element: <LoginPage /> },
+
       {
         path: 'search',
         element: <SearchPage />,
@@ -43,6 +45,7 @@ export const router = createBrowserRouter([
           { path: 'developer', element: <DeveloperSearchPage /> },
         ],
       },
+
       {
         path: 'recommend',
         element: <RecommendPage />,
@@ -52,6 +55,7 @@ export const router = createBrowserRouter([
           { path: 'developer', element: <RecommendDeveloperPage /> },
         ],
       },
+
       {
         element: <ProtectedRoute />,
         children: [
@@ -66,6 +70,7 @@ export const router = createBrowserRouter([
               { path: 'pm', element: <PmPage /> },
             ],
           },
+
           {
             path: 'report',
             element: <ReportMainPage />,
@@ -74,6 +79,7 @@ export const router = createBrowserRouter([
               { path: 'create', element: <ReportCreatePage /> },
             ],
           },
+
           {
             path: 'my-project',
             element: <MyProjectPage />,
@@ -84,6 +90,9 @@ export const router = createBrowserRouter([
               { path: 'dev', element: <MyDeveloperPage /> },
             ],
           },
+
+          { path: 'project/create', element: <ProjectCreatePage /> },
+
           { path: 'my-info', element: <MyInfoPage /> },
         ],
       },

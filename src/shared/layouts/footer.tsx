@@ -6,21 +6,21 @@ const Footer = () => {
         <div className="flex-items-center gap-[2.4rem] mb-[0.8rem]">
           <button
             type="button"
-            className="Body1 text-[var(--ui-600)] hover:text-[var(--ui-800)] transition-colors"
+            className="Label1 text-[var(--ui-600)] hover:text-[var(--ui-800)] transition-colors"
           >
             이용약관
           </button>
           <div className="h-[1.2rem] w-[1px] bg-[var(--ui-600)] opacity-30" />
           <button
             type="button"
-            className="Body1 text-[var(--ui-600)] hover:text-[var(--ui-800)] transition-colors"
+            className="Label1 text-[var(--ui-600)] hover:text-[var(--ui-800)] transition-colors"
           >
             개인정보처리방침
           </button>
           <div className="h-[1.2rem] w-[1px] bg-[var(--ui-600)] opacity-30" />
           <button
             type="button"
-            className="Body1 text-[var(--ui-600)] hover:text-[var(--ui-800)] transition-colors"
+            className="Label1 text-[var(--ui-600)] hover:text-[var(--ui-800)] transition-colors"
           >
             서비스 소개
           </button>
@@ -28,8 +28,8 @@ const Footer = () => {
 
         {/* 하단: Contact, Copyright */}
         <div className="flex-col-center gap-[0.5rem]">
-          <p className="Caption1 text-[var(--ui-600)] font-medium">Contact</p>
-          <p className="Caption1 text-[var(--ui-600)] font-medium text-center">
+          <p className="Caption1 text-[11px] text-[var(--ui-600)] font-medium">Contact</p>
+          <p className="Caption1 text-[11px] text-[var(--ui-600)] font-medium text-center">
             Copyright Devine. All rights reserved
           </p>
         </div>

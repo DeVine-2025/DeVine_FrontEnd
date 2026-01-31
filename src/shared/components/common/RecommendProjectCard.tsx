@@ -78,12 +78,12 @@ export default function RecommendProjectCard({
           <div className="flex flex-col gap-[12px]">
             <div className="flex items-center gap-[4px]">
               {categoryLabel ? (
-                <span className="Caption1 flex h-[28px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[8px] py-[4px] font-semibold text-[var(--ui-600)]">
+                <span className="Caption1 flex h-[24px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] py-[3px] font-semibold text-[11px] text-[var(--ui-600)]">
                   {categoryLabel}
                 </span>
               ) : null}
               {deadlineLabel ? (
-                <span className="Caption1 flex h-[28px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[8px] py-[4px] font-semibold text-[var(--ui-600)]">
+                <span className="Caption1 flex h-[24px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] py-[3px] font-semibold text-[11px] text-[var(--ui-600)]">
                   {deadlineLabel}
                 </span>
               ) : null}
@@ -137,7 +137,7 @@ export default function RecommendProjectCard({
         </div>
       </div>
 
-      <div className="-translate-y-1/2 absolute top-1/2 right-[140px] flex w-[100px] items-center justify-center text-center font-semibold text-2xl text-[var(--ui-500)]">
+      <div className="-translate-y-1/2 absolute top-1/2 right-[140px] flex w-[100px] items-center justify-center text-center font-semibold text-xl text-[var(--ui-500)]">
         {dueLabel}
       </div>
 

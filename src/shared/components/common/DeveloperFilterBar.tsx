@@ -40,10 +40,12 @@ export default function DeveloperFilterBar({
   onReset,
 }: Props) {
   const baseClass =
-    'inline-flex max-w-[260px] cursor-pointer items-center gap-[10px] rounded-full px-5 py-[12px] font-semibold text-xl';
+    'inline-flex max-w-[260px] cursor-pointer items-center gap-[10px] rounded-full px-5 py-4 font-semibold text-xl transition-colors';
   const appliedClass =
     'border border-[var(--badge-bg-primary)] bg-[var(--badge-bg-primary)] text-[var(--badge-text-primary)]';
   const defaultClass = 'border border-transparent bg-filter-bg text-filter-text';
+  // 오픈 시 바깥 링 없이 테두리 색만 변경 (기본 border-transparent를 확실히 override)
+  const openClass = '!border-[#4E49FF]';
 
   const getValues = (label: DeveloperFilterKey) => {
     if (label === '내 프로젝트 선택') return myProjects;
@@ -59,11 +61,12 @@ export default function DeveloperFilterBar({
       {filters.map((label) => {
         const values = getValues(label);
         const isApplied = values.length > 0;
+        const isOpen = openFilter === label;
 
         const uniq = Array.from(new Set(values));
         const shown = uniq.slice(0, 2);
         const rest = Math.max(0, uniq.length - shown.length);
-        const summary = `${shown.join(',')}${rest > 0 ? '…' : ''}`;
+        const summary = `${shown.join(', ')}${rest > 0 ? '…' : ''}`;
         const displayLabel = isApplied ? summary : label;
 
         return (
@@ -71,12 +74,12 @@ export default function DeveloperFilterBar({
             <button
               type="button"
               onClick={() => setOpenFilter(openFilter === label ? null : label)}
-              className={`${baseClass} ${isApplied ? appliedClass : defaultClass}`}
+              className={`${baseClass} ${isApplied ? appliedClass : defaultClass} ${isOpen ? openClass : ''}`}
             >
               <span className="truncate">{displayLabel}</span>
               <ChevronDownIcon
                 aria-hidden="true"
-                className={`h-[14px] w-[14px] ${
+                className={`h-[14px] w-[14px] transition-transform duration-150 ${isOpen ? 'rotate-180' : ''} ${
                   isApplied ? 'text-[var(--badge-text-primary)]' : ''
                 }`}
               />

@@ -16,8 +16,10 @@ import MenuIcon from '@assets/icons/menu.svg?react';
 import MenuClosedIcon from '@assets/icons/menu-closed.svg?react';
 import NotificationModal from '@components/common/NotificationModal';
 import { NOTIFICATIONS } from 'src/mocks/notification.mock';
+import { useAuth } from 'src/shared/auth/useAuth';
 const Header = () => {
   const { theme, toggleTheme } = useThemeStore();
+  const { isAuthed, user, setDevAuthed } = useAuth();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -41,11 +43,11 @@ const Header = () => {
 
   return (
     <>
-      <header className="bg-[var(--ui-bg)] w-screen relative left-1/2 -translate-x-1/2">
-      <div className="w-full px-[12rem] tablet:px-[6rem] max-[743px]:px-[4rem] max-[391px]:px-[2rem] h-[6rem] flex-row-between relative">
+      <header className="bg-ui-bg w-full">
+      <div className="mx-auto w-full max-w-[1180px] px-6 max-[743px]:px-4 max-[391px]:px-2 h-[6rem] flex-row-between relative">
         {/* 왼쪽: 로고 + 네비게이션 */}
         <div className="flex-items-center gap-[4.8rem] tablet:gap-[3rem] phone:gap-[2rem]">
-          <Link to="/" className="flex-items-center gap-[0.4rem]">
+          <Link to="/" className="flex-items-center gap-[0.4rem] ml-[-14px]">
             {/* 데스크톱/태블릿 로고 */}
             <span className="max-[391px]:hidden">
               {theme === 'dark' ? <LightLogo /> : <DarkLogo />}
@@ -57,16 +59,16 @@ const Header = () => {
           </Link>
 
           {/* 네비게이션 - 데스크톱 */}
-          <nav className="flex-items-center gap-[5rem] tablet:gap-[3rem] phone:gap-[2rem] flex-nowrap shrink-0 max-[743px]:!hidden">
+          <nav className="flex-items-center ml-[28px] gap-[5rem] tablet:gap-[3rem] phone:gap-[2rem] flex-nowrap shrink-0 max-[743px]:!hidden">
             {navItems.map((item) => (
               <Link
                 key={item.path} 
                 to={item.path}
                 className={`Label1 px-[0.6rem] py-[0.4rem] relative transition-all duration-300 ease-out group shrink-0 whitespace-nowrap ${
                   isActive(item.path)
-                    ? 'text-[var(--ui-800)]'
-                    : 'text-[var(--ui-400)]'
-                } hover:text-[var(--ui-800)]`}
+                    ? 'text-ui-800'
+                    : 'text-ui-400'
+                } hover:text-ui-800`}
               >
                 {item.label}
                 <span 
@@ -74,7 +76,7 @@ const Header = () => {
                     isActive(item.path) 
                       ? 'w-[calc(100%-1.2rem)] opacity-100' 
                       : 'w-0 opacity-0 group-hover:opacity-100 group-hover:w-[calc(100%-1.2rem)]'
-                  } bg-[var(--ui-800)]`}
+                  } bg-ui-800`}
                 />
               </Link>
             ))}
@@ -83,11 +85,31 @@ const Header = () => {
 
         {/* 액션 버튼들 */}
         <div className="flex-items-center gap-[1.2rem] tablet:gap-[0.8rem] phone:gap-[0.6rem] flex-nowrap shrink-0">
+          {isAuthed ? (
+            <Link
+              to="/project/create"
+              className="Caption1 flex-row-center h-[3.2rem] px-[1.0rem] py-[0.6rem] rounded-[8px] bg-[#4E49FF] text-white font-semibold whitespace-nowrap group relative overflow-hidden transition-transform duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0px_10px_24px_rgba(78,73,255,0.25)] active:translate-y-0 active:shadow-none"
+            >
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                style={{
+                  background:
+                    'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0) 90%)',
+                }}
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -left-[40%] top-0 h-full w-[40%] -skew-x-12 bg-white/20 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:translate-x-[380%] group-hover:opacity-100"
+              />
+              <span className="relative z-10">프로젝트 등록하기</span>
+            </Link>
+          ) : null}
           {/* 다크모드 토글 */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="bg-[var(--ui-bg)] p-[0.4rem] rounded-[8px] size-[3.6rem] group relative shrink-0 flex-row-center max-[391px]:!hidden"
+            className="bg-ui-bg p-[0.4rem] rounded-[8px] size-[3.6rem] group relative shrink-0 flex-row-center max-[391px]:!hidden"
           >
             {theme === 'dark' ? (
               <>
@@ -106,7 +128,7 @@ const Header = () => {
           <button
             type="button"
             onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-            className="bg-[var(--ui-bg)] flex-row-center p-[0.4rem] rounded-[8px] size-[3.6rem] group relative shrink-0"
+            className="bg-ui-bg flex-row-center p-[0.4rem] rounded-[8px] size-[3.6rem] group relative shrink-0"
           >
             {theme === 'dark' ? (
               <>
@@ -122,30 +144,41 @@ const Header = () => {
           </button>
 
           {/* 회원가입/로그인 버튼 */}
-          <Link
-            to="/login"
-            className="border border-[var(--badge-text-primary)] flex-row-center h-[3.6rem] px-[1.2rem] py-[0.8rem] rounded-[8px] transition-all duration-300 hover:border-transparent group relative overflow-hidden shrink-0 whitespace-nowrap"
-          >
-            <span 
-              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[8px]"
-              style={{
-                background: 'linear-gradient(135deg, #7E7AFF 0%, #9D8FFF 50%, #7E7AFF 100%)',
-              }}
-            />
-            <span 
-              className="absolute -inset-[2px] opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-[10px] blur-[8px] -z-10"
-              style={{
-                background: '#7E7AFF',
-              }}
-            />
-            <span className="Caption1 text-[var(--ui-900)] transition-colors duration-300 group-hover:text-[var(--ui-1000)] relative z-10 whitespace-nowrap">회원가입/로그인</span>
-          </Link>
+          {!isAuthed ? (
+            <Link
+              to="/login"
+              className="border border-badge-text-primary flex-row-center h-[3.6rem] px-[1.2rem] py-[0.8rem] rounded-[8px] transition-all duration-300 hover:border-transparent group relative overflow-hidden shrink-0 whitespace-nowrap"
+            >
+              <span
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[8px]"
+                style={{
+                  background: 'linear-gradient(135deg, #7E7AFF 0%, #9D8FFF 50%, #7E7AFF 100%)',
+                }}
+              />
+              <span
+                className="absolute -inset-[2px] opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-[10px] blur-[8px] -z-10"
+                style={{
+                  background: '#7E7AFF',
+                }}
+              />
+              <span className="Caption1 text-ui-900 transition-colors duration-300 group-hover:text-ui-1000 relative z-10 whitespace-nowrap">
+                회원가입/로그인
+              </span>
+            </Link>
+          ) : (
+            <Link
+              to="/my-info"
+              className="Label1 font-semibold text-ui-400 hover:text-ui-800 transition-colors duration-200 whitespace-nowrap"
+            >
+              내 정보
+            </Link>
+          )}
 
           {/* 햄버거 메뉴 */}
           <button
             type="button"
             onClick={toggleMenu}
-            className="!hidden max-[743px]:!flex bg-[var(--ui-bg)] flex-row-center p-[0.4rem] rounded-[8px] size-[3.6rem] shrink-0"
+            className="!hidden max-[743px]:!flex bg-ui-bg flex-row-center p-[0.4rem] rounded-[8px] size-[3.6rem] shrink-0"
           >
             {isMenuOpen ? (
               <MenuClosedIcon className="size-[2.4rem]" />
@@ -158,7 +191,7 @@ const Header = () => {
     </header>
     
     {/* 모바일/태블릿 네비게이션 메뉴 - 전체 페이지 덮기 */}
-    <div className={`fixed inset-x-0 top-[6rem] bottom-0 z-40 bg-[var(--ui-bg)] max-[743px]:block hidden transition-opacity duration-300 ${
+    <div className={`fixed inset-x-0 top-[6rem] bottom-0 z-40 bg-ui-bg max-[743px]:block hidden transition-opacity duration-300 ${
       isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
     }`}>
         <nav className="flex-col px-[4rem] max-[391px]:px-[2rem] pt-[10rem] gap-[6.4rem]">
@@ -170,13 +203,13 @@ const Header = () => {
               key={item.path}
               to={item.path}
               onClick={toggleMenu}
-              className={`Title3 font-bold text-[var(--ui-700)] transition-colors duration-300 py-[0.4rem] relative transition-all duration-300 ease-out group inline-block ${
+              className={`Title3 font-bold text-ui-700 transition-colors duration-300 py-[0.4rem] relative transition-all duration-300 ease-out group inline-block ${
                 isMenuOpen ? 'animate-slide-in-right' : 'animate-slide-out-right'
               } ${
                 isActive(item.path)
-                  ? 'text-[var(--ui-800)]'
+                  ? 'text-ui-800'
                   : ''
-              } hover:text-[var(--ui-800)]`}
+              } hover:text-ui-800`}
               style={{
                 animationDelay: isMenuOpen ? `${index * 100}ms` : `${reverseIndex * 200}ms`,
                 animationFillMode: 'both',
@@ -185,7 +218,7 @@ const Header = () => {
               <span className="relative inline-block">
                 {item.label}
                 <span 
-                  className="absolute bottom-[0.2rem] left-0 h-[0.5px] w-0 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:w-full bg-[var(--ui-800)]"
+                  className="absolute bottom-[0.2rem] left-0 h-[0.5px] w-0 opacity-0 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:w-full bg-ui-800"
                 />
               </span>
             </Link>
