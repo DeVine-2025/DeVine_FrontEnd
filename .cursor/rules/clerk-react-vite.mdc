@@ -1,0 +1,24 @@
+---
+description: Clerk React(Vite) integration guardrails
+alwaysApply: true
+---
+# Clerk + React (Vite) 가이드
+
+## 공식 링크
+- https://clerk.com/docs/react/getting-started/quickstart
+
+## 필수 설정
+- SDK는 `@clerk/clerk-react@latest` 사용
+- `.env.local`에 `VITE_CLERK_PUBLISHABLE_KEY` 설정 (Vite는 `VITE_` 필요)
+- `main.tsx` 또는 `main.jsx`에서 `<ClerkProvider publishableKey={...}>`로 앱 전체 감싸기
+- `<SignedIn>`, `<SignedOut>`, `<SignInButton>`, `<SignUpButton>`, `<UserButton>` 예시 포함
+
+## 금지 사항
+- `frontendApi` 사용 금지
+- 오래된 env 키(`REACT_APP_*`, `VITE_REACT_APP_*`) 사용 금지
+- `<ClerkProvider>`를 트리 하위에 두지 말 것
+- 구버전 훅/컴포넌트 언급 금지
+
+## 응답 체크
+- `VITE_CLERK_PUBLISHABLE_KEY` 사용 확인
+- `<ClerkProvider>`가 `main.*`에 있는지 확인
