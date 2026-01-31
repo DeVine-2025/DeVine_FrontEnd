@@ -87,7 +87,13 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
         </div>
       ) : step === 'githubRepos' ? (
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
-          <GithubRepoSelectionSection onBack={() => setStep('additionalProfile')} />
+          <GithubRepoSelectionSection
+            onBack={() => setStep('additionalProfile')}
+            onNext={() => {
+              onConfirm();
+              navigate('/');
+            }}
+          />
         </div>
       ) : step === 'additionalProfile' ? (
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
