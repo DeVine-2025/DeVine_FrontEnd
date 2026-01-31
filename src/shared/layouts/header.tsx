@@ -1,3 +1,4 @@
+import { SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useThemeStore } from '@store/theme';
@@ -143,16 +144,32 @@ const Header = () => {
             )}
           </button>
 
-          {/* 회원가입/로그인 버튼 */}
-          {!isAuthed ? (
+          <SignedIn>
+            <Link
+              to="/my-info"
+              className="Caption1 text-[var(--ui-700)] transition-colors duration-300 hover:text-[var(--ui-900)] whitespace-nowrap"
+            >
+              내 정보
+            </Link>
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: 'size-[3.6rem] rounded-[8px]',
+                },
+              }}
+            />
+          </SignedIn>
+
+          <SignedOut>
+            {/* 회원가입/로그인 버튼 */}
             <Link
               to="/login"
-              className="border border-badge-text-primary flex-row-center h-[3.6rem] px-[1.2rem] py-[0.8rem] rounded-[8px] transition-all duration-300 hover:border-transparent group relative overflow-hidden shrink-0 whitespace-nowrap"
+              className="border border-[var(--badge-text-primary)] flex-row-center h-[3.6rem] px-[1.2rem] py-[0.8rem] rounded-[8px] transition-all duration-300 hover:border-transparent group relative overflow-hidden shrink-0 whitespace-nowrap"
             >
               <span
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[8px]"
                 style={{
-                  background: 'linear-gradient(135deg, #7E7AFF 0%, #9D8FFF 50%, #7E7AFF 100%)',
+                  background: '#4E49FF',
                 }}
               />
               <span
@@ -161,18 +178,11 @@ const Header = () => {
                   background: '#7E7AFF',
                 }}
               />
-              <span className="Caption1 text-ui-900 transition-colors duration-300 group-hover:text-ui-1000 relative z-10 whitespace-nowrap">
+              <span className="Caption1 text-[var(--ui-900)] transition-colors duration-300 group-hover:text-[var(--ui-1000)] relative z-10 whitespace-nowrap">
                 회원가입/로그인
               </span>
             </Link>
-          ) : (
-            <Link
-              to="/my-info"
-              className="Label1 font-semibold text-ui-400 hover:text-ui-800 transition-colors duration-200 whitespace-nowrap"
-            >
-              내 정보
-            </Link>
-          )}
+          </SignedOut>
 
           {/* 햄버거 메뉴 */}
           <button
