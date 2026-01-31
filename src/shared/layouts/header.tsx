@@ -86,7 +86,7 @@ const Header = () => {
 
         {/* 액션 버튼들 */}
         <div className="flex-items-center gap-[1.2rem] tablet:gap-[0.8rem] phone:gap-[0.6rem] flex-nowrap shrink-0">
-          {isAuthed ? (
+          <SignedIn>
             <Link
               to="/project/create"
               className="Caption1 flex-row-center h-[3.2rem] px-[1.0rem] py-[0.6rem] rounded-[8px] bg-[#4E49FF] text-white font-semibold whitespace-nowrap group relative overflow-hidden transition-transform duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0px_10px_24px_rgba(78,73,255,0.25)] active:translate-y-0 active:shadow-none"
@@ -105,7 +105,7 @@ const Header = () => {
               />
               <span className="relative z-10">프로젝트 등록하기</span>
             </Link>
-          ) : null}
+          </SignedIn>
           {/* 다크모드 토글 */}
           <button
             type="button"
