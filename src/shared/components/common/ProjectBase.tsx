@@ -143,9 +143,9 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
       className="cursor-pointer hover:opacity-80"
     >
       {bookmarked ? (
-        <BookmarkIcon aria-hidden="true" className="h-9 w-9 text-card-muted" />
+        <BookmarkIcon aria-hidden="true" className="h-[48px] w-[48px] text-[var(--ui-200)]" />
       ) : (
-        <BookmarkIcon aria-hidden="true" className="h-9 w-9 text-card-muted" />
+        <BookmarkIcon aria-hidden="true" className="h-[48px] w-[48px] text-[var(--ui-200)]" />
       )}
     </button>
   );

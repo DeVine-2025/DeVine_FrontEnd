@@ -4,31 +4,22 @@ import type { ProjectCardProps } from 'src/shared/types/projectCard.types';
 export default function MainProjectCard(props: ProjectCardProps) {
   const metaText = [props.location, props.period, props.mode].filter(Boolean).join(' · ');
   const thumbnailAlt = props.thumbnailAlt ?? props.title;
-  const thumbnail = props.thumbnailUrl ? (
-    <img
-      src={props.thumbnailUrl}
-      alt={thumbnailAlt}
-      className="h-[120px] w-full rounded-2xl bg-card-section-bg object-cover"
-      loading="lazy"
-    />
-  ) : (
-    <div className="h-[120px] w-full rounded-2xl bg-card-section-bg" />
-  );
+  const hasThumbnail = Boolean(props.thumbnailUrl);
 
   return (
     <ProjectBase
       {...props}
       render={({ HeaderBadges, Bookmark }) => (
-        <article className="w-[280px] shrink-0 overflow-hidden rounded-3xl bg-profile-card-bg">
-          <div className="relative h-[160px] w-full overflow-hidden rounded-3xl bg-profile-card-bg">
-            {thumbnail ? (
+        <article className="w-[280px] shrink-0 overflow-hidden rounded-3xl border-0 bg-[var(--ui-bg)] shadow-none ring-0 outline-none">
+          <div className="relative h-[160px] w-full overflow-hidden rounded-3xl border-0 bg-[#F3F5FC] shadow-none ring-0 outline-none">
+            {hasThumbnail ? (
               <img
                 src={props.thumbnailUrl}
                 alt={props.thumbnailAlt}
-                className="h-full w-full object-cover"
+                className="block h-full w-full object-cover"
               />
             ) : (
-              <div className="h-full w-full object-cover" />
+              <div className="h-full w-full bg-[#F3F5FC]" />
             )}
             <div className="absolute top-4 right-4 z-10">{Bookmark}</div>
           </div>
