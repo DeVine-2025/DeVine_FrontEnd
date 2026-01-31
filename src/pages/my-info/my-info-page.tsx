@@ -1,5 +1,9 @@
+import ProfileDetail from '../../shared/templates/profileDetail';
+
 const MyInfoPage = () => {
-  return <div>내 정보 페이지입니다</div>;
+  return (<div>
+    <ProfileDetail type={"내 정보"}/>
+  </div>);
 };
 
 export default MyInfoPage;

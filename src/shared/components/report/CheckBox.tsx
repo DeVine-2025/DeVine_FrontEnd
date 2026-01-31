@@ -10,7 +10,7 @@ type CheckboxProps = {
   onClick?: () => void;
 };
 
-const Checkbox = ({ title, description, isExist, isActive, onClick }: CheckboxProps) => {
+const CheckBox = ({ title, description, isExist, isActive, onClick }: CheckboxProps) => {
   return (
     <div className={cn('flex gap-[1.6rem] p-[1.2rem]', isExist && 'rounded-xl bg-[var(--ui-50)]')}>
       <button
@@ -37,4 +37,4 @@ const Checkbox = ({ title, description, isExist, isActive, onClick }: CheckboxPr
   );
 };
 
-export default Checkbox;
+export default CheckBox;

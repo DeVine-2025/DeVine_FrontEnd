@@ -1,7 +1,7 @@
 // import ReportCard from '@pages/report/components/report-card';
-import Blank from '@pages/report/components/blank';
+import Blank from '@components/report/Blank';
 // import { useNavigate } from 'react-router-dom';
-import TabMenu from '@pages/report/components/tab-menu';
+import TabMenu from '@components/report/TabMenu';
 import { useState } from 'react';
 
 const ReportPage = () => {
