@@ -12,6 +12,8 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,
+    "noEmit": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
     "baseUrl": "./",
     "paths": {
       "@styles/*": ["src/shared/styles/*"],

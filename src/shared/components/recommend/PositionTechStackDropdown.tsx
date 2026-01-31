@@ -55,7 +55,18 @@ import {
   VuejsOff,
   VuejsOn,
 } from '@assets/stackBadge';
+import { useThemeStore } from '@store/theme';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  BACKEND_DATABASE,
+  BACKEND_FRAMEWORK,
+  BACKEND_LANGUAGE,
+  FRONTEND_LANGUAGE_FRAMEWORK,
+  FRONTEND_MOBILE,
+  INFRA_CLOUD,
+  INFRA_CONTAINER,
+  type TechStackChip,
+} from '@constants/position-tech-stack';
 
 type PositionTechStackDropdownProps = {
   open: boolean;
@@ -66,61 +77,6 @@ type PositionTechStackDropdownProps = {
   onClose: () => void;
 };
 
-type Chip =
-  | { key: string; label: string; off: string; on: string }
-  | { key: string; label: string };
-
-const FRONTEND_LANGUAGE_FRAMEWORK: Chip[] = [
-  { key: 'Javascript', label: 'Javascript', off: JavascriptOff, on: JavascriptOn },
-  { key: 'Typescript', label: 'Typescript', off: TypescriptOff, on: TypescriptOn },
-  { key: 'React', label: 'React', off: ReactOff, on: ReactOn },
-  { key: 'Vuejs', label: 'Vuejs', off: VuejsOff, on: VuejsOn },
-  { key: 'Nextjs', label: 'Nextjs', off: NextjsOff, on: NextjsOn },
-  { key: 'Svelte', label: 'Svelte', off: SvelteOff, on: SvelteOn },
-];
-
-const FRONTEND_MOBILE: Chip[] = [
-  { key: 'ReactNative', label: 'ReactNative', off: ReactnativeOff, on: ReactnativeOn },
-  { key: 'Flutter', label: 'Flutter', off: FlutterOff, on: FlutterOn },
-  { key: 'Kotlin', label: 'Kotlin', off: KotlinOff, on: KotlinOn },
-  { key: 'Swift', label: 'Swift', off: SwiftOff, on: SwiftOn },
-];
-
-const BACKEND_LANGUAGE: Chip[] = [
-  { key: 'Java', label: 'Java', off: JavaOff, on: JavaOn },
-  { key: 'Python', label: 'Python', off: PythonOff, on: PythonOn },
-  { key: 'Go', label: 'Go', off: GoOff, on: GoOn },
-  { key: 'C', label: 'C', off: COff, on: COn },
-  { key: 'Kotlin', label: 'Kotlin', off: KotlinOff, on: KotlinOn },
-  { key: 'Php', label: 'Php', off: PhpOff, on: PhpOn },
-];
-
-const BACKEND_FRAMEWORK: Chip[] = [
-  // 디자인은 Springboot이지만, 현재 에셋은 Spring으로 제공되어 임시로 매핑
-  { key: 'Springboot', label: 'Springboot', off: SpringOff, on: SpringOn },
-  { key: 'Nodejs', label: 'Nodejs', off: NodejsOff, on: NodejsOn },
-  { key: 'Express', label: 'Express', off: ExpressOff, on: ExpressOn },
-  { key: 'Nestjs', label: 'Nestjs', off: NestjsOff, on: NestjsOn },
-  { key: 'Django', label: 'Django', off: DjangoOff, on: DjangoOn },
-];
-
-const BACKEND_DATABASE: Chip[] = [
-  { key: 'MongoDB', label: 'MongoDB', off: MongodbOff, on: MongodbOn },
-  { key: 'MySQL', label: 'MySQL', off: MysqlOff, on: MysqlOn },
-];
-
-const INFRA_CLOUD: Chip[] = [
-  { key: 'AWS', label: 'AWS', off: AwsOff, on: AwsOn },
-  { key: 'Firebase', label: 'Firebase', off: FirebaseOff, on: FirebaseOn },
-  // 인프라 탭의 React는 별도 에셋(Property 1=React)을 사용
-  { key: 'React', label: 'React', off: InfraReactOff, on: InfraReactOn },
-];
-
-const INFRA_CONTAINER: Chip[] = [
-  { key: 'Docker', label: 'Docker', off: DockerOff, on: DockerOn },
-  { key: 'Kubernetes', label: 'Kubernetes', off: KubernetesOff, on: KubernetesOn },
-];
-
 export default function PositionTechStackDropdown({
   open,
   value,
@@ -129,6 +85,7 @@ export default function PositionTechStackDropdown({
   onReset,
   onClose,
 }: PositionTechStackDropdownProps) {
+  const { theme } = useThemeStore();
   const ref = useRef<HTMLDivElement | null>(null);
   const selected = useMemo(() => new Set(value), [value]);
 
@@ -206,7 +163,7 @@ export default function PositionTechStackDropdown({
     onChange(Array.from(next));
   };
 
-  const renderChip = (b: Chip) => {
+  const renderChip = (b: TechStackChip) => {
     const isOn = selected.has(b.key);
 
     const wrapperClass = [
@@ -215,10 +172,12 @@ export default function PositionTechStackDropdown({
     ].join(' ');
 
     if ('off' in b && 'on' in b) {
+      const offSrc = theme === 'dark' ? (b.offDark ?? b.off) : b.off;
+      const onSrc = theme === 'dark' ? (b.onDark ?? b.on) : b.on;
       return (
         <button key={b.key} type="button" onClick={() => toggle(b.key)} className={wrapperClass}>
           <img
-            src={isOn ? b.on : b.off}
+            src={isOn ? onSrc : offSrc}
             alt={b.label}
             className="h-[36px] w-auto select-none rounded-[999px]"
             draggable={false}
@@ -324,7 +283,7 @@ export default function PositionTechStackDropdown({
   return (
     <div
       ref={ref}
-      className={`absolute top-[calc(100%+12px)] left-0 z-50 w-[358px] overflow-hidden rounded-[12px] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)] ${containerHeightClass}`}
+      className={`animate-dropdown-slide-up absolute top-[calc(100%+12px)] left-0 z-50 w-[358px] overflow-hidden rounded-[12px] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)] ${containerHeightClass}`}
     >
       <div className="px-[16px] pt-[16px]">
         <p className="Label1 font-medium text-[var(--ui-600)]">포지션/기술스택</p>

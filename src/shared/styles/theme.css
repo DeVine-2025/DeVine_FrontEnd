@@ -1,8 +1,40 @@
 @theme {
     /* ===========================
-       UI (다크모드 기본)
-       =========================== */
+    UI Color aliases (Tailwind token용)
+    =========================== */
 
+    --color-ui-bg: var(--ui-bg);
+    --color-ui-50: var(--ui-50);
+    --color-ui-100: var(--ui-100);
+    --color-ui-200: var(--ui-200);
+    --color-ui-300: var(--ui-300);
+    --color-ui-400: var(--ui-400);
+    --color-ui-500: var(--ui-500);
+    --color-ui-600: var(--ui-600);
+    --color-ui-700: var(--ui-700);
+    --color-ui-800: var(--ui-800);
+    --color-ui-900: var(--ui-900);
+    --color-ui-1000: var(--ui-1000);
+
+    /* Badge aliases */
+    --color-primary: #4E49FF;
+
+    --color-badge-text-primary: var(--badge-text-primary);
+    --color-badge-bg-primary: var(--badge-bg-primary);
+
+    --color-badge-text-blue: var(--badge-text-blue);
+    --color-badge-bg-blue: var(--badge-bg-blue);
+
+    --color-badge-text-green: var(--badge-text-green);
+    --color-badge-bg-green: var(--badge-bg-green);
+
+    --color-badge-text-pink: var(--badge-text-pink);
+    --color-badge-bg-pink: var(--badge-bg-pink);
+
+    --color-badge-text-orange: var(--badge-text-orange);
+    --color-badge-bg-orange: var(--badge-bg-orange);
+
+    /* UI Dark */
     --ui-bg: #191B1E;
     --ui-50: #212328;
     --ui-100: #2F323A;
@@ -16,11 +48,7 @@
     --ui-900: #F8F9FB;
     --ui-1000: #FFFFFF;
 
-    --color-primary : #4E49FF;
-    /* ===========================
-       Badge Tokens (다크모드)
-       =========================== */
-
+    /* Badge Tokens Dark */
     --badge-text-primary: #7E7AFF;
     --badge-bg-primary: #1E1D4D;
 
@@ -36,28 +64,18 @@
     --badge-text-orange: #D98363;
     --badge-bg-orange: #463229;
 
-
     --font-weight-regular: 400;
     --font-weight-medium: 500;
     --font-weight-bold: 700;
 
-    /* ===========================
-             반응형 설정
-       =========================== */
-
+    /* breakpoints */
     --breakpoint-tablet: 744px;
     --breakpoint-phone: 390px;
-
     --breakpoint-tablet-max: 743px;
     --breakpoint-phone-max: 389px;
 }
 
 [data-theme='light'] {
-    /* ===========================
-       UI (라이트모드)
-       =========================== */
-
-
     --ui-bg: #FFFFFF;
     --ui-50: #F8F9FB;
     --ui-100: #F3F5FC;
@@ -70,10 +88,6 @@
     --ui-800: #2F323A;
     --ui-900: #212328;
     --ui-1000: #191B1E;
-
-    /* ===========================
-       Badge Tokens (라이트모드)
-       =========================== */
 
     --badge-text-primary: #4E49FF;
     --badge-bg-primary: #EEEDFF;
@@ -90,7 +104,6 @@
     --badge-text-orange: #D98363;
     --badge-bg-orange: #FFF4F0;
 }
-
 
 @layer utilities {
     .Display1 {
@@ -167,6 +180,7 @@
     :lang(en) .Title1,
     :lang(en) .Title2,
     :lang(en) .Title3,
+    :lang(en) .Heading1,
     :lang(en) .Heading2,
     :lang(en) .Headline1,
     :lang(en) .Body1,
