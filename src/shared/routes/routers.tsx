@@ -24,6 +24,7 @@ import {
   ReportMainPage,
   ReportPage,
   SearchPage,
+  SsoCallbackPage,
   SignupPage,
 } from '@pages';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
@@ -35,7 +36,7 @@ export const router = createBrowserRouter([
       { index: true, element: <MainPage /> },
       { path: 'signup', element: <SignupPage /> },
       { path: 'login', element: <LoginPage /> },
-
+      { path: 'sso-callback', element: <SsoCallbackPage /> },
       {
         path: 'search',
         element: <SearchPage />,

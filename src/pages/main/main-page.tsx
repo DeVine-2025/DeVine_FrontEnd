@@ -1,20 +1,26 @@
+import { useAuth } from '@clerk/clerk-react';
+import { Link, useNavigate } from 'react-router-dom';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
-import { Link } from 'react-router-dom';
 import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
+import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
 import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
-
-const USER_ROLE_KEY = 'userRole';
+import { useAuthStore } from '@store/auth';
 
 const MainPage = () => {
-  const userRole = localStorage.getItem(USER_ROLE_KEY) as 'pm' | 'dev' | null;
-  const isLoggedIn = userRole === 'pm' || userRole === 'dev';
+  const { isSignedIn } = useAuth();
+  const navigate = useNavigate();
+  const userRole = useAuthStore((state) => state.role);
+  const isLoggedIn = Boolean(isSignedIn);
   const isPm = userRole === 'pm';
 
   const highlightProjects = RECOMMENDED_PROJECTS.slice(0, 4);
   const recommendedProfiles = PROFILE_CARD_LIST.slice(0, 3);
   const recommendedProjects = PROJECT_LIST.slice(0, 3);
+  const handleProjectClick = (project: RecommendedProject | ProjectListItem) => {
+    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+  };
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-14">
@@ -34,6 +40,7 @@ const MainPage = () => {
               mode={project.mode}
               roles={[...PROJECT_ROLES]}
               bookmarked={project.bookmarked}
+              onClick={() => handleProjectClick(project)}
             />
           ))}
         </div>
@@ -80,22 +87,23 @@ const MainPage = () => {
                     domainSuitability={project.domainSuitability}
                     growthPotential={project.growthPotential}
                     overallScore={project.overallScore}
+                    onClick={() => handleProjectClick(project)}
                   />
                 ))}
           </div>
 
           {!isLoggedIn && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex w-full max-w-[420px] flex-col items-center gap-10 rounded-3xl bg-[var(--ui-bg)] px-8 py-18 text-center shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
-                <div className="flex flex-col gap-3">
-                  <span className="Body1 font-semibold text-card-title">로그인이 필요해요</span>
-                  <span className="Caption1 text-card-muted">
+              <div className="flex h-[210px] w-[400px] flex-col items-start gap-7 rounded-2xl border border-[#41444D] bg-[#212328] p-11 text-left shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
+                <div className="flex flex-col gap-2">
+                  <span className="text-[21px] font-semibold text-card-title">로그인이 필요해요</span>
+                  <span className="text-[15px] text-[#F8F9FB]">
                     로그인하면 추천 프로젝트를 확인할 수 있어요
                   </span>
                 </div>
                 <Link
                   to="/login"
-                  className="inline-flex items-center justify-center rounded-xl bg-[#4E49FF] px-6 py-4 font-semibold text-white text-xl"
+                  className="inline-flex h-[52px] w-full items-center justify-center rounded-2xl bg-[#4E49FF] font-semibold text-white text-[18px]"
                 >
                   로그인하기
                 </Link>
