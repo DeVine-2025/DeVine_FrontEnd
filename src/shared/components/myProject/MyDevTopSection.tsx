@@ -1,6 +1,11 @@
 import ProjectLg from '@components/common/ProjectLg';
 import Tabs from '@components/tab/CommonTabs';
-import { PROJECT_LIST, PROJECT_ROLES } from 'src/mocks/project.mock';
+import { useNavigate } from 'react-router-dom';
+import {
+  PROJECT_LIST,
+  PROJECT_ROLES,
+  type ProjectListItem,
+} from 'src/mocks/project.mock';
 
 export type DevTab = 'suggested' | 'applied';
 
@@ -10,6 +15,12 @@ type Props = {
 };
 
 const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
+  const navigate = useNavigate();
+
+  const handleProjectClick = (project: ProjectListItem) => {
+    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+  };
+
   return (
     <section className="mt-10">
       <div className="flex items-center justify-between">
@@ -36,20 +47,26 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
                 <button
                   type="button"
                   className="cursor-pointer rounded-xl bg-[#4E49FF] px-3 py-2 font-medium text-[12px] text-my-tab-inactive"
-                  onClick={() => console.log('수락', p.id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    console.log('수락', p.id);
+                  }}
                 >
                   수락하기
                 </button>
                 <button
                   type="button"
                   className="cursor-pointer rounded-xl bg-surface-tab px-3 py-2 font-medium text-[12px] text-my-tab-text"
-                  onClick={() => console.log('거절', p.id)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    console.log('거절', p.id);
+                  }}
                 >
                   거절하기
                 </button>
               </div>
             }
-            onClick={() => console.log('click project', p.id)}
+            onClick={() => handleProjectClick(p)}
           />
         ))}
       </div>

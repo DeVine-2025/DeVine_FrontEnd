@@ -37,7 +37,7 @@ export function HeaderBlock({
   roleClass: string;
 }) {
   return (
-    <div className="flex items-start gap-6">
+    <div className="relative flex items-start gap-6">
       <img
         src={profileImageUrl}
         alt={profileImageAlt ?? nickname}
@@ -65,12 +65,12 @@ export function HeaderBlock({
         type="button"
         aria-pressed={bookmarked}
         onClick={() => onBookmarkChange?.(!bookmarked, id)}
-        className="ml-auto cursor-pointer self-start p-1 hover:opacity-80"
+        className="-right-1 absolute top-0 cursor-pointer hover:opacity-80"
       >
         {bookmarked ? (
-          <BookmarkFilled aria-hidden="true" className="h-10 w-10 text-card-muted" />
+          <BookmarkFilled aria-hidden="true" className="h-[36px] w-[36px] text-card-muted" />
         ) : (
-          <BookmarkIcon aria-hidden="true" className="h-10 w-10 text-card-muted" />
+          <BookmarkIcon aria-hidden="true" className="h-[36px] w-[36px] text-card-muted" />
         )}
       </button>
     </div>
@@ -95,13 +95,9 @@ export function BadgeList({ badges, className }: BadgeListProps) {
   return (
     <div className={cn('flex flex-wrap gap-4', className)}>
       {badges.map((badge, index) => (
-        <Badge
-          key={`${badge.label}-${index}`}
-          label={badge.label}
-        />
+        <Badge key={`${badge.label}-${index}`} label={badge.label} />
       ))}
     </div>
-
   );
 }
 

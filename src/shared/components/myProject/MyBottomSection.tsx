@@ -1,7 +1,12 @@
 import Tabs from '@components/tab/CommonTabs';
 import MainProjectCard from '@components/common/MainProjectCard';
 import { useMemo } from 'react';
-import { PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
+import { useNavigate } from 'react-router-dom';
+import {
+  PROJECT_ROLES,
+  RECOMMENDED_PROJECTS,
+  type RecommendedProject,
+} from 'src/mocks/project.mock';
 
 export type ProjectTab = 'ongoing' | 'done';
 
@@ -12,6 +17,11 @@ type Props = {
 
 const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
   const highlightProjects = useMemo(() => RECOMMENDED_PROJECTS.slice(0, 4), []);
+  const navigate = useNavigate();
+
+  const handleProjectClick = (project: RecommendedProject) => {
+    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+  };
 
   return (
     <section>
@@ -38,6 +48,7 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
             mode={project.mode}
             roles={[...PROJECT_ROLES]}
             bookmarked={project.bookmarked}
+            onClick={() => handleProjectClick(project)}
           />
         ))}
       </div>

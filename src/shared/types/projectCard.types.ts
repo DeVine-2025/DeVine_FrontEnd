@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 
 export type BadgeTone = 'blue' | 'green' | 'pink' | 'orange';
 
@@ -52,6 +52,8 @@ export type ProjectCardBaseParts = {
 
   Due: ReactNode;
   Bookmark: ReactNode;
+
+  CardActionProps: HTMLAttributes<HTMLElement>;
 };
 
 export type ProjectCardBaseProps = ProjectCardProps & {

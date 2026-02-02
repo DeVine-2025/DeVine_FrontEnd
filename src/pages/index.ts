@@ -32,3 +32,4 @@ export { default as SearchPage } from './search/search-page';
 
 export { default as SignupPage } from './signup/signup-page';
 export { default as SsoCallbackPage } from './auth/sso-callback-page';
+export { default as ProjectDetailPage } from './project-detail/project-detail-page';

@@ -1,5 +1,6 @@
 import BookmarkIcon from '@assets/icons/bookmark.svg?react';
 import PersonIcon from '@assets/icons/person.svg?react';
+import type { KeyboardEvent } from 'react';
 import type { ProjectCardBaseProps } from 'src/shared/types/projectCard.types.ts';
 import { badgeToneToClass } from '../../types/badgeTone';
 
@@ -17,6 +18,7 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
     dueLabel,
     bookmarked = false,
     onBookmarkChange,
+    onClick,
     render,
   } = props;
 
@@ -139,20 +141,48 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
     <button
       type="button"
       aria-pressed={bookmarked}
-      onClick={() => onBookmarkChange?.(!bookmarked)}
+      onClick={(event) => {
+        event.stopPropagation();
+        onBookmarkChange?.(!bookmarked);
+      }}
       className="cursor-pointer hover:opacity-80"
     >
       {bookmarked ? (
-        <BookmarkIcon aria-hidden="true" className="h-[48px] w-[48px] text-[var(--ui-200)]" />
+        <BookmarkIcon aria-hidden="true" className="h-[36px] w-[36px] text-card-muted" />
       ) : (
-        <BookmarkIcon aria-hidden="true" className="h-[48px] w-[48px] text-[var(--ui-200)]" />
+        <BookmarkIcon aria-hidden="true" className="h-[36px] w-[36px] text-card-muted" />
       )}
     </button>
   );
 
+  const CardActionProps = onClick
+    ? {
+        role: 'button' as const,
+        tabIndex: 0,
+        onClick,
+        onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClick();
+          }
+        },
+      }
+    : {};
+
   return (
     <>
-      {render({ metaText, Thumbnail, HeaderBadges, Title, Meta, RolesLg, RolesMd, Due, Bookmark })}
+      {render({
+        metaText,
+        Thumbnail,
+        HeaderBadges,
+        Title,
+        Meta,
+        RolesLg,
+        RolesMd,
+        Due,
+        Bookmark,
+        CardActionProps,
+      })}
     </>
   );
 }

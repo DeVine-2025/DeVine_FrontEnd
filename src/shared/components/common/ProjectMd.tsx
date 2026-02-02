@@ -1,15 +1,19 @@
 import type { ProjectCardProps } from 'src/shared/types/projectCard.types.ts';
+import { cn } from '@libs/cn';
 import ProjectBase from './ProjectBase';
 
 export default function ProjectMd(props: ProjectCardProps) {
   return (
     <ProjectBase
       {...props}
-      render={({ Thumbnail, HeaderBadges, Title, Meta, RolesMd, Bookmark }) => (
+      render={({ Thumbnail, HeaderBadges, Title, Meta, RolesMd, Bookmark, CardActionProps }) => (
         <article
-          className={`w-[290px] shrink-0 rounded-3xl bg-card-bg px-9 py-10 ${
-            props.className ?? ''
-          }`}
+          {...CardActionProps}
+          className={cn(
+            'w-[290px] shrink-0 rounded-3xl bg-card-bg px-9 py-10',
+            props.onClick && 'cursor-pointer',
+            props.className,
+          )}
         >
           <div className="absolute top-6 right-0 text-card-muted">{Bookmark}</div>
           <div className="flex gap-8">
