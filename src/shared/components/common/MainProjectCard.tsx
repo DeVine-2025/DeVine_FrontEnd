@@ -1,4 +1,5 @@
 import ProjectBase from '@components/common/ProjectBase';
+import { cn } from '@libs/cn';
 import type { ProjectCardProps } from 'src/shared/types/projectCard.types';
 
 export default function MainProjectCard(props: ProjectCardProps) {
@@ -9,13 +10,20 @@ export default function MainProjectCard(props: ProjectCardProps) {
   return (
     <ProjectBase
       {...props}
-      render={({ HeaderBadges, Bookmark }) => (
-        <article className="w-[280px] shrink-0 overflow-hidden rounded-3xl border-0 bg-[var(--ui-bg)] shadow-none ring-0 outline-none">
+      render={({ HeaderBadges, Bookmark, CardActionProps }) => (
+        <article
+          {...CardActionProps}
+          className={cn(
+            'w-[280px] shrink-0 overflow-hidden rounded-3xl border-0 bg-[var(--ui-bg)] shadow-none ring-0 outline-none',
+            props.onClick && 'cursor-pointer',
+            props.className,
+          )}
+        >
           <div className="relative h-[160px] w-full overflow-hidden rounded-3xl border-0 bg-[#F3F5FC] shadow-none ring-0 outline-none">
             {hasThumbnail ? (
               <img
                 src={props.thumbnailUrl}
-                alt={props.thumbnailAlt}
+                alt={thumbnailAlt}
                 className="block h-full w-full object-cover"
               />
             ) : (
