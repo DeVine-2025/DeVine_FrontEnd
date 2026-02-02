@@ -1,12 +1,12 @@
 import { useAuth } from '@clerk/clerk-react';
-import { Link, useNavigate } from 'react-router-dom';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
+import { useAuthStore } from '@store/auth';
+import { Link, useNavigate } from 'react-router-dom';
 import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
 import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
-import { useAuthStore } from '@store/auth';
 
 const MainPage = () => {
   const { isSignedIn } = useAuth();
@@ -19,7 +19,9 @@ const MainPage = () => {
   const recommendedProfiles = PROFILE_CARD_LIST.slice(0, 3);
   const recommendedProjects = PROJECT_LIST.slice(0, 3);
   const handleProjectClick = (project: RecommendedProject | ProjectListItem) => {
-    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+    navigate(`/project/${project.id}`, {
+      state: { project: { ...project, roles: PROJECT_ROLES } },
+    });
   };
 
   return (
@@ -28,7 +30,7 @@ const MainPage = () => {
         <h2 className="Heading2 pt-5 font-semibold text-card-title">
           이번주 모두가 주목하는 프로젝트
         </h2>
-        <div className="scrollbar-hide flex gap-6 overflow-x-auto">
+        <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
           {highlightProjects.map((project) => (
             <MainProjectCard
               key={project.id}
@@ -96,14 +98,16 @@ const MainPage = () => {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="flex h-[210px] w-[400px] flex-col items-start gap-7 rounded-2xl border border-[#41444D] bg-[#212328] p-11 text-left shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
                 <div className="flex flex-col gap-2">
-                  <span className="text-[21px] font-semibold text-card-title">로그인이 필요해요</span>
-                  <span className="text-[15px] text-[#F8F9FB]">
+                  <span className="font-semibold text-[21px] text-card-title">
+                    로그인이 필요해요
+                  </span>
+                  <span className="text-[#F8F9FB] text-[15px]">
                     로그인하면 추천 프로젝트를 확인할 수 있어요
                   </span>
                 </div>
                 <Link
                   to="/login"
-                  className="inline-flex h-[52px] w-full items-center justify-center rounded-2xl bg-[#4E49FF] font-semibold text-white text-[18px]"
+                  className="inline-flex h-[52px] w-full items-center justify-center rounded-2xl bg-[#4E49FF] font-semibold text-[18px] text-white"
                 >
                   로그인하기
                 </Link>
