@@ -145,12 +145,12 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
         event.stopPropagation();
         onBookmarkChange?.(!bookmarked);
       }}
-      className="w-[30px] cursor-pointer hover:opacity-80"
+      className="cursor-pointer hover:opacity-80"
     >
       {bookmarked ? (
-        <BookmarkIcon aria-hidden="true" className="h-[48px] w-[48px] text-[var(--ui-200)]" />
+        <BookmarkIcon aria-hidden="true" className="h-[36px] w-[36px] text-card-muted" />
       ) : (
-        <BookmarkIcon aria-hidden="true" className="h-[48px] w-[48px] text-[var(--ui-200)]" />
+        <BookmarkIcon aria-hidden="true" className="h-[36px] w-[36px] text-card-muted" />
       )}
     </button>
   );

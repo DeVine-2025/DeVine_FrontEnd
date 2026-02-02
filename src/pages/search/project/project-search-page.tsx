@@ -3,18 +3,20 @@ import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
 import {
   PROJECT_FILTERS,
   PROJECT_LIST,
   PROJECT_ROLES,
   RECOMMENDED_PROJECTS,
 } from 'src/mocks/project.mock';
-import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
 
 export default function ProjectSearchPage() {
   const navigate = useNavigate();
   const handleProjectClick = (project: RecommendedProject | ProjectListItem) => {
-    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+    navigate(`/project/${project.id}`, {
+      state: { project: { ...project, roles: PROJECT_ROLES } },
+    });
   };
 
   const [openFilter, setOpenFilter] = useState<null | (typeof PROJECT_FILTERS)[number]>(null);
@@ -34,13 +36,16 @@ export default function ProjectSearchPage() {
         <button
           type="button"
           onClick={() => navigate('/recommend')}
-          className="inline-flex cursor-pointer items-center gap-2 text-card-muted text-lg hover:opacity-80"
+          className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
         >
-          더 많은 추천 프로젝트 보러가기 <span aria-hidden="true">›</span>
+          더 많은 추천 프로젝트 보러가기
+          <span aria-hidden="true" className="text-3xl leading-none">
+            ›
+          </span>
         </button>
       </header>
 
-      <div className="scrollbar-hide flex justify-center gap-6 overflow-x-auto">
+      <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
         {RECOMMENDED_PROJECTS.map((p) => (
           <ProjectSm
             key={p.id}

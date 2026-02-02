@@ -24,14 +24,17 @@ const DeveloperSearchPage = () => {
         <button
           type="button"
           onClick={() => navigate('/recommend')}
-          className="inline-flex cursor-pointer items-center gap-2 text-card-muted text-lg hover:opacity-80"
+          className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
         >
-          더 많은 추천 개발자 보러가기 <span aria-hidden="true">›</span>
+          더 많은 추천 개발자 보러가기
+          <span aria-hidden="true" className="text-3xl leading-none">
+            ›
+          </span>
         </button>
       </header>
 
       {/* 추천 개발자 카드 */}
-      <div className="scrollbar-hide flex justify-center gap-6 overflow-x-auto">
+      <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
         {PROFILE_CARD_LIST.map((profile) => (
           <ProfileCard key={profile.id} {...profile} size="sm" />
         ))}
