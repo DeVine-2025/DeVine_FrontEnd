@@ -1,6 +1,7 @@
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
+import { useProjects } from '@hooks/useProjects';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -18,6 +19,19 @@ export default function ProjectSearchPage() {
   const [expectedPeriods, setExpectedPeriods] = useState<string[]>([]);
   const [projectTypes, setProjectTypes] = useState<string[]>([]);
   const [techStacks, setTechStacks] = useState<string[]>([]);
+
+  // 데이터 확인용
+  const { data, isLoading, isError, error } = useProjects({
+    projectFields: ['WEB'],
+    positions: ['FRONTEND'],
+    categoryIds: [1, 2],
+    techStackIds: [1, 3, 5],
+    durationRange: 'ONE_TO_THREE',
+    page: 1,
+    size: 10,
+  });
+
+  console.log(data);
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
