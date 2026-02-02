@@ -14,10 +14,7 @@ import {
   MyPMPage,
   MyProjectPage,
   PmPage,
-<<<<<<< HEAD
   ProjectCreatePage,
-=======
->>>>>>> 711b7b1663b80db7a896f40b4aa486bd5f3b2e0b
   ProjectDetailPage,
   ProjectSearchPage,
   ProposedPage,
@@ -40,10 +37,7 @@ export const router = createBrowserRouter([
       { index: true, element: <MainPage /> },
       { path: 'signup', element: <SignupPage /> },
       { path: 'login', element: <LoginPage /> },
-<<<<<<< HEAD
       { path: 'sso-callback', element: <SsoCallbackPage /> },
-=======
->>>>>>> 711b7b1663b80db7a896f40b4aa486bd5f3b2e0b
       { path: 'project/:projectId', element: <ProjectDetailPage /> },
       {
         path: 'search',
