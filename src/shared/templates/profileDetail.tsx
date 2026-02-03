@@ -15,7 +15,6 @@ type ProfileDetailProps = {
   type: '내 정보' | '개발자 상세';
 }
 
-
 const ProfileDetail = ({type}: ProfileDetailProps) => {
 
   return (

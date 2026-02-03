@@ -1,6 +1,4 @@
-import ProfileDetail from '../../shared/templates/profileDetail';
 import { cn } from '@libs/cn';
-import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 type MenuItem = {
@@ -23,20 +21,30 @@ const MyInfoPage = () => {
   return (
     <div className="flex">
       <div className="mx-auto w-full max-w-[1180px] flex justify-between">
-        <Outlet/>
+        <Outlet />
+
         <div>
           <ul className="min-w-[254px] flex flex-col gap-[3.2rem] font-semibold text-3xl">
             {MENU.map((item) => {
-              const targetPath = `/my-info/${item.path}`;
               const isSelected =
-                item.path === ''
-                  ? currentPath === '/my-info'
-                  : currentPath.startsWith(targetPath);
+                item.path === 'bookmark'
+                  ? currentPath.startsWith('/bookmark')
+                  : item.path === ''
+                    ? currentPath === '/my-info'
+                    : currentPath.startsWith(`/my-info/${item.path}`);
 
               return (
                 <li
                   key={item.path}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => {
+                    if (item.path === 'bookmark') {
+                      navigate('/bookmark/developer');
+                    } else if (item.path === '') {
+                      navigate('/my-info');
+                    } else {
+                      navigate(`/my-info/${item.path}`);
+                    }
+                  }}
                   className={cn(
                     'cursor-pointer transition-colors',
                     isSelected ? 'text-ui-900' : 'text-ui-400'
@@ -62,4 +70,3 @@ const MyInfoPage = () => {
 };
 
 export default MyInfoPage;
-

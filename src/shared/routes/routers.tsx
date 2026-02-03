@@ -102,9 +102,10 @@ export const router = createBrowserRouter([
             children: [
               {index: true, element: <MyInfoProfilePage/>},
               {path: 'setting', element: <MyInfoSettingPage/>},
-              {path: 'bookmark', element: <MyInfoBookMarkPage/>}
             ]
           },
+
+          {path: 'bookmark/developer', element: <MyInfoBookMarkPage/>}
         ],
       },
     ],
