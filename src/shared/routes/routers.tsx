@@ -10,6 +10,9 @@ import {
   MatchingPage,
   MyDeveloperPage,
   MyInfoPage,
+  MyInfoProfilePage,
+  MyInfoBookMarkPage,
+  MyInfoSettingPage,
   MyPMDevelopersPage,
   MyPMPage,
   MyProjectPage,
@@ -93,7 +96,15 @@ export const router = createBrowserRouter([
 
           { path: 'project/create', element: <ProjectCreatePage /> },
 
-          { path: 'my-info', element: <MyInfoPage /> },
+          {
+            path: 'my-info',
+            element: <MyInfoPage />,
+            children: [
+              {index: true, element: <MyInfoProfilePage/>},
+              {path: 'setting', element: <MyInfoSettingPage/>},
+              {path: 'bookmark', element: <MyInfoBookMarkPage/>}
+            ]
+          },
         ],
       },
     ],

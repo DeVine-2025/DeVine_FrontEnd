@@ -8,9 +8,9 @@ type ChipsProps = {
 
 const RoleChips = ({role, roleTone}: ChipsProps) => {
   return (
-    <div>
+    <div className="">
           <span
-            className={`Label1 w-fit rounded-[8px] px-[8px] py-[4px] font-semibold ${badgeToneToClass[roleTone]}`}
+            className={`Label1 rounded-[8px] px-[8px] py-[4px] font-semibold ${badgeToneToClass[roleTone]}`}
           >
             {role}
           </span>
