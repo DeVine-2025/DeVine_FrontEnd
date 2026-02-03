@@ -1,3 +1,4 @@
+import type { GetProjectsParams } from '@apis/projects';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
@@ -27,7 +28,7 @@ export default function ProjectSearchPage() {
   const [techStacks, setTechStacks] = useState<string[]>([]);
 
   // 데이터 확인용
-  const { data, isLoading, isError, error } = useProjects({
+  const params = {
     projectFields: ['WEB'],
     positions: ['FRONTEND'],
     categoryIds: [1, 2],
@@ -35,9 +36,10 @@ export default function ProjectSearchPage() {
     durationRange: 'ONE_TO_THREE',
     page: 1,
     size: 10,
-  });
+  } satisfies GetProjectsParams;
 
-  console.log(data);
+  const { data, isLoading, isError, error } = useProjects(params);
+  console.log(data); // 프로젝트 배열
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">

@@ -1,6 +1,5 @@
-import { useAuth } from '@clerk/clerk-react';
 import { buildQuery } from '@libs/queryString';
-import type { DurationRange, GetProjectsResponse, Position, ProjectField } from '../types/projects';
+import type { DurationRange, Position, ProjectField } from '../types/projects';
 
 export type GetProjectsParams = {
   projectFields?: ProjectField[];
@@ -14,7 +13,7 @@ export type GetProjectsParams = {
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
-export async function getProjects(params: GetProjectsParams, signal?: AbortSignal) {
+export async function getProjects(params: GetProjectsParams, token: string, signal?: AbortSignal) {
   const qs = buildQuery({
     projectFields: params.projectFields,
     categoryIds: params.categoryIds,
@@ -25,24 +24,16 @@ export async function getProjects(params: GetProjectsParams, signal?: AbortSigna
     size: params.size,
   });
 
-  const { getToken } = useAuth();
-  const token = await getToken();
-
   const res = await fetch(`${BASE_URL}/api/v1/projects${qs}`, {
     method: 'GET',
-    credentials: 'include',
     headers: {
-      // 'content-type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
     signal,
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`GET /api/v1/projects failed: ${res.status} ${text}`);
-  }
+  const json = await res.json().catch(() => null);
+  console.log(json);
 
-  const data = (await res.json()) as GetProjectsResponse;
-  return data.projects;
+  return json.result.projects;
 }
