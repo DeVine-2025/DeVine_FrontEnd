@@ -14,8 +14,8 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@floating-ui/dom": "^1.7.5",
     "@clerk/clerk-react": "^5.60.0",
+    "@floating-ui/dom": "^1.7.5",
     "@tailwindcss/vite": "^4.1.13",
     "@tanstack/react-query": "^5.89.0",
     "@tiptap/core": "^3.18.0",

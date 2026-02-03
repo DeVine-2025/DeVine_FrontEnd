@@ -60,10 +60,10 @@ export default function RecommendDeveloperCard({
     v
       .trim()
       .toLowerCase()
-      .replaceAll(' ', '')
-      .replaceAll('.', '')
-      .replaceAll('-', '')
-      .replaceAll('_', '');
+      .replace(/\s/g, '')
+      .replace(/\./g, '')
+      .replace(/-/g, '')
+      .replace(/_/g, '');
 
   const ALL_TECH_STACK_BADGES: Array<Extract<TechStackChip, { off: string; on: string }>> = [
     ...FRONTEND_LANGUAGE_FRAMEWORK,
@@ -76,7 +76,7 @@ export default function RecommendDeveloperCard({
   ].filter((b): b is Extract<TechStackChip, { off: string; on: string }> => 'off' in b && 'on' in b);
 
   const TECH_BADGE_BY_NAME = new Map<string, Extract<TechStackChip, { off: string; on: string }>>(
-    ALL_TECH_STACK_BADGES.flatMap((b) => [
+    ALL_TECH_STACK_BADGES.flatMap((b: Extract<TechStackChip, { off: string; on: string }>) => [
       [normalizeTechKey(b.key), b],
       [normalizeTechKey(b.label), b],
     ]),
@@ -86,10 +86,10 @@ export default function RecommendDeveloperCard({
     const normalized = normalizeTechKey(name);
     // 목데이터/백엔드에서 들어올 수 있는 표기 흔들림 대응
     const alias = normalized
-      .replaceAll('typescript', 'typescript')
-      .replaceAll('nextjs', 'nextjs')
-      .replaceAll('nodejs', 'nodejs')
-      .replaceAll('reactnative', 'reactnative');
+      .replace(/typescript/g, 'typescript')
+      .replace(/nextjs/g, 'nextjs')
+      .replace(/nodejs/g, 'nodejs')
+      .replace(/reactnative/g, 'reactnative');
     return TECH_BADGE_BY_NAME.get(alias) ?? TECH_BADGE_BY_NAME.get(normalized) ?? null;
   };
 

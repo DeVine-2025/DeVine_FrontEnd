@@ -231,7 +231,7 @@
 
 "@clerk/clerk-react@^5.60.0":
   version "5.60.0"
-  resolved "https://registry.npmjs.org/@clerk/clerk-react/-/clerk-react-5.60.0.tgz"
+  resolved "https://registry.yarnpkg.com/@clerk/clerk-react/-/clerk-react-5.60.0.tgz#96ca8068fd5dbce0f4d96128a8e16e852ded32a1"
   integrity sha512-P88FncsJpq/3WZJhhlj+md8mYb35BIXpr462C/figwsBGHsinr8VuBQUMcMZZ/6M34C8ABfLTPa6PHVp6+3D5Q==
   dependencies:
     "@clerk/shared" "^3.44.0"

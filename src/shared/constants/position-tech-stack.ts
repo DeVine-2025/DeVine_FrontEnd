@@ -160,16 +160,22 @@ export const INFRA_CONTAINER: TechStackChip[] = [
   { key: 'Kubernetes', label: 'Kubernetes', off: KubernetesOff, on: KubernetesOn, offDark: KubernetesOffDark, onDark: KubernetesOnDark },
 ];
 
-export const TECH_STACK_LABEL_BY_KEY: Record<string, string> = Object.fromEntries(
-  [
-    ...FRONTEND_LANGUAGE_FRAMEWORK,
-    ...FRONTEND_MOBILE,
-    ...BACKEND_LANGUAGE,
-    ...BACKEND_FRAMEWORK,
-    ...BACKEND_DATABASE,
-    ...INFRA_CLOUD,
-    ...INFRA_CONTAINER,
-  ].map((c) => [c.key, c.label]),
+const TECH_STACK_ENTRIES = [
+  ...FRONTEND_LANGUAGE_FRAMEWORK,
+  ...FRONTEND_MOBILE,
+  ...BACKEND_LANGUAGE,
+  ...BACKEND_FRAMEWORK,
+  ...BACKEND_DATABASE,
+  ...INFRA_CLOUD,
+  ...INFRA_CONTAINER,
+];
+
+export const TECH_STACK_LABEL_BY_KEY: Record<string, string> = TECH_STACK_ENTRIES.reduce<Record<string, string>>(
+  (acc, c) => {
+    acc[c.key] = c.label;
+    return acc;
+  },
+  {},
 );
 
 export type PositionKey = 'frontend' | 'backend' | 'infra';

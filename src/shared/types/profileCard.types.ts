@@ -17,7 +17,7 @@ export type ProfileCardProps = {
 
   introduction?: string;
 
-  badges?: Array<{ label: string; tone: BadgeTone }>;
+  badges?: Array<{ id?: string; label: string; tone: BadgeTone }>;
   techStack?: TechStackItem[];
 
   bookmarked?: boolean;
