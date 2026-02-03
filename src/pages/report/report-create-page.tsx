@@ -26,7 +26,7 @@ const ReportCreatePage = () => {
   const navigate = useNavigate();
   const toggleCheckbox = (id: string) => {
     setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id],
+      prev.indexOf(id) !== -1 ? prev.filter((itemId) => itemId !== id) : [...prev, id],
     );
   };
 
@@ -40,7 +40,7 @@ const ReportCreatePage = () => {
               key={item.id}
               title={item.title}
               description={item.description}
-              isActive={selectedIds.includes(item.id)}
+              isActive={selectedIds.indexOf(item.id) !== -1}
               onClick={() => toggleCheckbox(item.id)}
             />
           ))}
