@@ -90,21 +90,9 @@ const Header = () => {
           <SignedIn>
             <Link
               to="/project/create"
-              className="Caption1 flex-row-center h-[3.2rem] px-[1.0rem] py-[0.6rem] rounded-[8px] bg-[#4E49FF] text-white font-semibold whitespace-nowrap group relative overflow-hidden transition-transform duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0px_10px_24px_rgba(78,73,255,0.25)] active:translate-y-0 active:shadow-none"
+              className="Caption1 flex-row-center h-[3.2rem] px-[1.0rem] py-[0.6rem] rounded-[8px] bg-[#4E49FF] text-white font-semibold whitespace-nowrap transition-colors duration-200 ease-out hover:bg-[#5E59FF] active:bg-[#4540E6]"
             >
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                style={{
-                  background:
-                    'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0) 90%)',
-                }}
-              />
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -left-[40%] top-0 h-full w-[40%] -skew-x-12 bg-white/20 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:translate-x-[380%] group-hover:opacity-100"
-              />
-              <span className="relative z-10">프로젝트 등록하기</span>
+              프로젝트 등록하기
             </Link>
           </SignedIn>
           {/* 다크모드 토글 */}
