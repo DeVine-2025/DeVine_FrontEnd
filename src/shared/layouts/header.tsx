@@ -1,5 +1,5 @@
 import { SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useThemeStore } from '@store/theme';
 import DarkLogo from '@assets/icons/logo-dark.svg?react';
@@ -24,6 +24,7 @@ const Header = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const alarmButtonRef = useRef<HTMLButtonElement>(null);
 
   const notifications = NOTIFICATIONS;
 
@@ -127,6 +128,7 @@ const Header = () => {
 
           {/* 알림 */}
           <button
+            ref={alarmButtonRef}
             type="button"
             onClick={() => setIsNotificationOpen(!isNotificationOpen)}
             className="bg-ui-bg flex-row-center p-[0.4rem] rounded-[8px] size-[3.6rem] group relative shrink-0"
@@ -239,6 +241,7 @@ const Header = () => {
       
       {/* 알림 모달 */}
       <NotificationModal
+        anchorRef={alarmButtonRef}
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
         notifications={notifications}
