@@ -4,6 +4,7 @@ import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 
 type GithubRepoSelectionSectionProps = {
   onBack: () => void;
+  onNext: () => void;
 };
 
 const repoOptions = [
@@ -13,7 +14,7 @@ const repoOptions = [
   { id: 'repo-4', name: '레포지토리 제목', desc: '레포지토리 설명이 들어가는 자리입니다.' },
 ];
 
-const GithubRepoSelectionSection = ({ onBack }: GithubRepoSelectionSectionProps) => {
+const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSectionProps) => {
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
 
   const canProceed = useMemo(() => selectedRepo !== null, [selectedRepo]);
@@ -65,6 +66,7 @@ const GithubRepoSelectionSection = ({ onBack }: GithubRepoSelectionSectionProps)
         <button
           type="button"
           disabled={!canProceed}
+          onClick={onNext}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
             canProceed
               ? 'bg-[#4E49FF] text-white'

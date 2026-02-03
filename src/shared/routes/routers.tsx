@@ -18,6 +18,7 @@ import {
   MyProjectPage,
   PmPage,
   ProjectCreatePage,
+  ProjectDetailPage,
   ProjectSearchPage,
   ProposedPage,
   RecommendDeveloperPage,
@@ -27,6 +28,7 @@ import {
   ReportMainPage,
   ReportPage,
   SearchPage,
+  SsoCallbackPage,
   SignupPage,
 } from '@pages';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
@@ -38,7 +40,8 @@ export const router = createBrowserRouter([
       { index: true, element: <MainPage /> },
       { path: 'signup', element: <SignupPage /> },
       { path: 'login', element: <LoginPage /> },
-
+      { path: 'sso-callback', element: <SsoCallbackPage /> },
+      { path: 'project/:projectId', element: <ProjectDetailPage /> },
       {
         path: 'search',
         element: <SearchPage />,

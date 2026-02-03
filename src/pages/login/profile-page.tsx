@@ -32,6 +32,13 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
 
   const canProceed = useMemo(() => role !== null && domains.length > 0, [role, domains]);
 
+  const handleNext = () => {
+    if (role) {
+      localStorage.setItem(USER_ROLE_KEY, role);
+    }
+    onNext();
+  };
+
   const toggleDomain = (value: string) => {
     setDomains((prev) => {
       if (prev.indexOf(value) !== -1) {
@@ -123,7 +130,7 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
         <button
           type="button"
           disabled={!canProceed}
-          onClick={onNext}
+          onClick={handleNext}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
             canProceed
               ? 'bg-[#4E49FF] text-white'
