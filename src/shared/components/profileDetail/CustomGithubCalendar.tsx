@@ -1,91 +1,128 @@
-import { useEffect, useState } from 'react';
-import { GitHubCalendar } from 'react-github-calendar';
-import dayjs from 'dayjs';
+import React, { useState, useMemo, useCallback } from 'react';
+import { ActivityCalendar, type Activity, type ThemeInput } from 'react-activity-calendar';
+import ChevronRightIcon from "@assets/icons/chevron-right.svg?react";
+import ChevronLeftIcon from "@assets/icons/chevron-left.svg?react";
 
-const CustomGithubCalendar = () => {
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [isMobile, setIsMobile] = useState(false);
+export interface Contribution {
+  date: string;
+  count: number;
+}
 
-  /* ---------------- 모바일 대응 ---------------- */
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 640);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
+interface CustomGithubCalendarProps {
+  data?: Contribution[];
+  initialYear?: number;
+  onYearChange?: (year: number) => void;
+}
 
-  const blockSize = isMobile ? 10 : 14;
-  const blockMargin = isMobile ? 4 : 6;
+const GITHUB_THEME: ThemeInput = {
+  light: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
+  dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
+};
 
-  /* ---------------- 월 시작 주 계산 ---------------- */
-  const getMonthStartWeekIndex = (month: number) => {
-    const yearStart = dayjs(`${year}-01-01`).startOf('week');
-    const monthStart = dayjs(
-      `${year}-${String(month).padStart(2, '0')}-01`
-    );
+const calculateLevel = (count: number): 0 | 1 | 2 | 3 | 4 => {
+  if (count === 0) return 0;
+  if (count < 3) return 1;
+  if (count < 6) return 2;
+  if (count < 9) return 3;
+  return 4;
+};
 
-    return monthStart.diff(yearStart, 'week');
-  };
+const generateFullYearData = (apiData: Contribution[] | undefined, year: number): Activity[] => {
+  const fullData: Activity[] = [];
+  const startDate = new Date(`${year}-01-01`);
+  const endDate = new Date(`${year}-12-31`);
+  const safeData = apiData || [];
+  const dataMap = new Map(safeData.map((item) => [item.date, item.count]));
 
-  /* ---------------- 월 라벨 렌더 ---------------- */
-  const renderMonthLabels = () => (
-    <div className="relative h-6 mb-2">
-      {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
-        const weekIndex = getMonthStartWeekIndex(month);
-        const left = weekIndex * (blockSize + blockMargin);
+  for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+    const dateStr = d.toISOString().split('T')[0];
+    const count = dataMap.get(dateStr) || 0;
+    fullData.push({
+      date: dateStr,
+      count: count,
+      level: calculateLevel(count),
+    });
+  }
+  return fullData;
+};
 
-        return (
-          <span
-            key={month}
-            className="absolute text-sm text-gray-400 whitespace-nowrap"
-            style={{ left }}
-          >
-            {month}월
-          </span>
-        );
-      })}
-    </div>
-  );
+const CustomGithubCalendar = ({
+                                data = [],
+                                initialYear = new Date().getFullYear(),
+                                onYearChange
+                              }: CustomGithubCalendarProps) => {
+
+  const [year, setYear] = useState(initialYear);
+
+  const calendarData = useMemo(() => {
+    return generateFullYearData(data, year);
+  }, [data, year]);
+
+  const moveYear = useCallback((diff: number) => {
+    const newYear = year + diff;
+    setYear(newYear);
+    if (onYearChange) {
+      onYearChange(newYear);
+    }
+  }, [year, onYearChange]);
+
+  const chevronStyle = 'w-7 h-7 text-ui-500';
+  const chevronButtonStyle = 'cursor-pointer p-[0.4rem] bg-ui-100 rounded-full';
 
   return (
-    <div className="rounded-2xl bg-black p-6">
-      {/* ---------- 연도 헤더 ---------- */}
-      <div className="flex items-center gap-4 mb-4">
+    <div className="p-[2rem] border border-ui-200 rounded-xl shadow-sm inline-block ">
+      <style>{`
+        .calendar-container > * > :not(:first-child) {
+          display: none !important;
+        }
+        
+        .calendar-container text {
+          fill: var(--color-ui-700) !important; 
+          font-size: 12px;
+          font-weight: 600;
+        }
+      `}</style>
+
+      {/* 헤더 */}
+      <div className="flex items-center gap-[1.6rem] mb-[2rem]">
         <button
-          onClick={() => setYear((y) => y - 1)}
-          className="text-gray-400 hover:text-white"
+          onClick={() => moveYear(-1)}
+          className={chevronButtonStyle}
         >
-          ‹
+          <ChevronLeftIcon className={chevronStyle}/>
         </button>
 
-        <h2 className="text-xl font-bold text-white">{year}년</h2>
+        <span className="font-bold text-ui-1000 text-2xl select-none">
+          {year}년
+        </span>
 
         <button
-          onClick={() => setYear((y) => y + 1)}
-          className="text-gray-400 hover:text-white"
+          onClick={() => moveYear(1)}
+          className={chevronButtonStyle}
+          disabled={year >= new Date().getFullYear()}
         >
-          ›
+          <ChevronRightIcon className={chevronStyle}/>
         </button>
       </div>
 
-      {/* ---------- 캘린더 ---------- */}
-      <div className="overflow-x-auto">
-        <div className="min-w-[900px]">
-          {renderMonthLabels()}
-
-          <GitHubCalendar
-            username="your-github-id"
-            hideMonthLabels
-            hideColorLegend
-            blockSize={blockSize}
-            blockMargin={blockMargin}
-            transformData={(data) =>
-              data.filter((activity) =>
-                activity.date.startsWith(String(year))
-              )
-            }
-          />
-        </div>
+      {/* 캘린더 컨테이너 */}
+      <div className="calendar-container">
+        <ActivityCalendar
+          data={calendarData}
+          theme={GITHUB_THEME}
+          blockSize={12}
+          blockRadius={2}
+          blockMargin={3}
+          labels={{
+            months: [
+              '1월', '2월', '3월', '4월', '5월', '6월',
+              '7월', '8월', '9월', '10월', '11월', '12월'
+            ],
+            weekdays: [
+              '일', '월', '화', '수', '목', '금', '토'
+            ],
+          }}
+        />
       </div>
     </div>
   );

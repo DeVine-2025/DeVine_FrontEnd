@@ -15,6 +15,13 @@ type ProfileDetailProps = {
   type: '내 정보' | '개발자 상세';
 }
 
+const gitDummy = [
+  { date: '2026-01-05', count: 12 },
+  { date: '2026-01-06', count: 5 },
+  { date: '2026-02-14', count: 8 },
+  // ... 활동이 없는 날은 생략 가능
+];
+
 const ProfileDetail = ({type}: ProfileDetailProps) => {
 
   return (
@@ -59,7 +66,7 @@ const ProfileDetail = ({type}: ProfileDetailProps) => {
         <div>
           <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem] mb-[2.4rem]">깃허브 기록</p>
           <div className="flex-col gap-[1.5rem]">
-            <CustomGithubCalendar />
+            <CustomGithubCalendar data={gitDummy} />
             <div className="flex gap-[1.8rem]">
               <ReportCardSmall title={"레포1"} description={"레포 1입니다."} />
               <ReportCardSmall title={"레포2"} description={"레포 2입니다."} />
