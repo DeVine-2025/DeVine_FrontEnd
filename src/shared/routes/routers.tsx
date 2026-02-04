@@ -13,6 +13,7 @@ import {
   MyInfoProfilePage,
   MyInfoBookMarkPage,
   MyInfoSettingPage,
+  MyInfoProfileEdit,
   MyPMDevelopersPage,
   MyPMPage,
   MyProjectPage,
@@ -107,8 +108,8 @@ export const router = createBrowserRouter([
               {path: 'setting', element: <MyInfoSettingPage/>},
             ]
           },
-
-          {path: 'bookmark/developer', element: <MyInfoBookMarkPage/>}
+          {path: 'profile-edit', element: <MyInfoProfileEdit/> },
+          {path: 'bookmark', element: <MyInfoBookMarkPage/>}
         ],
       },
     ],

@@ -38,7 +38,7 @@ const MyInfoPage = () => {
                   key={item.path}
                   onClick={() => {
                     if (item.path === 'bookmark') {
-                      navigate('/bookmark/developer');
+                      navigate('/bookmark');
                     } else if (item.path === '') {
                       navigate('/my-info');
                     } else {

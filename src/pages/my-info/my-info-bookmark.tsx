@@ -1,8 +1,11 @@
+import {useNavigate} from 'react-router-dom';
+
 import BackIcon from "@assets/icons/back.svg?react";
-import { PROFILE_CARD_LIST } from '../../mocks/developer.mock';
+
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import SearchTabs from '@components/tab/SearchTabs';
-import {useNavigate} from 'react-router-dom';
+
+import { PROFILE_CARD_LIST } from '../../mocks/developer.mock';
 
 
 const MyInfoBookmark = () => {

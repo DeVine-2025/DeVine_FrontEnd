@@ -12,6 +12,7 @@ export { default as MyInfoPage } from './my-info/my-info-page';
 export { default as MyInfoProfilePage } from './my-info/my-info-profile';
 export { default as MyInfoSettingPage } from './my-info/my-info-setting';
 export { default as MyInfoBookMarkPage } from './my-info/my-info-bookmark';
+export { default as MyInfoProfileEdit } from './my-info/my-info-profile-edit';
 
 
 

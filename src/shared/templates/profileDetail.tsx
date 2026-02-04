@@ -10,6 +10,7 @@ import TechStackChips from '@components/profileDetail/TechStackChips';
 import ReportCardSmall from '@components/profileDetail/ReportCardSmall';
 import CustomGithubCalendar from '@components/profileDetail/CustomGithubCalendar';
 
+import {useNavigate} from 'react-router-dom';
 
 type ProfileDetailProps = {
   type: '내 정보' | '개발자 상세';
@@ -23,6 +24,7 @@ const gitDummy = [
 ];
 
 const ProfileDetail = ({type}: ProfileDetailProps) => {
+  const navigate = useNavigate();
 
   return (
     <section className="mx-auto w-full max-w-[1180px] flex justify-between">
@@ -36,7 +38,7 @@ const ProfileDetail = ({type}: ProfileDetailProps) => {
             <p className="flex items-center gap-[0.4rem] text-xl font-medium text-ui-400"><HeartIcon />관심 도메인</p>
             <div className="flex-col gap-[1.4rem]">
               <DomainBadges label={'플랫폼'} />
-              <NormalButton label={'프로필 수정'} />
+              <NormalButton label={'프로필 수정'} onClick={() => navigate('/profile-edit')}/>
             </div>
           </div>
         </div>

@@ -70,7 +70,7 @@ const CustomGithubCalendar = ({
   const chevronButtonStyle = 'cursor-pointer p-[0.4rem] bg-ui-100 rounded-full';
 
   return (
-    <div className="p-[2rem] border border-ui-200 rounded-xl shadow-sm inline-block ">
+    <div className="p-[2rem] border border-ui-200 rounded-xl  inline-block ">
       <style>{`
         .calendar-container > * > :not(:first-child) {
           display: none !important;
