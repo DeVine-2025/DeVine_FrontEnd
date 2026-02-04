@@ -98,7 +98,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
       ) : step === 'additionalProfile' ? (
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
           <AdditionalProfileSection
-            onBack={() => setStep('basicProfile')}
+            onBack={() => setStep('profilePage')}
             onNext={() => {
               if (loginProvider === 'github') {
                 setStep('githubRepos');
