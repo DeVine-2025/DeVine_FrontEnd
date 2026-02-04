@@ -4,7 +4,7 @@ import {cn} from '@libs/cn';
 import GithubIcon from "@assets/icons/github.svg?react";
 import GoogleIcon from "@assets/icons/google.svg?react";
 
-import MyProjectTabs from '@components/tab/MyProjectTabs';
+import TabMenu from '@components/myInfo/TabMenu';
 import Switch from '@components/myInfo/Switch';
 
 interface SettingMenuProps {
@@ -35,11 +35,14 @@ const Label = ({content, isConnect}: LabelProps) => {
 const MyInfoSetting = () => {
   const [isOnFirst, setIsOnFirst] = useState<boolean>(false);
   const [isOnSecond, setIsOnSecond] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>('PM');
+  const tabs = ['PM', '개발자']
+
   return (
     <div className="flex-col gap-[6rem] mt-[4rem]">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-[5rem]">
         <SettingMenu title={"메인 권한 설정"} description={"선택한 권한에 맞춰 가장 필요한 정보를 메인 화면에 먼저 확인할 수 있습니다."} />
-        <MyProjectTabs />
+        <TabMenu  activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
       </div>
 
       <div className="flex justify-between items-center">
@@ -68,7 +71,7 @@ const MyInfoSetting = () => {
               <div className="p-[1rem] border border-ui-100 rounded-full flex-col-center">
                 <GoogleIcon className="w-6 h-6 " />
               </div>
-              <p className="text-ui-1000 text-2xl">GitHub</p>
+              <p className="text-ui-1000 text-2xl">Google</p>
             </div>
             <Label content={"연동완료"} isConnect={true} />
           </div>
