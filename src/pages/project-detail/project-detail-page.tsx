@@ -2,6 +2,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { useThemeStore } from '@store/theme';
 import { useUser } from '@clerk/clerk-react';
+import { getTechBadgeByName } from '@constants/position-tech-stack';
 import {
   PROJECT_LIST,
   RECOMMENDED_PROJECTS,
@@ -49,7 +50,7 @@ type RoleBadgeProps = {
 
 const RoleBadge = ({ label, tone }: RoleBadgeProps) => (
   <span
-    className={`inline-flex items-center whitespace-nowrap rounded-lg px-3 py-1 font-semibold text-base ${badgeToneToClass[tone]}`}
+    className={`inline-flex items-center whitespace-nowrap rounded-lg px-3 py-1 font-semibold text-[12px] ${badgeToneToClass[tone]}`}
   >
     {label}
   </span>
@@ -88,6 +89,30 @@ const ProjectDetailPage = () => {
   const selectedRoleLabel =
     roleOptions.find((option) => option.key === selectedRole)?.label ?? '포지션';
   const isDark = theme === 'dark';
+  const renderTechBadge = (tech: string, key: string) => {
+    const badge = getTechBadgeByName(tech);
+    if (!badge) {
+      return (
+        <span
+          key={key}
+          className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
+        >
+          {tech}
+        </span>
+      );
+    }
+
+    const src = isDark ? badge.offDark ?? badge.off : badge.off;
+    return (
+      <img
+        key={key}
+        src={src}
+        alt={`${tech} 배지`}
+        className="h-12 w-auto"
+        loading="lazy"
+      />
+    );
+  };
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-20">
@@ -142,10 +167,10 @@ const ProjectDetailPage = () => {
                   </h1>
                   <button
                     type="button"
-                    className="mt-2 ml-auto h-10 w-10 shrink-0 text-card-muted hover:opacity-80"
+                    className="mt-2 ml-auto h-[52px] w-[52px] shrink-0 text-card-muted hover:opacity-80"
                     aria-label="북마크"
                   >
-                    <BookmarkIcon className="h-9 w-9" aria-hidden="true" />
+                    <BookmarkIcon className="h-[52px] w-[52px]" aria-hidden="true" />
                   </button>
                 </div>
                 <div className="flex items-center gap-3 text-card-muted">
@@ -186,20 +211,17 @@ const ProjectDetailPage = () => {
           <div className="flex flex-col gap-3 lg:mt-[230px] lg:items-end">
             <button
               type="button"
-              className="inline-flex h-[44px] w-[240px] items-center justify-center gap-2 rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-6 text-[var(--ui-500)] hover:opacity-80"
+              className="inline-flex h-[44px] w-[240px] items-center justify-center gap-2 rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-6 text-[16px] font-medium text-[var(--ui-500)] hover:opacity-80"
             >
-              <svg
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.25"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M5 6h14a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H10l-5 3v-3H5a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3z" />
-              </svg>
+              <img
+                src={
+                  isDark
+                    ? '/src/shared/assets/icons/message.png'
+                    : '/src/shared/assets/icons/message-light.png'
+                }
+                alt="연락하기"
+                className={isDark ? 'h-9 w-9' : 'h-9 w-11'}
+              />
               연락하기
             </button>
             {!hasApplied && (
@@ -213,7 +235,7 @@ const ProjectDetailPage = () => {
                   setIsApplyModalOpen(true);
                   setIsRoleMenuOpen(false);
                 }}
-                className="h-[44px] w-[240px] rounded-[12px] bg-[#4E49FF] px-6 font-semibold text-white hover:opacity-80"
+                className="h-[44px] w-[240px] rounded-[12px] bg-[#4E49FF] px-6 text-[16px] font-medium text-white hover:opacity-80"
               >
                 지원하기
               </button>
@@ -223,60 +245,58 @@ const ProjectDetailPage = () => {
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
           <div className="flex min-w-0 flex-col gap-6">
-            <div className="grid gap-x-12 gap-y-4 text-card-muted lg:grid-cols-2">
-              <div className="flex items-center gap-6">
-                <span className="min-w-[84px] text-base">프로젝트 유형</span>
-                <span className="text-base font-semibold text-card-title">
+            <div className="grid gap-x-12 gap-y-8 text-card-muted lg:grid-cols-2">
+              <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
+                <span className="text-[15px]">프로젝트 유형</span>
+                <span className="text-[15px] font-semibold text-card-title">
                   {project.categoryLabel ?? '모바일/앱'}
                 </span>
               </div>
-              <div className="flex items-center gap-6">
-                <span className="min-w-[84px] text-base">도메인</span>
-                <span className="text-base font-semibold text-card-title">
+              <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
+                <span className="text-[15px]">도메인</span>
+                <span className="text-[15px] font-semibold text-card-title">
                   {project.deadlineLabel ?? '추후 결정 예정'}
                 </span>
               </div>
-              <div className="flex items-center gap-6">
-                <span className="min-w-[84px] text-base">진행 장소</span>
-                <span className="text-base font-semibold text-card-title">
+              <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
+                <span className="text-[15px]">진행 장소</span>
+                <span className="text-[15px] font-semibold text-card-title">
                   {project.location ?? '추후 결정 예정'}
                 </span>
               </div>
-              <div className="flex items-center gap-6">
-                <span className="min-w-[84px] text-base">진행 방식</span>
-                <span className="text-base font-semibold text-card-title">
+              <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
+                <span className="text-[15px]">진행 방식</span>
+                <span className="text-[15px] font-semibold text-card-title">
                   {project.mode ?? '온라인/오프라인'}
                 </span>
               </div>
-              <div className="flex items-center gap-6">
-                <span className="min-w-[84px] text-base">진행 기간</span>
-                <span className="text-base font-semibold text-card-title">
+              <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
+                <span className="text-[15px]">진행 기간</span>
+                <span className="text-[15px] font-semibold text-card-title">
                   {project.period ?? '추후 결정 예정'}
                 </span>
               </div>
-              <div className="flex items-center gap-6">
-                <span className="min-w-[84px] text-base">모집 마감일</span>
-                <span className="text-base font-semibold text-card-title">
+              <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
+                <span className="text-[15px]">모집 마감일</span>
+                <span className="text-[15px] font-semibold text-card-title">
                   {project.dueLabel ?? '추후 결정 예정'}
                 </span>
               </div>
             </div>
 
-            <section className="flex flex-col gap-4">
-              <h2 className="font-semibold text-card-title text-xl">모집 분야</h2>
+            <section className="mt-4 flex flex-col gap-4">
+              <h2
+                className="text-[15px] font-medium"
+                style={{ color: isDark ? '#7F8596' : '#939AAE' }}
+              >
+                모집 분야
+              </h2>
               <div className="flex items-center gap-3">
                 <RoleBadge label="프론트엔드" tone="blue" />
                 <span className="text-card-muted text-sm">2/6명</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {MOCK_TECH_STACK.map((tech) => (
-                  <span
-                    key={tech}
-                    className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
-                  >
-                    {tech}
-                  </span>
-                ))}
+                {MOCK_TECH_STACK.map((tech) => renderTechBadge(tech, tech))}
               </div>
             </section>
 
@@ -286,14 +306,7 @@ const ProjectDetailPage = () => {
                 <span className="text-card-muted text-sm">2/6명</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {MOCK_TECH_STACK.map((tech) => (
-                  <span
-                    key={`be-${tech}`}
-                    className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
-                  >
-                    {tech}
-                  </span>
-                ))}
+                {MOCK_TECH_STACK.map((tech) => renderTechBadge(tech, `be-${tech}`))}
               </div>
             </section>
 
@@ -303,14 +316,7 @@ const ProjectDetailPage = () => {
                 <span className="text-card-muted text-sm">2/6명</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {MOCK_INFRA_STACK.map((tech) => (
-                  <span
-                    key={`infra-${tech}`}
-                    className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
-                  >
-                    {tech}
-                  </span>
-                ))}
+                {MOCK_INFRA_STACK.map((tech) => renderTechBadge(tech, `infra-${tech}`))}
               </div>
             </section>
           </div>

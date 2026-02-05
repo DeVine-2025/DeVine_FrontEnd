@@ -1,81 +1,29 @@
 import { useState } from 'react';
+import { useThemeStore } from '@store/theme';
+import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
+import { getTechBadgeByName, TECH_STACK_LABEL_BY_KEY } from '@constants/position-tech-stack';
 
 type AdditionalProfileSectionProps = {
   onBack: () => void;
   onNext: () => void;
 };
 
-const stackOptions = [
-  'JavaScript',
-  'TypeScript',
-  'React',
-  'Vuejs',
-  'Nextjs',
-  'Svelte',
-  'ReactNative',
-  'Flutter',
-  'Kotlin',
-  'Swift',
-  'Java',
-  'Python',
-  'C',
-  'C++',
-  'Php',
-  'Springboot',
-  'Nodejs',
-  'Express',
-  'Nestjs',
-  'Django',
-  'MongoDB',
-  'MySQL',
-  'AWS',
-  'Firebase',
-  'Docker',
-  'Kubernetes',
-];
-
-const stackIconByName: Record<string, string> = {
-  JavaScript: 'https://skillicons.dev/icons?i=js',
-  TypeScript: 'https://skillicons.dev/icons?i=ts',
-  React: 'https://skillicons.dev/icons?i=react',
-  Vuejs: 'https://skillicons.dev/icons?i=vue',
-  Nextjs: 'https://skillicons.dev/icons?i=nextjs',
-  Svelte: 'https://skillicons.dev/icons?i=svelte',
-  ReactNative: 'https://skillicons.dev/icons?i=react',
-  Flutter: 'https://skillicons.dev/icons?i=flutter',
-  Kotlin: 'https://skillicons.dev/icons?i=kotlin',
-  Swift: 'https://skillicons.dev/icons?i=swift',
-  Java: 'https://skillicons.dev/icons?i=java',
-  Python: 'https://skillicons.dev/icons?i=python',
-  C: 'https://skillicons.dev/icons?i=c',
-  'C++': 'https://skillicons.dev/icons?i=cpp',
-  Php: 'https://skillicons.dev/icons?i=php',
-  Springboot: 'https://skillicons.dev/icons?i=spring',
-  Nodejs: 'https://skillicons.dev/icons?i=nodejs',
-  Express: 'https://skillicons.dev/icons?i=express',
-  Nestjs: 'https://skillicons.dev/icons?i=nestjs',
-  Django: 'https://skillicons.dev/icons?i=django',
-  MongoDB: 'https://skillicons.dev/icons?i=mongodb',
-  MySQL: 'https://skillicons.dev/icons?i=mysql',
-  AWS: 'https://skillicons.dev/icons?i=aws',
-  Firebase: 'https://skillicons.dev/icons?i=firebase',
-  Docker: 'https://skillicons.dev/icons?i=docker',
-  Kubernetes: 'https://skillicons.dev/icons?i=kubernetes',
-};
-
 const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionProps) => {
+  const { theme } = useThemeStore();
   const [stacks, setStacks] = useState<string[]>([]);
+  const [isTechStackOpen, setIsTechStackOpen] = useState(false);
   const [summary, setSummary] = useState('');
   const [email, setEmail] = useState('');
   const [linkedin, setLinkedin] = useState('');
 
-  const toggleStack = (value: string) => {
-    setStacks((prev) => {
-      if (prev.indexOf(value) !== -1) {
-        return prev.filter((item) => item !== value);
-      }
-      return [...prev, value];
-    });
+  const hasAnyInput =
+    stacks.length > 0 ||
+    summary.trim().length > 0 ||
+    email.trim().length > 0 ||
+    linkedin.trim().length > 0;
+
+  const removeStack = (key: string) => {
+    setStacks((prev) => prev.filter((item) => item !== key));
   };
 
   return (
@@ -89,30 +37,65 @@ const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionPr
         <div className="mt-6 flex flex-col gap-6">
           <div className="flex flex-col gap-4">
             <span className="Body1 text-[var(--ui-900)]">보유 스택</span>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsTechStackOpen(true)}
+                className="relative z-10 flex h-[40px] w-full cursor-pointer items-center gap-2 rounded-full border border-[var(--ui-100)] bg-[var(--ui-50)] px-4 text-[12px] text-[var(--ui-300)]"
+              >
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M20 20l-3.5-3.5" />
+                </svg>
+                보유 스택을 검색해주세요
+              </button>
+              <PositionTechStackDropdown
+                open={isTechStackOpen}
+                asModal
+                title="보유 스택"
+                showCloseButton
+                value={stacks}
+                onChange={setStacks}
+                onApply={() => setIsTechStackOpen(false)}
+                onReset={() => setStacks([])}
+                onClose={() => setIsTechStackOpen(false)}
+              />
+            </div>
             <div className="flex flex-wrap gap-2">
-              {stackOptions.map((stack) => {
-                const selected = stacks.indexOf(stack) !== -1;
-                const iconSrc = stackIconByName[stack];
+              {stacks.map((key) => {
+                const label = TECH_STACK_LABEL_BY_KEY[key] ?? key;
+                const badge = getTechBadgeByName(label);
+                const iconSrc = badge ? (theme === 'dark' ? badge.offDark ?? badge.off : badge.off) : undefined;
                 return (
                   <button
-                    key={stack}
+                    key={key}
                     type="button"
-                    onClick={() => toggleStack(stack)}
-                    className={`flex items-center gap-2 rounded-full px-3 py-1 text-[12px] ${
-                      selected
-                        ? 'bg-[var(--badge-bg-primary)] text-[var(--badge-text-primary)]'
-                        : 'bg-[var(--ui-100)] text-[var(--ui-700)]'
-                    }`}
+                    onClick={() => removeStack(key)}
+                    className="relative inline-flex items-center"
                   >
                     {iconSrc && (
                       <img
                         src={iconSrc}
-                        alt={`${stack} 로고`}
-                        className="h-4 w-4"
+                        alt={`${label} 배지`}
+                        className="h-[32px] w-auto"
                         loading="lazy"
                       />
                     )}
-                    <span className="font-semibold">{stack}</span>
+                    <span
+                      aria-hidden
+                      className="absolute -right-[4px] -top-[4px] flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--ui-50)] text-[11px] text-[#9EA6BA]"
+                    >
+                      ×
+                    </span>
                   </button>
                 );
               })}
@@ -166,9 +149,11 @@ const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionPr
             <button
               type="button"
               onClick={onNext}
-              className="Body1 h-[48px] w-full rounded-xl bg-[#1E1D4D] text-[#7E7AFF]"
+              className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
+                hasAnyInput ? 'bg-[#4E49FF] text-white' : 'bg-[#1E1D4D] text-[#7E7AFF]'
+              }`}
             >
-              건너뛰기
+              {hasAnyInput ? '회원가입하기' : '건너뛰기'}
             </button>
             <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
               돌아가기
