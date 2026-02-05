@@ -13,7 +13,7 @@ const LoginPage = () => {
     await signIn.authenticateWithRedirect({
       strategy,
       redirectUrl: '/sso-callback',
-      redirectUrlComplete: '/signup',
+      redirectUrlComplete: '/',
     });
   };
 
