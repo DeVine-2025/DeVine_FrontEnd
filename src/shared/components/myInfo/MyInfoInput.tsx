@@ -1,12 +1,33 @@
+import SearchIcon from "@assets/icons/search.svg?react";
+
+import {cn} from '@libs/cn';
+
 type MyInfoInputProps = {
-  text: string;
-  setText: (text: string) => void;
+  type: 'text' | 'search';
+  text?: string;
+  placeHolder?: string;
+  setText?: (text: string) => void;
+  onClick?: () => void;
 }
 
-const MyInfoInput = ({text,setText} : MyInfoInputProps) => {
+const MyInfoInput = ({type,text,setText,placeHolder,onClick} : MyInfoInputProps) => {
   return (
-    <div>
-      <input type="text" className="w-full bg-ui-50 p-[1.4rem] rounded-2xl text-ui-1000 text-lg" value={text} onChange={(e) => setText(e.target.value)}/>
+    <div className="relative">
+      {type === 'search' &&
+        <SearchIcon className="text-ui-400 absolute w-8 h-8 left-[1.4rem]  top-1/2 -translate-y-1/2" />}
+      <input
+        type={type}
+        disabled={type === 'search'}
+        onClick={onClick}
+        placeholder={placeHolder}
+        className={cn(
+          'w-full bg-ui-50 p-[1.4rem] rounded-2xl text-ui-1000 text-lg placeholder:text-ui-400',
+          type === 'search' && 'cursor-pointer pl-[5rem]'
+        )}
+        value={text}
+        onChange={(e) => setText?.(e.target.value)}
+      />
+
     </div>
   );
 };
