@@ -58,7 +58,7 @@ const ProfileDetail = ({type}: ProfileDetailProps) => {
         <div className="flex-col gap-[2.4rem]">
           <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem]">보유 스택
             <button type="button" className="border border-2 border-ui-200 bg-ui-50 rounded-full">
-              <QuestionIcon className="text-ui-200" />
+              <QuestionIcon className="text-ui-200 w-5 h-5" />
             </button>
           </p>
           <TechStackChips techStack={['typescript', 'typescript', 'typescript', 'springboot']} />

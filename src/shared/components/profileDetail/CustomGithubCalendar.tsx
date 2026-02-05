@@ -110,8 +110,8 @@ const CustomGithubCalendar = ({
         <ActivityCalendar
           data={calendarData}
           theme={GITHUB_THEME}
-          blockSize={12}
-          blockRadius={2}
+          blockSize={8}
+          blockRadius={1}
           blockMargin={3}
           labels={{
             months: [

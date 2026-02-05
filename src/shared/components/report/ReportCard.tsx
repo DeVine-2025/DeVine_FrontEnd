@@ -22,7 +22,7 @@ const ReportCard = ({ type, label, title, description }: ReportCardProps) => {
         {type === 'create' && (
           <div className="flex h-full w-full cursor-pointer items-center justify-center">
             <div className="flex-col-center gap-[3.3rem]">
-              <PlusIcon className="h-[6rem] w-[6rem]" />
+              <PlusIcon className="text-ui-200 h-[6rem] w-[6rem]" />
               <p className="Title3 text-[var(--ui-400)]">리포트 생성하기</p>
             </div>
           </div>
