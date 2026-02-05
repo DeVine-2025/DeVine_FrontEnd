@@ -1,40 +1,33 @@
 import { useState } from 'react';
 import { useThemeStore } from '@store/theme';
-import { getTechBadgeByName } from '@constants/position-tech-stack';
+import {
+  BACKEND_DATABASE,
+  BACKEND_FRAMEWORK,
+  BACKEND_LANGUAGE,
+  FRONTEND_LANGUAGE_FRAMEWORK,
+  FRONTEND_MOBILE,
+  INFRA_CLOUD,
+  INFRA_CONTAINER,
+  getTechBadgeByName,
+  type TechStackChip,
+} from '@constants/position-tech-stack';
 
 type AdditionalProfileSectionProps = {
   onBack: () => void;
   onNext: () => void;
 };
 
-const stackOptions = [
-  'JavaScript',
-  'TypeScript',
-  'React',
-  'Vuejs',
-  'Nextjs',
-  'Svelte',
-  'ReactNative',
-  'Flutter',
-  'Kotlin',
-  'Swift',
-  'Java',
-  'Python',
-  'C',
-  'C++',
-  'Php',
-  'Springboot',
-  'Nodejs',
-  'Express',
-  'Nestjs',
-  'Django',
-  'MongoDB',
-  'MySQL',
-  'AWS',
-  'Firebase',
-  'Docker',
-  'Kubernetes',
-];
+const stackOptions = (
+  [
+    ...FRONTEND_LANGUAGE_FRAMEWORK,
+    ...FRONTEND_MOBILE,
+    ...BACKEND_LANGUAGE,
+    ...BACKEND_FRAMEWORK,
+    ...BACKEND_DATABASE,
+    ...INFRA_CLOUD,
+    ...INFRA_CONTAINER,
+  ] as TechStackChip[]
+).map((stack) => stack.label);
 
 const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionProps) => {
   const { theme } = useThemeStore();
