@@ -1,4 +1,4 @@
-import Checkbox from '@pages/report/components/checkbox';
+import CheckBox from '@components/report/CheckBox';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,7 +36,7 @@ const ReportCreatePage = () => {
         <p className="Heading2 font-bold text-[var(--ui-1000)]">깃허브 레포지토리 목록</p>
         <div className="flex-col gap-[0.8rem]">
           {CHECKBOX_ITEMS.map((item) => (
-            <Checkbox
+            <CheckBox
               key={item.id}
               title={item.title}
               description={item.description}
