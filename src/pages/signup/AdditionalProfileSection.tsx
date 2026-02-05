@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useThemeStore } from '@store/theme';
+import { getTechBadgeByName } from '@constants/position-tech-stack';
 
 type AdditionalProfileSectionProps = {
   onBack: () => void;
@@ -34,36 +36,8 @@ const stackOptions = [
   'Kubernetes',
 ];
 
-const stackIconByName: Record<string, string> = {
-  JavaScript: 'https://skillicons.dev/icons?i=js',
-  TypeScript: 'https://skillicons.dev/icons?i=ts',
-  React: 'https://skillicons.dev/icons?i=react',
-  Vuejs: 'https://skillicons.dev/icons?i=vue',
-  Nextjs: 'https://skillicons.dev/icons?i=nextjs',
-  Svelte: 'https://skillicons.dev/icons?i=svelte',
-  ReactNative: 'https://skillicons.dev/icons?i=react',
-  Flutter: 'https://skillicons.dev/icons?i=flutter',
-  Kotlin: 'https://skillicons.dev/icons?i=kotlin',
-  Swift: 'https://skillicons.dev/icons?i=swift',
-  Java: 'https://skillicons.dev/icons?i=java',
-  Python: 'https://skillicons.dev/icons?i=python',
-  C: 'https://skillicons.dev/icons?i=c',
-  'C++': 'https://skillicons.dev/icons?i=cpp',
-  Php: 'https://skillicons.dev/icons?i=php',
-  Springboot: 'https://skillicons.dev/icons?i=spring',
-  Nodejs: 'https://skillicons.dev/icons?i=nodejs',
-  Express: 'https://skillicons.dev/icons?i=express',
-  Nestjs: 'https://skillicons.dev/icons?i=nestjs',
-  Django: 'https://skillicons.dev/icons?i=django',
-  MongoDB: 'https://skillicons.dev/icons?i=mongodb',
-  MySQL: 'https://skillicons.dev/icons?i=mysql',
-  AWS: 'https://skillicons.dev/icons?i=aws',
-  Firebase: 'https://skillicons.dev/icons?i=firebase',
-  Docker: 'https://skillicons.dev/icons?i=docker',
-  Kubernetes: 'https://skillicons.dev/icons?i=kubernetes',
-};
-
 const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionProps) => {
+  const { theme } = useThemeStore();
   const [stacks, setStacks] = useState<string[]>([]);
   const [summary, setSummary] = useState('');
   const [email, setEmail] = useState('');
@@ -92,7 +66,8 @@ const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionPr
             <div className="flex flex-wrap gap-2">
               {stackOptions.map((stack) => {
                 const selected = stacks.indexOf(stack) !== -1;
-                const iconSrc = stackIconByName[stack];
+                const badge = getTechBadgeByName(stack);
+                const iconSrc = badge ? (theme === 'dark' ? badge.offDark ?? badge.off : badge.off) : undefined;
                 return (
                   <button
                     key={stack}

@@ -2,6 +2,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { useThemeStore } from '@store/theme';
 import { useUser } from '@clerk/clerk-react';
+import { getTechBadgeByName } from '@constants/position-tech-stack';
 import {
   PROJECT_LIST,
   RECOMMENDED_PROJECTS,
@@ -142,10 +143,10 @@ const ProjectDetailPage = () => {
                   </h1>
                   <button
                     type="button"
-                    className="mt-2 ml-auto h-10 w-10 shrink-0 text-card-muted hover:opacity-80"
+                    className="mt-2 ml-auto h-[52px] w-[52px] shrink-0 text-card-muted hover:opacity-80"
                     aria-label="북마크"
                   >
-                    <BookmarkIcon className="h-9 w-9" aria-hidden="true" />
+                    <BookmarkIcon className="h-[52px] w-[52px]" aria-hidden="true" />
                   </button>
                 </div>
                 <div className="flex items-center gap-3 text-card-muted">
@@ -269,14 +270,26 @@ const ProjectDetailPage = () => {
                 <span className="text-card-muted text-sm">2/6명</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {MOCK_TECH_STACK.map((tech) => (
-                  <span
-                    key={tech}
-                    className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
-                  >
-                    {tech}
-                  </span>
-                ))}
+                {MOCK_TECH_STACK.map((tech) => {
+                  const badge = getTechBadgeByName(tech);
+                  const iconSrc = badge ? (isDark ? badge.offDark ?? badge.off : badge.off) : undefined;
+                  return (
+                    <span
+                      key={tech}
+                      className="inline-flex items-center gap-2 rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
+                    >
+                      {iconSrc && (
+                        <img
+                          src={iconSrc}
+                          alt={`${tech} 아이콘`}
+                          className="h-4 w-4"
+                          loading="lazy"
+                        />
+                      )}
+                      {tech}
+                    </span>
+                  );
+                })}
               </div>
             </section>
 
@@ -286,14 +299,26 @@ const ProjectDetailPage = () => {
                 <span className="text-card-muted text-sm">2/6명</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {MOCK_TECH_STACK.map((tech) => (
-                  <span
-                    key={`be-${tech}`}
-                    className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
-                  >
-                    {tech}
-                  </span>
-                ))}
+                {MOCK_TECH_STACK.map((tech) => {
+                  const badge = getTechBadgeByName(tech);
+                  const iconSrc = badge ? (isDark ? badge.offDark ?? badge.off : badge.off) : undefined;
+                  return (
+                    <span
+                      key={`be-${tech}`}
+                      className="inline-flex items-center gap-2 rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
+                    >
+                      {iconSrc && (
+                        <img
+                          src={iconSrc}
+                          alt={`${tech} 아이콘`}
+                          className="h-4 w-4"
+                          loading="lazy"
+                        />
+                      )}
+                      {tech}
+                    </span>
+                  );
+                })}
               </div>
             </section>
 
@@ -303,14 +328,26 @@ const ProjectDetailPage = () => {
                 <span className="text-card-muted text-sm">2/6명</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {MOCK_INFRA_STACK.map((tech) => (
-                  <span
-                    key={`infra-${tech}`}
-                    className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
-                  >
-                    {tech}
-                  </span>
-                ))}
+                {MOCK_INFRA_STACK.map((tech) => {
+                  const badge = getTechBadgeByName(tech);
+                  const iconSrc = badge ? (isDark ? badge.offDark ?? badge.off : badge.off) : undefined;
+                  return (
+                    <span
+                      key={`infra-${tech}`}
+                      className="inline-flex items-center gap-2 rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
+                    >
+                      {iconSrc && (
+                        <img
+                          src={iconSrc}
+                          alt={`${tech} 아이콘`}
+                          className="h-4 w-4"
+                          loading="lazy"
+                        />
+                      )}
+                      {tech}
+                    </span>
+                  );
+                })}
               </div>
             </section>
           </div>
