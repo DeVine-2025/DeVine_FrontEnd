@@ -188,3 +188,25 @@ export function getKeysByPosition(position: PositionKey): string[] {
       : [...INFRA_CLOUD, ...INFRA_CONTAINER].map((b) => b.key);
 }
 
+const ALL_TECH_STACK_BADGES: Array<Extract<TechStackChip, { off: string; on: string }>> =
+  TECH_STACK_ENTRIES.filter(
+    (b): b is Extract<TechStackChip, { off: string; on: string }> => 'off' in b && 'on' in b,
+  );
+
+const normalizeTechKey = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+    .replace(/_/g, '');
+
+const TECH_BADGE_BY_NAME = new Map<string, Extract<TechStackChip, { off: string; on: string }>>(
+  ALL_TECH_STACK_BADGES.flatMap((b) => [
+    [normalizeTechKey(b.key), b],
+    [normalizeTechKey(b.label), b],
+  ]),
+);
+
+export function getTechBadgeByName(name: string) {
+  return TECH_BADGE_BY_NAME.get(normalizeTechKey(name));
+}
+
