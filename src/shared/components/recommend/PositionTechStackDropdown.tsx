@@ -75,6 +75,9 @@ type PositionTechStackDropdownProps = {
   onApply?: () => void;
   onReset?: () => void;
   onClose: () => void;
+  asModal?: boolean;
+  title?: string;
+  showCloseButton?: boolean;
 };
 
 export default function PositionTechStackDropdown({
@@ -84,6 +87,9 @@ export default function PositionTechStackDropdown({
   onApply,
   onReset,
   onClose,
+  asModal = false,
+  title = '포지션/기술스택',
+  showCloseButton = false,
 }: PositionTechStackDropdownProps) {
   const { theme } = useThemeStore();
   const ref = useRef<HTMLDivElement | null>(null);
@@ -108,6 +114,7 @@ export default function PositionTechStackDropdown({
 
   useEffect(() => {
     if (!open) return;
+    if (asModal) return;
 
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as Node | null;
@@ -126,7 +133,7 @@ export default function PositionTechStackDropdown({
       document.removeEventListener('click', onDocClick);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [open, onClose]);
+  }, [open, onClose, asModal]);
 
   const currentTabKeys = useMemo(() => {
     const keys =
@@ -280,13 +287,22 @@ export default function PositionTechStackDropdown({
 
   if (!open) return null;
 
-  return (
+  const dropdown = (
     <div
       ref={ref}
-      className={`animate-dropdown-slide-up absolute top-[calc(100%+12px)] left-0 z-50 w-[358px] overflow-hidden rounded-[12px] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)] ${containerHeightClass}`}
+      className={`animate-dropdown-slide-up ${
+        asModal
+          ? 'w-[520px] rounded-[16px]'
+          : 'absolute top-[calc(100%+12px)] left-0 z-50 w-[358px] rounded-[12px]'
+      } overflow-hidden bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)] ${containerHeightClass}`}
     >
-      <div className="px-[16px] pt-[16px]">
-        <p className="Label1 font-medium text-[var(--ui-600)]">포지션/기술스택</p>
+      <div className="flex items-center justify-between px-[16px] pt-[16px]">
+        <p className="Label1 font-medium text-[var(--ui-600)]">{title}</p>
+        {showCloseButton && (
+          <button type="button" onClick={onClose} className="text-[var(--ui-400)]" aria-label="닫기">
+            ✕
+          </button>
+        )}
       </div>
 
       {/* 탭 */}
@@ -359,7 +375,9 @@ export default function PositionTechStackDropdown({
       </div>
 
       {/* 내용 */}
-      <div className={`mx-auto mt-[33px] w-[326px] ${contentPaddingBottomClass}`}>
+      <div
+        className={`${asModal ? 'mx-0 px-[24px] w-full' : 'mx-auto w-[326px]'} mt-[33px] ${contentPaddingBottomClass}`}
+      >
         {activeTab === 'frontend' ? (
           <div className="flex flex-col gap-[16px]">
             <div className="flex flex-col gap-[12px]">
@@ -440,6 +458,19 @@ export default function PositionTechStackDropdown({
           저장
         </button>
       </div>
+    </div>
+  );
+
+  if (!asModal) {
+    return dropdown;
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-6"
+      onClick={onClose}
+    >
+      <div onClick={(event) => event.stopPropagation()}>{dropdown}</div>
     </div>
   );
 }
