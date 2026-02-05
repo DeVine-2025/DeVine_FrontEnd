@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useThemeStore } from '@store/theme';
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 import { getTechBadgeByName, TECH_STACK_LABEL_BY_KEY } from '@constants/position-tech-stack';
+import { useAuth } from '@clerk/clerk-react';
+import { signupMember } from '@apis/signup';
 
 type AdditionalProfileSectionProps = {
   onBack: () => void;
@@ -15,6 +17,7 @@ const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionPr
   const [summary, setSummary] = useState('');
   const [email, setEmail] = useState('');
   const [linkedin, setLinkedin] = useState('');
+  const { getToken } = useAuth();
 
   const hasAnyInput =
     stacks.length > 0 ||
@@ -24,6 +27,13 @@ const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionPr
 
   const removeStack = (key: string) => {
     setStacks((prev) => prev.filter((item) => item !== key));
+  };
+
+  const handleSubmit = async () => {
+    if (!hasAnyInput) return onNext();
+    const token = await getToken();
+    await signupMember({ ...payload }, token);
+    onNext();
   };
 
   return (
@@ -148,7 +158,7 @@ const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionPr
           <div className="mt-14 flex flex-col gap-3 pb-4">
             <button
               type="button"
-              onClick={onNext}
+              onClick={handleSubmit}
               className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
                 hasAnyInput ? 'bg-[#4E49FF] text-white' : 'bg-[#1E1D4D] text-[#7E7AFF]'
               }`}
