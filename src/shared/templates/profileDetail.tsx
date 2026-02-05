@@ -9,8 +9,10 @@ import ContactCard from '@components/profileDetail/ContactCard';
 import TechStackChips from '@components/profileDetail/TechStackChips';
 import ReportCardSmall from '@components/profileDetail/ReportCardSmall';
 import CustomGithubCalendar from '@components/profileDetail/CustomGithubCalendar';
+import MyPMBottomSection, { type ProjectTab } from '@components/myProject/MyBottomSection';
 
 import {useNavigate} from 'react-router-dom';
+import { useState } from 'react';
 
 type ProfileDetailProps = {
   type: '내 정보' | '개발자 상세';
@@ -24,7 +26,10 @@ const gitDummy = [
 ];
 
 const ProfileDetail = ({type}: ProfileDetailProps) => {
+  const [projectTab, setProjectTab] = useState<ProjectTab>('ongoing');
+
   const navigate = useNavigate();
+
 
   return (
     <section className="mx-auto w-full max-w-[1180px] flex justify-between">
@@ -77,24 +82,8 @@ const ProfileDetail = ({type}: ProfileDetailProps) => {
           </div>
         </div>
 
-        {/* Section 5 : 리포트 */}
-        <div>
-          <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem] mb-[2.4rem]">리포트</p>
-          <div className="flex gap-[1.8rem]">
-            <ReportCardSmall label={"메인"} title={"레포1"} description={"레포 1입니다."} />
-            <ReportCardSmall label={"메인"} title={"레포2"} description={"레포 2입니다."} />
-            <ReportCardSmall label={"메인"} title={"레포3"} description={"레포 3입니다."} />
-          </div>
-        </div>
-
-        {/* Section 6 : 내프로젝트 */ }
-        <div>
-          <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem] mb-[2.4rem]">내 프로젝트</p>
-          <div className="flex gap-[1.8rem]">
-            <ReportCardSmall label={"메인"} title={"레포1"} description={"레포 1입니다."} />
-            <ReportCardSmall label={"메인"} title={"레포2"} description={"레포 2입니다."} />
-            <ReportCardSmall label={"메인"} title={"레포3"} description={"레포 3입니다."} />
-          </div>
+        <div className="w-full">
+          <MyPMBottomSection projectTab={projectTab} onChangeProjectTab={setProjectTab} />
         </div>
       </div>
 
