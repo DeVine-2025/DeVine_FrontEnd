@@ -89,6 +89,30 @@ const ProjectDetailPage = () => {
   const selectedRoleLabel =
     roleOptions.find((option) => option.key === selectedRole)?.label ?? '포지션';
   const isDark = theme === 'dark';
+  const renderTechBadge = (tech: string, key: string) => {
+    const badge = getTechBadgeByName(tech);
+    if (!badge) {
+      return (
+        <span
+          key={key}
+          className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
+        >
+          {tech}
+        </span>
+      );
+    }
+
+    const src = isDark ? badge.offDark ?? badge.off : badge.off;
+    return (
+      <img
+        key={key}
+        src={src}
+        alt={`${tech} 배지`}
+        className="h-8 w-auto"
+        loading="lazy"
+      />
+    );
+  };
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-20">
@@ -270,26 +294,7 @@ const ProjectDetailPage = () => {
                 <span className="text-card-muted text-sm">2/6명</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {MOCK_TECH_STACK.map((tech) => {
-                  const badge = getTechBadgeByName(tech);
-                  const iconSrc = badge ? (isDark ? badge.offDark ?? badge.off : badge.off) : undefined;
-                  return (
-                    <span
-                      key={tech}
-                      className="inline-flex items-center gap-2 rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
-                    >
-                      {iconSrc && (
-                        <img
-                          src={iconSrc}
-                          alt={`${tech} 아이콘`}
-                          className="h-4 w-4"
-                          loading="lazy"
-                        />
-                      )}
-                      {tech}
-                    </span>
-                  );
-                })}
+                {MOCK_TECH_STACK.map((tech) => renderTechBadge(tech, tech))}
               </div>
             </section>
 
@@ -299,26 +304,7 @@ const ProjectDetailPage = () => {
                 <span className="text-card-muted text-sm">2/6명</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {MOCK_TECH_STACK.map((tech) => {
-                  const badge = getTechBadgeByName(tech);
-                  const iconSrc = badge ? (isDark ? badge.offDark ?? badge.off : badge.off) : undefined;
-                  return (
-                    <span
-                      key={`be-${tech}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
-                    >
-                      {iconSrc && (
-                        <img
-                          src={iconSrc}
-                          alt={`${tech} 아이콘`}
-                          className="h-4 w-4"
-                          loading="lazy"
-                        />
-                      )}
-                      {tech}
-                    </span>
-                  );
-                })}
+                {MOCK_TECH_STACK.map((tech) => renderTechBadge(tech, `be-${tech}`))}
               </div>
             </section>
 
@@ -328,26 +314,7 @@ const ProjectDetailPage = () => {
                 <span className="text-card-muted text-sm">2/6명</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {MOCK_INFRA_STACK.map((tech) => {
-                  const badge = getTechBadgeByName(tech);
-                  const iconSrc = badge ? (isDark ? badge.offDark ?? badge.off : badge.off) : undefined;
-                  return (
-                    <span
-                      key={`infra-${tech}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
-                    >
-                      {iconSrc && (
-                        <img
-                          src={iconSrc}
-                          alt={`${tech} 아이콘`}
-                          className="h-4 w-4"
-                          loading="lazy"
-                        />
-                      )}
-                      {tech}
-                    </span>
-                  );
-                })}
+                {MOCK_INFRA_STACK.map((tech) => renderTechBadge(tech, `infra-${tech}`))}
               </div>
             </section>
           </div>
