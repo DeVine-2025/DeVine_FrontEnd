@@ -3,14 +3,16 @@ import { useThemeStore } from '@store/theme';
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 import { getTechBadgeByName, TECH_STACK_LABEL_BY_KEY } from '@constants/position-tech-stack';
 import { useAuth } from '@clerk/clerk-react';
-import { signupMember } from '@apis/signup';
+import { signupMember, type SignupPayload } from '@apis/signup';
+import { getTechstackNamesByKeys } from '@constants/signup-mapping';
 
 type AdditionalProfileSectionProps = {
   onBack: () => void;
   onNext: () => void;
+  signupData: Omit<SignupPayload, 'techstackNames' | 'body' | 'email' | 'linkedin'>;
 };
 
-const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionProps) => {
+const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProfileSectionProps) => {
   const { theme } = useThemeStore();
   const [stacks, setStacks] = useState<string[]>([]);
   const [isTechStackOpen, setIsTechStackOpen] = useState(false);
@@ -30,9 +32,15 @@ const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionPr
   };
 
   const handleSubmit = async () => {
-    if (!hasAnyInput) return onNext();
+    const payload: SignupPayload = {
+      ...signupData,
+      techstackNames: getTechstackNamesByKeys(stacks),
+      body: summary.trim().length > 0 ? summary.trim() : null,
+      email: email.trim().length > 0 ? email.trim() : null,
+      linkedin: linkedin.trim().length > 0 ? linkedin.trim() : null,
+    };
     const token = await getToken();
-    await signupMember({ ...payload }, token);
+    await signupMember(payload, token ?? undefined);
     onNext();
   };
 
