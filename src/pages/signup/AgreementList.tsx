@@ -12,6 +12,20 @@ import AdditionalProfileSection from './AdditionalProfileSection';
 import GithubRepoSelectionSection from './GithubRepoSelectionSection';
 import ProfilePage from '@pages/login/profile-page';
 
+const SERVICE_TERMS_ID = 1;
+const PRIVACY_TERMS_ID = 2;
+const MARKETING_TERMS_ID = 3;
+
+type BasicProfileData = {
+  nickname: string;
+  imageUrl: string | null;
+};
+
+type ProfileData = {
+  mainType: 'PM' | 'DEVELOPER';
+  categoryNames: string[];
+};
+
 type AgreementListProps = {
   onClose: () => void;
   onConfirm: () => void;
@@ -24,6 +38,14 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
   const [serviceAgreed, setServiceAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const [marketingAgreed, setMarketingAgreed] = useState(false);
+  const [basicProfile, setBasicProfile] = useState<BasicProfileData>({
+    nickname: '',
+    imageUrl: null,
+  });
+  const [profileInfo, setProfileInfo] = useState<ProfileData>({
+    mainType: 'PM',
+    categoryNames: [],
+  });
   const [step, setStep] = useState<
     'agreements' | 'basicProfile' | 'profilePage' | 'additionalProfile' | 'signupComplete' | 'githubRepos'
   >('agreements');
@@ -76,14 +98,20 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
       {step === 'basicProfile' ? (
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
           <BasicProfileSection
-            onNext={() => setStep('profilePage')}
+            onNext={(data) => {
+              setBasicProfile(data);
+              setStep('profilePage');
+            }}
             onBack={() => setStep('agreements')}
           />
         </div>
       ) : step === 'profilePage' ? (
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
           <ProfilePage
-            onNext={() => setStep('additionalProfile')}
+            onNext={(data) => {
+              setProfileInfo(data);
+              setStep('additionalProfile');
+            }}
             onBack={() => setStep('basicProfile')}
           />
         </div>
@@ -136,6 +164,17 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
           <AdditionalProfileSection
             onBack={() => setStep('profilePage')}
+            signupData={{
+              agreements: [
+                { termsId: SERVICE_TERMS_ID, agreed: serviceAgreed },
+                { termsId: PRIVACY_TERMS_ID, agreed: privacyAgreed },
+                { termsId: MARKETING_TERMS_ID, agreed: marketingAgreed },
+              ],
+              nickname: basicProfile.nickname,
+              imageUrl: basicProfile.imageUrl,
+              mainType: profileInfo.mainType,
+              categoryNames: profileInfo.categoryNames,
+            }}
             onNext={() => {
               if (loginProvider === 'github') {
                 setStep('signupComplete');
