@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
+import { getCategoryNamesByLabels } from '@constants/signup-mapping';
 
 type ProfilePageProps = {
   onBack: () => void;
-  onNext: () => void;
+  onNext: (data: { mainType: 'PM' | 'DEVELOPER'; categoryNames: string[] }) => void;
 };
 
 const roleOptions = [
@@ -36,7 +37,10 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
     if (role) {
       localStorage.setItem(USER_ROLE_KEY, role);
     }
-    onNext();
+    onNext({
+      mainType: role === 'dev' ? 'DEVELOPER' : 'PM',
+      categoryNames: getCategoryNamesByLabels(domains),
+    });
   };
 
   const toggleDomain = (value: string) => {
