@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
 
 type BasicProfileSectionProps = {
-  onNext: () => void;
+  onNext: (data: { nickname: string; imageUrl: string | null }) => void;
   onBack: () => void;
 };
 
@@ -110,7 +110,7 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
       <div className="mt-auto mb-24 flex flex-col gap-3">
         <button
           type="button"
-          onClick={onNext}
+          onClick={() => onNext({ nickname: trimmedNickname, imageUrl: previewUrl })}
           disabled={!canUseNickname}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
             canUseNickname
