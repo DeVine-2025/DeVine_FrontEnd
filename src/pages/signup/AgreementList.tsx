@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import Lottie from 'lottie-react';
-import reportAnimation from './Data _ Bundling.json';
+import confettiAnimation from './Confetti.json';
 import LogoDark from '@assets/icons/logo-dark.svg?react';
 import LogoLight from '@assets/icons/logo-light.svg?react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
@@ -88,9 +88,13 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           />
         </div>
       ) : step === 'signupComplete' ? (
-        <div className="mx-auto mt-[104px] flex h-[520px] w-[632px] flex-col items-center justify-center gap-6 px-8 py-12 text-center">
-          <Lottie animationData={reportAnimation} loop className="h-[160px] w-[160px]" />
-          <div className="flex flex-col gap-3 text-[var(--ui-1000)]">
+        <div className="relative mx-auto mt-[104px] flex h-[520px] w-[632px] flex-col items-center justify-center gap-6 px-8 py-12 text-center">
+          <Lottie
+            animationData={confettiAnimation}
+            loop
+            className="pointer-events-none absolute left-1/2 top-1/2 h-full w-[900px] -translate-x-1/2 -translate-y-1/2"
+          />
+          <div className="-mt-8 flex flex-col gap-3 text-[var(--ui-1000)]">
             <h2 className="Heading2 font-semibold">회원가입이 완료되었어요!</h2>
             <p className="Caption1 text-[var(--ui-400)]">
               Github로 회원가입 시 1회 무료로 리포트를 생성해드려요!
