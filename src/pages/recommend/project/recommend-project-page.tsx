@@ -17,7 +17,7 @@ const RecommendProjectPage = () => {
   const [projectTypes, setProjectTypes] = useState<string[]>([]);
   const [techStacks, setTechStacks] = useState<string[]>([]);
   const handleProjectClick = (project: ProjectListItem) => {
-    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+    navigate(`/project/${project.id}`);
   };
 
   return (

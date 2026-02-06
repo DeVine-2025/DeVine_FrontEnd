@@ -1,4 +1,4 @@
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { useThemeStore } from '@store/theme';
 import { useUser } from '@clerk/clerk-react';
@@ -21,10 +21,6 @@ type ProjectDetailInfo = {
   period?: string;
   mode?: string;
   dueLabel?: string;
-};
-
-type ProjectDetailState = {
-  project?: ProjectDetailInfo;
 };
 
 const MOCK_TECH_STACK = ['Javascript', 'Typescript', 'React', 'Vue.js', 'Next.js', 'Svelte'];
@@ -58,7 +54,6 @@ const RoleBadge = ({ label, tone }: RoleBadgeProps) => (
 
 const ProjectDetailPage = () => {
   const { projectId } = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useThemeStore();
   const { isLoaded, isSignedIn } = useUser();
@@ -68,12 +63,11 @@ const ProjectDetailPage = () => {
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
 
-  const stateProject = (location.state as ProjectDetailState | null)?.project;
   const fallbackProject =
     PROJECT_LIST.find((project) => project.id === projectId) ??
     RECOMMENDED_PROJECTS.find((project) => project.id === projectId);
 
-  const project = stateProject ?? (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
+  const project = fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined;
   if (!projectId || !project) {
     return <div>프로젝트 정보를 찾을 수 없습니다.</div>;
   }
