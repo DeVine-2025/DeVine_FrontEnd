@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import Lottie from 'lottie-react';
+import reportAnimation from './Data _ Bundling.json';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 
@@ -55,12 +57,14 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
 
   if (phase === 'generating') {
     return (
-      <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col items-center justify-center text-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-[160px] w-[160px] rounded-[16px] bg-[var(--ui-100)]" />
-          <h2 className="Heading2 font-semibold text-[var(--ui-1000)]">리포트를 생성하는 중이에요</h2>
-          <div className="flex flex-col items-center gap-2">
-            <span className="Caption1 inline-flex items-center rounded-full bg-[var(--ui-100)] px-3 py-1 text-[var(--ui-500)]">
+      <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col items-center justify-start pt-[40px] text-center">
+        <div className="flex flex-col items-center gap-2">
+          <Lottie animationData={reportAnimation} loop className="h-[300px] w-[300px]" />
+          <h2 className="-mt-34 Heading2 font-semibold text-[var(--ui-1000)]">
+            리포트를 생성하는 중이에요
+          </h2>
+          <div className="mt-15 flex flex-col items-center gap-2">
+            <span className="Caption1 inline-flex items-center rounded-full bg-[#1E1D4D] px-3 py-1 text-[#7E7AFF]">
               TIP
             </span>
             <p className="Caption1 text-[var(--ui-400)]">
@@ -76,12 +80,13 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
 
   if (phase === 'complete') {
     return (
-      <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col items-center justify-start gap-6 pt-[50px] text-center">
+      <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col items-center justify-start gap-6 pt-[20px] text-center">
         <h2 className="text-[36px] leading-[133%] font-bold tracking-[-0.027em] text-[var(--ui-1000)]">
           리포트 생성이 완료되었어요!
         </h2>
+        <br/>
         <div className="grid w-full max-w-[640px] grid-cols-2 gap-6">
-          <div className="flex h-[298px] w-[308px] flex-col gap-3 rounded-[24px] border border-[#41444D] bg-[#191B1E] p-4 text-left">
+          <div className="flex h-[270px] w-[280px] flex-col gap-3 rounded-[24px] border border-[#41444D] bg-[#191B1E] p-4 text-left">
             <span className="Caption1 inline-flex w-fit rounded-full bg-[#1E1D4D] px-2 py-1 text-[10px] text-[#7E7AFF]">
               메인
             </span>
@@ -94,7 +99,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
               레포지토리 설명이 들어가는 자리입니다.
             </p>
           </div>
-          <div className="flex h-[298px] w-[308px] flex-col gap-3 rounded-[24px] border border-[#41444D] bg-[#191B1E] p-4 text-left">
+          <div className="flex h-[270px] w-[280px] flex-col gap-3 rounded-[24px] border border-[#41444D] bg-[#191B1E] p-4 text-left">
             <span className="Caption1 inline-flex w-fit rounded-full bg-[#1E1D4D] px-2 py-1 text-[10px] text-[#7E7AFF]">
               상세
             </span>
@@ -107,7 +112,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
               레포지토리 설명이 들어가는 자리입니다.
             </p>
           </div>
-        </div>
+        </div><br/>
         <button
           type="button"
           onClick={onNext}
