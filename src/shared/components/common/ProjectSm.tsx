@@ -1,5 +1,5 @@
 import { cn } from '@libs/cn';
-import type { ProjectCardProps } from 'src/shared/types/projectCard.types';
+import type { ProjectCardProps } from '@t/project/ui';
 import ProjectBase from './ProjectBase';
 
 export default function ProjectSm(props: ProjectCardProps) {

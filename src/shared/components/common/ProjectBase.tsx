@@ -1,8 +1,8 @@
 import BookmarkIcon from '@assets/icons/bookmark.svg?react';
 import PersonIcon from '@assets/icons/person.svg?react';
+import { badgeToneToClass } from '@t/badgeTone';
+import type { ProjectCardBaseProps } from '@t/project/ui';
 import type { KeyboardEvent } from 'react';
-import type { ProjectCardBaseProps } from 'src/shared/types/projectCard.types.ts';
-import { badgeToneToClass } from '../../types/badgeTone';
 
 export default function ProjectBase(props: ProjectCardBaseProps) {
   const {
@@ -21,8 +21,6 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
     onClick,
     render,
   } = props;
-
-  const metaText = [location, period, mode].filter(Boolean).join(' | ');
 
   const Thumbnail = (
     <div className="shrink-0">
@@ -60,6 +58,8 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
       {title}
     </h3>
   );
+
+  const metaText = [location, period, mode].filter(Boolean).join(' | ');
 
   const Meta = metaText ? (
     <div className="truncate pl-1 text-badge-text-gray text-lg">{metaText}</div>
