@@ -1,4 +1,5 @@
-import type { ProjectItem, ProjectRole } from '@t/projects';
+import type { ProjectItem } from '@t/project/api';
+import type { ProjectRole } from '@t/project/ui';
 
 // 포지션 코드 (역할 배지에 사용하는 색상 반환)
 export function getRoleTone(position: string): ProjectRole['tone'] {

@@ -1,7 +1,7 @@
 import BookmarkIcon from '@assets/icons/bookmark.svg?react';
 import PersonIcon from '@assets/icons/person.svg?react';
 import { badgeToneToClass } from '@t/badgeTone';
-import type { ProjectCardBaseProps } from '@t/projectCard.types.ts';
+import type { ProjectCardBaseProps } from '@t/project/ui';
 import type { KeyboardEvent } from 'react';
 
 export default function ProjectBase(props: ProjectCardBaseProps) {

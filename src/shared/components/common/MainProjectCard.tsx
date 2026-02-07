@@ -1,6 +1,6 @@
 import ProjectBase from '@components/common/ProjectBase';
 import { cn } from '@libs/cn';
-import type { ProjectCardProps } from 'src/shared/types/projectCard.types';
+import type { ProjectCardProps } from '@t/project/ui';
 
 export default function MainProjectCard(props: ProjectCardProps) {
   const metaText = [props.location, props.period, props.mode].filter(Boolean).join(' · ');
@@ -14,12 +14,12 @@ export default function MainProjectCard(props: ProjectCardProps) {
         <article
           {...CardActionProps}
           className={cn(
-            'w-[280px] shrink-0 overflow-hidden rounded-3xl border-0 bg-[var(--ui-bg)] shadow-none ring-0 outline-none',
+            'w-[280px] shrink-0 overflow-hidden rounded-3xl border-0 bg-[var(--ui-bg)] shadow-none outline-none ring-0',
             props.onClick && 'cursor-pointer',
             props.className,
           )}
         >
-          <div className="relative h-[160px] w-full overflow-hidden rounded-3xl border-0 bg-[#F3F5FC] shadow-none ring-0 outline-none">
+          <div className="relative h-[160px] w-full overflow-hidden rounded-3xl border-0 bg-[#F3F5FC] shadow-none outline-none ring-0">
             {hasThumbnail ? (
               <img
                 src={props.thumbnailUrl}

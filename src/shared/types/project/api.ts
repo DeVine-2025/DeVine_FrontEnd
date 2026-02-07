@@ -1,10 +1,7 @@
-import type { ReactNode } from 'react';
-
 export type ProjectField = 'WEB' | 'MOBILE' | 'AI' | 'GAME' | 'DATA' | 'BACKEND' | 'FRONTEND';
 export type Position = 'BACKEND' | 'FRONTEND' | 'DESIGN' | 'PM' | 'IOS' | 'ANDROID';
 export type Mode = 'ONLINE' | 'OFFLINE' | 'HYBRID';
 export type DurationRange = 'UNDER_ONE' | 'ONE_TO_THREE' | 'THREE_TO_SIX' | 'SIX_PLUS';
-export type BadgeTone = 'blue' | 'green' | 'pink' | 'orange';
 
 export type TechStack = {
   techStackId: number;
@@ -17,20 +14,6 @@ export type ProjectPosition = {
   count: number;
   currentCount: number;
   techStacks: TechStack[];
-};
-
-export type TechStackItem = {
-  id: string;
-  icon?: ReactNode;
-};
-
-export type ProjectRole = {
-  key: string;
-  label: string;
-  tone: BadgeTone;
-  current: number;
-  total: number;
-  techStack?: readonly TechStackItem[];
 };
 
 export type ProjectItem = {

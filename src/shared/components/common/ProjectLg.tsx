@@ -1,6 +1,6 @@
 import { cn } from '@libs/cn';
+import type { ProjectCardProps } from '@t/project/ui';
 import type { ReactNode } from 'react';
-import type { ProjectCardProps } from 'src/shared/types/projectCard.types.ts';
 import ProjectBase from './ProjectBase';
 
 type ProjectLgProps = ProjectCardProps & {
