@@ -3,8 +3,8 @@ export type SignupPayload = {
   nickname: string;
   imageUrl?: string | null;
   mainType: 'PM' | 'DEVELOPER';
-  categoryNames: string[];
-  techstackNames: string[];
+  categoryIds: number[];
+  techstackIds: number[];
   body?: string | null;
   email?: string | null;
   linkedin?: string | null;
