@@ -1,6 +1,6 @@
 export const TERMS_IDS = {
-  service: 1,
-  privacy: 2,
+  privacy: 1,
+  service: 2,
   marketing: 3,
 } as const;
 
