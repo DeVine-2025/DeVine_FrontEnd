@@ -1,11 +1,19 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import {useQuery} from '@tanstack/react-query';
+import {reportQueries} from '@apis/report/report-queries';
+
 import ReportCard from '@components/report/ReportCard';
 import Blank from '@components/report/Blank';
-// import { useNavigate } from 'react-router-dom';
 import TabMenu from '@components/report/TabMenu';
-import { useState } from 'react';
+
+
 
 const ReportPage = () => {
   const [activeTab, setActiveTab] = useState('전체');
+  const { data, isLoading } = useQuery(reportQueries.report());
+  console.log(data);
 
   // const navigate = useNavigate();
   const tabs = ['전체', '메인 리포트', '상세 리포트'];
