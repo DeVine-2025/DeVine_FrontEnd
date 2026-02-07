@@ -21,7 +21,7 @@ type BasicProfileData = {
 
 type ProfileData = {
   mainType: 'PM' | 'DEVELOPER';
-  categoryNames: string[];
+  categoryIds: number[];
 };
 
 type AgreementListProps = {
@@ -43,7 +43,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
   });
   const [profileInfo, setProfileInfo] = useState<ProfileData>({
     mainType: 'PM',
-    categoryNames: [],
+    categoryIds: [],
   });
   const [step, setStep] = useState<
     'agreements' | 'basicProfile' | 'profilePage' | 'additionalProfile' | 'signupComplete' | 'githubRepos'
@@ -89,9 +89,14 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
 
       <div className="absolute left-1/2 top-0 h-[6rem] w-screen -translate-x-1/2">
         <div className="mx-auto flex h-full max-w-[144rem] items-center px-[12rem]">
-          <Link to="/" className="flex-items-center gap-[0.4rem]">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="flex items-center gap-[0.4rem] cursor-pointer"
+            aria-label="메인으로 이동"
+          >
             {theme === 'dark' ? <LogoLight aria-hidden="true" /> : <LogoDark aria-hidden="true" />}
-          </Link>
+          </button>
         </div>
       </div>
       {step === 'basicProfile' ? (
@@ -172,7 +177,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
               nickname: basicProfile.nickname,
               imageUrl: basicProfile.imageUrl,
               mainType: profileInfo.mainType,
-              categoryNames: profileInfo.categoryNames,
+              categoryIds: profileInfo.categoryIds,
             }}
             onNext={() => {
               if (loginProvider === 'github') {
@@ -306,7 +311,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           >
             다음
           </button>
-          <button type="button" onClick={onClose} className="Body1 text-[var(--ui-400)]">
+          <button type="button" onClick={() => navigate('/login')} className="Body1 text-[var(--ui-400)]">
             돌아가기
           </button>
         </div>
