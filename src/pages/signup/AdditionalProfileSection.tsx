@@ -4,12 +4,12 @@ import PositionTechStackDropdown from '@components/recommend/PositionTechStackDr
 import { getTechBadgeByName, TECH_STACK_LABEL_BY_KEY } from '@constants/position-tech-stack';
 import { useAuth } from '@clerk/clerk-react';
 import { signupMember, type SignupPayload } from '@apis/signup';
-import { getTechstackNamesByKeys } from '@constants/signup-mapping';
+import { getTechstackIdsByKeys } from '@constants/signup-mapping';
 
 type AdditionalProfileSectionProps = {
   onBack: () => void;
   onNext: () => void;
-  signupData: Omit<SignupPayload, 'techstackNames' | 'body' | 'email' | 'linkedin'>;
+  signupData: Omit<SignupPayload, 'techstackIds' | 'body' | 'email' | 'linkedin'>;
 };
 
 const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProfileSectionProps) => {
@@ -34,7 +34,7 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
   const handleSubmit = async () => {
     const payload: SignupPayload = {
       ...signupData,
-      techstackNames: getTechstackNamesByKeys(stacks),
+      techstackIds: getTechstackIdsByKeys(stacks),
       body: summary.trim().length > 0 ? summary.trim() : null,
       email: email.trim().length > 0 ? email.trim() : null,
       linkedin: linkedin.trim().length > 0 ? linkedin.trim() : null,
