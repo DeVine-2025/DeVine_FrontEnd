@@ -3,22 +3,15 @@ import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
 import { useProjects } from '@hooks/useProjects';
+import { mapProjectItemToCard, type ProjectCardModel } from '@mappers/project';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
-import {
-  PROJECT_FILTERS,
-  PROJECT_LIST,
-  PROJECT_ROLES,
-  RECOMMENDED_PROJECTS,
-} from 'src/mocks/project.mock';
+import { PROJECT_FILTERS, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 
 export default function ProjectSearchPage() {
   const navigate = useNavigate();
-  const handleProjectClick = (project: RecommendedProject | ProjectListItem) => {
-    navigate(`/project/${project.id}`, {
-      state: { project: { ...project, roles: PROJECT_ROLES } },
-    });
+  const handleProjectClick = (projectId: number | string) => {
+    navigate(`/project/${projectId}`);
   };
 
   const [openFilter, setOpenFilter] = useState<null | (typeof PROJECT_FILTERS)[number]>(null);
@@ -39,7 +32,8 @@ export default function ProjectSearchPage() {
   } satisfies GetProjectsParams;
 
   const { data, isLoading, isError, error } = useProjects(params);
-  console.log(data); // 프로젝트 배열
+
+  const projects: ProjectCardModel[] = data?.content?.map(mapProjectItemToCard) ?? [];
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
@@ -71,7 +65,7 @@ export default function ProjectSearchPage() {
             mode={p.mode}
             roles={[...PROJECT_ROLES]}
             bookmarked={p.bookmarked}
-            onClick={() => handleProjectClick(p)}
+            onClick={() => handleProjectClick(p.id)}
           />
         ))}
       </div>
@@ -97,20 +91,12 @@ export default function ProjectSearchPage() {
 
       {/* 프로젝트 리스트 */}
       <div className="flex flex-col gap-6">
-        {PROJECT_LIST.map((p) => (
+        {projects.map((p) => (
           <ProjectLg
             key={p.id}
-            categoryLabel={p.categoryLabel}
-            deadlineLabel={p.deadlineLabel}
-            title={p.title}
-            location={p.location}
-            period={p.period}
-            mode={p.mode}
-            roles={[...PROJECT_ROLES]}
-            dueLabel={p.dueLabel}
-            bookmarked={p.bookmarked}
+            {...p}
+            onClick={() => handleProjectClick(p.id)}
             onBookmarkChange={(next) => console.log('bookmark', p.id, next)}
-            onClick={() => handleProjectClick(p)}
           />
         ))}
       </div>

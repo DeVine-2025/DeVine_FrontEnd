@@ -9,7 +9,9 @@ export function useProjects(params: GetProjectsParams) {
     queryKey: ['projects', params],
     queryFn: async ({ signal }) => {
       const token = await getToken();
+      // console.log(token);
       if (!token) throw new Error('No auth token');
+      // console.log(params); // 요청
       return getProjects(params, token, signal);
     },
     placeholderData: keepPreviousData,
