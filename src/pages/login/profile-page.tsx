@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
-import { getCategoryNamesByLabels } from '@constants/signup-mapping';
+import { getCategoryIdsByLabels } from '@constants/signup-mapping';
 
 type ProfilePageProps = {
   onBack: () => void;
-  onNext: (data: { mainType: 'PM' | 'DEVELOPER'; categoryNames: string[] }) => void;
+  onNext: (data: { mainType: 'PM' | 'DEVELOPER'; categoryIds: number[] }) => void;
 };
 
 const roleOptions = [
@@ -39,7 +39,7 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
     }
     onNext({
       mainType: role === 'dev' ? 'DEVELOPER' : 'PM',
-      categoryNames: getCategoryNamesByLabels(domains),
+      categoryIds: getCategoryIdsByLabels(domains),
     });
   };
 
