@@ -10,6 +10,7 @@ import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock
 import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
 import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-detail';
+import { getRecommendDevelopersPreview } from '@apis/members';
 
 type HighlightProject = ProjectCardProps & { id: number };
 
@@ -46,13 +47,14 @@ const mapWeeklyProject = (project: WeeklyBestProject): HighlightProject => ({
 });
 
 const MainPage = () => {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const navigate = useNavigate();
   const userRole = useAuthStore((state) => state.role);
   const isLoggedIn = Boolean(isSignedIn);
   const isPm = userRole === 'pm';
   const [weeklyProjects, setWeeklyProjects] = useState<HighlightProject[]>([]);
   const fallbackRoles = useMemo(() => PROJECT_ROLES.map((role) => ({ ...role })), []);
+  const [recommendedDevelopers, setRecommendedDevelopers] = useState(PROFILE_CARD_LIST.slice(0, 3));
 
   useEffect(() => {
     let isActive = true;
@@ -75,6 +77,41 @@ const MainPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isLoggedIn || !isPm) return;
+    let isActive = true;
+
+    const fetchRecommendedDevelopers = async () => {
+      try {
+        const token = await getToken();
+        if (!token || !isActive) return;
+        const result = await getRecommendDevelopersPreview(3, token);
+        if (!isActive) return;
+        const mapped = result.map((item, index) => ({
+          id: `${item.nickname}-${index}`,
+          role: '개발자',
+          roleTone: 'blue' as const,
+          nickname: item.nickname,
+          profileImageUrl: item.image ?? '',
+          introduction: item.body ?? '',
+          badges: [],
+          techStack: item.techstacks.map((name) => ({ id: name, name })),
+          bookmarked: false,
+        }));
+        setRecommendedDevelopers(mapped);
+      } catch {
+        if (isActive) {
+          setRecommendedDevelopers(PROFILE_CARD_LIST.slice(0, 3));
+        }
+      }
+    };
+
+    void fetchRecommendedDevelopers();
+    return () => {
+      isActive = false;
+    };
+  }, [getToken, isLoggedIn, isPm]);
+
   const highlightProjects: HighlightProject[] = useMemo(() => {
     if (weeklyProjects.length > 0) {
       return weeklyProjects;
@@ -92,7 +129,7 @@ const MainPage = () => {
       thumbnailUrl: undefined,
     }));
   }, [weeklyProjects, fallbackRoles]);
-  const recommendedProfiles = PROFILE_CARD_LIST.slice(0, 3);
+  const recommendedProfiles = recommendedDevelopers;
   const recommendedProjects = PROJECT_LIST.slice(0, 3);
   const handleProjectClick = (project: RecommendedProject | ProjectListItem | HighlightProject) => {
     navigate(`/project/${project.id}`);
