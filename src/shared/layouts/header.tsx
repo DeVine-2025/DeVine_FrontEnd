@@ -11,23 +11,84 @@ import ModeDarkHoverIcon from '@assets/icons/mode-dark-hover.svg?react';
 import ModeLightIcon from '@assets/icons/mode-light.svg?react';
 import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
 import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
-import { SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, UserButton, useAuth as useClerkAuth } from '@clerk/clerk-react';
 import NotificationModal from '@components/common/NotificationModal';
 import { useThemeStore } from '@store/theme';
 import { useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { NOTIFICATIONS } from 'src/mocks/notification.mock';
+import {
+  getNotifications,
+  getUnreadNotificationCount,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+  type NotificationItem,
+} from '@apis/notifications';
 import { useAuth } from 'src/shared/auth/useAuth';
 
 const Header = () => {
   const { theme, toggleTheme } = useThemeStore();
   const { isAuthed, user, setDevAuthed } = useAuth();
+  const { getToken } = useClerkAuth();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
 
-  const notifications = NOTIFICATIONS;
+  const fetchUnreadCount = useCallback(() => {
+    getToken().then((token) => {
+      if (!token) return;
+      getUnreadNotificationCount(token).then(setUnreadCount).catch(() => setUnreadCount(0));
+    });
+  }, [getToken]);
+
+  useEffect(() => {
+    fetchUnreadCount();
+  }, [fetchUnreadCount]);
+
+  useEffect(() => {
+    if (!isNotificationOpen) return;
+    let cancelled = false;
+    getToken()
+      .then((token) => {
+        if (!token || cancelled) return;
+        return getNotifications(token, { page: 0, size: 20 });
+      })
+      .then((result) => {
+        if (result && !cancelled) setNotifications(result.notifications);
+      })
+      .catch(() => {
+        if (!cancelled) setNotifications([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isNotificationOpen, getToken]);
+
+  const handleMarkAsRead = (notificationId: string) => {
+    getToken().then((token) => {
+      if (!token) return;
+      const id = Number(notificationId);
+      if (Number.isNaN(id)) return;
+      markNotificationAsRead(id, token).then(() => {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n)),
+        );
+        setUnreadCount((c) => Math.max(0, c - 1));
+      });
+    });
+  };
+
+  const handleMarkAllAsRead = () => {
+    getToken().then((token) => {
+      if (!token) return;
+      markAllNotificationsAsRead(token).then(() => {
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        setUnreadCount(0);
+      });
+    });
+  };
 
   const navItems = [
     { path: '/search', label: '프로젝트/개발자 보기' },
@@ -127,8 +188,12 @@ const Header = () => {
 
             {/* 알림 */}
             <button
+              ref={alarmButtonRef}
               type="button"
-              onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+              onClick={() => {
+                setIsNotificationOpen(!isNotificationOpen);
+                if (isNotificationOpen) fetchUnreadCount();
+              }}
               className="group relative size-[3.6rem] flex-row-center shrink-0 rounded-[8px] bg-ui-bg p-[0.4rem]"
             >
               {theme === 'dark' ? (
@@ -141,6 +206,14 @@ const Header = () => {
                   <AlarmLightIcon className="size-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
                   <AlarmLightHoverIcon className="absolute size-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 </>
+              )}
+              {unreadCount > 0 && (
+                <span
+                  className="absolute top-[0.4rem] right-[0.4rem] flex min-w-[1.6rem] items-center justify-center rounded-full bg-[#FF4D4F] px-[0.5rem] py-0 text-[1rem] font-semibold leading-none text-white"
+                  aria-label={`읽지 않은 알림 ${unreadCount}건`}
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
               )}
             </button>
 
@@ -240,6 +313,8 @@ const Header = () => {
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
         notifications={notifications}
+        onMarkAsRead={handleMarkAsRead}
+        onMarkAllAsRead={handleMarkAllAsRead}
       />
     </>
   );

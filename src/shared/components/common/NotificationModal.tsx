@@ -14,13 +14,24 @@ interface NotificationModalProps {
   notifications: NotificationItem[];
   /** 알림 아이콘 ref. 주면 모달이 아이콘 옆에 붙음 */
   anchorRef?: React.RefObject<HTMLElement | null>;
+  /** 알림 하나 클릭 시 읽음 처리 (notificationId 문자열) */
+  onMarkAsRead?: (notificationId: string) => void;
+  /** 전체 읽음 처리 */
+  onMarkAllAsRead?: () => void;
 }
 
 const GAP_PX = 8;
 const MODAL_WIDTH = 320;
 const MODAL_HEIGHT = 220;
 
-const NotificationModal = ({ isOpen, onClose, notifications, anchorRef }: NotificationModalProps) => {
+const NotificationModal = ({
+  isOpen,
+  onClose,
+  notifications,
+  anchorRef,
+  onMarkAsRead,
+  onMarkAllAsRead,
+}: NotificationModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
   const [position, setPosition] = useState<{ top: number; right: number } | null>(null);
@@ -102,7 +113,10 @@ const NotificationModal = ({ isOpen, onClose, notifications, anchorRef }: Notifi
             >
               <button
                 type="button"
-                onClick={handleClose}
+                onClick={() => {
+                  if (!notification.isRead && onMarkAsRead) onMarkAsRead(notification.id);
+                  handleClose();
+                }}
                 className="-mx-[0.8rem] -my-[0.6rem] flex min-h-0 flex-1 cursor-pointer flex-col justify-center rounded-[10px] px-[1.6rem] py-[1.2rem] transition-colors duration-300 hover:bg-[var(--ui-50)]"
               >
                 <div className="mb-[0.6rem] flex-row-between items-start">
@@ -115,6 +129,17 @@ const NotificationModal = ({ isOpen, onClose, notifications, anchorRef }: Notifi
               </button>
             </div>
           ))}
+          {onMarkAllAsRead && notifications.some((n) => !n.isRead) && (
+            <div className="shrink-0 border-t border-[var(--ui-200)] px-[1.6rem] py-[1rem]">
+              <button
+                type="button"
+                onClick={() => onMarkAllAsRead()}
+                className="Caption1 w-full rounded-[8px] py-[0.8rem] font-medium text-[#7E7AFF] transition-colors hover:bg-[var(--ui-50)]"
+              >
+                전체 읽음 처리
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
