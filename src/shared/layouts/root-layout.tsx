@@ -38,8 +38,15 @@ const RootLayout = () => {
     const isSignupRoute = pathname === '/signup';
     const isCallbackRoute = pathname === '/sso-callback';
     const isLoginRoute = pathname === '/login';
+    const isMainRoute = pathname === '/';
+    const allowMainOnce = sessionStorage.getItem('allow_main_once') === 'true';
 
-    if (!onboardingComplete && !isSignupRoute && !isCallbackRoute) {
+    if (!onboardingComplete && isMainRoute && allowMainOnce) {
+      sessionStorage.removeItem('allow_main_once');
+      return;
+    }
+
+    if (!onboardingComplete && !isSignupRoute && !isCallbackRoute && !isLoginRoute) {
       navigate('/signup', { replace: true });
       return;
     }
@@ -49,8 +56,8 @@ const RootLayout = () => {
       return;
     }
 
-    if (isLoginRoute) {
-      navigate(onboardingComplete ? '/' : '/signup', { replace: true });
+    if (onboardingComplete && isLoginRoute) {
+      navigate('/', { replace: true });
     }
   }, [isLoaded, location.pathname, navigate, user]);
 

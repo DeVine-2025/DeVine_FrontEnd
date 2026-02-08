@@ -1,5 +1,5 @@
 import { buildQuery } from '@libs/queryString';
-import type { DurationRange, Position, ProjectField } from '../types/projects';
+import type { DurationRange, Position, ProjectField } from '@t/project/api';
 
 export type GetProjectsParams = {
   projectFields?: ProjectField[];
@@ -22,8 +22,9 @@ export async function getProjects(params: GetProjectsParams, token: string, sign
     techStackIds: params.techStackIds,
     durationRange: params.durationRange,
     page: params.page ?? 1,
-    size: params.size,
+    size: params.size ?? 10,
   });
+  console.log('REQUEST =>', `${BASE_URL}/api/v1/projects${qs}`);
 
   const res = await fetch(`${BASE_URL}/api/v1/projects${qs}`, {
     method: 'GET',

@@ -2,19 +2,24 @@ import { useState } from 'react';
 import { useThemeStore } from '@store/theme';
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 import { getTechBadgeByName, TECH_STACK_LABEL_BY_KEY } from '@constants/position-tech-stack';
+import { useAuth } from '@clerk/clerk-react';
+import { signupMember, type SignupPayload } from '@apis/signup';
+import { getTechstackIdsByKeys } from '@constants/signup-mapping';
 
 type AdditionalProfileSectionProps = {
   onBack: () => void;
   onNext: () => void;
+  signupData: Omit<SignupPayload, 'techstackIds' | 'body' | 'email' | 'linkedin'>;
 };
 
-const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionProps) => {
+const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProfileSectionProps) => {
   const { theme } = useThemeStore();
   const [stacks, setStacks] = useState<string[]>([]);
   const [isTechStackOpen, setIsTechStackOpen] = useState(false);
   const [summary, setSummary] = useState('');
   const [email, setEmail] = useState('');
   const [linkedin, setLinkedin] = useState('');
+  const { getToken } = useAuth();
 
   const hasAnyInput =
     stacks.length > 0 ||
@@ -24,6 +29,19 @@ const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionPr
 
   const removeStack = (key: string) => {
     setStacks((prev) => prev.filter((item) => item !== key));
+  };
+
+  const handleSubmit = async () => {
+    const payload: SignupPayload = {
+      ...signupData,
+      techstackIds: getTechstackIdsByKeys(stacks),
+      body: summary.trim().length > 0 ? summary.trim() : null,
+      email: email.trim().length > 0 ? email.trim() : null,
+      linkedin: linkedin.trim().length > 0 ? linkedin.trim() : null,
+    };
+    const token = await getToken();
+    await signupMember(payload, token ?? undefined);
+    onNext();
   };
 
   return (
@@ -148,7 +166,7 @@ const AdditionalProfileSection = ({ onBack, onNext }: AdditionalProfileSectionPr
           <div className="mt-14 flex flex-col gap-3 pb-4">
             <button
               type="button"
-              onClick={onNext}
+              onClick={handleSubmit}
               className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
                 hasAnyInput ? 'bg-[#4E49FF] text-white' : 'bg-[#1E1D4D] text-[#7E7AFF]'
               }`}
