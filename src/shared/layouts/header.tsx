@@ -25,6 +25,7 @@ const Header = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const alarmButtonRef = useRef<HTMLButtonElement>(null);
 
   const notifications = NOTIFICATIONS;
 
@@ -235,6 +236,7 @@ const Header = () => {
 
       {/* 알림 모달 */}
       <NotificationModal
+        anchorRef={alarmButtonRef}
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
         notifications={notifications}
