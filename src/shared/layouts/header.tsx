@@ -14,7 +14,7 @@ import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
 import { SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import NotificationModal from '@components/common/NotificationModal';
 import { useThemeStore } from '@store/theme';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { NOTIFICATIONS } from 'src/mocks/notification.mock';
 import { useAuth } from 'src/shared/auth/useAuth';
