@@ -91,7 +91,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
         <div className="mx-auto flex h-full max-w-[144rem] items-center px-[12rem]">
           <button
             type="button"
-            onClick={() => navigate('/')}
+            onClick={() => {
+              sessionStorage.setItem('allow_main_once', 'true');
+              navigate('/');
+            }}
             className="flex items-center gap-[0.4rem] cursor-pointer"
             aria-label="메인으로 이동"
           >
