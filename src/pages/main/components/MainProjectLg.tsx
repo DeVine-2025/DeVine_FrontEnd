@@ -1,4 +1,4 @@
-import type { ProjectCardProps } from '../../../shared/types/project/ui';
+import type { ProjectCardProps } from '@t/project/ui';
 import ProjectBase from '@components/common/ProjectBase';
 import { cn } from '@libs/cn';
 
