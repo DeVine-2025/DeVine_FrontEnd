@@ -20,7 +20,7 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
   const navigate = useNavigate();
 
   const handleProjectClick = (project: RecommendedProject) => {
-    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+    navigate(`/project/${project.id}`);
   };
 
   return (

@@ -1,6 +1,8 @@
 import { useSignIn } from '@clerk/clerk-react';
 import GithubIcon from '@assets/icons/github.svg?react';
 import GoogleIcon from '@assets/icons/google.svg?react';
+import LogoDark from '@assets/icons/logo-dark.svg?react';
+import LogoLight from '@assets/icons/logo-light.svg?react';
 import { useThemeStore } from '@store/theme';
 
 const LoginPage = () => {
@@ -21,14 +23,18 @@ const LoginPage = () => {
 
   return (
     <div className="bg-[var(--color-auth-bg)] text-[var(--color-auth-text)]">
-      <main className="mx-auto flex min-h-screen w-full max-w-[360px] flex-col items-center justify-center px-6 text-center sm:max-w-[600px] sm:px-10 lg:max-w-[1200px] lg:px-16">
-        <h1 className="Title2 font-bold text-[var(--color-auth-text)]">Devine 한줄소개</h1>
-        <p className="mt-15 w-full max-w-[320px] text-[16px] leading-[24px] text-[var(--color-auth-desc)] sm:max-w-[600px]">
-          Devine 설명이 들어가는 자리입니다.
+      <main className="mx-auto flex min-h-screen w-full max-w-[360px] -mt-12 flex-col items-center justify-center px-6 text-center sm:max-w-[600px] sm:px-10 lg:max-w-[1200px] lg:px-16">
+        <div className="mb-6 -mt-14 flex items-center justify-center pl-100">
+          {theme === 'dark' ? (
+            <LogoDark className="h-30 w-auto" aria-hidden="true" />
+          ) : (
+            <LogoLight className="h-30 w-auto" aria-hidden="true" />
+          )}
+        </div>
+        <p className="mt-1 w-full max-w-[320px] text-[16px] leading-[24px] text-[var(--color-auth-desc)] sm:max-w-[600px]">
+          코드로 증명하고, 데이터로 연결하다.
           <br />
-          Devine 설명이 들어가는 자리입니다.
-          <br />
-          Devine 설명이 들어가는 자리입니다.
+          사이드 프로젝트 매칭 플랫폼
         </p>
         <div className="mt-30 flex w-full max-w-[360px] flex-col gap-3 font-semibold text-[16px] sm:max-w-[420px]">
           <button

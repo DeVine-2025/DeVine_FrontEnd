@@ -18,7 +18,7 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
   const navigate = useNavigate();
 
   const handleProjectClick = (project: ProjectListItem) => {
-    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+    navigate(`/project/${project.id}`);
   };
 
   return (
