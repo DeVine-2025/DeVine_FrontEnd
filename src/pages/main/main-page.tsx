@@ -9,7 +9,7 @@ import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
 import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
-import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project';
+import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-detail';
 
 type HighlightProject = ProjectCardProps & { id: number };
 
