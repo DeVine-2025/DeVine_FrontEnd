@@ -1,17 +1,20 @@
+import { getRecommendProjectsPreview, type RecommendProjectPreviewItem } from '@apis/mainrecommendproject';
 import Pagination from '@components/common/Pagination';
-import type { GetProjectsParams } from '@apis/mainrecommendproject';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
+import { useAuth } from '@clerk/clerk-react';
 import { useProjectFilter } from '@hooks/useProjectFilters';
 import { useProjects } from '@hooks/useProjects';
-import { mapProjectItemToCard, type ProjectCardModel } from '@mappers/project';
+import { mapPositionsToRoles, mapProjectItemToCard, type ProjectCardModel } from '@mappers/project';
 import { buildParams } from '@mappers/projectFilters';
-import { useMemo } from 'react';
+import type { ProjectRole } from '@t/project/ui';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PROJECT_FILTERS, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 
 export default function ProjectSearchPage() {
+  const { getToken } = useAuth();
   const navigate = useNavigate();
   const handleProjectClick = (projectId: number | string) => {
     navigate(`/project/${projectId}`);
@@ -34,6 +37,29 @@ export default function ProjectSearchPage() {
     applyFilters,
     resetFilter,
   } = useProjectFilter();
+  type RecommendPreviewItem = {
+    id: string;
+    categoryLabel: string;
+    deadlineLabel: string;
+    title: string;
+    location: string;
+    period: string;
+    mode: string;
+    roles: ProjectRole[];
+  };
+
+  const [recommendedPreview, setRecommendedPreview] = useState<RecommendPreviewItem[]>(
+    RECOMMENDED_PROJECTS.map((project) => ({
+      id: project.id,
+      categoryLabel: project.categoryLabel,
+      deadlineLabel: project.deadlineLabel,
+      title: project.title,
+      location: project.location,
+      period: project.period,
+      mode: project.mode,
+      roles: [...PROJECT_ROLES],
+    })),
+  );
 
   const size = 10;
   const params = useMemo(() => buildParams({ ...applied, page, size }), [applied, page]);
@@ -44,6 +70,50 @@ export default function ProjectSearchPage() {
   const totalPages = data?.totalPages ?? 0;
 
   // console.log('project', projects);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchRecommendPreview = async () => {
+      try {
+        const token = await getToken();
+        if (!token || !isActive) return;
+        const result = await getRecommendProjectsPreview(4, token);
+        if (!isActive) return;
+        const mapped = result.map((item: RecommendProjectPreviewItem) => ({
+          id: String(item.projectId),
+          categoryLabel: item.projectFieldName,
+          deadlineLabel: item.categoryName,
+          title: item.title,
+          location: item.location,
+          period: `${item.durationMonths}개월`,
+          mode: item.modeName,
+          roles: mapPositionsToRoles(item.positions as never),
+        }));
+        setRecommendedPreview(mapped);
+      } catch {
+        if (isActive) {
+          setRecommendedPreview(
+            RECOMMENDED_PROJECTS.map((project) => ({
+              id: project.id,
+              categoryLabel: project.categoryLabel,
+              deadlineLabel: project.deadlineLabel,
+              title: project.title,
+              location: project.location,
+              period: project.period,
+              mode: project.mode,
+              roles: [...PROJECT_ROLES],
+            })),
+          );
+        }
+      }
+    };
+
+    void fetchRecommendPreview();
+    return () => {
+      isActive = false;
+    };
+  }, [getToken]);
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
@@ -64,7 +134,7 @@ export default function ProjectSearchPage() {
       </header>
 
       <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
-        {RECOMMENDED_PROJECTS.map((p) => (
+        {recommendedPreview.map((p) => (
           <ProjectSm
             key={p.id}
             categoryLabel={p.categoryLabel}
@@ -73,8 +143,8 @@ export default function ProjectSearchPage() {
             location={p.location}
             period={p.period}
             mode={p.mode}
-            roles={[...PROJECT_ROLES]}
-            bookmarked={p.bookmarked}
+            roles={p.roles}
+            bookmarked={false}
             onClick={() => handleProjectClick(p.id)}
           />
         ))}
