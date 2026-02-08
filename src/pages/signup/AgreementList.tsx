@@ -11,6 +11,18 @@ import BasicProfileSection from './BasicProfileSection';
 import AdditionalProfileSection from './AdditionalProfileSection';
 import GithubRepoSelectionSection from './GithubRepoSelectionSection';
 import ProfilePage from '@pages/login/profile-page';
+import TermsDetailScreen from '@pages/signup/TermsDetailScreen';
+import { TERMS_CONTENT, TERMS_IDS } from './terms-content';
+
+type BasicProfileData = {
+  nickname: string;
+  imageUrl: string | null;
+};
+
+type ProfileData = {
+  mainType: 'PM' | 'DEVELOPER';
+  categoryIds: number[];
+};
 
 type AgreementListProps = {
   onClose: () => void;
@@ -24,6 +36,15 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
   const [serviceAgreed, setServiceAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const [marketingAgreed, setMarketingAgreed] = useState(false);
+  const [activeTermsKey, setActiveTermsKey] = useState<keyof typeof TERMS_CONTENT | null>(null);
+  const [basicProfile, setBasicProfile] = useState<BasicProfileData>({
+    nickname: '',
+    imageUrl: null,
+  });
+  const [profileInfo, setProfileInfo] = useState<ProfileData>({
+    mainType: 'PM',
+    categoryIds: [],
+  });
   const [step, setStep] = useState<
     'agreements' | 'basicProfile' | 'profilePage' | 'additionalProfile' | 'signupComplete' | 'githubRepos'
   >('agreements');
@@ -68,22 +89,36 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
 
       <div className="absolute left-1/2 top-0 h-[6rem] w-screen -translate-x-1/2">
         <div className="mx-auto flex h-full max-w-[144rem] items-center px-[12rem]">
-          <Link to="/" className="flex-items-center gap-[0.4rem]">
+          <button
+            type="button"
+            onClick={() => {
+              sessionStorage.setItem('allow_main_once', 'true');
+              navigate('/');
+            }}
+            className="flex items-center gap-[0.4rem] cursor-pointer"
+            aria-label="메인으로 이동"
+          >
             {theme === 'dark' ? <LogoLight aria-hidden="true" /> : <LogoDark aria-hidden="true" />}
-          </Link>
+          </button>
         </div>
       </div>
       {step === 'basicProfile' ? (
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
           <BasicProfileSection
-            onNext={() => setStep('profilePage')}
+            onNext={(data) => {
+              setBasicProfile(data);
+              setStep('profilePage');
+            }}
             onBack={() => setStep('agreements')}
           />
         </div>
       ) : step === 'profilePage' ? (
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
           <ProfilePage
-            onNext={() => setStep('additionalProfile')}
+            onNext={(data) => {
+              setProfileInfo(data);
+              setStep('additionalProfile');
+            }}
             onBack={() => setStep('basicProfile')}
           />
         </div>
@@ -136,6 +171,17 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
           <AdditionalProfileSection
             onBack={() => setStep('profilePage')}
+            signupData={{
+              agreements: [
+                { termsId: TERMS_IDS.service, agreed: serviceAgreed },
+                { termsId: TERMS_IDS.privacy, agreed: privacyAgreed },
+                { termsId: TERMS_IDS.marketing, agreed: marketingAgreed },
+              ],
+              nickname: basicProfile.nickname,
+              imageUrl: basicProfile.imageUrl,
+              mainType: profileInfo.mainType,
+              categoryIds: profileInfo.categoryIds,
+            }}
             onNext={() => {
               if (loginProvider === 'github') {
                 setStep('signupComplete');
@@ -188,7 +234,14 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                     서비스 이용약관 동의 (필수)
                   </span>
                 </button>
-                <span className="text-[var(--ui-400)]">{'>'}</span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTermsKey('service')}
+                  className="text-[var(--ui-400)] hover:text-[var(--ui-600)]"
+                  aria-label="서비스 이용약관 보기"
+                >
+                  {'>'}
+                </button>
               </div>
 
               <div className="flex items-center justify-between gap-3">
@@ -208,7 +261,14 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                     개인정보 처리방침 동의 (필수)
                   </span>
                 </button>
-                <span className="text-[var(--ui-400)]">{'>'}</span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTermsKey('privacy')}
+                  className="text-[var(--ui-400)] hover:text-[var(--ui-600)]"
+                  aria-label="개인정보 처리방침 보기"
+                >
+                  {'>'}
+                </button>
               </div>
 
               <div className="flex items-center justify-between gap-3">
@@ -228,7 +288,14 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                     프로젝트 알림 수신 동의 (선택)
                   </span>
                 </button>
-                <span className="text-[var(--ui-400)]">{'>'}</span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTermsKey('marketing')}
+                  className="text-[var(--ui-400)] hover:text-[var(--ui-600)]"
+                  aria-label="프로젝트 알림 수신 동의 보기"
+                >
+                  {'>'}
+                </button>
               </div>
             </div>
           </div>
@@ -247,12 +314,18 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           >
             다음
           </button>
-          <button type="button" onClick={onClose} className="Body1 text-[var(--ui-400)]">
+          <button type="button" onClick={() => navigate('/login')} className="Body1 text-[var(--ui-400)]">
             돌아가기
           </button>
         </div>
       </div>
       )}
+      <TermsDetailScreen
+        open={activeTermsKey !== null}
+        title={activeTermsKey ? TERMS_CONTENT[activeTermsKey].title : ''}
+        content={activeTermsKey ? TERMS_CONTENT[activeTermsKey].content : ''}
+        onClose={() => setActiveTermsKey(null)}
+      />
     </div>
   );
 };

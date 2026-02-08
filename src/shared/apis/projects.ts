@@ -1,5 +1,5 @@
 import { buildQuery } from '@libs/queryString';
-import type { DurationRange, Position, ProjectField } from '../types/projects';
+import type { DurationRange, Position, ProjectField } from '../types/project/api';
 
 export type GetProjectsParams = {
   projectFields?: ProjectField[];
