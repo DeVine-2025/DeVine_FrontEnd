@@ -1,10 +1,11 @@
-import type { GetProjectsParams } from '@apis/projects';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
+import { useProjectFilter } from '@hooks/useProjectFilters';
 import { useProjects } from '@hooks/useProjects';
 import { mapProjectItemToCard, type ProjectCardModel } from '@mappers/project';
-import { useState } from 'react';
+import { buildParams } from '@mappers/projectFilters';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PROJECT_FILTERS, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 
@@ -14,26 +15,32 @@ export default function ProjectSearchPage() {
     navigate(`/project/${projectId}`);
   };
 
-  const [openFilter, setOpenFilter] = useState<null | (typeof PROJECT_FILTERS)[number]>(null);
-  const [domains, setDomains] = useState<string[]>([]);
-  const [expectedPeriods, setExpectedPeriods] = useState<string[]>([]);
-  const [projectTypes, setProjectTypes] = useState<string[]>([]);
-  const [techStacks, setTechStacks] = useState<string[]>([]);
+  const {
+    openFilter,
+    setOpenFilter,
+    projectTypes,
+    setProjectTypes,
+    domains,
+    setDomains,
+    expectedPeriods,
+    setExpectedPeriods,
+    techStacks,
+    setTechStacks,
+    applied,
+    page,
+    setPage,
+    applyFilters,
+    resetFilter,
+  } = useProjectFilter();
 
-  // 데이터 확인용
-  const params = {
-    projectFields: ['WEB'],
-    positions: ['FRONTEND'],
-    categoryIds: [1, 2],
-    techStackIds: [1, 3, 5],
-    durationRange: 'ONE_TO_THREE',
-    page: 1,
-    size: 10,
-  } satisfies GetProjectsParams;
+  const size = 10;
+
+  const params = useMemo(() => buildParams({ ...applied, page, size }), [applied, page]);
+  console.log('params', params);
 
   const { data, isLoading, isError, error } = useProjects(params);
-
   const projects: ProjectCardModel[] = data?.content?.map(mapProjectItemToCard) ?? [];
+  console.log('project', projects);
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
@@ -85,8 +92,8 @@ export default function ProjectSearchPage() {
         setExpectedPeriods={setExpectedPeriods}
         techStacks={techStacks}
         setTechStacks={setTechStacks}
-        onApply={(key) => console.log('apply', key)}
-        onReset={(key) => console.log('reset', key)}
+        onApply={() => applyFilters()}
+        onReset={(key) => resetFilter(key)}
       />
 
       {/* 프로젝트 리스트 */}

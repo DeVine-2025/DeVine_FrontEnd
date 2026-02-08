@@ -1,4 +1,13 @@
 export type ProjectField = 'WEB' | 'MOBILE' | 'AI' | 'GAME' | 'DATA' | 'BACKEND' | 'FRONTEND';
+export type Category =
+  | 'HEALTHCARE'
+  | 'FINANCE'
+  | 'ECOMMERCE'
+  | 'EDUCATION'
+  | 'SOCIAL'
+  | 'ENTERTAINMENT'
+  | 'AI'
+  | 'ETC';
 export type Position = 'BACKEND' | 'FRONTEND' | 'DESIGN' | 'PM' | 'IOS' | 'ANDROID';
 export type Mode = 'ONLINE' | 'OFFLINE' | 'HYBRID';
 export type DurationRange = 'UNDER_ONE' | 'ONE_TO_THREE' | 'THREE_TO_SIX' | 'SIX_PLUS';
@@ -46,4 +55,21 @@ export type PageResponse<T> = {
 
 export type GetProjectsResponse = {
   projects: PageResponse<ProjectItem>;
+};
+
+export type GetProjectsParams = {
+  projectField?: ProjectField;
+  category?: string;
+  position?: Position;
+  techstackName?: string;
+  durationRange?: DurationRange;
+  page?: number;
+  size?: number;
+};
+
+export type AppliedFilters = {
+  projectTypes: string[];
+  domains: string[];
+  expectedPeriods: string[];
+  techStacks: string[];
 };
