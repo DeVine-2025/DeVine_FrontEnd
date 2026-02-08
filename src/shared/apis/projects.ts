@@ -1,25 +1,15 @@
 import { buildQuery } from '@libs/queryString';
-import type { DurationRange, Position, ProjectField } from '@t/project/api';
-
-export type GetProjectsParams = {
-  projectFields?: ProjectField[];
-  categoryIds?: number[];
-  positions?: Position[];
-  techStackIds?: number[];
-  durationRange?: DurationRange;
-  page?: number; // 1부터 시작
-  size?: number;
-};
+import type { GetProjectsParams } from '@t/project/api';
 
 // 개발 시에는 상대 경로(/api) 사용 → Vite 프록시가 백엔드로 전달. 프로덕션에서는 VITE_API_BASE_URL 사용.
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
 
 export async function getProjects(params: GetProjectsParams, token: string, signal?: AbortSignal) {
   const qs = buildQuery({
-    projectFields: params.projectFields,
-    categoryIds: params.categoryIds,
-    positions: params.positions,
-    techStackIds: params.techStackIds,
+    projectField: params.projectField,
+    category: params.category,
+    position: params.position,
+    techstackName: params.techstackName,
     durationRange: params.durationRange,
     page: params.page ?? 1,
     size: params.size ?? 10,
