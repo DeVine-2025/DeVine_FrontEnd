@@ -36,13 +36,13 @@ export default function ProjectSearchPage() {
 
   const size = 10;
   const params = useMemo(() => buildParams({ ...applied, page, size }), [applied, page]);
-  console.log('params', params);
+  // console.log('params', params);
 
   const { data, isLoading, isError, error } = useProjects(params);
   const projects: ProjectCardModel[] = data?.content?.map(mapProjectItemToCard) ?? [];
   const totalPages = data?.totalPages ?? 0;
 
-  console.log('project', projects);
+  // console.log('project', projects);
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
