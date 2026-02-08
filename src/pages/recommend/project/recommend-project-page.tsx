@@ -125,7 +125,7 @@ const RecommendProjectPage = () => {
   }, [fetchList, page]);
 
   const handleProjectClick = (project: ProjectListItem) => {
-    navigate(`/project/${project.id}`, { state: { project: { ...project, roles: PROJECT_ROLES } } });
+    navigate(`/project/${project.id}`);
   };
 
   const handleApply = useCallback(
