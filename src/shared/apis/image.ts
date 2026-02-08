@@ -42,13 +42,14 @@ export async function createPresignedUrl(
   return data.result;
 }
 
-export async function confirmImageUpload(imageId: number, token?: string) {
+export async function confirmImageUpload(imageId: number, imageUrl: string, token?: string) {
   const res = await fetch(`https://api.devine.kr/api/v1/images/confirm/${imageId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
+    body: JSON.stringify({ imageUrl }),
   });
 
   if (!res.ok) {

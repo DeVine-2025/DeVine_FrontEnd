@@ -102,7 +102,7 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
       if (!uploadRes.ok) {
         throw new Error(`upload failed: ${uploadRes.status}`);
       }
-      const confirmed = await confirmImageUpload(presigned.imageId, token ?? undefined);
+      const confirmed = await confirmImageUpload(presigned.imageId, presigned.imageUrl, token ?? undefined);
       setImageUrl(confirmed?.imageUrl ?? presigned.imageUrl ?? null);
     } catch {
       setImageUrl(null);
