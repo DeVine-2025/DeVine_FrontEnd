@@ -1,8 +1,10 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useThemeStore } from '@store/theme';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
+import { getProjectDetail } from '@apis/project-detail';
+import type { ProjectItem, Position, TechStack } from '@t/project/api';
 import {
   PROJECT_LIST,
   RECOMMENDED_PROJECTS,
@@ -21,12 +23,20 @@ type ProjectDetailInfo = {
   period?: string;
   mode?: string;
   dueLabel?: string;
+  summary?: string;
+  creatorName?: string;
+  imageUrls?: string[];
+  roles?: ProjectRoleInfo[];
 };
 
-const MOCK_TECH_STACK = ['Javascript', 'Typescript', 'React', 'Vue.js', 'Next.js', 'Svelte'];
-const MOCK_INFRA_STACK = ['AWS', 'Firebase', 'Docker', 'Kubernetes'];
-const MOCK_SUMMARY =
-  '프로젝트 소개 텍스트가 들어가는 자리입니다. 프로젝트 소개 텍스트가 들어가는 자리입니다. 프로젝트 소개 텍스트가 들어가는 자리입니다.';
+type ProjectRoleInfo = {
+  key: string;
+  label: string;
+  tone: BadgeTone;
+  current: number;
+  total: number;
+  techStacks: string[];
+};
 
 const toProjectDetailInfo = (project: RecommendedProject | ProjectListItem): ProjectDetailInfo => ({
   id: project.id,
@@ -38,6 +48,59 @@ const toProjectDetailInfo = (project: RecommendedProject | ProjectListItem): Pro
   mode: project.mode,
   dueLabel: 'dueLabel' in project ? project.dueLabel : undefined,
 });
+
+const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => {
+  const summary = 'content' in project ? project.content : undefined;
+  const imageUrls =
+    'imageUrls' in project && Array.isArray(project.imageUrls) ? project.imageUrls : [];
+  const recruitments =
+    'recruitments' in project && Array.isArray(project.recruitments)
+      ? project.recruitments
+      : project.positions ?? [];
+
+  return {
+    id: String(project.projectId),
+    categoryLabel: project.projectFieldName,
+    deadlineLabel: project.categoryName,
+    title: project.title,
+    location: project.location,
+    period: `${project.durationMonths}개월`,
+    mode: project.modeName,
+    dueLabel: project.recruitmentDeadline,
+    summary,
+    creatorName: project.creatorName,
+    imageUrls: imageUrls.filter(Boolean),
+    roles: recruitments.map((recruitment) => ({
+      key: recruitment.position,
+      label:
+        ('positionName' in recruitment && recruitment.positionName) ||
+        positionLabelByKey[recruitment.position] ||
+        recruitment.position,
+      tone: badgeToneByPosition[recruitment.position] ?? 'blue',
+      current: recruitment.currentCount,
+      total: recruitment.count,
+      techStacks: (recruitment.techStacks ?? []).map((stack: TechStack) => stack.techStackName),
+    })),
+  };
+};
+
+const badgeToneByPosition: Partial<Record<Position, BadgeTone>> = {
+  BACKEND: 'green',
+  FRONTEND: 'blue',
+  DESIGN: 'pink',
+  PM: 'blue',
+  IOS: 'orange',
+  ANDROID: 'orange',
+};
+
+const positionLabelByKey: Partial<Record<Position, string>> = {
+  BACKEND: '백엔드',
+  FRONTEND: '프론트엔드',
+  DESIGN: '디자인',
+  PM: 'PM',
+  IOS: 'iOS',
+  ANDROID: '안드로이드',
+};
 
 type RoleBadgeProps = {
   label: string;
@@ -57,29 +120,69 @@ const ProjectDetailPage = () => {
   const navigate = useNavigate();
   const { theme } = useThemeStore();
   const { isLoaded, isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [apiProject, setApiProject] = useState<ProjectDetailInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!projectId) return;
+    let isActive = true;
+
+    const fetchProject = async () => {
+      setIsLoading(true);
+      try {
+        const numericId = Number(projectId);
+        if (Number.isNaN(numericId)) {
+          if (isActive) setApiProject(null);
+          return;
+        }
+        const token = await getToken();
+        const result = await getProjectDetail(numericId, token);
+        if (!isActive) return;
+        setApiProject(result ? toProjectDetailInfoFromApi(result) : null);
+      } catch {
+        if (isActive) {
+          setApiProject(null);
+        }
+      } finally {
+        if (isActive) setIsLoading(false);
+      }
+    };
+
+    void fetchProject();
+    return () => {
+      isActive = false;
+    };
+  }, [projectId]);
 
   const fallbackProject =
     PROJECT_LIST.find((project) => project.id === projectId) ??
     RECOMMENDED_PROJECTS.find((project) => project.id === projectId);
 
-  const project = fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined;
-  if (!projectId || !project) {
+  const project =
+    apiProject ?? (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
+  if (!projectId || (!project && !isLoading)) {
     return <div>프로젝트 정보를 찾을 수 없습니다.</div>;
   }
+  if (!project) {
+    return <div>프로젝트 정보를 불러오는 중입니다.</div>;
+  }
 
-  const roleOptions = useMemo(
-    () => [
+  const roleOptions = useMemo(() => {
+    if (project?.roles && project.roles.length > 0) {
+      return project.roles.map((role) => ({ key: role.key, label: role.label }));
+    }
+    return [
       { key: 'frontend', label: '프론트엔드' },
       { key: 'backend', label: '백엔드' },
       { key: 'infra', label: '인프라' },
-    ],
-    [],
-  );
+    ];
+  }, [project?.roles]);
   const selectedRoleLabel =
     roleOptions.find((option) => option.key === selectedRole)?.label ?? '포지션';
   const isDark = theme === 'dark';
@@ -135,11 +238,26 @@ const ProjectDetailPage = () => {
       <section className="flex flex-col gap-8 rounded-3xl bg-card-bg p-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
           <div className="flex min-w-0 flex-col gap-6">
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-              <div className="h-[160px] w-full rounded-2xl bg-card-section-bg" />
-              <div className="h-[160px] w-full rounded-2xl bg-card-section-bg" />
-              <div className="h-[160px] w-full rounded-2xl bg-card-section-bg" />
-            </div>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, index) => {
+                  const imageUrl = project.imageUrls?.[index];
+                  return (
+                    <div
+                      key={`project-image-${index}`}
+                      className="h-[160px] w-full overflow-hidden rounded-2xl bg-card-section-bg"
+                    >
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={`${project.title} 이미지 ${index + 1}`}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
 
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3">
@@ -169,7 +287,9 @@ const ProjectDetailPage = () => {
                 </div>
                 <div className="flex items-center gap-3 text-card-muted">
                   <div className="h-12 w-12 rounded-full bg-card-section-bg" />
-                  <span className="text-xl font-semibold text-[var(--ui-1000)]">닉네임</span>
+                  <span className="text-xl font-semibold text-[var(--ui-1000)]">
+                    {project.creatorName ?? '닉네임'}
+                  </span>
                 </div>
                 {hasApplied && (
                   <button
@@ -285,33 +405,29 @@ const ProjectDetailPage = () => {
               >
                 모집 분야
               </h2>
-              <div className="flex items-center gap-3">
-                <RoleBadge label="프론트엔드" tone="blue" />
-                <span className="text-card-muted text-sm">2/6명</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {MOCK_TECH_STACK.map((tech) => renderTechBadge(tech, tech))}
-              </div>
-            </section>
-
-            <section className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <RoleBadge label="백엔드" tone="green" />
-                <span className="text-card-muted text-sm">2/6명</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {MOCK_TECH_STACK.map((tech) => renderTechBadge(tech, `be-${tech}`))}
-              </div>
-            </section>
-
-            <section className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <RoleBadge label="인프라" tone="pink" />
-                <span className="text-card-muted text-sm">2/6명</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {MOCK_INFRA_STACK.map((tech) => renderTechBadge(tech, `infra-${tech}`))}
-              </div>
+              {project.roles?.length ? (
+                project.roles.map((role) => (
+                  <div key={role.key} className="flex flex-col gap-4">
+                    <div className="flex items-center gap-3">
+                      <RoleBadge label={role.label} tone={role.tone} />
+                      <span className="text-card-muted text-sm">
+                        {role.current}/{role.total}명
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {role.techStacks.length > 0 ? (
+                        role.techStacks.map((tech) =>
+                          renderTechBadge(tech, `${role.key}-${tech}`),
+                        )
+                      ) : (
+                        <span className="text-sm text-card-muted">기술 스택 정보 없음</span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <span className="text-sm text-card-muted">모집 정보가 없습니다.</span>
+              )}
             </section>
           </div>
           <div className="hidden lg:block" />
@@ -325,8 +441,19 @@ const ProjectDetailPage = () => {
             <span className="h-[2px] w-35 bg-[var(--color-card-title)]" />
             <span className="h-[1.5px] flex-1 bg-[var(--color-card-border)]" />
           </div>
-          <p className="max-w-[880px] text-card-muted text-lg leading-relaxed">{MOCK_SUMMARY}</p>
-          <div className="h-[320px] w-full max-w-[420px] rounded-2xl bg-card-section-bg" />
+          <p className="max-w-[880px] text-card-muted text-lg leading-relaxed">
+            {project.summary ?? '프로젝트 소개 정보가 없습니다.'}
+          </p>
+          <div className="h-[320px] w-full max-w-[420px] overflow-hidden rounded-2xl bg-card-section-bg">
+            {project.imageUrls?.[0] ? (
+              <img
+                src={project.imageUrls[0]}
+                alt={`${project.title} 소개 이미지`}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            ) : null}
+          </div>
         </div>
         <div className="hidden lg:block" />
       </section>
