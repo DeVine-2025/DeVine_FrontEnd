@@ -23,6 +23,7 @@ import TablerIconUnderlineHover from '@assets/icons/create-project/tabler-icon-u
 import UnderVectorIcon from '@assets/icons/create-project/under-vector.svg?react';
 import XIcon from '@assets/icons/create-project/x.svg?react';
 import { useAuth } from '@clerk/clerk-react';
+import DatePickerPopover from '@components/common/DatePickerPopover';
 import PositionBasedTechStackDropdown from '@components/common/PositionBasedTechStackDropdown';
 import SelectDropdown from '@components/common/SelectDropdown';
 import {
@@ -252,6 +253,11 @@ const ProjectCreatePage = () => {
   const [imagePreviews, setImagePreviews] = useState<Array<string | null>>([null, null, null]);
   const [submitLoading, setSubmitLoading] = useState(false);
   const editorImageInputRef = useRef<HTMLInputElement | null>(null);
+
+  const minDeadline = useMemo(() => {
+    const t = new Date();
+    return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  }, []);
 
   const onPickImage = useMemo(() => {
     return (index: number) => (e: ChangeEvent<HTMLInputElement>) => {
@@ -568,10 +574,11 @@ const ProjectCreatePage = () => {
 
                     <div className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full">
                       <Label>모집 마감일</Label>
-                      <InputField
-                        placeholder="YYYY.MM.DD"
+                      <DatePickerPopover
                         value={deadlineText}
                         onChange={setDeadlineText}
+                        min={minDeadline}
+                        placeholder="연도-월-일"
                       />
                     </div>
                   </div>

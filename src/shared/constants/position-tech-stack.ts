@@ -209,4 +209,3 @@ const TECH_BADGE_BY_NAME = new Map<string, Extract<TechStackChip, { off: string;
 export function getTechBadgeByName(name: string) {
   return TECH_BADGE_BY_NAME.get(normalizeTechKey(name));
 }
-
