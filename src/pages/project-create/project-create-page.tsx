@@ -1,40 +1,43 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ComponentType, ChangeEvent, SVGProps } from 'react';
-import { EditorContent, useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
+import { createProject } from '@apis/projects';
 import PlusIcon from '@assets/icons/create-project/plus.svg?react';
-import UnderVectorIcon from '@assets/icons/create-project/under-vector.svg?react';
+import TablerIconBold from '@assets/icons/create-project/tabler-icon-bold.svg?react';
+import TablerIconBoldHover from '@assets/icons/create-project/tabler-icon-bold-hover.svg?react';
 import TablerIconH1 from '@assets/icons/create-project/tabler-icon-h-1.svg?react';
 import TablerIconH1Hover from '@assets/icons/create-project/tabler-icon-h-1-hover.svg?react';
 import TablerIconH2 from '@assets/icons/create-project/tabler-icon-h-2.svg?react';
 import TablerIconH2Hover from '@assets/icons/create-project/tabler-icon-h-2-hover.svg?react';
-import TablerIconBold from '@assets/icons/create-project/tabler-icon-bold.svg?react';
-import TablerIconBoldHover from '@assets/icons/create-project/tabler-icon-bold-hover.svg?react';
 import TablerIconItalic from '@assets/icons/create-project/tabler-icon-italic.svg?react';
 import TablerIconItalicHover from '@assets/icons/create-project/tabler-icon-italic-hover.svg?react';
+import TablerIconLink from '@assets/icons/create-project/tabler-icon-link.svg?react';
+import TablerIconLinkHover from '@assets/icons/create-project/tabler-icon-link-hover.svg?react';
+import TablerIconList from '@assets/icons/create-project/tabler-icon-list.svg?react';
+import TablerIconListHover from '@assets/icons/create-project/tabler-icon-list-hover.svg?react';
+import TablerIconListNumbers from '@assets/icons/create-project/tabler-icon-list-numbers.svg?react';
+import TablerIconListNumbersHover from '@assets/icons/create-project/tabler-icon-list-numbers-hover.svg?react';
+import TablerIconPhoto from '@assets/icons/create-project/tabler-icon-photo.svg?react';
+import TablerIconPhotoHover from '@assets/icons/create-project/tabler-icon-photo-hover.svg?react';
 import TablerIconStrikethrough from '@assets/icons/create-project/tabler-icon-strikethrough.svg?react';
 import TablerIconStrikethroughHover from '@assets/icons/create-project/tabler-icon-strikethrough-hover.svg?react';
 import TablerIconUnderline from '@assets/icons/create-project/tabler-icon-underline.svg?react';
 import TablerIconUnderlineHover from '@assets/icons/create-project/tabler-icon-underline-hover.svg?react';
-import TablerIconListNumbers from '@assets/icons/create-project/tabler-icon-list-numbers.svg?react';
-import TablerIconListNumbersHover from '@assets/icons/create-project/tabler-icon-list-numbers-hover.svg?react';
-import TablerIconList from '@assets/icons/create-project/tabler-icon-list.svg?react';
-import TablerIconListHover from '@assets/icons/create-project/tabler-icon-list-hover.svg?react';
-import TablerIconPhoto from '@assets/icons/create-project/tabler-icon-photo.svg?react';
-import TablerIconPhotoHover from '@assets/icons/create-project/tabler-icon-photo-hover.svg?react';
-import TablerIconLink from '@assets/icons/create-project/tabler-icon-link.svg?react';
-import TablerIconLinkHover from '@assets/icons/create-project/tabler-icon-link-hover.svg?react';
+import UnderVectorIcon from '@assets/icons/create-project/under-vector.svg?react';
 import XIcon from '@assets/icons/create-project/x.svg?react';
-import SelectDropdown from '@components/common/SelectDropdown';
+import { useAuth } from '@clerk/clerk-react';
 import PositionBasedTechStackDropdown from '@components/common/PositionBasedTechStackDropdown';
+import SelectDropdown from '@components/common/SelectDropdown';
 import {
-  TECH_STACK_LABEL_BY_KEY,
-  type PositionKey,
   getKeysByPosition,
+  type PositionKey,
+  TECH_STACK_LABEL_BY_KEY,
 } from '@constants/position-tech-stack';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+import Underline from '@tiptap/extension-underline';
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import type { ChangeEvent, ComponentType, SVGProps } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type SvgIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -48,19 +51,11 @@ type RecruitmentItem = {
 const makeId = () => `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 function Label({ children }: { children: string }) {
-  return (
-    <p className="Headline1 font-medium text-[var(--ui-700)]">
-      {children}
-    </p>
-  );
+  return <p className="Headline1 font-medium text-[var(--ui-700)]">{children}</p>;
 }
 
 function SubLabel({ children }: { children: string }) {
-  return (
-    <p className="Label1 font-medium text-[var(--ui-700)]">
-      {children}
-    </p>
-  );
+  return <p className="Label1 font-medium text-[var(--ui-700)]">{children}</p>;
 }
 
 function DropdownLike({ placeholder }: { placeholder: string }) {
@@ -70,7 +65,7 @@ function DropdownLike({ placeholder }: { placeholder: string }) {
       className="relative flex h-[44px] w-full items-center rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[12px] text-left"
     >
       <span className="Caption1 text-[var(--ui-400)]">{placeholder}</span>
-      <span className="absolute right-[10px] top-1/2 -translate-y-1/2 inline-flex h-[28px] w-[28px] items-center justify-center text-[var(--ui-400)]">
+      <span className="-translate-y-1/2 absolute top-1/2 right-[10px] inline-flex h-[28px] w-[28px] items-center justify-center text-[var(--ui-400)]">
         <UnderVectorIcon aria-hidden className="h-[9px] w-[16px]" />
       </span>
     </button>
@@ -85,7 +80,7 @@ function InputLike({ placeholder, value }: { placeholder: string; value?: string
       onChange={() => {
         // (호환용)
       }}
-      className="h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] Caption1 font-medium tracking-[0.0912px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)] transition-colors focus:border-[#4E49FF] focus:outline-none"
+      className="Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:border-[#4E49FF] focus:outline-none"
     />
   );
 }
@@ -105,7 +100,7 @@ function InputField({
       value={value}
       placeholder={placeholder}
       onChange={handleChange}
-      className="h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] Caption1 font-medium tracking-[0.0912px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)] transition-colors focus:border-[#4E49FF] focus:outline-none"
+      className="Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:border-[#4E49FF] focus:outline-none"
     />
   );
 }
@@ -130,13 +125,7 @@ function ImageSlot({
       htmlFor={inputId}
       className="relative block h-[166px] w-[296px] cursor-pointer overflow-hidden rounded-[12px] bg-ui-50"
     >
-      <input
-        id={inputId}
-        type="file"
-        accept="image/*"
-        className="sr-only"
-        onChange={onChange}
-      />
+      <input id={inputId} type="file" accept="image/*" className="sr-only" onChange={onChange} />
 
       {previewUrl ? (
         <>
@@ -154,17 +143,17 @@ function ImageSlot({
               e.stopPropagation();
               onRemove?.();
             }}
-            className="absolute right-[10px] top-[10px] inline-flex h-[24px] w-[24px] items-center justify-center rounded-full border border-ui-200 bg-ui-bg/70 text-ui-700 backdrop-blur-[2px] hover:bg-ui-bg/85"
+            className="absolute top-[10px] right-[10px] inline-flex h-[24px] w-[24px] items-center justify-center rounded-full border border-ui-200 bg-ui-bg/70 text-ui-700 backdrop-blur-[2px] hover:bg-ui-bg/85"
           >
             <XIcon aria-hidden className="h-[10px] w-[10px]" />
           </button>
         </>
       ) : (
         <>
-          <p className="Body1 absolute left-1/2 top-[31px] w-[150px] -translate-x-1/2 text-center font-medium text-ui-400">
+          <p className="Body1 -translate-x-1/2 absolute top-[31px] left-1/2 w-[150px] text-center font-medium text-ui-400">
             {label}
           </p>
-          <div className="absolute left-1/2 top-[75px] h-[60px] w-[60px] -translate-x-1/2 overflow-hidden rounded-full flex-row-center">
+          <div className="-translate-x-1/2 absolute top-[75px] left-1/2 h-[60px] w-[60px] flex-row-center overflow-hidden rounded-full">
             <PlusIcon aria-hidden className="h-full w-full" />
           </div>
         </>
@@ -205,7 +194,48 @@ function ToolbarButton({
   );
 }
 
+const projectFieldMap: Record<string, string> = {
+  웹: 'WEB',
+  '모바일/앱': 'MOBILE',
+  게임: 'GAME',
+  블록체인: 'GAME',
+  기타: 'WEB',
+};
+const modeMap: Record<string, string> = {
+  온라인: 'ONLINE',
+  오프라인: 'OFFLINE',
+  '온/오프라인': 'HYBRID',
+};
+const positionMap: Record<string, string> = {
+  프론트엔드: 'FRONTEND',
+  백엔드: 'BACKEND',
+  인프라: 'BACKEND',
+};
+const durationMonthsMap: Record<string, number> = {
+  '1개월 이하': 1,
+  '1-3개월': 2,
+  '3-6개월': 4,
+  '6개월 이상': 6,
+};
+/** 도메인(한글) → POST /api/v1/projects category enum */
+const domainToCategory: Record<string, string> = {
+  헬스케어: 'HEALTHCARE',
+  핀테크: 'FINTECH',
+  이커머스: 'ECOMMERCE',
+  교육: 'EDUCATION',
+  '소셜/커뮤니티': 'SOCIAL',
+  엔터테인먼트: 'ENTERTAINMENT',
+  'AI/데이터': 'AI',
+  기타: 'OTHER',
+};
+function toTechStacksEnum(keys: string[]): string[] {
+  return keys.map((k) => k.trim().replace(/\s+/g, '').replace(/[^0-9a-zA-Z]/g, '').toUpperCase()).filter(Boolean);
+}
+
 const ProjectCreatePage = () => {
+  const isDev = Boolean((import.meta as any).env?.DEV);
+  const { getToken } = useAuth();
+  const navigate = useNavigate();
   const [locationText, setLocationText] = useState('');
   const [deadlineText, setDeadlineText] = useState('');
   const [projectTitle, setProjectTitle] = useState('');
@@ -220,6 +250,7 @@ const ProjectCreatePage = () => {
   const [techStack, setTechStack] = useState<string[]>([]);
   const [recruitments, setRecruitments] = useState<RecruitmentItem[]>([]);
   const [imagePreviews, setImagePreviews] = useState<Array<string | null>>([null, null, null]);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const editorImageInputRef = useRef<HTMLInputElement | null>(null);
 
   const onPickImage = useMemo(() => {
@@ -355,6 +386,88 @@ const ProjectCreatePage = () => {
     editor.chain().focus().extendMarkRange('link').setLink({ href: next }).run();
   };
 
+  const handleSubmit = async () => {
+    if (isDev) console.log('[project-create] handleSubmit called');
+    const token = await getToken();
+    if (!token) {
+      if (isDev) console.log('[project-create] blocked: no token');
+      alert('로그인이 필요합니다.');
+      return;
+    }
+    if (!projectTitle.trim()) {
+      if (isDev) console.log('[project-create] blocked: empty title');
+      alert('프로젝트 제목을 입력해주세요.');
+      return;
+    }
+    if (recruitments.length === 0) {
+      if (isDev) console.log('[project-create] blocked: no recruitments');
+      alert('모집 분야를 1개 이상 등록해주세요.');
+      return;
+    }
+    setSubmitLoading(true);
+    try {
+      if (isDev) {
+        console.groupCollapsed('[project-create] submit');
+        console.log('projectTitle', projectTitle);
+        console.log('projectType', projectType);
+        console.log('progressType', progressType);
+        console.log('progressPeriod', progressPeriod);
+        console.log('locationText', locationText);
+        console.log('deadlineText', deadlineText);
+        console.log('recruitments(ui)', recruitments);
+        console.log('techStack(keys)', techStack);
+      }
+      const raw = deadlineText.trim();
+      let recruitmentDeadline = '2026-12-31';
+      if (raw) {
+        const normalized = raw.replace(/\./g, '-');
+        const d = new Date(normalized);
+        if (!Number.isNaN(d.getTime())) recruitmentDeadline = d.toISOString().slice(0, 10);
+      }
+      const body = {
+        projectField: projectFieldMap[projectType ?? ''] ?? 'WEB',
+        category: domainToCategory[domain ?? ''] ?? 'OTHER',
+        mode: modeMap[progressType ?? ''] ?? 'ONLINE',
+        durationMonths: durationMonthsMap[progressPeriod ?? ''] ?? 1,
+        location: locationText.trim() || '미정',
+        recruitmentDeadline,
+        recruitments: recruitments.map((r) => ({
+          position: positionMap[r.positionLabel] ?? 'BACKEND',
+          count: Number(r.countLabel) || 1,
+          techStacks: r.techStackKeys.length > 0 ? toTechStacksEnum(r.techStackKeys) : ['BACKEND'],
+        })),
+        title: projectTitle.trim(),
+        content: projectContent || '',
+        imageIds: [],
+      };
+      if (isDev) {
+        console.log('createProject body(final)', body);
+      }
+      const result = await createProject(body, token);
+      alert(`등록 완료 (projectId: ${result.projectId})`);
+      navigate(`/project/${result.projectId}`);
+    } catch (e) {
+      if (isDev) {
+        console.error('[project-create] submit failed', e);
+      }
+      const message = e instanceof Error ? e.message : '등록에 실패했습니다.';
+      // 백엔드가 "가입되지 않은 사용자" 등을 반환하면 → Clerk에는 있지만 백엔드 회원 DB에 없음.
+      // 해결: 회원가입 완료 시 백엔드 회원 등록 API를 호출하거나, 백엔드에서 Clerk JWT로 자동 회원 생성 필요.
+      const needSignup =
+        /가입|등록|미등록|사용자|member|unauthorized/i.test(message);
+      const needPm = /PM|권한|프로젝트를 생성/i.test(message);
+      const alertMessage = needSignup
+        ? `${message}\n\n(백엔드에 회원으로 등록되어 있지 않을 수 있습니다. 회원가입 완료 후 다시 시도해 주세요.)`
+        : needPm
+          ? `${message}\n\n(메인 권한을 PM으로 설정한 뒤 시도해 주세요.)`
+          : message;
+      alert(alertMessage);
+    } finally {
+      if (isDev) console.groupEnd();
+      setSubmitLoading(false);
+    }
+  };
+
   return (
     <div className="-mx-6 -my-8">
       {/* 상단 */}
@@ -368,7 +481,7 @@ const ProjectCreatePage = () => {
       </section>
 
       {/* 본문 */}
-      <section className="relative left-1/2 w-screen -translate-x-1/2 bg-[var(--ui-50)] py-[64px]">
+      <section className="-translate-x-1/2 relative left-1/2 w-screen bg-[var(--ui-50)] py-[64px]">
         <div className="mx-auto w-full max-w-[1018px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-6 py-[40px]">
           <div className="mx-auto w-full max-w-[922px]">
             <div className="flex flex-col gap-[64px]">
@@ -446,12 +559,20 @@ const ProjectCreatePage = () => {
 
                     <div className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full">
                       <Label>진행 장소</Label>
-                      <InputField placeholder="서울시 중구" value={locationText} onChange={setLocationText} />
+                      <InputField
+                        placeholder="서울시 중구"
+                        value={locationText}
+                        onChange={setLocationText}
+                      />
                     </div>
 
                     <div className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full">
                       <Label>모집 마감일</Label>
-                      <InputField placeholder="YYYY.MM.DD" value={deadlineText} onChange={setDeadlineText} />
+                      <InputField
+                        placeholder="YYYY.MM.DD"
+                        value={deadlineText}
+                        onChange={setDeadlineText}
+                      />
                     </div>
                   </div>
 
@@ -506,16 +627,14 @@ const ProjectCreatePage = () => {
                             >
                               {techStack.length ? (
                                 <span className="Caption1 w-[calc(100%-36px)] truncate font-medium text-ui-900">
-                                  {techStack
-                                    .map((k) => TECH_STACK_LABEL_BY_KEY[k] ?? k)
-                                    .join(', ')}
+                                  {techStack.map((k) => TECH_STACK_LABEL_BY_KEY[k] ?? k).join(', ')}
                                 </span>
                               ) : (
                                 <span className="Caption1 text-ui-400">
                                   {positionKey ? '기술 스택' : '포지션을 먼저 선택해주세요'}
                                 </span>
                               )}
-                              <span className="absolute right-[10px] top-1/2 -translate-y-1/2 inline-flex h-[28px] w-[28px] items-center justify-center text-ui-400">
+                              <span className="-translate-y-1/2 absolute top-1/2 right-[10px] inline-flex h-[28px] w-[28px] items-center justify-center text-ui-400">
                                 <UnderVectorIcon
                                   aria-hidden
                                   className={`h-[9px] w-[16px] transition-transform duration-150 ${
@@ -557,7 +676,7 @@ const ProjectCreatePage = () => {
 
                       <div className="h-[140px] w-full rounded-[16px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[12px]">
                         {recruitments.length === 0 ? (
-                          <p className="Caption1 tracking-[0.0912px] text-[var(--ui-300)]">
+                          <p className="Caption1 text-[var(--ui-300)] tracking-[0.0912px]">
                             아직 등록된 모집 분야가 없습니다. 위에서 정보를 입력해 주세요.
                           </p>
                         ) : (
@@ -640,7 +759,7 @@ const ProjectCreatePage = () => {
                     <Label>프로젝트 내용</Label>
 
                     <div className="w-full overflow-hidden rounded-[12px] bg-[var(--ui-50)]">
-                      <div className="flex h-[48px] items-center border-b border-[var(--ui-300)] px-[14px]">
+                      <div className="flex h-[48px] items-center border-[var(--ui-300)] border-b px-[14px]">
                         <div className="flex items-center gap-[22px]">
                           <div className="flex items-center gap-[8px]">
                             <ToolbarButton
@@ -648,14 +767,18 @@ const ProjectCreatePage = () => {
                               HoverIcon={TablerIconH1Hover}
                               label="H1"
                               active={!!editor?.isActive('heading', { level: 1 })}
-                              onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                              onClick={() =>
+                                editor?.chain().focus().toggleHeading({ level: 1 }).run()
+                              }
                             />
                             <ToolbarButton
                               Icon={TablerIconH2}
                               HoverIcon={TablerIconH2Hover}
                               label="H2"
                               active={!!editor?.isActive('heading', { level: 2 })}
-                              onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                              onClick={() =>
+                                editor?.chain().focus().toggleHeading({ level: 2 }).run()
+                              }
                             />
                           </div>
                           <div className="flex items-center gap-[8px]">
@@ -738,7 +861,7 @@ const ProjectCreatePage = () => {
                         {editor ? (
                           <>
                             {editor.isEmpty ? (
-                              <p className="Caption1 pointer-events-none absolute left-[16px] top-[16px] font-medium tracking-[0.0912px] text-ui-300">
+                              <p className="Caption1 pointer-events-none absolute top-[16px] left-[16px] font-medium text-ui-300 tracking-[0.0912px]">
                                 프로젝트 내용을 입력해주세요.
                               </p>
                             ) : null}
@@ -752,7 +875,9 @@ const ProjectCreatePage = () => {
                   <div className="flex w-full justify-center pt-[8px]">
                     <button
                       type="button"
-                      className="Body1 group relative h-[52px] w-[292px] overflow-hidden rounded-[12px] bg-[#4E49FF] font-medium text-white transition-transform duration-200 ease-out hover:-translate-y-[1px] hover:shadow-[0px_10px_24px_rgba(78,73,255,0.25)] active:translate-y-0 active:shadow-none"
+                      disabled={submitLoading}
+                      onClick={handleSubmit}
+                      className="Body1 group hover:-translate-y-[1px] relative h-[52px] w-[292px] overflow-hidden rounded-[12px] bg-[#4E49FF] font-medium text-white transition-transform duration-200 ease-out hover:shadow-[0px_10px_24px_rgba(78,73,255,0.25)] active:translate-y-0 active:shadow-none disabled:pointer-events-none disabled:opacity-60"
                     >
                       <span
                         aria-hidden
@@ -764,9 +889,11 @@ const ProjectCreatePage = () => {
                       />
                       <span
                         aria-hidden
-                        className="pointer-events-none absolute -left-[40%] top-0 h-full w-[40%] -skew-x-12 bg-white/20 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:translate-x-[380%] group-hover:opacity-100"
+                        className="-left-[40%] -skew-x-12 pointer-events-none absolute top-0 h-full w-[40%] bg-white/20 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:translate-x-[380%] group-hover:opacity-100"
                       />
-                      <span className="relative z-10">등록하기</span>
+                      <span className="relative z-10">
+                        {submitLoading ? '등록 중...' : '등록하기'}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -780,4 +907,3 @@ const ProjectCreatePage = () => {
 };
 
 export default ProjectCreatePage;
-
