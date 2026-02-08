@@ -1,14 +1,24 @@
 import { buildQuery } from '@libs/queryString';
-import type { GetProjectsParams } from '@t/project/api';
+import type { DurationRange, Position, ProjectField } from '@t/project/api';
+
+export type GetProjectsParams = {
+  projectFields?: ProjectField[];
+  categoryIds?: number[];
+  positions?: Position[];
+  techStackIds?: number[];
+  durationRange?: DurationRange;
+  page?: number; // 1부터 시작
+  size?: number;
+};
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 export async function getProjects(params: GetProjectsParams, token: string, signal?: AbortSignal) {
   const qs = buildQuery({
-    projectField: params.projectField,
-    category: params.category,
-    position: params.position,
-    techstackName: params.techstackName,
+    projectFields: params.projectFields,
+    categoryIds: params.categoryIds,
+    positions: params.positions,
+    techStackIds: params.techStackIds,
     durationRange: params.durationRange,
     page: params.page ?? 1,
     size: params.size ?? 10,
