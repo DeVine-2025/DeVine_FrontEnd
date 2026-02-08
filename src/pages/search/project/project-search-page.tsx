@@ -1,3 +1,4 @@
+import Pagination from '@components/common/Pagination';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
@@ -34,12 +35,13 @@ export default function ProjectSearchPage() {
   } = useProjectFilter();
 
   const size = 10;
-
   const params = useMemo(() => buildParams({ ...applied, page, size }), [applied, page]);
   console.log('params', params);
 
   const { data, isLoading, isError, error } = useProjects(params);
   const projects: ProjectCardModel[] = data?.content?.map(mapProjectItemToCard) ?? [];
+  const totalPages = data?.totalPages ?? 0;
+
   console.log('project', projects);
 
   return (
@@ -107,6 +109,8 @@ export default function ProjectSearchPage() {
           />
         ))}
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
     </section>
   );
 }
