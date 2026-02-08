@@ -1,4 +1,5 @@
 import Pagination from '@components/common/Pagination';
+import type { GetProjectsParams } from '@apis/mainrecommendproject';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
