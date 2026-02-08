@@ -4,6 +4,7 @@ import { useThemeStore } from '@store/theme';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { getProjectDetail } from '@apis/project-detail';
+import { applyProject } from '@apis/apply';
 import type { ProjectItem, Position, TechStack } from '@t/project/api';
 import {
   PROJECT_LIST,
@@ -92,7 +93,9 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
         current: recruitment.currentCount ?? 0,
         total: recruitment.count ?? 0,
         techStacks: Array.isArray(recruitment.techStacks)
-          ? recruitment.techStacks.map((stack) => stack.techStackName)
+          ? recruitment.techStacks
+              .map((stack) => stack.techStackName)
+              .filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
           : [],
       };
     }),
@@ -141,6 +144,7 @@ const ProjectDetailPage = () => {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
   const [apiProject, setApiProject] = useState<ProjectDetailInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -181,13 +185,6 @@ const ProjectDetailPage = () => {
 
   const project =
     apiProject ?? (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
-  if (!projectId || (!project && !isLoading)) {
-    return <div>프로젝트 정보를 찾을 수 없습니다.</div>;
-  }
-  if (!project) {
-    return <div>프로젝트 정보를 불러오는 중입니다.</div>;
-  }
-
   const roleOptions = useMemo(() => {
     if (project?.roles && project.roles.length > 0) {
       return project.roles.map((role) => ({ key: role.key, label: role.label }));
@@ -224,6 +221,37 @@ const ProjectDetailPage = () => {
         loading="lazy"
       />
     );
+  };
+
+  if (!projectId || (!project && !isLoading)) {
+    return <div>프로젝트 정보를 찾을 수 없습니다.</div>;
+  }
+  if (!project) {
+    return <div>프로젝트 정보를 불러오는 중입니다.</div>;
+  }
+
+  const handleApply = async () => {
+    if (!projectId || !selectedRole) return;
+    if (isLoaded && !isSignedIn) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    try {
+      setIsApplying(true);
+      const token = await getToken();
+      if (!token) {
+        setIsLoginModalOpen(true);
+        return;
+      }
+      await applyProject(Number(projectId), token);
+      setHasApplied(true);
+      setIsApplyModalOpen(false);
+    } catch (error) {
+      console.error(error);
+      alert('프로젝트 지원에 실패했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   return (
@@ -566,17 +594,14 @@ const ProjectDetailPage = () => {
               <button
                 type="button"
                 disabled={!selectedRole}
-                onClick={() => {
-                  setHasApplied(true);
-                  setIsApplyModalOpen(false);
-                }}
+                onClick={handleApply}
                 className={`h-[48px] w-full rounded-[12px] text-[16px] font-semibold ${
-                  selectedRole
+                  selectedRole && !isApplying
                     ? 'bg-[#4E49FF] text-white'
                     : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
                 }`}
               >
-                지원하기
+                {isApplying ? '지원 중...' : '지원하기'}
               </button>
               <button
                 type="button"
