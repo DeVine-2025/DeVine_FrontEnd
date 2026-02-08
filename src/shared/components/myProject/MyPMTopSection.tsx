@@ -7,13 +7,11 @@ export type DevTab = 'suggested' | 'applied';
 type Props = {
   devTab: DevTab;
   onChangeDevTab: (tab: DevTab) => void;
-  onClickMore?: () => void;
-  showMore?: boolean;
 };
 
-const MyPMTopSection = ({ devTab, onChangeDevTab, onClickMore, showMore = true }: Props) => {
+const MyPMTopSection = ({ devTab, onChangeDevTab }: Props) => {
   return (
-    <section className="mt-10">
+    <section>
       <div className="flex items-center justify-between">
         <Tabs<DevTab>
           value={devTab}
@@ -23,16 +21,6 @@ const MyPMTopSection = ({ devTab, onChangeDevTab, onClickMore, showMore = true }
             { value: 'applied', label: '개발자 지원 현황' },
           ]}
         />
-
-        {showMore && (
-          <button
-            type="button"
-            onClick={onClickMore}
-            className="inline-flex items-center gap-2 text-card-muted text-xl hover:opacity-80"
-          >
-            더보기 <span aria-hidden="true">›</span>
-          </button>
-        )}
       </div>
 
       <div className="mt-4 flex flex-col gap-4">
