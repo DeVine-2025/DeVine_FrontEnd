@@ -38,6 +38,14 @@ type ProjectRoleInfo = {
   techStacks: string[];
 };
 
+type RecruitmentLike = {
+  position?: Position | string;
+  positionName?: string;
+  currentCount?: number;
+  count?: number;
+  techStacks?: TechStack[] | null;
+};
+
 const toProjectDetailInfo = (project: RecommendedProject | ProjectListItem): ProjectDetailInfo => ({
   id: project.id,
   categoryLabel: project.categoryLabel,
@@ -50,12 +58,13 @@ const toProjectDetailInfo = (project: RecommendedProject | ProjectListItem): Pro
 });
 
 const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => {
-  const summary = 'content' in project ? project.content : undefined;
+  const summary =
+    'content' in project && typeof project.content === 'string' ? project.content : undefined;
   const imageUrls =
     'imageUrls' in project && Array.isArray(project.imageUrls) ? project.imageUrls : [];
   const recruitments =
     'recruitments' in project && Array.isArray(project.recruitments)
-      ? project.recruitments
+      ? (project.recruitments as RecruitmentLike[])
       : project.positions ?? [];
 
   return {
@@ -70,17 +79,23 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
     summary,
     creatorName: project.creatorName,
     imageUrls: imageUrls.filter(Boolean),
-    roles: recruitments.map((recruitment) => ({
-      key: recruitment.position,
-      label:
-        ('positionName' in recruitment && recruitment.positionName) ||
-        positionLabelByKey[recruitment.position] ||
-        recruitment.position,
-      tone: badgeToneByPosition[recruitment.position] ?? 'blue',
-      current: recruitment.currentCount,
-      total: recruitment.count,
-      techStacks: (recruitment.techStacks ?? []).map((stack: TechStack) => stack.techStackName),
-    })),
+    roles: recruitments.map((recruitment) => {
+      const positionKey = recruitment.position as Position;
+      const label =
+        (typeof recruitment.positionName === 'string' && recruitment.positionName) ||
+        positionLabelByKey[positionKey] ||
+        (typeof recruitment.position === 'string' ? recruitment.position : '포지션');
+      return {
+        key: typeof recruitment.position === 'string' ? recruitment.position : String(positionKey),
+        label,
+        tone: badgeToneByPosition[positionKey] ?? 'blue',
+        current: recruitment.currentCount ?? 0,
+        total: recruitment.count ?? 0,
+        techStacks: Array.isArray(recruitment.techStacks)
+          ? recruitment.techStacks.map((stack) => stack.techStackName)
+          : [],
+      };
+    }),
   };
 };
 
