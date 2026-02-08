@@ -1,10 +1,13 @@
 import { useLayoutEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
 import Footer from '@layouts/footer';
 import Header from '@layouts/header';
 
 const RootLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isLoaded, user } = useUser();
 
   useLayoutEffect(() => {
     const { scrollRestoration } = window.history;
@@ -25,6 +28,31 @@ const RootLayout = () => {
     document.body.scrollTop = 0;
     html.style.scrollBehavior = prevBehavior;
   }, [location.key]);
+
+  useLayoutEffect(() => {
+    if (!isLoaded) return;
+    if (!user) return;
+
+    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
+    const pathname = location.pathname;
+    const isSignupRoute = pathname === '/signup';
+    const isCallbackRoute = pathname === '/sso-callback';
+    const isLoginRoute = pathname === '/login';
+
+    if (!onboardingComplete && !isSignupRoute && !isCallbackRoute) {
+      navigate('/signup', { replace: true });
+      return;
+    }
+
+    if (onboardingComplete && isSignupRoute) {
+      navigate('/', { replace: true });
+      return;
+    }
+
+    if (isLoginRoute) {
+      navigate(onboardingComplete ? '/' : '/signup', { replace: true });
+    }
+  }, [isLoaded, location.pathname, navigate, user]);
 
   return (
     <div className="flex min-h-[100vh] flex-col">

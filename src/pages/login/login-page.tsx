@@ -13,7 +13,7 @@ const LoginPage = () => {
     await signIn.authenticateWithRedirect({
       strategy,
       redirectUrl: '/sso-callback',
-      redirectUrlComplete: '/signup',
+      redirectUrlComplete: '/',
     });
   };
 
@@ -32,8 +32,14 @@ const LoginPage = () => {
           <button
             type="button"
             onClick={() => void handleOAuthSignIn('github')}
-            className="flex h-[48px] w-full items-center justify-center gap-4 rounded-[12px] px-4 whitespace-nowrap bg-[var(--color-auth-btn-dark-bg)] text-[var(--color-auth-btn-dark-text)]"
+            className="relative flex h-[48px] w-full items-center justify-center gap-4 rounded-[12px] px-4 overflow-visible whitespace-nowrap bg-[var(--color-auth-btn-dark-bg)] text-[var(--color-auth-btn-dark-text)]"
           >
+            <span className="absolute -top-13 right-0 translate-x-[50%] drop-shadow-sm">
+              <span className="absolute bottom-2 left-[60%] h-15 w-5 -translate-x-1/2 translate-y-1/2 rotate-70 bg-[var(--color-auth-accent,#ffcc00)]" />
+              <span className="relative z-10 rounded-full bg-[var(--color-auth-accent,#ffcc00)] px-2 py-[2px] text-[11px] font-semibold leading-none text-[#1a1a1a]">
+                1회 무료 리포트 제공
+              </span>
+            </span>
             <GithubIcon className="h-9 w-9" aria-hidden="true" />
             깃허브 계정으로 계속하기
           </button>

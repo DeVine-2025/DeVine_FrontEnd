@@ -1,0 +1,86 @@
+import {useState} from 'react';
+import {cn} from '@libs/cn';
+
+import GithubIcon from "@assets/icons/github.svg?react";
+import GoogleIcon from "@assets/icons/google.svg?react";
+
+import TabMenu from '@components/myInfo/TabMenu';
+import Switch from '@components/myInfo/Switch';
+
+interface SettingMenuProps {
+  title: string;
+  description: string;
+}
+
+interface LabelProps {
+  content: string;
+  isConnect: boolean;
+}
+
+const SettingMenu = ({title, description}: SettingMenuProps) => {
+  return (
+    <div className="flex-col gap-[1.6rem]">
+      <p className="text-3xl font-bold text-ui-1000">{title}</p>
+      <p className="text-2xl text-ui-600">{description}</p>
+    </div>
+  )
+}
+
+const Label = ({content, isConnect}: LabelProps) => {
+  return (
+    <p className={cn('w-fit px-[1.2rem] py-[0.8rem] text-xl font-semibold)}', isConnect ? "text-primary": "text-ui-300 bg-ui-50 rounded-full")}>{content}</p>
+  )
+}
+
+const MyInfoSetting = () => {
+  const [isOnFirst, setIsOnFirst] = useState<boolean>(false);
+  const [isOnSecond, setIsOnSecond] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>('PM');
+  const tabs = ['PM', '개발자']
+
+  return (
+    <div className="flex-col gap-[6rem] mt-[4rem]">
+      <div className="flex justify-between items-center gap-[5rem]">
+        <SettingMenu title={"메인 권한 설정"} description={"선택한 권한에 맞춰 가장 필요한 정보를 메인 화면에 먼저 확인할 수 있습니다."} />
+        <TabMenu  activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
+      </div>
+
+      <div className="flex justify-between items-center">
+        <SettingMenu title={"개발자 검색 노출 공개"} description={"공개 상태인 경우 내 프로필이 노출되어 프로젝트 제안을 받을 수 있습니다."} />
+        <Switch isOn={isOnFirst} setIsOn={setIsOnFirst} />
+      </div>
+      <div className="flex justify-between items-center">
+        <SettingMenu title={"프로젝트 제안 알림"} description={"PM이 제안하는 프로젝트 알림을 받을 수 있습니다."} />
+        <Switch isOn={isOnSecond} setIsOn={setIsOnSecond} />
+      </div>
+
+      <div className="flex-col gap-[2.4rem]">
+        <div className="flex justify-between items-center">
+          <SettingMenu title={"계정 설정"} description={"연동된 계정"} />
+        </div>
+        <div className="flex justify-between gap-[20rem]">
+          <div className="flex flex-1 items-center justify-between">
+            <div className="flex items-center gap-[1.6rem]">
+              <GithubIcon className="w-11 h-11" />
+              <p className="text-ui-1000 text-2xl">GitHub</p>
+            </div>
+            <Label content={"연동완료"} isConnect={true} />
+          </div>
+          <div className="flex flex-1 items-center justify-between">
+            <div className="flex items-center gap-[1.6rem]">
+              <div className="p-[1rem] border border-ui-100 rounded-full flex-col-center">
+                <GoogleIcon className="w-6 h-6 " />
+              </div>
+              <p className="text-ui-1000 text-2xl">Google</p>
+            </div>
+            <Label content={"연동완료"} isConnect={true} />
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  );
+};
+
+export default MyInfoSetting;

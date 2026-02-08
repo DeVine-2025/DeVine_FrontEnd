@@ -1,7 +1,7 @@
-// import ReportCard from '@pages/report/components/report-card';
-import Blank from '@pages/report/components/blank';
+import ReportCard from '@components/report/ReportCard';
+import Blank from '@components/report/Blank';
 // import { useNavigate } from 'react-router-dom';
-import TabMenu from '@pages/report/components/tab-menu';
+import TabMenu from '@components/report/TabMenu';
 import { useState } from 'react';
 
 const ReportPage = () => {
@@ -27,8 +27,8 @@ const ReportPage = () => {
       {/* 하단 컨텐츠 영역 */}
       <div className="flex flex-1 items-center justify-center gap-[1.6rem]">
         <Blank />
-        {/* <ReportCard type="create" /> */}
-        {/* <ReportCard type="main" /> */}
+         {/*<ReportCard type="create" />*/}
+         {/*<ReportCard type="main" />*/}
       </div>
     </div>
   );

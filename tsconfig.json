@@ -28,10 +28,11 @@
       "@assets/*": ["src/shared/assets/*"],
       "@components/*": ["src/shared/components/*"],
       "@store/*": ["src/shared/store/*"],
-      "@types/*": ["src/shared/types/*"],
+      "@t/*": ["src/shared/types/*"],
       "@contexts/*": ["src/shared/contexts/*"],
       "@pages": ["src/pages"],
-      "@pages/*": ["src/pages/*"]
+      "@pages/*": ["src/pages/*"],
+      "@mappers/*": ["src/shared/mappers/*"]
     }
   },
   "include": ["src", "vite-env.d.ts"],

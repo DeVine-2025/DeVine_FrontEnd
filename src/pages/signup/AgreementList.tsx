@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import Lottie from 'lottie-react';
+import confettiAnimation from './Confetti.json';
 import LogoDark from '@assets/icons/logo-dark.svg?react';
 import LogoLight from '@assets/icons/logo-light.svg?react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
@@ -23,7 +25,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const [marketingAgreed, setMarketingAgreed] = useState(false);
   const [step, setStep] = useState<
-    'agreements' | 'basicProfile' | 'profilePage' | 'additionalProfile' | 'githubRepos'
+    'agreements' | 'basicProfile' | 'profilePage' | 'additionalProfile' | 'signupComplete' | 'githubRepos'
   >('agreements');
 
   const requiredAgreed = useMemo(
@@ -85,6 +87,41 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
             onBack={() => setStep('basicProfile')}
           />
         </div>
+      ) : step === 'signupComplete' ? (
+        <div className="relative mx-auto mt-[104px] flex h-[520px] w-[632px] flex-col items-center justify-center gap-6 px-8 py-12 text-center">
+          <Lottie
+            animationData={confettiAnimation}
+            loop
+            className="pointer-events-none absolute left-1/2 top-1/2 h-full w-[900px] -translate-x-1/2 -translate-y-1/2"
+          />
+          <div className="-mt-8 flex flex-col gap-3 text-[var(--ui-1000)]">
+            <h2 className="Heading2 font-semibold">회원가입이 완료되었어요!</h2>
+            <p className="Caption1 text-[var(--ui-400)]">
+              Github로 회원가입 시 1회 무료로 리포트를 생성해드려요!
+              <br />
+              지금 바로 리포트를 만들어 보세요!
+            </p>
+          </div>
+          <div className="mt-6 flex w-full max-w-[320px] flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => setStep('githubRepos')}
+              className="Body1 h-[48px] w-full rounded-xl bg-[#4E49FF] font-semibold text-white"
+            >
+              리포트 생성하기
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onConfirm();
+                navigate('/');
+              }}
+              className="Body1 text-[var(--ui-400)]"
+            >
+              메인 화면으로 이동하기
+            </button>
+          </div>
+        </div>
       ) : step === 'githubRepos' ? (
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
           <GithubRepoSelectionSection
@@ -98,10 +135,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
       ) : step === 'additionalProfile' ? (
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
           <AdditionalProfileSection
-            onBack={() => setStep('basicProfile')}
+            onBack={() => setStep('profilePage')}
             onNext={() => {
               if (loginProvider === 'github') {
-                setStep('githubRepos');
+                setStep('signupComplete');
               } else {
                 onConfirm();
                 navigate('/');
