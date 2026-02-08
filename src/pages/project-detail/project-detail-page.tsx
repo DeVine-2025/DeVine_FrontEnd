@@ -366,21 +366,6 @@ const ProjectDetailPage = () => {
           </div>
 
           <div className="flex flex-col gap-3 lg:mt-[230px] lg:items-end">
-            <button
-              type="button"
-              className="inline-flex h-[44px] w-[240px] items-center justify-center gap-2 rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-6 text-[16px] font-medium text-[var(--ui-500)] hover:opacity-80"
-            >
-              <img
-                src={
-                  isDark
-                    ? '/src/shared/assets/icons/message.png'
-                    : '/src/shared/assets/icons/message-light.png'
-                }
-                alt="연락하기"
-                className={isDark ? 'h-9 w-9' : 'h-9 w-11'}
-              />
-              연락하기
-            </button>
             {!hasApplied && (
               <button
                 type="button"
