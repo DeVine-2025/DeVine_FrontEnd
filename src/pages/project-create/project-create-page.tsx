@@ -1,3 +1,4 @@
+import { getPresignedUrl, confirmImage } from '@apis/images';
 import { createProject } from '@apis/projects';
 import PlusIcon from '@assets/icons/create-project/plus.svg?react';
 import TablerIconBold from '@assets/icons/create-project/tabler-icon-bold.svg?react';
@@ -114,21 +115,28 @@ function ImageSlot({
   previewUrl,
   onChange,
   onRemove,
+  loading,
 }: {
   label: string;
   inputId: string;
   previewUrl: string | null;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onRemove?: () => void;
+  loading?: boolean;
 }) {
   return (
     <label
-      htmlFor={inputId}
-      className="relative block h-[166px] w-[296px] cursor-pointer overflow-hidden rounded-[12px] bg-ui-50"
+      htmlFor={loading ? undefined : inputId}
+      className="relative block h-[166px] w-[296px] cursor-pointer overflow-hidden rounded-[12px] bg-ui-50 data-[loading]:pointer-events-none"
+      data-loading={loading ? true : undefined}
     >
-      <input id={inputId} type="file" accept="image/*" className="sr-only" onChange={onChange} />
+      <input id={inputId} type="file" accept="image/*" className="sr-only" onChange={onChange} disabled={loading} />
 
-      {previewUrl ? (
+      {loading ? (
+        <div className="flex h-full w-full items-center justify-center text-ui-400">
+          <span className="Caption1">업로드 중...</span>
+        </div>
+      ) : previewUrl ? (
         <>
           <img
             src={previewUrl}
@@ -169,18 +177,21 @@ function ToolbarButton({
   label,
   onClick,
   active,
+  disabled,
 }: {
   Icon: SvgIcon;
   HoverIcon: SvgIcon;
   label: string;
   onClick?: () => void;
   active?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group flex h-[20px] w-[20px] items-center justify-center"
+      disabled={disabled}
+      className="group flex h-[20px] w-[20px] items-center justify-center disabled:pointer-events-none disabled:opacity-50"
       aria-label={label}
     >
       {active ? (
@@ -250,8 +261,15 @@ const ProjectCreatePage = () => {
   const [techStackOpen, setTechStackOpen] = useState(false);
   const [techStack, setTechStack] = useState<string[]>([]);
   const [recruitments, setRecruitments] = useState<RecruitmentItem[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<Array<string | null>>([null, null, null]);
+  const [slotImages, setSlotImages] = useState<Array<{ imageId: number; imageUrl: string } | null>>([
+    null,
+    null,
+    null,
+  ]);
+  const [editorImageIds, setEditorImageIds] = useState<number[]>([]);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [imageUploadingSlot, setImageUploadingSlot] = useState<number | null>(null);
+  const [editorImageUploading, setEditorImageUploading] = useState(false);
   const editorImageInputRef = useRef<HTMLInputElement | null>(null);
 
   const minDeadline = useMemo(() => {
@@ -260,27 +278,48 @@ const ProjectCreatePage = () => {
   }, []);
 
   const onPickImage = useMemo(() => {
-    return (index: number) => (e: ChangeEvent<HTMLInputElement>) => {
+    return (index: number) => async (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        const url = typeof reader.result === 'string' ? reader.result : null;
-        setImagePreviews((prev) => {
+      e.target.value = '';
+      const token = await getToken();
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      setImageUploadingSlot(index);
+      try {
+        const { imageId, presignedUrl, imageUrl } = await getPresignedUrl(
+          { imageType: 'PROJECT', fileName: file.name },
+          token,
+        );
+        const putRes = await fetch(presignedUrl, {
+          method: 'PUT',
+          body: file,
+          headers: file.type ? { 'Content-Type': file.type } : undefined,
+        });
+        if (!putRes.ok) {
+          throw new Error(`이미지 업로드 실패 (${putRes.status})`);
+        }
+        await confirmImage(imageId, token);
+        setSlotImages((prev) => {
           const next = [...prev];
-          next[index] = url;
+          next[index] = { imageId, imageUrl };
           return next;
         });
-      };
-      reader.readAsDataURL(file);
-      // 재선택 허용
-      e.target.value = '';
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.';
+        console.error('[project-create] slot image upload failed', msg, err);
+        alert(msg);
+      } finally {
+        setImageUploadingSlot(null);
+      }
     };
-  }, []);
+  }, [getToken, isDev]);
 
   const onRemoveImage = useMemo(() => {
     return (index: number) => () => {
-      setImagePreviews((prev) => {
+      setSlotImages((prev) => {
         const next = [...prev];
         next[index] = null;
         return next;
@@ -370,9 +409,36 @@ const ProjectCreatePage = () => {
     },
   });
 
-  const insertImageFromFile = (file: File) => {
-    const url = URL.createObjectURL(file);
-    editor?.chain().focus().setImage({ src: url }).run();
+  const insertImageFromFile = async (file: File) => {
+    const token = await getToken();
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+    setEditorImageUploading(true);
+    try {
+      const { imageId, presignedUrl, imageUrl } = await getPresignedUrl(
+        { imageType: 'PROJECT', fileName: file.name },
+        token,
+      );
+      const putRes = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: file.type ? { 'Content-Type': file.type } : undefined,
+      });
+      if (!putRes.ok) {
+        throw new Error(`이미지 업로드 실패 (${putRes.status})`);
+      }
+      await confirmImage(imageId, token);
+      editor?.chain().focus().setImage({ src: imageUrl }).run();
+      setEditorImageIds((prev) => [...prev, imageId]);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.';
+      console.error('[project-create] editor image upload failed', msg, err);
+      alert(msg);
+    } finally {
+      setEditorImageUploading(false);
+    }
   };
 
   const onToolbarPickImage = () => {
@@ -444,7 +510,10 @@ const ProjectCreatePage = () => {
         })),
         title: projectTitle.trim(),
         content: projectContent || '',
-        imageIds: [],
+        imageIds: [
+          ...slotImages.map((s) => s?.imageId).filter((id): id is number => id != null),
+          ...editorImageIds,
+        ],
       };
       if (isDev) {
         console.log('createProject body(final)', body);
@@ -732,23 +801,26 @@ const ProjectCreatePage = () => {
                       <ImageSlot
                         label="대표 사진 추가하기"
                         inputId="project-image-0"
-                        previewUrl={imagePreviews[0]}
+                        previewUrl={slotImages[0]?.imageUrl ?? null}
                         onChange={onPickImage(0)}
                         onRemove={onRemoveImage(0)}
+                        loading={imageUploadingSlot === 0}
                       />
                       <ImageSlot
                         label="사진 추가하기"
                         inputId="project-image-1"
-                        previewUrl={imagePreviews[1]}
+                        previewUrl={slotImages[1]?.imageUrl ?? null}
                         onChange={onPickImage(1)}
                         onRemove={onRemoveImage(1)}
+                        loading={imageUploadingSlot === 1}
                       />
                       <ImageSlot
                         label="사진 추가하기"
                         inputId="project-image-2"
-                        previewUrl={imagePreviews[2]}
+                        previewUrl={slotImages[2]?.imageUrl ?? null}
                         onChange={onPickImage(2)}
                         onRemove={onRemoveImage(2)}
+                        loading={imageUploadingSlot === 2}
                       />
                     </div>
                   </div>
@@ -840,6 +912,7 @@ const ProjectCreatePage = () => {
                               HoverIcon={TablerIconPhotoHover}
                               label="이미지"
                               onClick={onToolbarPickImage}
+                              disabled={editorImageUploading}
                             />
                             <ToolbarButton
                               Icon={TablerIconLink}
@@ -857,11 +930,11 @@ const ProjectCreatePage = () => {
                           type="file"
                           accept="image/*"
                           className="sr-only"
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
-                            insertImageFromFile(file);
                             e.target.value = '';
+                            await insertImageFromFile(file);
                           }}
                         />
 
