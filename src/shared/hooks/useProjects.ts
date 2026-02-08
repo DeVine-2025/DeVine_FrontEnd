@@ -1,4 +1,4 @@
-import { type GetProjectsParams, getProjects } from '@apis/projects';
+import { type GetProjectsParams, getProjects } from '@apis/mainrecommendproject';
 import { useAuth } from '@clerk/clerk-react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
