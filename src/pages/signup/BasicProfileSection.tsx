@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import { confirmImageUpload, createPresignedUrl } from '@apis/image';
-import { checkNicknameDuplicate } from '@apis/member';
+import { checkNicknameDuplicate } from '@apis/nickname-check';
 
 type BasicProfileSectionProps = {
   onNext: (data: { nickname: string; imageUrl: string | null }) => void;
