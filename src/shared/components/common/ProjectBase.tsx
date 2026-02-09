@@ -68,9 +68,9 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
   // 배지 / 인원 / 구분선 / 아이콘
   const RolesLg = roles?.length ? (
     <div className="flex flex-col gap-y-5">
-      {roles.slice(0, 3).map((r) => (
+      {roles.slice(0, 3).map((r, idx) => (
         <div
-          key={r.key}
+          key={`${r.key}-${idx}`}
           className="grid grid-cols-[60px_auto_8px_1fr] items-center gap-x-4 text-card-muted"
         >
           <span
@@ -104,8 +104,8 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
 
   const RolesMd = roles?.length ? (
     <div className="grid grid-cols-2 gap-x-10 gap-y-7">
-      {roles.slice(0, 2).map((r) => (
-        <div key={r.key} className="flex flex-col gap-3">
+      {roles.slice(0, 2).map((r, idx) => (
+        <div key={`${r.key}-${idx}`} className="flex flex-col gap-3">
           <span
             className={`inline-flex w-fit items-center whitespace-nowrap rounded-lg px-3 py-1 font-semibold text-base ${badgeToneToClass[r.tone]}`}
           >

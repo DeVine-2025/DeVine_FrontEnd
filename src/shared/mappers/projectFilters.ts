@@ -1,10 +1,4 @@
-import type {
-  AppliedFilters,
-  Category,
-  DurationRange,
-  GetProjectsParams,
-  ProjectField,
-} from '@t/project/api';
+import type { AppliedFilters, Category, DurationRange, ProjectField } from '@t/project/api';
 
 export const PROJECT_TYPE_TO_FIELD: Record<string, ProjectField | undefined> = {
   웹: 'WEB',
@@ -63,36 +57,41 @@ export const PERIOD_TO_DURATION: Record<string, DurationRange | undefined> = {
   '6개월 이상': 'SIX_PLUS',
 };
 
-export function buildParams(
-  input: AppliedFilters & { page: number; size: number },
-): GetProjectsParams {
-  // 1) 프로젝트 유형(한글 라벨)
+export function buildParams(input: AppliedFilters & { page: number; size: number }) {
   const projectFields = input.projectTypes
     .map((label) => PROJECT_TYPE_TO_FIELD[label])
     .filter(Boolean) as ProjectField[];
 
-  // 2) 도메인(한글 라벨)
   const categories = input.domains
     .map((label) => DOMAIN_LABEL_TO_CATEGORY[label])
     .filter(Boolean) as Category[];
 
-  // 3) 기술스택(칩 key)
   const techstackNames = input.techStacks
     .map((key) => TECHSTACK_KEY_TO_NAME[key])
     .filter(Boolean) as string[];
 
-  // 4) 예상기간(한글 라벨)
   const durationRange =
     input.expectedPeriods.length > 0
       ? (PERIOD_TO_DURATION[input.expectedPeriods[0]] as DurationRange | undefined)
       : undefined;
 
-  return {
-    projectField: projectFields[0],
-    category: categories[0],
-    techstackName: techstackNames[0],
-    durationRange,
-    page: input.page,
-    size: input.size,
-  };
+  const qs = new URLSearchParams();
+
+  projectFields.forEach((f) => {
+    qs.append('projectFields', f);
+  });
+  categories.forEach((c) => {
+    qs.append('categories', c);
+  });
+
+  techstackNames.forEach((t) => {
+    qs.append('techstackNames', t);
+  });
+
+  if (durationRange) qs.set('durationRange', durationRange);
+
+  qs.set('page', String(input.page));
+  qs.set('size', String(input.size));
+
+  return qs.toString();
 }

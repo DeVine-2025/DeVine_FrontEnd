@@ -1,9 +1,12 @@
-import { getRecommendProjectsPreview, type RecommendProjectPreviewItem } from '@apis/mainrecommendproject';
+import {
+  getRecommendProjectsPreview,
+  type RecommendProjectPreviewItem,
+} from '@apis/mainrecommendproject';
+import { useAuth } from '@clerk/clerk-react';
 import Pagination from '@components/common/Pagination';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
-import { useAuth } from '@clerk/clerk-react';
 import { useProjectFilter } from '@hooks/useProjectFilters';
 import { useProjects } from '@hooks/useProjects';
 import { mapPositionsToRoles, mapProjectItemToCard, type ProjectCardModel } from '@mappers/project';
@@ -62,8 +65,7 @@ export default function ProjectSearchPage() {
   );
 
   const size = 10;
-  const params = useMemo(() => buildParams({ ...applied, page, size }), [applied, page]);
-  // console.log('params', params);
+  const params = useMemo(() => buildParams({ ...applied, page, size }), [applied, page]); // console.log('params', params);
 
   const { data, isLoading, isError, error } = useProjects(params);
   const projects: ProjectCardModel[] = data?.content?.map(mapProjectItemToCard) ?? [];

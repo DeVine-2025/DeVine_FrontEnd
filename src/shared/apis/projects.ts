@@ -1,19 +1,8 @@
-import { buildQuery } from '@libs/queryString';
-import type { GetProjectsParams } from '@t/project/api';
-
-// 개발 시에는 상대 경로(/api) 사용 → Vite 프록시가 백엔드로 전달. 프로덕션에서는 VITE_API_BASE_URL 사용.
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
 
-export async function getProjects(params: GetProjectsParams, token: string, signal?: AbortSignal) {
-  const qs = buildQuery({
-    projectField: params.projectField,
-    category: params.category,
-    position: params.position,
-    techstackName: params.techstackName,
-    durationRange: params.durationRange,
-    page: params.page ?? 1,
-    size: params.size ?? 10,
-  });
+export async function getProjects(params: string, token: string, signal?: AbortSignal) {
+  const qs = params ? `?${params}` : '';
+
   console.log('REQUEST =>', `${BASE_URL}/api/v1/projects${qs}`);
 
   const res = await fetch(`${BASE_URL}/api/v1/projects${qs}`, {

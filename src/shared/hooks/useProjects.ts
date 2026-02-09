@@ -1,9 +1,8 @@
 import { getProjects } from '@apis/projects';
-import type { GetProjectsParams } from '@t/project/api';
 import { useAuth } from '@clerk/clerk-react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-export function useProjects(params: GetProjectsParams) {
+export function useProjects(params: string) {
   const { getToken } = useAuth();
 
   return useQuery({
