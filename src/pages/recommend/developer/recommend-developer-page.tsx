@@ -219,8 +219,8 @@ const RecommendDeveloperPage = () => {
       const token = await getToken();
       if (!token) return;
       const memberId = dev.memberId;
-      if (memberId == null) {
-        alert('개발자 북마크는 현재 지원되지 않습니다.');
+      if (memberId == null || typeof memberId !== 'number' || memberId <= 0) {
+        alert('개발자 북마크는 현재 지원되지 않습니다. (회원 정보에 ID가 없습니다)');
         return;
       }
       try {

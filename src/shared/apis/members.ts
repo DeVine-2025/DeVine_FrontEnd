@@ -1,10 +1,13 @@
 import { buildQuery } from '@libs/queryString';
 
 type RecommendDeveloperPreviewItem = {
+  memberId?: number;
   nickname: string;
   image: string | null;
   body: string;
   techstacks: string[];
+  bookmarked?: boolean;
+  bookmarkId?: number;
 };
 
 type RecommendDeveloperPreviewResponse = {
@@ -76,6 +79,7 @@ export type GetRecommendMembersParams = {
 };
 
 type RecommendMemberDto = {
+  id?: number;
   memberId?: number;
   nickname: string;
   image: string;
@@ -83,7 +87,35 @@ type RecommendMemberDto = {
   techstacks: string[];
   bookmarked?: boolean;
   bookmarkId?: number;
+  [key: string]: unknown;
 };
+
+function extractMemberId(dto: Record<string, unknown>): number | undefined {
+  const keys = [
+    'memberId',
+    'id',
+    'member_id',
+    'userId',
+    'user_id',
+    'memberNo',
+    'userNo',
+    'developerId',
+    'accountId',
+  ];
+  for (const key of keys) {
+    const v = dto[key];
+    if (typeof v === 'number' && Number.isFinite(v) && v > 0) return v;
+    if (typeof v === 'string' && /^\d+$/.test(v)) return Number(v, 10);
+  }
+  for (const nest of ['member', 'user', 'profile', 'developer', 'account']) {
+    const obj = dto[nest] as Record<string, unknown> | undefined;
+    if (obj && typeof obj === 'object') {
+      const fromNest = extractMemberId(obj);
+      if (fromNest != null) return fromNest;
+    }
+  }
+  return undefined;
+}
 
 type RecommendMembersPage = {
   content: RecommendMemberDto[];
@@ -114,9 +146,16 @@ export type RecommendDeveloperListItem = {
 };
 
 function mapRecommendMemberToListItem(dto: RecommendMemberDto, index: number): RecommendDeveloperListItem {
+  const memberId =
+    (typeof dto.memberId === 'number' && dto.memberId > 0 ? dto.memberId : undefined) ??
+    (typeof dto.id === 'number' && dto.id > 0 ? dto.id : undefined) ??
+    extractMemberId(dto as Record<string, unknown>);
+  if (memberId == null && import.meta.env?.DEV) {
+    console.warn('[추천 개발자] memberId 없음 – 북마크 불가', Object.keys(dto), dto);
+  }
   return {
-    id: `member-${dto.memberId ?? index}-${dto.nickname ?? ''}`,
-    memberId: dto.memberId,
+    id: `member-${memberId ?? index}-${dto.nickname ?? ''}`,
+    memberId: memberId ?? undefined,
     nickname: dto.nickname ?? '',
     profileImageUrl: dto.image || undefined,
     introduction: dto.body ?? '',

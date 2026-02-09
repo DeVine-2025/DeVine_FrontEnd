@@ -96,57 +96,68 @@ const NotificationModal = ({
     <div className="pointer-events-none fixed inset-0 z-50">
       <div
         ref={modalRef}
-        className={`pointer-events-auto h-[220px] w-[320px] overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)] shadow-xl shadow-black/10 ${
+        className={`pointer-events-auto flex h-[240px] w-[340px] flex-col overflow-hidden rounded-3xl border border-[var(--ui-200)] bg-[var(--ui-bg)] shadow-xl backdrop-blur-sm ${
           !useAnchor ? 'absolute top-[7.6rem] right-[32rem] tablet:right-[18rem] max-[391px]:right-[5rem] max-[743px]:right-[10rem]' : ''
         } ${isClosing ? 'animate-modal-pop-out' : 'animate-modal-pop-in'}`}
         style={
           useAnchor
-            ? { position: 'fixed', top: position.top, right: position.right, width: MODAL_WIDTH, height: MODAL_HEIGHT }
+            ? { position: 'fixed', top: position.top, right: position.right, width: 340, height: 240 }
             : undefined
         }
       >
-        <div className="flex h-full flex-col">
-          {notifications.slice(0, 2).map((notification) => (
-            <div
-              key={notification.id}
-              className={`relative flex min-h-0 flex-1 flex-col first:rounded-t-2xl last:rounded-b-2xl last:border-b-0 ${
-                !notification.isRead ? 'border-l-2 border-l-[#4E49FF] bg-[var(--ui-50)]/50' : ''
-              } border-b border-[var(--ui-200)]`}
-            >
+        <div className="shrink-0 border-b border-[var(--ui-200)] px-4 py-3" />
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {notifications.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-1 px-4 py-8">
+              <p className="text-[13px] text-[var(--ui-500)]">아직 새 알림이 없어요</p>
+              <p className="text-[11px] text-[var(--ui-400)]">새 소식이 오면 여기에 표시돼요</p>
+            </div>
+          ) : (
+            notifications.slice(0, 2).map((notification) => (
               <button
+                key={notification.id}
                 type="button"
                 onClick={() => {
                   if (!notification.isRead && onMarkAsRead) onMarkAsRead(notification.id);
                   handleClose();
                 }}
-                className="flex min-h-0 flex-1 cursor-pointer flex-col justify-center px-4 py-3.5 text-left transition-colors duration-200 hover:bg-[var(--ui-50)]/80"
+                className={`group relative flex min-h-0 flex-1 flex-col gap-1 px-4 py-3.5 text-left transition-colors duration-150 ${
+                  !notification.isRead
+                    ? 'bg-[var(--ui-50)] hover:bg-[var(--ui-100)]'
+                    : 'hover:bg-[var(--ui-50)]'
+                }`}
               >
-                <div className="mb-1.5 flex items-start justify-between gap-2">
+                {!notification.isRead && (
+                  <span className="absolute left-2 top-4 h-1.5 w-1.5 shrink-0 rounded-full bg-[#4E49FF]" />
+                )}
+                <div className="flex items-start justify-between gap-2 pl-1">
                   <h3
-                    className={`flex-1 truncate text-[15px] font-semibold leading-tight ${
+                    className={`flex-1 truncate text-[14px] font-medium leading-tight ${
                       !notification.isRead ? 'text-[var(--ui-900)]' : 'text-[var(--ui-600)]'
                     }`}
                   >
                     {notification.title}
                   </h3>
-                  <span className="shrink-0 text-[12px] text-[var(--ui-400)]">{notification.timestamp}</span>
+                  <span className="shrink-0 text-[11px] text-[var(--ui-400)]">{notification.timestamp}</span>
                 </div>
-                <p className="line-clamp-2 text-[13px] leading-snug text-[var(--ui-600)]">{notification.description}</p>
+                <p className="line-clamp-2 pl-1 text-[12px] leading-snug text-[var(--ui-600)]">
+                  {notification.description}
+                </p>
               </button>
-            </div>
-          ))}
-          {onMarkAllAsRead && notifications.some((n) => !n.isRead) && (
-            <div className="shrink-0 border-t border-[var(--ui-200)] px-3 py-2">
-              <button
-                type="button"
-                onClick={() => onMarkAllAsRead()}
-                className="w-full rounded-xl py-2.5 text-[13px] font-medium text-[var(--ui-500)] transition-colors hover:bg-[var(--ui-50)] hover:text-[var(--ui-700)]"
-              >
-                전체 읽음 처리
-              </button>
-            </div>
+            ))
           )}
         </div>
+        {onMarkAllAsRead && notifications.some((n) => !n.isRead) && (
+          <div className="shrink-0 border-t border-[var(--ui-200)] px-3 py-2.5">
+            <button
+              type="button"
+              onClick={() => onMarkAllAsRead()}
+              className="w-full rounded-2xl py-2 text-[12px] font-medium text-[var(--ui-500)] transition-colors hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)]"
+            >
+              전체 읽음 처리
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
