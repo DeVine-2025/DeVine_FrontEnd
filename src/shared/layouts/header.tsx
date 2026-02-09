@@ -1,3 +1,10 @@
+import {
+  getNotifications,
+  getUnreadNotificationCount,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+  type NotificationItem,
+} from '@apis/notifications';
 import AlarmIcon from '@assets/icons/alarm.svg?react';
 import AlarmDarkHoverIcon from '@assets/icons/alarm-dark-hover.svg?react';
 import AlarmLightIcon from '@assets/icons/alarm-light.svg?react';
@@ -16,13 +23,6 @@ import NotificationModal from '@components/common/NotificationModal';
 import { useThemeStore } from '@store/theme';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  getNotifications,
-  getUnreadNotificationCount,
-  markAllNotificationsAsRead,
-  markNotificationAsRead,
-  type NotificationItem,
-} from '@apis/notifications';
 import { useAuth } from 'src/shared/auth/useAuth';
 
 const Header = () => {
@@ -34,12 +34,14 @@ const Header = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
 
   const fetchUnreadCount = useCallback(() => {
     getToken().then((token) => {
       if (!token) return;
       getUnreadNotificationCount(token)
+<<<<<<< HEAD
         .then((count) => {
           setUnreadCount(count);
           console.log('[알림] 읽지 않은 개수:', count);
@@ -48,8 +50,40 @@ const Header = () => {
           setUnreadCount(0);
           console.warn('[알림] unread-count 실패', e);
         });
+=======
+        .then(setUnreadCount)
+        .catch(() => setUnreadCount(0));
+>>>>>>> origin/develope
     });
   }, [getToken]);
+
+  useEffect(() => {
+    const syncProfileImage = () => {
+      try {
+        const stored = localStorage.getItem('profile_image_url');
+        setProfileImageUrl(stored && stored.trim().length > 0 ? stored : null);
+      } catch {
+        setProfileImageUrl(null);
+      }
+    };
+
+    syncProfileImage();
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'profile_image_url') {
+        syncProfileImage();
+      }
+    };
+    const handleProfileUpdate = () => syncProfileImage();
+
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('profile-image-updated', handleProfileUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('profile-image-updated', handleProfileUpdate as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     fetchUnreadCount();
@@ -115,7 +149,7 @@ const Header = () => {
     { path: '/search', label: '프로젝트/개발자 보기' },
     { path: '/recommend', label: '추천 프로젝트/개발자' },
     { path: '/report', label: '리포트' },
-    { path: '/my-project', label: '내 프로젝트' },
+    { path: '/my-project', label: '지원 현황' },
   ];
 
   const isActive = (path: string) => {
@@ -192,7 +226,7 @@ const Header = () => {
             <button
               type="button"
               onClick={toggleTheme}
-              className="group max-[391px]:!hidden relative size-[3.6rem] flex-row-center shrink-0 rounded-[8px] bg-ui-bg p-[0.4rem]"
+              className="group max-[391px]:!hidden relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg p-[0.4rem]"
             >
               {theme === 'dark' ? (
                 <>
@@ -215,7 +249,12 @@ const Header = () => {
                 setIsNotificationOpen(!isNotificationOpen);
                 if (isNotificationOpen) fetchUnreadCount();
               }}
-              className="group relative size-[3.6rem] flex-row-center shrink-0 rounded-[8px] bg-ui-bg p-[0.4rem]"
+              className="group relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg p-[0.4rem]"
+              aria-label={
+                unreadCount > 0
+                  ? `알림 열기. 읽지 않은 알림 ${unreadCount > 99 ? '99+' : unreadCount}건`
+                  : '알림 열기'
+              }
             >
               {theme === 'dark' ? (
                 <>
@@ -228,10 +267,11 @@ const Header = () => {
                   <AlarmLightHoverIcon className="absolute size-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 </>
               )}
+
               {unreadCount > 0 && (
                 <span
-                  className="absolute top-[0.4rem] right-[0.4rem] flex min-w-[1.6rem] items-center justify-center rounded-full bg-[#FF4D4F] px-[0.5rem] py-0 text-[1rem] font-semibold leading-none text-white"
-                  aria-label={`읽지 않은 알림 ${unreadCount}건`}
+                  className="absolute top-[0.4rem] right-[0.4rem] flex min-w-[1.6rem] items-center justify-center rounded-full bg-[#FF4D4F] px-[0.5rem] py-0 font-semibold text-[1rem] text-white leading-none"
+                  aria-hidden="true"
                 >
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
@@ -246,13 +286,23 @@ const Header = () => {
                 내 정보
               </Link>
 
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: '!w-[2.7rem] !h-[2.7rem] !rounded-full',
-                  },
-                }}
-              />
+              <div className="relative">
+                {profileImageUrl && (
+                  <img
+                    src={profileImageUrl}
+                    alt="프로필"
+                    className="pointer-events-none absolute inset-0 h-[2.7rem] w-[2.7rem] rounded-full object-cover"
+                  />
+                )}
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: '!w-[2.7rem] !h-[2.7rem] !rounded-full',
+                      avatarImage: profileImageUrl ? '!opacity-0' : '',
+                    },
+                  }}
+                />
+              </div>
             </SignedIn>
 
             <SignedOut>
@@ -283,7 +333,7 @@ const Header = () => {
             <button
               type="button"
               onClick={toggleMenu}
-              className="!hidden max-[743px]:!flex size-[3.6rem] flex-row-center shrink-0 rounded-[8px] bg-ui-bg p-[0.4rem]"
+              className="!hidden max-[743px]:!flex size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg p-[0.4rem]"
             >
               {isMenuOpen ? (
                 <MenuClosedIcon className="size-[2.4rem]" />
@@ -301,7 +351,7 @@ const Header = () => {
           isMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >
-        <nav className="flex-col gap-[6.4rem] px-[4rem] pt-[10rem] max-[391px]:px-[2rem]">
+        <nav className="flex-col gap-[6rem] px-[4rem] pt-[10rem] max-[391px]:px-[2rem]">
           {navItems.map((item, index) => {
             const totalItems = navItems.length;
             const reverseIndex = totalItems - 1 - index;

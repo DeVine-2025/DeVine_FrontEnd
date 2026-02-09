@@ -19,19 +19,26 @@ export default function ProfileCardLg(props: ProfileCardProps) {
     techStack,
     action,
     className,
+    header,
   } = props;
 
   return (
     <article
-      className={cn('rounded-2xl border border-card-border bg-card-bg', 'card-size-lg', className)}
+      className={cn(
+        'rounded-2xl border border-card-border bg-card-bg',
+        'card-size-lg',
+        header && 'card-size-lg--with-header',
+        className,
+      )}
     >
-      <div className="flex h-full items-start gap-8">
+      {header ? <div className="">{header}</div> : null}
+      <div className="flex items-center gap-7">
         <img
           src={profileImageUrl}
           alt={profileImageAlt ?? nickname}
           className={cn(
             'card-avatar-sm',
-            'shrink-0 rounded-full object-cover ring-2 ring-white/10',
+            'shrink-0 self-start rounded-full object-cover ring-2 ring-white/10',
           )}
           loading="lazy"
         />

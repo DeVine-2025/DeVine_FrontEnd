@@ -1,11 +1,7 @@
 import ProjectLg from '@components/common/ProjectLg';
 import Tabs from '@components/tab/CommonTabs';
 import { useNavigate } from 'react-router-dom';
-import {
-  PROJECT_LIST,
-  PROJECT_ROLES,
-  type ProjectListItem,
-} from 'src/mocks/project.mock';
+import { PROJECT_LIST, PROJECT_ROLES, type ProjectListItem } from 'src/mocks/project.mock';
 
 export type DevTab = 'suggested' | 'applied';
 
@@ -22,7 +18,7 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
   };
 
   return (
-    <section className="mt-10">
+    <section>
       <div className="flex items-center justify-between">
         <Tabs<DevTab>
           value={devTab}

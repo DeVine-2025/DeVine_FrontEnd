@@ -25,5 +25,6 @@ export type ProfileCardProps = {
 
   size?: 'sm' | 'md' | 'lg';
   action?: React.ReactNode;
+  header?: React.ReactNode;
   className?: string;
 };

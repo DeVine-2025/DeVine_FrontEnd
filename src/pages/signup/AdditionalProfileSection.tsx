@@ -20,6 +20,15 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
   const [email, setEmail] = useState('');
   const [linkedin, setLinkedin] = useState('');
   const { getToken } = useAuth();
+  const LINKEDIN_MAX_LENGTH = 255;
+  const trimmedEmail = email.trim();
+  const trimmedLinkedin = linkedin.trim();
+  const isEmailValid = trimmedEmail.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
+  const isLinkedinValid =
+    trimmedLinkedin.length === 0 || /^https?:\/\/(www\.)?linkedin\.com\/.+/i.test(trimmedLinkedin);
+  const isLinkedinLengthValid = trimmedLinkedin.length <= LINKEDIN_MAX_LENGTH;
+  const showEmailError = trimmedEmail.length > 0 && !isEmailValid;
+  const showLinkedinError = trimmedLinkedin.length > 0 && (!isLinkedinValid || !isLinkedinLengthValid);
 
   const hasAnyInput =
     stacks.length > 0 ||
@@ -32,15 +41,19 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
   };
 
   const handleSubmit = async () => {
+    if (!isEmailValid || !isLinkedinValid || !isLinkedinLengthValid) {
+      return;
+    }
     const payload: SignupPayload = {
       ...signupData,
       techstackIds: getTechstackIdsByKeys(stacks),
       body: summary.trim().length > 0 ? summary.trim() : null,
-      email: email.trim().length > 0 ? email.trim() : null,
-      linkedin: linkedin.trim().length > 0 ? linkedin.trim() : null,
+      email: trimmedEmail.length > 0 ? trimmedEmail : null,
+      linkedin: trimmedLinkedin.length > 0 ? trimmedLinkedin : null,
     };
     const token = await getToken();
     await signupMember(payload, token ?? undefined);
+    sessionStorage.setItem('skip_onboarding_modal_once', 'true');
     onNext();
   };
 
@@ -110,7 +123,7 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
                     )}
                     <span
                       aria-hidden
-                      className="absolute -right-[4px] -top-[4px] flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--ui-50)] text-[11px] text-[#9EA6BA]"
+                      className="absolute -right-[4px] -top-[4px] flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--ui-50)] text-[11px] text-[var(--ui-400)]"
                     >
                       ×
                     </span>
@@ -141,12 +154,19 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
             </label>
             <input
               id="profileEmail"
-              type="email"
-              placeholder="이메일을 입력해주세요"
-              className="h-[44px] w-full rounded-2xl border border-[var(--ui-100)] bg-[var(--ui-50)] px-4 text-[var(--ui-900)] placeholder:text-[var(--ui-300)]"
+              type="text"
+              placeholder="devine@example.com"
+              className={`h-[44px] w-full rounded-2xl border bg-[var(--ui-50)] px-4 text-[var(--ui-900)] placeholder:text-[var(--ui-300)] ${
+                showEmailError ? 'border-[#FF4242]' : 'border-[var(--ui-100)]'
+              }`}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
+            {showEmailError && (
+              <span className="Caption1 text-[#FF4242]">
+                이메일 형식이 올바르지 않아요. 예) devine@example.com
+              </span>
+            )}
           </div>
 
           <div className="flex flex-col gap-3">
@@ -155,12 +175,21 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
             </label>
             <input
               id="profileLinkedin"
-              type="url"
-              placeholder="링크드인 링크를 입력해주세요"
-              className="h-[44px] w-full rounded-2xl border border-[var(--ui-100)] bg-[var(--ui-50)] px-4 text-[var(--ui-900)] placeholder:text-[var(--ui-300)]"
+              type="text"
+              placeholder="https://www.linkedin.com/in/username"
+              className={`h-[44px] w-full rounded-2xl border bg-[var(--ui-50)] px-4 text-[var(--ui-900)] placeholder:text-[var(--ui-300)] ${
+                showLinkedinError ? 'border-[#FF4242]' : 'border-[var(--ui-100)]'
+              }`}
               value={linkedin}
               onChange={(event) => setLinkedin(event.target.value)}
             />
+            {showLinkedinError && (
+              <span className="Caption1 text-[#FF4242]">
+                {!isLinkedinLengthValid
+                  ? `링크드인 URL은 ${LINKEDIN_MAX_LENGTH}자 이내로 입력해주세요.`
+                  : '링크드인 URL 형식이 올바르지 않아요.'}
+              </span>
+            )}
           </div>
 
           <div className="mt-14 flex flex-col gap-3 pb-4">
@@ -168,7 +197,7 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
               type="button"
               onClick={handleSubmit}
               className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
-                hasAnyInput ? 'bg-[#4E49FF] text-white' : 'bg-[#1E1D4D] text-[#7E7AFF]'
+                hasAnyInput ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
               }`}
             >
               {hasAnyInput ? '회원가입하기' : '건너뛰기'}

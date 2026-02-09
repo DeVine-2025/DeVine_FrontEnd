@@ -6,6 +6,7 @@ import LogoLight from '@assets/icons/logo-light.svg?react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import { useThemeStore } from '@store/theme';
 import BasicProfileSection from './BasicProfileSection';
 import AdditionalProfileSection from './AdditionalProfileSection';
@@ -32,6 +33,7 @@ type AgreementListProps = {
 
 const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps) => {
   const { theme } = useThemeStore();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const [serviceAgreed, setServiceAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
@@ -92,8 +94,11 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           <button
             type="button"
             onClick={() => {
-              sessionStorage.setItem('allow_main_once', 'true');
-              navigate('/');
+              sessionStorage.setItem('show_onboarding_modal', 'true');
+              localStorage.removeItem('userRole');
+              sessionStorage.removeItem('login_provider');
+              sessionStorage.removeItem('allow_main_once');
+              void signOut().finally(() => navigate('/'));
             }}
             className="flex items-center gap-[0.4rem] cursor-pointer"
             aria-label="메인으로 이동"
@@ -107,6 +112,13 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           <BasicProfileSection
             onNext={(data) => {
               setBasicProfile(data);
+              if (data.imageUrl) {
+                localStorage.setItem('profile_image_url', data.imageUrl);
+                window.dispatchEvent(new Event('profile-image-updated'));
+              } else {
+                localStorage.removeItem('profile_image_url');
+                window.dispatchEvent(new Event('profile-image-updated'));
+              }
               setStep('profilePage');
             }}
             onBack={() => setStep('agreements')}
@@ -141,7 +153,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
             <button
               type="button"
               onClick={() => setStep('githubRepos')}
-              className="Body1 h-[48px] w-full rounded-xl bg-[#4E49FF] font-semibold text-white"
+              className="Body1 h-[48px] w-full rounded-xl bg-[var(--color-primary)] font-semibold text-white"
             >
               리포트 생성하기
             </button>
@@ -209,7 +221,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
               className="relative flex items-center gap-3 rounded-2xl bg-[var(--ui-50)] px-5 py-4 text-left"
             >
               {allChecked ? (
-                <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                <CheckboxCheckedIcon
+                  className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                  aria-hidden="true"
+                />
               ) : (
                 <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
               )}
@@ -226,7 +241,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                   className="flex items-center gap-3 text-left"
                 >
                   {serviceAgreed ? (
-                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                    <CheckboxCheckedIcon
+                      className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                      aria-hidden="true"
+                    />
                   ) : (
                     <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
                   )}
@@ -253,7 +271,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                   className="flex items-center gap-3 text-left"
                 >
                   {privacyAgreed ? (
-                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                    <CheckboxCheckedIcon
+                      className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                      aria-hidden="true"
+                    />
                   ) : (
                     <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
                   )}
@@ -280,7 +301,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                   className="flex items-center gap-3 text-left"
                 >
                   {marketingAgreed ? (
-                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                    <CheckboxCheckedIcon
+                      className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                      aria-hidden="true"
+                    />
                   ) : (
                     <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
                   )}
@@ -308,14 +332,11 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
             disabled={!requiredAgreed}
             className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
               requiredAgreed
-                ? 'bg-[#4E49FF] text-white'
+                ? 'bg-[var(--color-primary)] text-white'
                 : 'bg-[var(--ui-50)] text-[var(--ui-300)]'
             }`}
           >
             다음
-          </button>
-          <button type="button" onClick={() => navigate('/login')} className="Body1 text-[var(--ui-400)]">
-            돌아가기
           </button>
         </div>
       </div>

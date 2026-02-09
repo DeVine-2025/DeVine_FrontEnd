@@ -1,10 +1,17 @@
+<<<<<<< HEAD
 import { createBookmark, deleteBookmark } from '@apis/bookmarks';
 import { getRecommendProjectsPreview, type RecommendProjectPreviewItem } from '@apis/mainrecommendproject';
+=======
+import {
+  getRecommendProjectsPreview,
+  type RecommendProjectPreviewItem,
+} from '@apis/mainrecommendproject';
+import { useAuth } from '@clerk/clerk-react';
+>>>>>>> origin/develope
 import Pagination from '@components/common/Pagination';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
-import { useAuth } from '@clerk/clerk-react';
 import { useProjectFilter } from '@hooks/useProjectFilters';
 import { useProjects } from '@hooks/useProjects';
 import { mapPositionsToRoles, mapProjectItemToCard, type ProjectCardModel } from '@mappers/project';
@@ -18,7 +25,27 @@ import { getBookmarks } from '@apis/bookmarks';
 export default function ProjectSearchPage() {
   const { getToken } = useAuth();
   const navigate = useNavigate();
-  const handleProjectClick = (projectId: number | string) => {
+  const handleProjectClick = (
+    projectId: number | string,
+    payload?: {
+      id: string;
+      categoryLabel?: string;
+      deadlineLabel?: string;
+      title: string;
+      location?: string;
+      period?: string;
+      mode?: string;
+      dueLabel?: string;
+      roles?: ProjectRole[];
+    },
+  ) => {
+    if (payload) {
+      try {
+        sessionStorage.setItem(`project_detail_${projectId}`, JSON.stringify(payload));
+      } catch {
+        // ignore storage errors
+      }
+    }
     navigate(`/project/${projectId}`);
   };
 
@@ -68,8 +95,7 @@ export default function ProjectSearchPage() {
   );
 
   const size = 10;
-  const params = useMemo(() => buildParams({ ...applied, page, size }), [applied, page]);
-  // console.log('params', params);
+  const params = useMemo(() => buildParams({ ...applied, page, size }), [applied, page]); // console.log('params', params);
 
   const { data, isLoading, isError, error } = useProjects(params);
   const [bookmarkOverrides, setBookmarkOverrides] = useState<
@@ -241,6 +267,7 @@ export default function ProjectSearchPage() {
             period={p.period}
             mode={p.mode}
             roles={p.roles}
+<<<<<<< HEAD
             bookmarked={bookmarkOverrides[Number(p.id)]?.bookmarked ?? (p.bookmarked ?? false)}
             onBookmarkChange={(next) =>
               handleBookmarkChange(
@@ -250,6 +277,21 @@ export default function ProjectSearchPage() {
               )
             }
             onClick={() => handleProjectClick(p.id)}
+=======
+            bookmarked={false}
+            onClick={() =>
+              handleProjectClick(p.id, {
+                id: String(p.id),
+                categoryLabel: p.categoryLabel,
+                deadlineLabel: p.deadlineLabel,
+                title: p.title,
+                location: p.location,
+                period: p.period,
+                mode: p.mode,
+                roles: p.roles,
+              })
+            }
+>>>>>>> origin/develope
           />
         ))}
       </div>
@@ -279,8 +321,25 @@ export default function ProjectSearchPage() {
           <ProjectLg
             key={p.id}
             {...p}
+<<<<<<< HEAD
             onClick={() => handleProjectClick(p.id)}
             onBookmarkChange={(next) => handleBookmarkChange(p.id, next, p.bookmarkId)}
+=======
+            onClick={() =>
+              handleProjectClick(p.id, {
+                id: String(p.id),
+                categoryLabel: p.categoryLabel,
+                deadlineLabel: p.deadlineLabel,
+                title: p.title,
+                location: p.location,
+                period: p.period,
+                mode: p.mode,
+                dueLabel: p.dueLabel,
+                roles: p.roles,
+              })
+            }
+            onBookmarkChange={(next) => console.log('bookmark', p.id, next)}
+>>>>>>> origin/develope
           />
         ))}
       </div>
