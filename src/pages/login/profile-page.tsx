@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
+import { getCategoryIdsByLabels } from '@constants/signup-mapping';
+import { useAuthStore } from '@store/auth';
 
 type ProfilePageProps = {
   onBack: () => void;
-  onNext: () => void;
+  onNext: (data: { mainType: 'PM' | 'DEVELOPER'; categoryIds: number[] }) => void;
 };
 
 const roleOptions = [
@@ -25,6 +27,7 @@ const domainOptions = [
 const USER_ROLE_KEY = 'userRole';
 
 const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
+  const setAuthRole = useAuthStore((state) => state.setRole);
   const [role, setRole] = useState<'pm' | 'dev' | null>(
     (localStorage.getItem(USER_ROLE_KEY) as 'pm' | 'dev' | null) ?? 'pm',
   );
@@ -34,9 +37,12 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
 
   const handleNext = () => {
     if (role) {
-      localStorage.setItem(USER_ROLE_KEY, role);
+      setAuthRole(role);
     }
-    onNext();
+    onNext({
+      mainType: role === 'dev' ? 'DEVELOPER' : 'PM',
+      categoryIds: getCategoryIdsByLabels(domains),
+    });
   };
 
   const toggleDomain = (value: string) => {
@@ -53,7 +59,7 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
 
   const handleRoleChange = (nextRole: 'pm' | 'dev') => {
     setRole(nextRole);
-    localStorage.setItem(USER_ROLE_KEY, nextRole);
+    setAuthRole(nextRole);
   };
 
   return (

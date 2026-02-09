@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { BadgeTone } from './projectCard.types';
+import type { BadgeTone } from './project/ui';
 
 export type TechStackItem = {
   id: string;
@@ -25,5 +25,6 @@ export type ProfileCardProps = {
 
   size?: 'sm' | 'md' | 'lg';
   action?: React.ReactNode;
+  header?: React.ReactNode;
   className?: string;
 };

@@ -62,6 +62,31 @@
         display: none;
     }
 
+    /* 전역 트렌디 스크롤바 (얇고 둥근 스타일) */
+    *::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    *::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 3px;
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background: var(--ui-300);
+        border-radius: 3px;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+        background: var(--ui-400);
+    }
+
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--ui-300) transparent;
+    }
+
     /* Card size presets */
     .card-size-sm {
         @apply  w-[280px] h-[240px] p-8 flex flex-col gap-3;
@@ -73,6 +98,10 @@
 
     .card-size-lg {
         @apply max-w-[1180px] h-[180px] p-10;
+    }
+
+    .card-size-lg--with-header {
+        @apply h-[230px];
     }
 
     .card-avatar-sm {

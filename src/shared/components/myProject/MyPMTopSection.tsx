@@ -7,13 +7,11 @@ export type DevTab = 'suggested' | 'applied';
 type Props = {
   devTab: DevTab;
   onChangeDevTab: (tab: DevTab) => void;
-  onClickMore?: () => void;
-  showMore?: boolean;
 };
 
-const MyPMTopSection = ({ devTab, onChangeDevTab, onClickMore, showMore = true }: Props) => {
+const MyPMTopSection = ({ devTab, onChangeDevTab }: Props) => {
   return (
-    <section className="mt-10">
+    <section>
       <div className="flex items-center justify-between">
         <Tabs<DevTab>
           value={devTab}
@@ -23,16 +21,6 @@ const MyPMTopSection = ({ devTab, onChangeDevTab, onClickMore, showMore = true }
             { value: 'applied', label: '개발자 지원 현황' },
           ]}
         />
-
-        {showMore && (
-          <button
-            type="button"
-            onClick={onClickMore}
-            className="inline-flex items-center gap-2 text-card-muted text-xl hover:opacity-80"
-          >
-            더보기 <span aria-hidden="true">›</span>
-          </button>
-        )}
       </div>
 
       <div className="mt-4 flex flex-col gap-4">
@@ -41,6 +29,13 @@ const MyPMTopSection = ({ devTab, onChangeDevTab, onClickMore, showMore = true }
             key={profile.id}
             {...profile}
             size="lg"
+            header={
+              <div>
+                <p className="Caption1 text-badge-text-primary">프로젝트</p>
+                <h3 className="text-lg text-ui-900">{'프로젝트 제목이 들어가는 자리입니다.'}</h3>
+                <div className="my-4 h-px w-full bg-[var(--ui-100)]" />
+              </div>
+            }
             action={
               <div className="flex gap-3">
                 <button

@@ -1,30 +1,125 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
+import { useAuth } from '@clerk/clerk-react';
+import { confirmImageUpload, createPresignedUrl } from '@apis/image';
+import { checkNicknameDuplicate } from '@apis/nickname-check';
 
 type BasicProfileSectionProps = {
-  onNext: () => void;
+  onNext: (data: { nickname: string; imageUrl: string | null }) => void;
   onBack: () => void;
 };
 
 const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [nickname, setNickname] = useState('');
+  const [isDuplicateNickname, setIsDuplicateNickname] = useState(false);
+  const [isCheckingNickname, setIsCheckingNickname] = useState(false);
+  const [nicknameCheckError, setNicknameCheckError] = useState<string | null>(null);
+  const { getToken } = useAuth();
 
   const hasWhitespace = useMemo(() => /\s/.test(nickname), [nickname]);
   const trimmedNickname = useMemo(() => nickname.trim(), [nickname]);
-  const isNicknameValid = useMemo(
-    () => trimmedNickname.length > 0 && !hasWhitespace,
-    [trimmedNickname, hasWhitespace],
+  const isLengthValid = useMemo(
+    () => trimmedNickname.length >= 2 && trimmedNickname.length <= 20,
+    [trimmedNickname],
   );
-  const isDuplicateNickname = useMemo(() => {
-    if (!isNicknameValid) return false;
-    const normalizedNickname = trimmedNickname.toLowerCase();
-    const takenNicknames = ['디바인', 'devine', 'admin', '관리자'].map((item) =>
-      item.toLowerCase(),
-    );
-    return takenNicknames.indexOf(normalizedNickname) !== -1;
-  }, [isNicknameValid, trimmedNickname]);
-  const canUseNickname = isNicknameValid && !isDuplicateNickname;
+  const isNicknameValid = useMemo(
+    () => isLengthValid && !hasWhitespace,
+    [isLengthValid, hasWhitespace],
+  );
+  const canUseNickname = isNicknameValid && !isDuplicateNickname && !isCheckingNickname;
+
+  useEffect(() => {
+    if (!isNicknameValid) {
+      setIsDuplicateNickname(false);
+      setIsCheckingNickname(false);
+      setNicknameCheckError(null);
+      return;
+    }
+
+    let isActive = true;
+    const timer = window.setTimeout(async () => {
+      try {
+        setIsCheckingNickname(true);
+        setNicknameCheckError(null);
+        const token = await getToken();
+        if (!token) {
+          throw new Error('missing token');
+        }
+        const isDuplicate = await checkNicknameDuplicate(trimmedNickname, token);
+        if (isActive) {
+          setIsDuplicateNickname(isDuplicate);
+        }
+      } catch {
+        if (isActive) {
+          setIsDuplicateNickname(false);
+          setNicknameCheckError('닉네임 중복 확인에 실패했어요.');
+        }
+      } finally {
+        if (isActive) {
+          setIsCheckingNickname(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      isActive = false;
+      window.clearTimeout(timer);
+    };
+  }, [getToken, isNicknameValid, trimmedNickname]);
+
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setPreviewUrl(null);
+      setImageUrl(null);
+      setUploadError(null);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPreviewUrl(typeof reader.result === 'string' ? reader.result : null);
+    };
+    reader.readAsDataURL(file);
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    const token = await getToken();
+    if (!token) {
+      setIsUploading(false);
+      setUploadError('이미지 업로드에 실패했어요. 다시 시도해주세요.');
+      return;
+    }
+
+    try {
+      const presigned = await createPresignedUrl(
+        { imageType: 'PROFILE', fileName: file.name },
+        token,
+      );
+      const uploadRes = await fetch(presigned.presignedUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+        body: file,
+      });
+      if (!uploadRes.ok) {
+        throw new Error(`upload failed: ${uploadRes.status}`);
+      }
+      const confirmed = await confirmImageUpload(presigned.imageId, presigned.imageUrl, token);
+      setImageUrl(confirmed?.imageUrl ?? presigned.imageUrl ?? null);
+    } catch {
+      setImageUrl(null);
+      setUploadError('이미지 업로드에 실패했어요. 다시 시도해주세요.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
   return (
     <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] px-10 pb-20 pt-10 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
       <div className="flex flex-col gap-8">
@@ -42,18 +137,7 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
                   type="file"
                   accept="image/*"
                   className="sr-only"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (!file) {
-                      setPreviewUrl(null);
-                      return;
-                    }
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                      setPreviewUrl(typeof reader.result === 'string' ? reader.result : null);
-                    };
-                    reader.readAsDataURL(file);
-                  }}
+                  onChange={handleImageChange}
                 />
                 {previewUrl ? (
                   <img
@@ -95,13 +179,28 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
             {hasWhitespace && (
               <span className="Caption1 text-[#FF4242]">공백은 사용할 수 없어요.</span>
             )}
+            {!hasWhitespace && !isLengthValid && (
+              <span className="Caption1 text-[#FF4242]">닉네임은 2자 이상 20자 이하로 입력해주세요.</span>
+            )}
             {!hasWhitespace && isDuplicateNickname && (
               <span className="Caption1 text-[#FF4242]">
                 이미 누군가가 사용 중인 닉네임이에요
               </span>
             )}
+            {!hasWhitespace && !isDuplicateNickname && isCheckingNickname && (
+              <span className="Caption1 text-[var(--ui-400)]">닉네임 중복 확인 중...</span>
+            )}
+            {!hasWhitespace && nicknameCheckError && (
+              <span className="Caption1 text-[#FF4242]">{nicknameCheckError}</span>
+            )}
             {!hasWhitespace && canUseNickname && (
               <span className="Caption1 text-[#00BF40]">사용 가능한 닉네임이에요!</span>
+            )}
+            {isUploading && (
+              <span className="Caption1 text-[var(--ui-400)]">이미지 업로드 중...</span>
+            )}
+            {uploadError && (
+              <span className="Caption1 text-[#FF4242]">{uploadError}</span>
             )}
           </div>
         </div>
@@ -110,10 +209,10 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
       <div className="mt-auto mb-24 flex flex-col gap-3">
         <button
           type="button"
-          onClick={onNext}
-          disabled={!canUseNickname}
+          onClick={() => onNext({ nickname: trimmedNickname, imageUrl })}
+          disabled={!canUseNickname || isUploading}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
-            canUseNickname
+            canUseNickname && !isUploading
               ? 'bg-[#4E49FF] text-white'
               : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
           }`}
