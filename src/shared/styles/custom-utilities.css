@@ -100,6 +100,10 @@
         @apply max-w-[1180px] h-[180px] p-10;
     }
 
+    .card-size-lg--with-header {
+        @apply h-[230px];
+    }
+
     .card-avatar-sm {
         @apply w-[60px] h-[60px];
     }
