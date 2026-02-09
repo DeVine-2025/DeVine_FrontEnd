@@ -38,6 +38,7 @@ import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { useProjectCreateStore } from '@store/projectCreate';
 import type { ChangeEvent, ComponentType, SVGProps } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -276,24 +277,38 @@ const ProjectCreatePage = () => {
   const isDev = Boolean((import.meta as any).env?.DEV);
   const { getToken } = useAuth();
   const navigate = useNavigate();
-  const [locationText, setLocationText] = useState('');
-  const [deadlineText, setDeadlineText] = useState('');
-  const [projectTitle, setProjectTitle] = useState('');
-  const [projectContent, setProjectContent] = useState('');
-  const [projectType, setProjectType] = useState<string | null>(null);
-  const [domain, setDomain] = useState<string | null>(null);
-  const [progressType, setProgressType] = useState<string | null>(null);
-  const [progressPeriod, setProgressPeriod] = useState<string | null>(null);
-  const [recruitPosition, setRecruitPosition] = useState<string | null>(null);
-  const [recruitCount, setRecruitCount] = useState<string | null>(null);
+
+  const {
+    locationText,
+    setLocationText,
+    deadlineText,
+    setDeadlineText,
+    projectTitle,
+    setProjectTitle,
+    projectContent,
+    setProjectContent,
+    projectType,
+    setProjectType,
+    domain,
+    setDomain,
+    progressType,
+    setProgressType,
+    progressPeriod,
+    setProgressPeriod,
+    recruitPosition,
+    setRecruitPosition,
+    recruitCount,
+    setRecruitCount,
+    techStack,
+    setTechStack,
+    recruitments,
+    setRecruitments,
+    slotImages,
+    setSlotImages,
+    clearDraft,
+  } = useProjectCreateStore();
+
   const [techStackOpen, setTechStackOpen] = useState(false);
-  const [techStack, setTechStack] = useState<string[]>([]);
-  const [recruitments, setRecruitments] = useState<RecruitmentItem[]>([]);
-  const [slotImages, setSlotImages] = useState<Array<{ imageId: number; imageUrl: string } | null>>([
-    null,
-    null,
-    null,
-  ]);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [imageUploadingSlot, setImageUploadingSlot] = useState<number | null>(null);
   const [editorImageUploading, setEditorImageUploading] = useState(false);
@@ -332,7 +347,7 @@ const ProjectCreatePage = () => {
         setSlotImages((prev) => {
           const next = [...prev];
           next[index] = { imageId, imageUrl };
-          return next;
+          return next as [typeof prev[0], typeof prev[1], typeof prev[2]];
         });
       } catch (err) {
         const msg = err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.';
@@ -349,7 +364,7 @@ const ProjectCreatePage = () => {
       setSlotImages((prev) => {
         const next = [...prev];
         next[index] = null;
-        return next;
+        return next as [typeof prev[0], typeof prev[1], typeof prev[2]];
       });
     };
   }, []);
@@ -438,6 +453,13 @@ const ProjectCreatePage = () => {
       },
     },
   });
+
+  // 저장된 초안 복원 시 에디터 내용 동기화
+  useEffect(() => {
+    if (editor && projectContent && editor.isEmpty) {
+      editor.commands.setContent(projectContent, { emitUpdate: false });
+    }
+  }, [editor, projectContent]);
 
   const insertImageFromFile = async (file: File) => {
     const token = await getToken();
@@ -568,6 +590,7 @@ const ProjectCreatePage = () => {
         console.groupEnd();
       }
       const result = await createProject(body, token);
+      clearDraft();
       alert(`등록 완료 (projectId: ${result.projectId})`);
       navigate(`/project/${result.projectId}`);
     } catch (e) {

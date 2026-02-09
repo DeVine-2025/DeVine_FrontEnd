@@ -1,17 +1,20 @@
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
 import ProfileCard from '@components/common/ProfileCard';
+import { useFilterStore } from '@store/filter';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEVELOPER_FILTERS, PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 
 const DeveloperSearchPage = () => {
   const navigate = useNavigate();
+  const { developerSearch, setDeveloperSearch } = useFilterStore();
+  const { interestDomains, myProjects, techStacks } = developerSearch;
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
 
-  const [interestDomains, setInterestDomains] = useState<string[]>([]);
-  const [myProjects, setMyProjects] = useState<string[]>([]);
-  const [techStacks, setTechStacks] = useState<string[]>([]);
+  const setInterestDomains = (v: string[]) => setDeveloperSearch({ interestDomains: v });
+  const setMyProjects = (v: string[]) => setDeveloperSearch({ myProjects: v });
+  const setTechStacks = (v: string[]) => setDeveloperSearch({ techStacks: v });
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">

@@ -2,6 +2,7 @@ import { useAuth } from '@clerk/clerk-react';
 import Pagination from '@components/common/Pagination';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
+import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -99,16 +100,20 @@ function buildApiParams(
 const RecommendProjectPage = () => {
   const { getToken } = useAuth();
   const navigate = useNavigate();
+  const { recommendProject, setRecommendProject } = useFilterStore();
+  const { domains, expectedPeriods, projectTypes, techStacks } = recommendProject;
+
   const [openFilter, setOpenFilter] = useState<null | (typeof PROJECT_FILTERS)[number]>(null);
-  const [domains, setDomains] = useState<string[]>([]);
-  const [expectedPeriods, setExpectedPeriods] = useState<string[]>([]);
-  const [projectTypes, setProjectTypes] = useState<string[]>([]);
-  const [techStacks, setTechStacks] = useState<string[]>([]);
   const [list, setList] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+
+  const setDomains = useCallback((v: string[]) => setRecommendProject({ domains: v }), [setRecommendProject]);
+  const setExpectedPeriods = useCallback((v: string[]) => setRecommendProject({ expectedPeriods: v }), [setRecommendProject]);
+  const setProjectTypes = useCallback((v: string[]) => setRecommendProject({ projectTypes: v }), [setRecommendProject]);
+  const setTechStacks = useCallback((v: string[]) => setRecommendProject({ techStacks: v }), [setRecommendProject]);
 
   const fetchList = useCallback(
     async (pageNum: number = 1) => {

@@ -2,6 +2,7 @@ import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
 import Pagination from '@components/common/Pagination';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
+import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useState } from 'react';
 import {
   getMyProjects,
@@ -33,18 +34,37 @@ function buildApiParams(
 
 const RecommendDeveloperPage = () => {
   const { getToken } = useAuth();
+  const {
+    recommendDeveloper,
+    setRecommendDeveloper,
+  } = useFilterStore();
+  const { myProjects, interestDomains, techStacks } = recommendDeveloper;
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
-  const [myProjects, setMyProjects] = useState<string[]>([]);
   const [myProjectOptions, setMyProjectOptions] = useState<MyProjectOption[]>([]);
   const [myProjectOptionsLoading, setMyProjectOptionsLoading] = useState(false);
-  const [interestDomains, setInterestDomains] = useState<string[]>([]);
-  const [techStacks, setTechStacks] = useState<string[]>([]);
   const [list, setList] = useState<RecommendDeveloperListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+
+  const setMyProjects = useCallback(
+    (v: string[] | ((prev: string[]) => string[])) => {
+      setRecommendDeveloper({
+        myProjects: typeof v === 'function' ? v(myProjects) : v,
+      });
+    },
+    [myProjects, setRecommendDeveloper],
+  );
+  const setInterestDomains = useCallback(
+    (v: string[]) => setRecommendDeveloper({ interestDomains: v }),
+    [setRecommendDeveloper],
+  );
+  const setTechStacks = useCallback(
+    (v: string[]) => setRecommendDeveloper({ techStacks: v }),
+    [setRecommendDeveloper],
+  );
 
   // 내 프로젝트 옵션 로드 (드롭다운 실제 데이터)
   useEffect(() => {
@@ -82,14 +102,14 @@ const RecommendDeveloperPage = () => {
     };
   }, [getToken]);
 
-  // 기본값: 내가 만든 프로젝트가 있으면 "전체(=전부 선택)" 상태로 시작
+  // 기본값: 저장된 선택이 없고 내가 만든 프로젝트가 있으면 "전체(=전부 선택)" 상태로 시작
   useEffect(() => {
     if (myProjectOptionsLoading) return;
     if (myProjectOptions.length === 0) return;
     if (myProjects.length > 0) return;
-    setMyProjects(myProjectOptions.map((p) => p.name));
+    setRecommendDeveloper({ myProjects: myProjectOptions.map((p) => p.name) });
     setPage(1);
-  }, [myProjectOptionsLoading, myProjectOptions, myProjects.length]);
+  }, [myProjectOptionsLoading, myProjectOptions, myProjects.length, setRecommendDeveloper]);
 
   // 체크할 때마다 즉시 추천 개발자 갱신 (저장 버튼 없이도 동작)
   useEffect(() => {
