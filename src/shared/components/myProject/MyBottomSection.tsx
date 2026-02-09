@@ -36,7 +36,7 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
         />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 gap-[1.6rem] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {highlightProjects.map((project) => (
           <MainProjectCard
             key={project.id}
