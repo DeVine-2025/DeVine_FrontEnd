@@ -16,7 +16,27 @@ import { PROJECT_FILTERS, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/
 export default function ProjectSearchPage() {
   const { getToken } = useAuth();
   const navigate = useNavigate();
-  const handleProjectClick = (projectId: number | string) => {
+  const handleProjectClick = (
+    projectId: number | string,
+    payload?: {
+      id: string;
+      categoryLabel?: string;
+      deadlineLabel?: string;
+      title: string;
+      location?: string;
+      period?: string;
+      mode?: string;
+      dueLabel?: string;
+      roles?: ProjectRole[];
+    },
+  ) => {
+    if (payload) {
+      try {
+        sessionStorage.setItem(`project_detail_${projectId}`, JSON.stringify(payload));
+      } catch {
+        // ignore storage errors
+      }
+    }
     navigate(`/project/${projectId}`);
   };
 
@@ -145,7 +165,18 @@ export default function ProjectSearchPage() {
             mode={p.mode}
             roles={p.roles}
             bookmarked={false}
-            onClick={() => handleProjectClick(p.id)}
+            onClick={() =>
+              handleProjectClick(p.id, {
+                id: String(p.id),
+                categoryLabel: p.categoryLabel,
+                deadlineLabel: p.deadlineLabel,
+                title: p.title,
+                location: p.location,
+                period: p.period,
+                mode: p.mode,
+                roles: p.roles,
+              })
+            }
           />
         ))}
       </div>
@@ -175,7 +206,19 @@ export default function ProjectSearchPage() {
           <ProjectLg
             key={p.id}
             {...p}
-            onClick={() => handleProjectClick(p.id)}
+            onClick={() =>
+              handleProjectClick(p.id, {
+                id: String(p.id),
+                categoryLabel: p.categoryLabel,
+                deadlineLabel: p.deadlineLabel,
+                title: p.title,
+                location: p.location,
+                period: p.period,
+                mode: p.mode,
+                dueLabel: p.dueLabel,
+                roles: p.roles,
+              })
+            }
             onBookmarkChange={(next) => console.log('bookmark', p.id, next)}
           />
         ))}
