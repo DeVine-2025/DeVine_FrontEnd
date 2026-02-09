@@ -2,8 +2,9 @@ import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
 import LogoDark from '@assets/icons/logo-dark.svg?react';
 import LogoLight from '@assets/icons/logo-light.svg?react';
 import { useThemeStore } from '@store/theme';
+import { useAuth } from '@clerk/clerk-react';
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 type TermsDetailScreenProps = {
   open: boolean;
@@ -122,6 +123,8 @@ const parseTermsContent = (content: string): ReactNode[] => {
 
 const TermsDetailScreen = ({ open, title, content, onClose }: TermsDetailScreenProps) => {
   const { theme } = useThemeStore();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   const backgroundStyle =
     theme === 'dark'
       ? {
@@ -143,9 +146,20 @@ const TermsDetailScreen = ({ open, title, content, onClose }: TermsDetailScreenP
     <div className="fixed inset-0 z-[60]" style={backgroundStyle}>
       <div className="absolute left-1/2 top-0 h-[6rem] w-screen -translate-x-1/2">
         <div className="mx-auto flex h-full max-w-[144rem] items-center px-[12rem]">
-          <Link to="/" className="flex-items-center gap-[0.4rem]">
+          <button
+            type="button"
+            onClick={() => {
+              sessionStorage.setItem('show_onboarding_modal', 'true');
+              localStorage.removeItem('userRole');
+              sessionStorage.removeItem('login_provider');
+              sessionStorage.removeItem('allow_main_once');
+              void signOut().finally(() => navigate('/'));
+            }}
+            className="flex-items-center gap-[0.4rem]"
+            aria-label="메인으로 이동"
+          >
             {theme === 'dark' ? <LogoLight aria-hidden="true" /> : <LogoDark aria-hidden="true" />}
-          </Link>
+          </button>
         </div>
       </div>
 
