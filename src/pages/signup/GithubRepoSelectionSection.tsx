@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from 'react';
 import Lottie from 'lottie-react';
 import reportAnimation from './Data _ Bundling.json';
@@ -5,6 +6,8 @@ import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import { getGitRepos } from '@apis/github-repos';
+import { createReportSync, getReportDetail, getReportMain } from '@apis/reports';
+import { useMutation } from '@tanstack/react-query';
 
 type GithubRepoSelectionSectionProps = {
   onBack: () => void;
@@ -18,6 +21,11 @@ type RepoOption = {
   url: string;
 };
 
+type ReportCardData = {
+  title: string;
+  desc: string;
+};
+
 const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSectionProps) => {
   const [selectedRepo, setSelectedRepo] = useState<number | null>(null);
   const [phase, setPhase] = useState<'select' | 'generating' | 'complete'>('select');
@@ -25,6 +33,9 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
   const [repoOptions, setRepoOptions] = useState<RepoOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [mainReport, setMainReport] = useState<ReportCardData | null>(null);
+  const [detailReport, setDetailReport] = useState<ReportCardData | null>(null);
   const { getToken } = useAuth();
 
   const tips = [
@@ -44,12 +55,70 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
     setSelectedRepo((prev) => (prev === id ? null : id));
   };
 
+  const createReportMutation = useMutation({
+    mutationFn: async (repoId: number) => {
+      const token = await getToken();
+      return createReportSync(repoId, token ?? undefined);
+    },
+    onMutate: () => {
+      setCreateError(null);
+      setPhase('generating');
+    },
+    onSuccess: async (_, repoId) => {
+      try {
+        const token = await getToken();
+        const [main, detail] = await Promise.all([
+          getReportMain(repoId, token ?? undefined),
+          getReportDetail(repoId, token ?? undefined),
+        ]);
+        const selected = repoOptions.find((repo) => repo.id === repoId);
+        setMainReport(getReportCardData(main, selected));
+        setDetailReport(getReportCardData(detail, selected));
+      } catch {
+        const selected = repoOptions.find((repo) => repo.id === repoId);
+        setMainReport(getReportCardData(null, selected));
+        setDetailReport(getReportCardData(null, selected));
+      } finally {
+        setPhase('complete');
+      }
+    },
+    onError: (error) => {
+      setPhase('select');
+      setCreateError(error instanceof Error ? error.message : '리포트 생성에 실패했어요.');
+    },
+  });
+
   const handleGenerate = () => {
     if (!canProceed || phase !== 'select') return;
-    setPhase('generating');
-    window.setTimeout(() => {
-      setPhase('complete');
-    }, 60000);
+    if (!selectedRepo) return;
+    createReportMutation.mutate(selectedRepo);
+  };
+
+  const getReportCardData = (data: unknown, fallback?: RepoOption | null): ReportCardData => {
+    const record = data && typeof data === 'object' ? (data as Record<string, unknown>) : null;
+    const content = record?.content && typeof record.content === 'object'
+      ? (record.content as Record<string, unknown>)
+      : null;
+    const projectOverview =
+      content?.projectOverview && typeof content.projectOverview === 'object'
+        ? (content.projectOverview as Record<string, unknown>)
+        : null;
+    const title =
+      (content?.reportTitle as string | undefined) ||
+      (record?.reportTitle as string | undefined) ||
+      (record?.repositoryName as string | undefined) ||
+      (record?.repoName as string | undefined) ||
+      (record?.name as string | undefined) ||
+      fallback?.name ||
+      '레포지토리 이름이 들어가는 자리입니다.';
+    const desc =
+      (projectOverview?.purpose as string | undefined) ||
+      (content?.summary as string | undefined) ||
+      (record?.summary as string | undefined) ||
+      (record?.description as string | undefined) ||
+      fallback?.desc ||
+      '레포지토리 설명이 들어가는 자리입니다.';
+    return { title, desc };
   };
 
   useEffect(() => {
@@ -104,7 +173,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
             리포트를 생성하는 중이에요
           </h2>
           <div className="mt-15 flex flex-col items-center gap-2">
-            <span className="Caption1 inline-flex items-center rounded-full bg-[#1E1D4D] px-3 py-1 text-[#7E7AFF]">
+            <span className="Caption1 inline-flex items-center rounded-full bg-[var(--badge-bg-primary)] px-3 py-1 text-[var(--badge-text-primary)]">
               TIP
             </span>
             <p className="Caption1 text-[var(--ui-400)]">
@@ -126,37 +195,25 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
         </h2>
         <br/>
         <div className="grid w-full max-w-[640px] grid-cols-2 gap-6">
-          <div className="flex h-[270px] w-[280px] flex-col gap-3 rounded-[24px] border border-[#41444D] bg-[#191B1E] p-4 text-left">
-            <span className="Caption1 inline-flex w-fit rounded-full bg-[#1E1D4D] px-2 py-1 text-[10px] text-[#7E7AFF]">
+          <div className="flex h-[270px] w-[280px] flex-col gap-3 rounded-[24px] border border-card-border bg-card-bg p-4 text-left">
+            <span className="Caption1 inline-flex w-fit rounded-full bg-[var(--badge-bg-primary)] px-2 py-1 text-[10px] text-[var(--badge-text-primary)]">
               메인
             </span>
-            <h3 className="Body1 font-semibold text-[var(--ui-900)]">
-              레포지토리 이름이 들어가는 자리입니다.
-            </h3>
-            <p className="Caption1 text-[var(--ui-400)]">
-              레포지토리 설명이 들어가는 자리입니다.
-              <br />
-              레포지토리 설명이 들어가는 자리입니다.
-            </p>
+            <h3 className="Body1 font-semibold text-[var(--ui-900)]">{mainReport?.title}</h3>
+            <p className="Caption1 text-[var(--ui-400)]">{mainReport?.desc}</p>
           </div>
-          <div className="flex h-[270px] w-[280px] flex-col gap-3 rounded-[24px] border border-[#41444D] bg-[#191B1E] p-4 text-left">
-            <span className="Caption1 inline-flex w-fit rounded-full bg-[#1E1D4D] px-2 py-1 text-[10px] text-[#7E7AFF]">
+          <div className="flex h-[270px] w-[280px] flex-col gap-3 rounded-[24px] border border-card-border bg-card-bg p-4 text-left">
+            <span className="Caption1 inline-flex w-fit rounded-full bg-[var(--badge-bg-primary)] px-2 py-1 text-[10px] text-[var(--badge-text-primary)]">
               상세
             </span>
-            <h3 className="Body1 font-semibold text-[var(--ui-900)]">
-              레포지토리 이름이 들어가는 자리입니다.
-            </h3>
-            <p className="Caption1 text-[var(--ui-400)]">
-              레포지토리 설명이 들어가는 자리입니다.
-              <br />
-              레포지토리 설명이 들어가는 자리입니다.
-            </p>
+            <h3 className="Body1 font-semibold text-[var(--ui-900)]">{detailReport?.title}</h3>
+            <p className="Caption1 text-[var(--ui-400)]">{detailReport?.desc}</p>
           </div>
         </div><br/>
         <button
           type="button"
           onClick={onNext}
-          className="mt-15 Body1 h-[48px] w-[280px] rounded-xl bg-[#4E49FF] font-semibold text-white"
+          className="mt-15 Body1 h-[48px] w-[280px] rounded-xl bg-[var(--color-primary)] font-semibold text-white"
         >
           메인 화면으로 이동하기
         </button>
@@ -178,6 +235,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
             <span className="Caption1 text-[var(--ui-400)]">레포지토리를 불러오는 중이에요.</span>
           )}
           {loadError && <span className="Caption1 text-[var(--ui-danger)]">{loadError}</span>}
+          {createError && <span className="Caption1 text-[var(--ui-danger)]">{createError}</span>}
           <div className="scrollbar-hide max-h-[320px] overflow-y-auto pr-1">
             <div className="flex flex-col gap-4">
               {repoOptions.map((repo) => {
@@ -191,7 +249,10 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
                     aria-pressed={selected}
                   >
                     {selected ? (
-                      <CheckboxCheckedIcon className="mt-1 h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                      <CheckboxCheckedIcon
+                        className="mt-1 h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                        aria-hidden="true"
+                      />
                     ) : (
                       <CheckboxUncheckedIcon className="mt-1 h-7 w-7 shrink-0" aria-hidden="true" />
                     )}
@@ -215,15 +276,15 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
       <div className="mt-auto mb-24 flex flex-col gap-3">
         <button
           type="button"
-          disabled={!canProceed}
+          disabled={!canProceed || createReportMutation.isPending}
           onClick={handleGenerate}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
             canProceed
-              ? 'bg-[#4E49FF] text-white'
+              ? 'bg-[var(--color-primary)] text-white'
               : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
           }`}
         >
-          선택 완료
+          {createReportMutation.isPending ? '리포트 생성 중...' : '선택 완료'}
         </button>
         <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
           돌아가기

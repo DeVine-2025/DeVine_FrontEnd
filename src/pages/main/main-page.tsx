@@ -267,12 +267,12 @@ const MainPage = () => {
 
           {!isLoggedIn && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-[210px] w-[400px] flex-col items-start gap-7 rounded-2xl border border-[#41444D] bg-[#212328] p-11 text-left shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
+              <div className="flex h-[210px] w-[400px] flex-col items-start gap-7 rounded-2xl border border-card-border bg-card-bg p-11 text-left shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
                 <div className="flex flex-col gap-2">
                   <span className="font-semibold text-[21px] text-card-title">
                     로그인이 필요해요
                   </span>
-                  <span className="text-[#F8F9FB] text-[15px]">
+                  <span className="text-[15px] text-card-muted">
                     로그인하면 추천 프로젝트를 확인할 수 있어요
                   </span>
                 </div>

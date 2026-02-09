@@ -88,11 +88,11 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
                   >
                     <span
                       className={`relative flex h-7 w-7 items-center justify-center rounded-full border ${
-                        selected ? 'border-[#4E49FF]' : 'border-[var(--ui-200)]'
+                        selected ? 'border-[var(--color-primary)]' : 'border-[var(--ui-200)]'
                       }`}
                     >
                       {selected && (
-                        <span className="h-3 w-3 rounded-full bg-[#4E49FF]" />
+                        <span className="h-3 w-3 rounded-full bg-[var(--color-primary)]" />
                       )}
                     </span>
                     <span className="Body1">{option.label}</span>
@@ -119,7 +119,10 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
                     aria-pressed={selected}
                   >
                     {selected ? (
-                      <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                      <CheckboxCheckedIcon
+                        className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                        aria-hidden="true"
+                      />
                     ) : (
                       <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
                     )}
@@ -139,7 +142,7 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
           onClick={handleNext}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
             canProceed
-              ? 'bg-[#4E49FF] text-white'
+              ? 'bg-[var(--color-primary)] text-white'
               : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
           }`}
         >

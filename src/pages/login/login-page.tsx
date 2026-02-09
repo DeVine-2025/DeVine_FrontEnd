@@ -42,11 +42,7 @@ const LoginPage = () => {
             onClick={() => void handleOAuthSignIn('github')}
             className="relative flex h-[48px] w-full items-center justify-center gap-4 rounded-[12px] px-4 overflow-visible whitespace-nowrap bg-[var(--color-auth-btn-dark-bg)] text-[var(--color-auth-btn-dark-text)]"
           >
-            <span
-              className={`pointer-events-none absolute -top-16 left-[110%] -translate-x-1/2 rounded-full rounded-bl-[6px] px-6 py-2 text-[14px] font-semibold shadow-[0_3px_14px_rgba(78,73,255,0.1)] ${
-                theme === 'light' ? 'bg-[#EEEDFF] text-[#4E49FF]' : 'bg-[#1E1D4D] text-[#7E7AFF]'
-              }`}
-            >
+            <span className="pointer-events-none absolute -top-16 left-[110%] -translate-x-1/2 rounded-full rounded-bl-[6px] bg-[var(--badge-bg-primary)] px-6 py-2 text-[14px] font-semibold text-[var(--badge-text-primary)] shadow-[0_3px_14px_rgba(78,73,255,0.1)]">
               깃허브 로그인 시 1회 무료 리포트 생성
             </span>
             <GithubIcon className="h-9 w-9" aria-hidden="true" />
