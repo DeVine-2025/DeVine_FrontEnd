@@ -41,8 +41,14 @@ const Header = () => {
     getToken().then((token) => {
       if (!token) return;
       getUnreadNotificationCount(token)
-        .then(setUnreadCount)
-        .catch(() => setUnreadCount(0));
+        .then((count) => {
+          setUnreadCount(count);
+          console.log('[알림] 읽지 않은 개수:', count);
+        })
+        .catch((e) => {
+          setUnreadCount(0);
+          console.warn('[알림] unread-count 실패', e);
+        });
     });
   }, [getToken]);
 
@@ -81,16 +87,21 @@ const Header = () => {
   useEffect(() => {
     if (!isNotificationOpen) return;
     let cancelled = false;
+    console.log('[알림] 목록 조회 요청');
     getToken()
       .then((token) => {
         if (!token || cancelled) return;
         return getNotifications(token, { page: 0, size: 20 });
       })
       .then((result) => {
-        if (result && !cancelled) setNotifications(result.notifications);
+        if (result && !cancelled) {
+          setNotifications(result.notifications);
+          console.log('[알림] 목록 조회 성공', result.notifications.length, '건', result.notifications);
+        }
       })
-      .catch(() => {
+      .catch((e) => {
         if (!cancelled) setNotifications([]);
+        console.warn('[알림] 목록 조회 실패', e);
       });
     return () => {
       cancelled = true;
@@ -102,22 +113,30 @@ const Header = () => {
       if (!token) return;
       const id = Number(notificationId);
       if (Number.isNaN(id)) return;
-      markNotificationAsRead(id, token).then(() => {
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n)),
-        );
-        setUnreadCount((c) => Math.max(0, c - 1));
-      });
+      console.log('[알림] 읽음 처리 요청', notificationId);
+      markNotificationAsRead(id, token)
+        .then(() => {
+          setNotifications((prev) =>
+            prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n)),
+          );
+          setUnreadCount((c) => Math.max(0, c - 1));
+          console.log('[알림] 읽음 처리 성공', notificationId);
+        })
+        .catch((e) => console.warn('[알림] 읽음 처리 실패', notificationId, e));
     });
   };
 
   const handleMarkAllAsRead = () => {
     getToken().then((token) => {
       if (!token) return;
-      markAllNotificationsAsRead(token).then(() => {
-        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-        setUnreadCount(0);
-      });
+      console.log('[알림] 전체 읽음 처리 요청');
+      markAllNotificationsAsRead(token)
+        .then((result) => {
+          setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+          setUnreadCount(0);
+          console.log('[알림] 전체 읽음 처리 성공', result?.markedCount ?? '');
+        })
+        .catch((e) => console.warn('[알림] 전체 읽음 처리 실패', e));
     });
   };
 

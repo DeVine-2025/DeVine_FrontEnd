@@ -13,6 +13,8 @@ type Props = {
 
   myProjects: string[];
   setMyProjects: (v: string[]) => void;
+  myProjectOptions?: Array<{ id: number; name: string }>;
+  myProjectOptionsLoading?: boolean;
 
   techStacks: string[];
   setTechStacks: (v: string[]) => void;
@@ -31,6 +33,8 @@ export default function DeveloperFilterBar({
 
   myProjects,
   setMyProjects,
+  myProjectOptions,
+  myProjectOptionsLoading,
   techStacks,
   setTechStacks,
   interestDomains,
@@ -90,6 +94,8 @@ export default function DeveloperFilterBar({
                 open={openFilter === '내 프로젝트 선택'}
                 value={myProjects}
                 onChange={setMyProjects}
+                options={myProjectOptions}
+                loading={myProjectOptionsLoading}
                 onApply={() => onApply?.('내 프로젝트 선택')}
                 onReset={() => onReset?.('내 프로젝트 선택')}
                 onClose={close}

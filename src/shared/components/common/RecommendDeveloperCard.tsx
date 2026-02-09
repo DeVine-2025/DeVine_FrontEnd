@@ -1,4 +1,4 @@
-import BookmarkFilledIcon from '@assets/icons/bookmark-filled.svg?react';
+import BookmarkButton from '@components/common/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
 import { useThemeStore } from '@store/theme';
@@ -192,20 +192,14 @@ export default function RecommendDeveloperCard({
       </div>
 
       {/* 북마크 */}
-      <button
-        type="button"
-        aria-pressed={bookmarked}
-        onClick={(e) => {
-          e.stopPropagation();
-          onBookmarkChange?.(!bookmarked);
-        }}
-        className="group absolute right-[24px] top-1/2 flex h-[52px] w-[52px] -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-300)]"
-      >
-        <BookmarkFilledIcon
-          aria-hidden
-          className="h-[32px] w-[32px] text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-active:scale-[0.98] group-hover:text-[var(--ui-300)]"
-        />
-      </button>
+      <BookmarkButton
+        bookmarked={bookmarked}
+        onBookmarkChange={onBookmarkChange}
+        stopPropagation
+        className="absolute right-[24px] top-1/2 h-[52px] w-[52px] -translate-y-1/2"
+        iconClassName="h-[32px] w-[32px]"
+        colorIconClassName="h-[44px] w-[44px]"
+      />
 
       {/* 하단 매칭 문구 */}
       <div className="absolute left-[24px] top-[172px] flex items-center justify-center rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">

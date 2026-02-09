@@ -94,8 +94,6 @@ import FirebaseOff from '@assets/stackBadge/Property 1=Firebase, Status=Off.svg'
 import FirebaseOn from '@assets/stackBadge/Property 1=Firebase, Status=On.svg';
 import KubernetesOff from '@assets/stackBadge/Property 1=Kubernetes, Status=Off.svg';
 import KubernetesOn from '@assets/stackBadge/Property 1=Kubernetes, Status=On.svg';
-import InfraReactOff from '@assets/stackBadge/Property 1=React, Status=Off.svg';
-import InfraReactOn from '@assets/stackBadge/Property 1=React, Status=On.svg';
 import AwsOffDark from '@assets/stackBadge/Category=Aws, Status=Off-dark.svg';
 import AwsOnDark from '@assets/stackBadge/Category=Aws, Status=On-dark.svg';
 import DockerOffDark from '@assets/stackBadge/Category=Docker, Status=Off-dark.svg';
@@ -151,8 +149,6 @@ export const BACKEND_DATABASE: TechStackChip[] = [
 export const INFRA_CLOUD: TechStackChip[] = [
   { key: 'AWS', label: 'AWS', off: AwsOff, on: AwsOn, offDark: AwsOffDark, onDark: AwsOnDark },
   { key: 'Firebase', label: 'Firebase', off: FirebaseOff, on: FirebaseOn, offDark: FirebaseOffDark, onDark: FirebaseOnDark },
-  // 인프라 탭의 React는 별도 에셋(Property 1=React)을 사용
-  { key: 'React', label: 'React', off: InfraReactOff, on: InfraReactOn, offDark: ReactOffDark, onDark: ReactOnDark },
 ];
 
 export const INFRA_CONTAINER: TechStackChip[] = [
