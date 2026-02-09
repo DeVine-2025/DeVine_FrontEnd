@@ -32,6 +32,7 @@ import {
   type PositionKey,
   TECH_STACK_LABEL_BY_KEY,
 } from '@constants/position-tech-stack';
+import { TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
@@ -141,7 +142,7 @@ function ImageSlot({
           <img
             src={previewUrl}
             alt={label}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain bg-[var(--ui-50)]"
             draggable={false}
           />
           <button
@@ -162,8 +163,8 @@ function ImageSlot({
           <p className="Body1 -translate-x-1/2 absolute top-[31px] left-1/2 w-[150px] text-center font-medium text-ui-400">
             {label}
           </p>
-          <div className="-translate-x-1/2 absolute top-[75px] left-1/2 h-[60px] w-[60px] flex-row-center overflow-hidden rounded-full">
-            <PlusIcon aria-hidden className="h-full w-full" />
+          <div className="-translate-x-1/2 absolute top-[75px] left-1/2 flex h-[44px] w-[44px] flex-row items-center justify-center overflow-hidden rounded-full">
+            <PlusIcon aria-hidden className="h-[28px] w-[28px]" />
           </div>
         </>
       )}
@@ -191,15 +192,16 @@ function ToolbarButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="group flex h-[20px] w-[20px] items-center justify-center disabled:pointer-events-none disabled:opacity-50"
+      className="group flex h-[28px] min-w-[28px] items-center justify-center rounded-md px-1 transition-colors disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-[var(--ui-200)] data-[active]:text-[var(--ui-800)] hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)]"
+      data-active={active || undefined}
       aria-label={label}
     >
       {active ? (
-        <HoverIcon aria-hidden className="h-[20px] w-[20px]" />
+        <HoverIcon aria-hidden className="h-[20px] w-[20px] shrink-0 text-[var(--ui-800)]" />
       ) : (
         <>
-          <Icon aria-hidden className="h-[20px] w-[20px] group-hover:hidden" />
-          <HoverIcon aria-hidden className="hidden h-[20px] w-[20px] group-hover:block" />
+          <Icon aria-hidden className="h-[20px] w-[20px] shrink-0 text-[var(--ui-500)] group-hover:hidden" />
+          <HoverIcon aria-hidden className="hidden h-[20px] w-[20px] shrink-0 text-[var(--ui-700)] group-hover:block" />
         </>
       )}
     </button>
@@ -221,13 +223,19 @@ const modeMap: Record<string, string> = {
 const positionMap: Record<string, string> = {
   프론트엔드: 'FRONTEND',
   백엔드: 'BACKEND',
-  인프라: 'BACKEND',
+  인프라: 'INFRA',
 };
 const durationMonthsMap: Record<string, number> = {
   '1개월 이하': 1,
   '1-3개월': 2,
   '3-6개월': 4,
   '6개월 이상': 6,
+};
+const durationRangeMap: Record<string, string> = {
+  '1개월 이하': 'UNDER_ONE',
+  '1-3개월': 'ONE_TO_THREE',
+  '3-6개월': 'THREE_TO_SIX',
+  '6개월 이상': 'SIX_PLUS',
 };
 /** 도메인(한글) → POST /api/v1/projects category enum */
 const domainToCategory: Record<string, string> = {
@@ -240,8 +248,28 @@ const domainToCategory: Record<string, string> = {
   'AI/데이터': 'AI',
   기타: 'OTHER',
 };
+const normalizeTechKey = (k: string) =>
+  k.trim().replace(/\s+/g, '').replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
+
+/** UI 키(Java, Springboot 등) → 백엔드 API가 기대하는 tech stack 문자열. 백엔드 TechName enum과 일치해야 함. */
+const UI_KEY_TO_BACKEND_TECHSTACK: Record<string, string> = {
+  ...TECHSTACK_KEY_TO_NAME,
+  SPRINGBOOT: 'SPRINGBOOT',
+  SPRINGW: 'SPRINGBOOT',
+  SPRINGBOOTW: 'SPRINGBOOT',
+  SPRING: 'SPRINGBOOT',
+  REACTNATIVE: 'REACT_NATIVE',
+  MONGODB: 'MONGODB',
+  MYSQL: 'MYSQL',
+};
+
 function toTechStacksEnum(keys: string[]): string[] {
-  return keys.map((k) => k.trim().replace(/\s+/g, '').replace(/[^0-9a-zA-Z]/g, '').toUpperCase()).filter(Boolean);
+  return keys
+    .map((k) => {
+      const normalized = normalizeTechKey(k);
+      return UI_KEY_TO_BACKEND_TECHSTACK[normalized] ?? normalized;
+    })
+    .filter(Boolean);
 }
 
 const ProjectCreatePage = () => {
@@ -266,7 +294,6 @@ const ProjectCreatePage = () => {
     null,
     null,
   ]);
-  const [editorImageIds, setEditorImageIds] = useState<number[]>([]);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [imageUploadingSlot, setImageUploadingSlot] = useState<number | null>(null);
   const [editorImageUploading, setEditorImageUploading] = useState(false);
@@ -357,6 +384,9 @@ const ProjectCreatePage = () => {
     });
 
     setTechStackOpen(false);
+    setRecruitPosition(null);
+    setRecruitCount(null);
+    setTechStack([]);
   };
 
   const onRemoveRecruitment = (id: string) => {
@@ -431,7 +461,6 @@ const ProjectCreatePage = () => {
       }
       await confirmImage(imageId, token);
       editor?.chain().focus().setImage({ src: imageUrl }).run();
-      setEditorImageIds((prev) => [...prev, imageId]);
     } catch (err) {
       const msg = err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.';
       console.error('[project-create] editor image upload failed', msg, err);
@@ -496,27 +525,47 @@ const ProjectCreatePage = () => {
         const d = new Date(normalized);
         if (!Number.isNaN(d.getTime())) recruitmentDeadline = d.toISOString().slice(0, 10);
       }
+      const recruitmentsPayload = recruitments.map((r) => {
+        const position = positionMap[r.positionLabel] ?? 'BACKEND';
+        const techStacksSent =
+          r.techStackKeys.length > 0
+            ? toTechStacksEnum(r.techStackKeys)
+            : position === 'INFRA'
+              ? []
+              : ['BACKEND'];
+        return {
+          position,
+          count: Number(r.countLabel) || 1,
+          techStacks: techStacksSent,
+        };
+      });
       const body = {
         projectField: projectFieldMap[projectType ?? ''] ?? 'WEB',
         category: domainToCategory[domain ?? ''] ?? 'OTHER',
         mode: modeMap[progressType ?? ''] ?? 'ONLINE',
         durationMonths: durationMonthsMap[progressPeriod ?? ''] ?? 1,
+        durationRange: durationRangeMap[progressPeriod ?? ''] ?? 'ONE_TO_THREE',
         location: locationText.trim() || '미정',
         recruitmentDeadline,
-        recruitments: recruitments.map((r) => ({
-          position: positionMap[r.positionLabel] ?? 'BACKEND',
-          count: Number(r.countLabel) || 1,
-          techStacks: r.techStackKeys.length > 0 ? toTechStacksEnum(r.techStackKeys) : ['BACKEND'],
-        })),
+        recruitments: recruitmentsPayload,
         title: projectTitle.trim(),
         content: projectContent || '',
-        imageIds: [
-          ...slotImages.map((s) => s?.imageId).filter((id): id is number => id != null),
-          ...editorImageIds,
-        ],
+        imageIds: slotImages
+          .map((s) => s?.imageId)
+          .filter((id): id is number => id != null)
+          .slice(0, 3),
       };
       if (isDev) {
         console.log('createProject body(final)', body);
+        console.groupCollapsed('[project-create] techStacks — 백엔드 enum과 비교용');
+        recruitments.forEach((r, i) => {
+          const sent = recruitmentsPayload[i].techStacks;
+          console.log(
+            `recruitments[${i}] ${r.positionLabel}: UI keys = [${r.techStackKeys.join(', ')}] → API로 전송 = [${sent.join(', ')}]`,
+          );
+        });
+        console.log('→ 백엔드 Swagger/API의 tech stack enum 목록과 위 "API로 전송" 값이 일치해야 합니다.');
+        console.groupEnd();
       }
       const result = await createProject(body, token);
       alert(`등록 완료 (projectId: ${result.projectId})`);

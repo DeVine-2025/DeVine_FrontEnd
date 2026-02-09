@@ -30,7 +30,43 @@ export async function getRecommendDevelopersPreview(limit: number, token: string
   return data.result ?? [];
 }
 
+/** GET /api/v1/members/me/projects - 내가 만든(게시한) 프로젝트 목록 */
+export type MyProjectDto = {
+  id: number;
+  name: string;
+  content: string;
+  status: string;
+  imageUrls: string[];
+};
+
+type MyProjectsResponse = {
+  isSuccess?: boolean;
+  message?: string;
+  result?: { projects?: MyProjectDto[] };
+};
+
+export async function getMyProjects(token: string, signal?: AbortSignal): Promise<MyProjectDto[]> {
+  const res = await fetch(`${BASE_URL}/api/v1/members/me/projects`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    signal,
+  });
+
+  const json = (await res.json().catch(() => null)) as MyProjectsResponse | null;
+  if (!res.ok) {
+    const message =
+      json && typeof json.message === 'string' ? json.message : `요청 실패 (${res.status})`;
+    throw new Error(message);
+  }
+
+  return json?.result?.projects ?? [];
+}
+
 export type GetRecommendMembersParams = {
+  /** 서버 필수: 해당 프로젝트에 맞는 개발자 추천 */
+  projectId: number;
   projectIds?: number[];
   category?: string;
   techGenre?: string;
@@ -100,6 +136,7 @@ export async function getRecommendMembers(
   signal?: AbortSignal,
 ): Promise<RecommendMembersResult> {
   const qs = buildQuery({
+    projectId: params?.projectId,
     projectIds: params?.projectIds,
     category: params?.category,
     techGenre: params?.techGenre,
@@ -118,6 +155,13 @@ export async function getRecommendMembers(
 
   const json = (await res.json().catch(() => null)) as RecommendMembersResponse | null;
   if (!res.ok) {
+    const url = `${BASE_URL}/api/v1/members/recommend${qs}`;
+    console.error('[추천 개발자 API] 요청 실패', {
+      url,
+      status: res.status,
+      params: { projectId: params?.projectId, projectIds: params?.projectIds, category: params?.category, techGenre: params?.techGenre, techstackName: params?.techstackName, page: params?.page, size: params?.size },
+      responseBody: json,
+    });
     const message =
       json && typeof (json as { message?: string }).message === 'string'
         ? (json as { message: string }).message

@@ -58,11 +58,33 @@ const toProjectDetailInfo = (project: RecommendedProject | ProjectListItem): Pro
   dueLabel: 'dueLabel' in project ? project.dueLabel : undefined,
 });
 
+const API_BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
+
+function resolveImageUrl(url: string): string {
+  if (!url || url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//'))
+    return url;
+  if (url.startsWith('/') && API_BASE) return `${API_BASE.replace(/\/$/, '')}${url}`;
+  return url;
+}
+
+function getProjectImageUrls(project: ProjectItem): string[] {
+  let raw: string[] = [];
+  if (Array.isArray(project.imageUrls) && project.imageUrls.length > 0) {
+    raw = project.imageUrls.filter((u): u is string => typeof u === 'string' && u.length > 0);
+  } else if (Array.isArray(project.images) && project.images.length > 0) {
+    raw = project.images
+      .map((img) => img?.imageUrl ?? img?.url)
+      .filter((u): u is string => typeof u === 'string' && u.length > 0);
+  } else if (project.thumbnailUrl && typeof project.thumbnailUrl === 'string') {
+    raw = [project.thumbnailUrl];
+  }
+  return raw.map(resolveImageUrl);
+}
+
 const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => {
   const summary =
     'content' in project && typeof project.content === 'string' ? project.content : undefined;
-  const imageUrls =
-    'imageUrls' in project && Array.isArray(project.imageUrls) ? project.imageUrls : [];
+  const imageUrls = getProjectImageUrls(project);
   const recruitments =
     'recruitments' in project && Array.isArray(project.recruitments)
       ? (project.recruitments as RecruitmentLike[])
@@ -79,7 +101,7 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
     dueLabel: project.recruitmentDeadline,
     summary,
     creatorName: project.creatorName,
-    imageUrls: imageUrls.filter(Boolean),
+    imageUrls,
     roles: recruitments.map((recruitment) => {
       const positionKey = recruitment.position as Position;
       const label =
@@ -105,6 +127,7 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
 const badgeToneByPosition: Partial<Record<Position, BadgeTone>> = {
   BACKEND: 'green',
   FRONTEND: 'blue',
+  INFRA: 'pink',
   DESIGN: 'pink',
   PM: 'blue',
   IOS: 'orange',
@@ -114,6 +137,7 @@ const badgeToneByPosition: Partial<Record<Position, BadgeTone>> = {
 const positionLabelByKey: Partial<Record<Position, string>> = {
   BACKEND: '백엔드',
   FRONTEND: '프론트엔드',
+  INFRA: '인프라',
   DESIGN: '디자인',
   PM: 'PM',
   IOS: 'iOS',
@@ -147,6 +171,7 @@ const ProjectDetailPage = () => {
   const [isApplying, setIsApplying] = useState(false);
   const [apiProject, setApiProject] = useState<ProjectDetailInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [imageLightboxIndex, setImageLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!projectId) return;
@@ -282,24 +307,31 @@ const ProjectDetailPage = () => {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
           <div className="flex min-w-0 flex-col gap-6">
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                {Array.from({ length: 3 }).map((_, index) => {
-                  const imageUrl = project.imageUrls?.[index];
-                  return (
-                    <div
-                      key={`project-image-${index}`}
-                      className="h-[160px] w-full overflow-hidden rounded-2xl bg-card-section-bg"
-                    >
-                      {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt={`${project.title} 이미지 ${index + 1}`}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : null}
-                    </div>
-                  );
-                })}
+                  {Array.from({ length: 3 }).map((_, index) => {
+                    const imageUrl = project.imageUrls?.[index];
+                    return (
+                      <button
+                        type="button"
+                        key={`project-image-${index}`}
+                        onClick={() => imageUrl && setImageLightboxIndex(index)}
+                        className="group relative aspect-[4/3] w-full min-h-[140px] max-h-[220px] overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-card-section-bg text-left shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--ui-400)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] disabled:cursor-default hover:border-[var(--ui-300)] hover:shadow-lg"
+                        disabled={!imageUrl}
+                      >
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={`${project.title} 이미지 ${index + 1}`}
+                            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center text-[var(--ui-400)] text-sm">
+                            사진 없음
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
               </div>
 
             <div className="flex flex-col gap-4">
@@ -368,7 +400,7 @@ const ProjectDetailPage = () => {
           <div className="flex flex-col gap-3 lg:mt-[230px] lg:items-end">
             <button
               type="button"
-              className="inline-flex h-[44px] w-[240px] items-center justify-center gap-2 rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-6 text-[16px] font-medium text-[var(--ui-500)] hover:opacity-80"
+              className="inline-flex h-[36px] w-[200px] items-center justify-center gap-1.5 rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-4 text-[14px] font-medium text-[var(--ui-500)] hover:opacity-80"
             >
               <img
                 src={
@@ -377,7 +409,7 @@ const ProjectDetailPage = () => {
                     : '/src/shared/assets/icons/message-light.png'
                 }
                 alt="연락하기"
-                className={isDark ? 'h-9 w-9' : 'h-9 w-11'}
+                className={isDark ? 'h-7 w-7' : 'h-7 w-8'}
               />
               연락하기
             </button>
@@ -392,11 +424,18 @@ const ProjectDetailPage = () => {
                   setIsApplyModalOpen(true);
                   setIsRoleMenuOpen(false);
                 }}
-                className="h-[44px] w-[240px] rounded-[12px] bg-[#4E49FF] px-6 text-[16px] font-medium text-white hover:opacity-80"
+                className="h-[36px] w-[200px] rounded-[10px] bg-[#4E49FF] px-4 text-[14px] font-medium text-white hover:opacity-80"
               >
                 지원하기
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => navigate(`/recommend/developer?projectId=${projectId}`)}
+              className="inline-flex h-[36px] items-center justify-center text-[14px] font-medium text-[var(--ui-500)] underline hover:opacity-80"
+            >
+              이 프로젝트에 맞는 개발자 보기
+            </button>
           </div>
         </div>
 
@@ -484,22 +523,95 @@ const ProjectDetailPage = () => {
             <span className="h-[2px] w-35 bg-[var(--color-card-title)]" />
             <span className="h-[1.5px] flex-1 bg-[var(--color-card-border)]" />
           </div>
-          <p className="max-w-[880px] text-card-muted text-lg leading-relaxed">
-            {project.summary ?? '프로젝트 소개 정보가 없습니다.'}
-          </p>
-          <div className="h-[320px] w-full max-w-[420px] overflow-hidden rounded-2xl bg-card-section-bg">
-            {project.imageUrls?.[0] ? (
-              <img
-                src={project.imageUrls[0]}
-                alt={`${project.title} 소개 이미지`}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-            ) : null}
-          </div>
+          <div
+            className="max-w-[880px] text-xl leading-relaxed text-white/85 [&_h1]:my-2 [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:my-2 [&_h2]:text-xl [&_h2]:font-bold [&_p]:my-2 [&_p]:text-xl [&_em]:italic [&_s]:line-through [&_a]:text-badge-text-primary [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+            dangerouslySetInnerHTML={{
+              __html: project.summary?.trim() || '<p>프로젝트 소개 정보가 없습니다.</p>',
+            }}
+          />
         </div>
         <div className="hidden lg:block" />
       </section>
+
+      {imageLightboxIndex !== null && project.imageUrls?.[imageLightboxIndex] && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="대표 사진 확대"
+        >
+          <button
+            type="button"
+            onClick={() => setImageLightboxIndex(null)}
+            className="absolute right-4 top-4 z-10 flex items-center justify-center rounded-none border-none bg-transparent p-0 text-white/80 shadow-none outline-none ring-0 transition-colors hover:text-white focus:outline-none focus:ring-0"
+            aria-label="닫기"
+          >
+            <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+
+          {project.imageUrls.filter(Boolean).length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setImageLightboxIndex((i) => {
+                    if (i === null) return null;
+                    for (let k = 1; k <= 3; k++) {
+                      const prev = (i - k + 3) % 3;
+                      if (project.imageUrls?.[prev]) return prev;
+                    }
+                    return i;
+                  });
+                }}
+                className="absolute left-4 top-1/2 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full text-white/90 transition-all hover:bg-white/10 hover:text-white focus:outline-none active:scale-95"
+                aria-label="이전 이미지"
+              >
+                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setImageLightboxIndex((i) => {
+                    if (i === null) return null;
+                    for (let k = 1; k <= 3; k++) {
+                      const next = (i + k) % 3;
+                      if (project.imageUrls?.[next]) return next;
+                    }
+                    return i;
+                  });
+                }}
+                className="absolute right-4 top-1/2 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full text-white/90 transition-all hover:bg-white/10 hover:text-white focus:outline-none active:scale-95"
+                aria-label="다음 이미지"
+              >
+                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
+            </>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setImageLightboxIndex(null)}
+            className="absolute inset-0"
+            aria-label="배경 클릭 시 닫기"
+          />
+          <div className="relative z-10 max-h-[90vh] max-w-[90vw] drop-shadow-2xl">
+            <img
+              src={project.imageUrls[imageLightboxIndex]}
+              alt={`${project.title} 이미지 ${imageLightboxIndex + 1}`}
+              className="max-h-[90vh] max-w-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
 
       {isApplyModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">

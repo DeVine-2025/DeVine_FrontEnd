@@ -8,6 +8,8 @@ export function getRoleTone(position: string): ProjectRole['tone'] {
       return 'green';
     case 'FRONTEND':
       return 'blue';
+    case 'INFRA':
+      return 'pink';
     case 'DESIGN':
       return 'orange';
     default:
@@ -59,7 +61,7 @@ export function mapProjectItemToCard(p: ProjectItem): ProjectCardModel {
     location: p.location,
     period: `${p.durationMonths}개월`,
     mode: p.modeName,
-    thumbnailUrl: p.thumbnailUrl ?? undefined,
+    thumbnailUrl: p.thumbnailUrl ?? p.imageUrls?.[0] ?? undefined,
     dueLabel: getDueLabel(p.daysUntilDeadline),
     bookmarked: false,
     roles: mapPositionsToRoles(p.positions),

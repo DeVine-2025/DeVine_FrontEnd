@@ -8,7 +8,7 @@ export type Category =
   | 'ENTERTAINMENT'
   | 'AI'
   | 'ETC';
-export type Position = 'BACKEND' | 'FRONTEND' | 'DESIGN' | 'PM' | 'IOS' | 'ANDROID';
+export type Position = 'BACKEND' | 'FRONTEND' | 'INFRA' | 'DESIGN' | 'PM' | 'IOS' | 'ANDROID';
 export type Mode = 'ONLINE' | 'OFFLINE' | 'HYBRID';
 export type DurationRange = 'UNDER_ONE' | 'ONE_TO_THREE' | 'THREE_TO_SIX' | 'SIX_PLUS';
 
@@ -39,6 +39,9 @@ export type ProjectItem = {
   daysUntilDeadline: number;
   status: 'RECRUITING' | 'CLOSED' | string;
   thumbnailUrl: string | null;
+  imageUrls?: string[];
+  /** 백엔드가 images 배열로 줄 수 있음 */
+  images?: Array<{ imageUrl?: string; url?: string }>;
   positions: ProjectPosition[];
   creatorName: string;
 };

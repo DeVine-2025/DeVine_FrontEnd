@@ -4,13 +4,15 @@ type MyProjectDropdownProps = {
   open: boolean;
   value: string[];
   onChange: (next: string[]) => void;
+  /** 내 프로젝트 옵션 (API로 로드된 실제 목록) */
+  options?: Array<{ id: number; name: string }>;
+  loading?: boolean;
   onApply?: () => void;
   onReset?: () => void;
   onClose: () => void;
 };
 
-const OPTIONS = [
-  '전체',
+const PLACEHOLDER_OPTIONS = [
   'A 프로젝트 이름이 들어가는 자리입니다.',
   'B 프로젝트 이름이 들어가는 자리입니다.',
   'C 프로젝트 이름이 들어가는 자리입니다.',
@@ -35,17 +37,22 @@ export default function MyProjectDropdown({
   open,
   value,
   onChange,
+  options,
+  loading = false,
   onApply,
   onReset,
   onClose,
 }: MyProjectDropdownProps) {
   const ref = useRef<HTMLDivElement | null>(null);
 
-  const realOptions = useMemo(
-    () => OPTIONS.filter((o) => o !== '전체') as unknown as string[],
-    [],
-  );
-  const selected = useMemo(() => new Set(value.filter((v) => v !== '전체')), [value]);
+  const displayOptions = useMemo(() => {
+    // "전체" 옵션은 제거. 기본은 페이지에서 "전부 선택" 상태로 시작.
+    if (options && options.length > 0) return options.map((o) => o.name);
+    return [...PLACEHOLDER_OPTIONS];
+  }, [options]);
+
+  const realOptions = useMemo(() => displayOptions, [displayOptions]);
+  const selected = useMemo(() => new Set(value), [value]);
 
   useEffect(() => {
     if (!open) return;
@@ -72,16 +79,10 @@ export default function MyProjectDropdown({
   if (!open) return null;
 
   const toggle = (opt: string) => {
-    if (opt === '전체') {
-      const allSelected = selected.size === realOptions.length;
-      onChange(allSelected ? [] : [...realOptions]);
-      return;
-    }
-
     const next = new Set(selected);
     if (next.has(opt)) next.delete(opt);
     else next.add(opt);
-    onChange(next.size === realOptions.length ? [...realOptions] : Array.from(next));
+    onChange(Array.from(next));
   };
 
   return (
@@ -93,9 +94,16 @@ export default function MyProjectDropdown({
         <p className="Label1 font-medium text-[var(--ui-600)]">내 프로젝트</p>
       </div>
 
-      <div className="flex flex-col pb-[8px]">
-        {OPTIONS.map((opt) => {
-          const isChecked = opt === '전체' ? selected.size === realOptions.length : selected.has(opt);
+      {loading ? (
+        <div className="flex items-center justify-center py-8 text-[var(--ui-500)]">
+          프로젝트 목록을 불러오는 중...
+        </div>
+      ) : options && options.length === 0 ? (
+        <div className="py-8 text-center text-[var(--ui-500)]">등록한 프로젝트가 없습니다.</div>
+      ) : (
+        <div className="flex flex-col pb-[8px]">
+          {displayOptions.map((opt) => {
+          const isChecked = selected.has(opt);
           return (
             <button
               key={opt}
@@ -122,8 +130,9 @@ export default function MyProjectDropdown({
               </span>
             </button>
           );
-        })}
-      </div>
+          })}
+        </div>
+      )}
 
       <div className="flex h-[52px] w-full items-center justify-end gap-[12px] px-[16px]">
         <button

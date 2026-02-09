@@ -2,32 +2,36 @@ import { buildQuery } from '@libs/queryString';
 
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
 
-/** GET /api/v1/projects/recommend 쿼리 파라미터 */
+/** GET /api/v1/projects/recommend 쿼리 파라미터 (API 스펙: 복수 선택 배열) */
 export type GetRecommendProjectsParams = {
-  projectField?: string; // WEB | MOBILE | AI | GAME | DATA | BACKEND | FRONTEND
-  category?: string; // HEALTHCARE | ECOMMERCE | FINANCE | EDUCATION | ENTERTAINMENT | ETC
-  position?: string; // BACKEND | FRONTEND | DESIGN | PM | IOS | ANDROID
-  techstackName?: string; // JAVA | JAVASCRIPT | REACT | SPRING | PYTHON 등
-  durationRange?: string; // UNDER_ONE | ONE_TO_THREE | THREE_TO_SIX | SIX_PLUS
+  projectFields?: string[]; // ALL, WEB, MOBILE, GAME, BLOCKCHAIN, ETC
+  categories?: string[]; // ALL, HEALTHCARE, FINTECH, ECOMMERCE, EDUCATION, SOCIAL, ENTERTAINMENT, AI_DATA, ETC
+  positions?: string[]; // ALL, FRONTEND, BACKEND, INFRA
+  techstackNames?: string[]; // JAVA, JAVASCRIPT, REACT, SPRINGBOOT 등
+  durationRanges?: string[]; // UNDER_ONE, ONE_TO_THREE, THREE_TO_SIX, SIX_PLUS
   page?: number;
   size?: number;
 };
 
-/** 응답의 result.projects.content[] 한 건 */
+/** 응답 projects.content[] 한 건 (API 스펙) */
 export type RecommendProjectDto = {
   projectId: number;
   title: string;
   projectField: string;
   projectFieldName: string;
+  category?: string;
   categoryName: string;
   mode: string;
   modeName: string;
-  durationMonths: number;
+  durationRange?: string;
+  durationRangeName?: string;
+  durationMonths?: number;
   location: string;
   recruitmentDeadline: string;
   daysUntilDeadline: number;
   status: string;
-  thumbnailUrl?: string;
+  thumbnailUrl?: string | null;
+  imageUrls?: string[] | null;
   positions: Array<{
     position: string;
     positionName: string;
@@ -54,6 +58,7 @@ type RecommendProjectsPage = {
 };
 
 type RecommendProjectsResponse = {
+  projects?: RecommendProjectsPage;
   result?: { projects?: RecommendProjectsPage };
 };
 
@@ -63,6 +68,7 @@ export type ProjectListItem = {
   categoryLabel: string;
   deadlineLabel: string;
   title: string;
+  thumbnailUrl?: string;
   location: string;
   period: string;
   mode: string;
@@ -89,15 +95,31 @@ function formatDueLabel(recruitmentDeadline: string, daysUntilDeadline: number):
   return recruitmentDeadline.replace(/-/g, '.').slice(0, 8);
 }
 
+/** 상대 경로 이미지 URL을 프로덕션에서 사용할 수 있도록 보정 */
+function resolveThumbnailUrl(url: string): string {
+  if (!url?.trim()) return url;
+  const u = url.trim();
+  if (u.startsWith('http://') || u.startsWith('https://')) return u;
+  if (u.startsWith('/') && BASE_URL) return `${BASE_URL.replace(/\/$/, '')}${u}`;
+  return u;
+}
+
 /** DTO → 카드용 리스트 아이템 */
 export function mapRecommendProjectToListItem(dto: RecommendProjectDto): ProjectListItem {
+  const rawThumbnail =
+    (dto.thumbnailUrl && dto.thumbnailUrl.trim()) ||
+    (Array.isArray(dto.imageUrls) && dto.imageUrls[0]?.trim() ? dto.imageUrls[0] : undefined);
+  const thumbnailUrl = rawThumbnail ? resolveThumbnailUrl(rawThumbnail) : undefined;
+  const period =
+    dto.durationRangeName ?? (dto.durationMonths != null ? formatPeriod(dto.durationMonths) : '');
   return {
     id: String(dto.projectId),
     categoryLabel: dto.projectFieldName ?? '',
     deadlineLabel: dto.categoryName ?? '',
     title: dto.title ?? '',
+    thumbnailUrl: thumbnailUrl ?? undefined,
     location: dto.location ?? '',
-    period: formatPeriod(dto.durationMonths),
+    period,
     mode: dto.modeName ?? '',
     dueLabel: formatDueLabel(dto.recruitmentDeadline, dto.daysUntilDeadline),
     techSuitability: dto.techScore,
@@ -128,11 +150,11 @@ export async function getRecommendProjects(
   signal?: AbortSignal,
 ): Promise<RecommendProjectsResult> {
   const qs = buildQuery({
-    projectField: params?.projectField,
-    category: params?.category,
-    position: params?.position,
-    techstackName: params?.techstackName,
-    durationRange: params?.durationRange,
+    projectFields: params?.projectFields,
+    categories: params?.categories,
+    positions: params?.positions,
+    techstackNames: params?.techstackNames,
+    durationRanges: params?.durationRanges,
     page: params?.page ?? 1,
     size: params?.size ?? 10,
   });
@@ -147,6 +169,13 @@ export async function getRecommendProjects(
 
   const json = (await res.json().catch(() => null)) as RecommendProjectsResponse | null;
   if (!res.ok) {
+    const url = `${BASE_URL}/api/v1/projects/recommend${qs}`;
+    console.error('[추천 프로젝트 API] 요청 실패', {
+      url,
+      status: res.status,
+      params: params ?? {},
+      responseBody: json,
+    });
     const message =
       json && typeof (json as { message?: string }).message === 'string'
         ? (json as { message: string }).message
@@ -154,7 +183,7 @@ export async function getRecommendProjects(
     throw new Error(message);
   }
 
-  const projectsPage = json?.result?.projects;
+  const projectsPage = json?.projects ?? json?.result?.projects;
   const content = projectsPage?.content ?? [];
   const list = content.map(mapRecommendProjectToListItem);
 
