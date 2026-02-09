@@ -173,7 +173,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
             리포트를 생성하는 중이에요
           </h2>
           <div className="mt-15 flex flex-col items-center gap-2">
-            <span className="Caption1 inline-flex items-center rounded-full bg-[#1E1D4D] px-3 py-1 text-[#7E7AFF]">
+            <span className="Caption1 inline-flex items-center rounded-full bg-[var(--badge-bg-primary)] px-3 py-1 text-[var(--badge-text-primary)]">
               TIP
             </span>
             <p className="Caption1 text-[var(--ui-400)]">
@@ -195,15 +195,15 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
         </h2>
         <br/>
         <div className="grid w-full max-w-[640px] grid-cols-2 gap-6">
-          <div className="flex h-[270px] w-[280px] flex-col gap-3 rounded-[24px] border border-[#41444D] bg-[#191B1E] p-4 text-left">
-            <span className="Caption1 inline-flex w-fit rounded-full bg-[#1E1D4D] px-2 py-1 text-[10px] text-[#7E7AFF]">
+          <div className="flex h-[270px] w-[280px] flex-col gap-3 rounded-[24px] border border-card-border bg-card-bg p-4 text-left">
+            <span className="Caption1 inline-flex w-fit rounded-full bg-[var(--badge-bg-primary)] px-2 py-1 text-[10px] text-[var(--badge-text-primary)]">
               메인
             </span>
             <h3 className="Body1 font-semibold text-[var(--ui-900)]">{mainReport?.title}</h3>
             <p className="Caption1 text-[var(--ui-400)]">{mainReport?.desc}</p>
           </div>
-          <div className="flex h-[270px] w-[280px] flex-col gap-3 rounded-[24px] border border-[#41444D] bg-[#191B1E] p-4 text-left">
-            <span className="Caption1 inline-flex w-fit rounded-full bg-[#1E1D4D] px-2 py-1 text-[10px] text-[#7E7AFF]">
+          <div className="flex h-[270px] w-[280px] flex-col gap-3 rounded-[24px] border border-card-border bg-card-bg p-4 text-left">
+            <span className="Caption1 inline-flex w-fit rounded-full bg-[var(--badge-bg-primary)] px-2 py-1 text-[10px] text-[var(--badge-text-primary)]">
               상세
             </span>
             <h3 className="Body1 font-semibold text-[var(--ui-900)]">{detailReport?.title}</h3>
@@ -213,7 +213,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
         <button
           type="button"
           onClick={onNext}
-          className="mt-15 Body1 h-[48px] w-[280px] rounded-xl bg-[#4E49FF] font-semibold text-white"
+          className="mt-15 Body1 h-[48px] w-[280px] rounded-xl bg-[var(--color-primary)] font-semibold text-white"
         >
           메인 화면으로 이동하기
         </button>
@@ -249,7 +249,10 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
                     aria-pressed={selected}
                   >
                     {selected ? (
-                      <CheckboxCheckedIcon className="mt-1 h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                      <CheckboxCheckedIcon
+                        className="mt-1 h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                        aria-hidden="true"
+                      />
                     ) : (
                       <CheckboxUncheckedIcon className="mt-1 h-7 w-7 shrink-0" aria-hidden="true" />
                     )}
@@ -277,7 +280,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
           onClick={handleGenerate}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
             canProceed
-              ? 'bg-[#4E49FF] text-white'
+              ? 'bg-[var(--color-primary)] text-white'
               : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
           }`}
         >
