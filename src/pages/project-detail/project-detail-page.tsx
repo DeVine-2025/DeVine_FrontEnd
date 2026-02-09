@@ -182,9 +182,19 @@ const ProjectDetailPage = () => {
   const fallbackProject =
     PROJECT_LIST.find((project) => project.id === projectId) ??
     RECOMMENDED_PROJECTS.find((project) => project.id === projectId);
+  const sessionProject = useMemo(() => {
+    if (!projectId) return undefined;
+    try {
+      const raw = sessionStorage.getItem(`project_detail_${projectId}`);
+      if (!raw) return undefined;
+      return JSON.parse(raw) as ProjectDetailInfo;
+    } catch {
+      return undefined;
+    }
+  }, [projectId]);
 
   const project =
-    apiProject ?? (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
+    apiProject ?? sessionProject ?? (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
   const roleOptions = useMemo(() => {
     if (project?.roles && project.roles.length > 0) {
       return project.roles.map((role) => ({ key: role.key, label: role.label }));
@@ -443,7 +453,7 @@ const ProjectDetailPage = () => {
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {role.techStacks.length > 0 ? (
+                      {Array.isArray(role.techStacks) && role.techStacks.length > 0 ? (
                         role.techStacks.map((tech) =>
                           renderTechBadge(tech, `${role.key}-${tech}`),
                         )
