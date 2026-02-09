@@ -1,17 +1,10 @@
-<<<<<<< HEAD
 import { createBookmark, deleteBookmark } from '@apis/bookmarks';
 import { getRecommendProjectsPreview, type RecommendProjectPreviewItem } from '@apis/mainrecommendproject';
-=======
-import {
-  getRecommendProjectsPreview,
-  type RecommendProjectPreviewItem,
-} from '@apis/mainrecommendproject';
-import { useAuth } from '@clerk/clerk-react';
->>>>>>> origin/develope
 import Pagination from '@components/common/Pagination';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
+import { useAuth } from '@clerk/clerk-react';
 import { useProjectFilter } from '@hooks/useProjectFilters';
 import { useProjects } from '@hooks/useProjects';
 import { mapPositionsToRoles, mapProjectItemToCard, type ProjectCardModel } from '@mappers/project';
@@ -108,7 +101,7 @@ export default function ProjectSearchPage() {
   useEffect(() => {
     const mapped = data?.content?.map(mapProjectItemToCard) ?? [];
     setProjects(
-      mapped.map((p) => {
+      mapped.map((p: ProjectCardModel) => {
         const o = bookmarkOverrides[p.id];
         return o ? { ...p, ...o } : p;
       }),
@@ -267,7 +260,6 @@ export default function ProjectSearchPage() {
             period={p.period}
             mode={p.mode}
             roles={p.roles}
-<<<<<<< HEAD
             bookmarked={bookmarkOverrides[Number(p.id)]?.bookmarked ?? (p.bookmarked ?? false)}
             onBookmarkChange={(next) =>
               handleBookmarkChange(
@@ -277,21 +269,6 @@ export default function ProjectSearchPage() {
               )
             }
             onClick={() => handleProjectClick(p.id)}
-=======
-            bookmarked={false}
-            onClick={() =>
-              handleProjectClick(p.id, {
-                id: String(p.id),
-                categoryLabel: p.categoryLabel,
-                deadlineLabel: p.deadlineLabel,
-                title: p.title,
-                location: p.location,
-                period: p.period,
-                mode: p.mode,
-                roles: p.roles,
-              })
-            }
->>>>>>> origin/develope
           />
         ))}
       </div>
@@ -321,25 +298,8 @@ export default function ProjectSearchPage() {
           <ProjectLg
             key={p.id}
             {...p}
-<<<<<<< HEAD
             onClick={() => handleProjectClick(p.id)}
             onBookmarkChange={(next) => handleBookmarkChange(p.id, next, p.bookmarkId)}
-=======
-            onClick={() =>
-              handleProjectClick(p.id, {
-                id: String(p.id),
-                categoryLabel: p.categoryLabel,
-                deadlineLabel: p.deadlineLabel,
-                title: p.title,
-                location: p.location,
-                period: p.period,
-                mode: p.mode,
-                dueLabel: p.dueLabel,
-                roles: p.roles,
-              })
-            }
-            onBookmarkChange={(next) => console.log('bookmark', p.id, next)}
->>>>>>> origin/develope
           />
         ))}
       </div>

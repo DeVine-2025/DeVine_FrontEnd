@@ -105,7 +105,7 @@ function extractMemberId(dto: Record<string, unknown>): number | undefined {
   for (const key of keys) {
     const v = dto[key];
     if (typeof v === 'number' && Number.isFinite(v) && v > 0) return v;
-    if (typeof v === 'string' && /^\d+$/.test(v)) return Number(v, 10);
+    if (typeof v === 'string' && /^\d+$/.test(v)) return parseInt(v, 10);
   }
   for (const nest of ['member', 'user', 'profile', 'developer', 'account']) {
     const obj = dto[nest] as Record<string, unknown> | undefined;

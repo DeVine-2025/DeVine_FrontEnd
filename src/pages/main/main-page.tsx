@@ -44,7 +44,7 @@ type MainRecommendDeveloper = {
   profileImageUrl?: string;
   introduction?: string;
   badges?: Array<{ label: string; tone: BadgeTone }>;
-  techStack?: Array<{ id: string; name: string; icon?: unknown }>;
+  techStack?: Array<{ id: string; name: string; icon?: React.ReactNode }>;
   bookmarked?: boolean;
   bookmarkId?: number;
 };
@@ -317,7 +317,9 @@ const MainPage = () => {
     }));
   }, [weeklyProjects, fallbackRoles]);
   const recommendedProfiles = recommendedDevelopers;
-  const handleProjectClick = (project: RecommendedProject | ProjectListItem | HighlightProject) => {
+  const handleProjectClick = (
+    project: RecommendedProject | ProjectListItem | HighlightProject | MainRecommendProject,
+  ) => {
     try {
       const payload = {
         id: String(project.id),

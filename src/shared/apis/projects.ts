@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { buildQuery } from '@libs/queryString';
 import type { DurationRange, Position, ProjectField } from '@t/project/api';
 
@@ -15,26 +14,27 @@ export type GetProjectsParams = {
 // 개발 시에는 상대 경로(/api) 사용 → Vite 프록시가 백엔드로 전달. 프로덕션에서는 VITE_API_BASE_URL 사용.
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
 
-export async function getProjects(params: GetProjectsParams, token: string, signal?: AbortSignal) {
-  const qs = buildQuery({
-    projectFields: params.projectFields,
-    categoryIds: params.categoryIds,
-    positions: params.positions,
-    techStackIds: params.techStackIds,
-    durationRange: params.durationRange,
-    page: params.page ?? 1,
-    size: params.size ?? 10,
-  });
-=======
-const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
+export async function getProjects(
+  params: GetProjectsParams | string,
+  token: string,
+  signal?: AbortSignal,
+) {
+  const qs =
+    typeof params === 'string'
+      ? params
+      : buildQuery({
+          projectFields: params.projectFields,
+          categoryIds: params.categoryIds,
+          positions: params.positions,
+          techStackIds: params.techStackIds,
+          durationRange: params.durationRange,
+          page: params.page ?? 1,
+          size: params.size ?? 10,
+        });
+  const queryString = qs.startsWith('?') ? qs : `?${qs}`;
+  console.log('REQUEST =>', `${BASE_URL}/api/v1/projects${queryString}`);
 
-export async function getProjects(params: string, token: string, signal?: AbortSignal) {
-  const qs = params ? `?${params}` : '';
-
->>>>>>> origin/develope
-  console.log('REQUEST =>', `${BASE_URL}/api/v1/projects${qs}`);
-
-  const res = await fetch(`${BASE_URL}/api/v1/projects${qs}`, {
+  const res = await fetch(`${BASE_URL}/api/v1/projects${queryString}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,

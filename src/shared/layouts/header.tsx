@@ -41,7 +41,6 @@ const Header = () => {
     getToken().then((token) => {
       if (!token) return;
       getUnreadNotificationCount(token)
-<<<<<<< HEAD
         .then((count) => {
           setUnreadCount(count);
           console.log('[알림] 읽지 않은 개수:', count);
@@ -50,10 +49,6 @@ const Header = () => {
           setUnreadCount(0);
           console.warn('[알림] unread-count 실패', e);
         });
-=======
-        .then(setUnreadCount)
-        .catch(() => setUnreadCount(0));
->>>>>>> origin/develope
     });
   }, [getToken]);
 
