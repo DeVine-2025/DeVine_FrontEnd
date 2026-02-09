@@ -29,6 +29,13 @@ const MyPMTopSection = ({ devTab, onChangeDevTab }: Props) => {
             key={profile.id}
             {...profile}
             size="lg"
+            header={
+              <div>
+                <p className="Caption1 text-badge-text-primary">프로젝트</p>
+                <h3 className="text-lg text-ui-900">{'프로젝트 제목이 들어가는 자리입니다.'}</h3>
+                <div className="my-4 h-px w-full bg-[var(--ui-100)]" />
+              </div>
+            }
             action={
               <div className="flex gap-3">
                 <button
