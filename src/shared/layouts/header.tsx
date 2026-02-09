@@ -34,6 +34,7 @@ const Header = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
 
   const fetchUnreadCount = useCallback(() => {
@@ -44,6 +45,34 @@ const Header = () => {
         .catch(() => setUnreadCount(0));
     });
   }, [getToken]);
+
+  useEffect(() => {
+    const syncProfileImage = () => {
+      try {
+        const stored = localStorage.getItem('profile_image_url');
+        setProfileImageUrl(stored && stored.trim().length > 0 ? stored : null);
+      } catch {
+        setProfileImageUrl(null);
+      }
+    };
+
+    syncProfileImage();
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'profile_image_url') {
+        syncProfileImage();
+      }
+    };
+    const handleProfileUpdate = () => syncProfileImage();
+
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('profile-image-updated', handleProfileUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('profile-image-updated', handleProfileUpdate as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     fetchUnreadCount();
@@ -233,13 +262,23 @@ const Header = () => {
                 내 정보
               </Link>
 
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: '!w-[2.7rem] !h-[2.7rem] !rounded-full',
-                  },
-                }}
-              />
+              <div className="relative">
+                {profileImageUrl && (
+                  <img
+                    src={profileImageUrl}
+                    alt="프로필"
+                    className="pointer-events-none absolute inset-0 h-[2.7rem] w-[2.7rem] rounded-full object-cover"
+                  />
+                )}
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: '!w-[2.7rem] !h-[2.7rem] !rounded-full',
+                      avatarImage: profileImageUrl ? '!opacity-0' : '',
+                    },
+                  }}
+                />
+              </div>
             </SignedIn>
 
             <SignedOut>
