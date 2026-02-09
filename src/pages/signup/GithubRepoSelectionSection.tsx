@@ -3,23 +3,29 @@ import Lottie from 'lottie-react';
 import reportAnimation from './Data _ Bundling.json';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
+import { useAuth } from '@clerk/clerk-react';
+import { getGitRepos } from '@apis/github-repos';
 
 type GithubRepoSelectionSectionProps = {
   onBack: () => void;
   onNext: () => void;
 };
 
-const repoOptions = [
-  { id: 'repo-1', name: '레포지토리 제목', desc: '레포지토리 설명이 들어가는 자리입니다.' },
-  { id: 'repo-2', name: '레포지토리 제목', desc: '레포지토리 설명이 들어가는 자리입니다.' },
-  { id: 'repo-3', name: '레포지토리 제목', desc: '레포지토리 설명이 들어가는 자리입니다.' },
-  { id: 'repo-4', name: '레포지토리 제목', desc: '레포지토리 설명이 들어가는 자리입니다.' },
-];
+type RepoOption = {
+  id: number;
+  name: string;
+  desc: string | null;
+  url: string;
+};
 
 const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSectionProps) => {
-  const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
+  const [selectedRepo, setSelectedRepo] = useState<number | null>(null);
   const [phase, setPhase] = useState<'select' | 'generating' | 'complete'>('select');
   const [tipIndex, setTipIndex] = useState(0);
+  const [repoOptions, setRepoOptions] = useState<RepoOption[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const { getToken } = useAuth();
 
   const tips = [
     {
@@ -34,7 +40,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
 
   const canProceed = useMemo(() => selectedRepo !== null, [selectedRepo]);
 
-  const toggleRepo = (id: string) => {
+  const toggleRepo = (id: number) => {
     setSelectedRepo((prev) => (prev === id ? null : id));
   };
 
@@ -54,6 +60,40 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
     }, 3000);
     return () => window.clearInterval(timer);
   }, [phase, tips.length]);
+
+  useEffect(() => {
+    let isActive = true;
+    setIsLoading(true);
+    setLoadError(null);
+
+    const fetchRepos = async () => {
+      try {
+        const token = await getToken();
+        const repos = await getGitRepos(token ?? undefined);
+        if (!isActive) return;
+        setRepoOptions(
+          repos.map((repo) => ({
+            id: repo.gitRepoId,
+            name: repo.name,
+            desc: repo.description,
+            url: repo.gitUrl,
+          })),
+        );
+      } catch (error) {
+        if (!isActive) return;
+        setLoadError(error instanceof Error ? error.message : '레포 목록을 불러오지 못했어요.');
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void fetchRepos();
+    return () => {
+      isActive = false;
+    };
+  }, [getToken]);
 
   if (phase === 'generating') {
     return (
@@ -130,32 +170,44 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
         <div className="flex flex-col gap-2 text-[var(--ui-1000)]">
           <h2 className="Heading2 font-semibold">리포트를 생설할 <br/>레포지토리를 선택해주세요</h2>
         </div>
-        <br/>
         <div className="flex flex-col gap-4">
-          <span className="Body1 text-[var(--ui-900)]">깃허브 레포지토리 목록</span>
-          <div className="flex flex-col gap-4">
-            {repoOptions.map((repo) => {
-              const selected = selectedRepo === repo.id;
-              return (
-                <button
-                  key={repo.id}
-                  type="button"
-                  onClick={() => toggleRepo(repo.id)}
-                  className="flex items-start gap-3 text-left"
-                  aria-pressed={selected}
-                >
-                  {selected ? (
-                    <CheckboxCheckedIcon className="mt-1 h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
-                  ) : (
-                    <CheckboxUncheckedIcon className="mt-1 h-7 w-7 shrink-0" aria-hidden="true" />
-                  )}
-                  <div className="flex flex-col gap-1">
-                    <span className="Body1 text-[var(--ui-900)]">{repo.name}</span>
-                    <span className="Caption1 text-[var(--ui-400)]">{repo.desc}</span>
-                  </div>
-                </button>
-              );
-            })}
+          <span className="Body1 text-[15px] font-semibold text-[var(--ui-900)]">
+            깃허브 레포지토리 목록
+          </span>
+          {isLoading && (
+            <span className="Caption1 text-[var(--ui-400)]">레포지토리를 불러오는 중이에요.</span>
+          )}
+          {loadError && <span className="Caption1 text-[var(--ui-danger)]">{loadError}</span>}
+          <div className="scrollbar-hide max-h-[320px] overflow-y-auto pr-1">
+            <div className="flex flex-col gap-4">
+              {repoOptions.map((repo) => {
+                const selected = selectedRepo === repo.id;
+                return (
+                  <button
+                    key={repo.id}
+                    type="button"
+                    onClick={() => toggleRepo(repo.id)}
+                    className="flex items-start gap-3 text-left"
+                    aria-pressed={selected}
+                  >
+                    {selected ? (
+                      <CheckboxCheckedIcon className="mt-1 h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                    ) : (
+                      <CheckboxUncheckedIcon className="mt-1 h-7 w-7 shrink-0" aria-hidden="true" />
+                    )}
+                    <div className="flex flex-col gap-1">
+                      <span className="Body1 text-[var(--ui-900)]">{repo.name}</span>
+                      <span className="Caption1 text-[var(--ui-400)]">
+                        {repo.desc ?? '설명이 없는 레포지토리입니다.'}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+              {!isLoading && repoOptions.length === 0 && !loadError && (
+                <span className="Caption1 text-[var(--ui-400)]">가져올 레포지토리가 없어요.</span>
+              )}
+            </div>
           </div>
         </div>
       </div>

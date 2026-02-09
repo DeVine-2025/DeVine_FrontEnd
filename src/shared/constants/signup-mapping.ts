@@ -4,8 +4,9 @@ const CATEGORY_ID_BY_LABEL: Record<string, number> = {
   '핀테크': 3,
   '교육': 4,
   '엔터테인먼트': 5,
-  '소셜/커뮤니티': 6,
-  'AI/데이터': 6,
+  '기타': 6,
+  '소셜/커뮤니티': 16,
+  'AI/데이터': 17,
 };
 
 const TECHSTACK_ID_BY_KEY: Record<string, number> = {

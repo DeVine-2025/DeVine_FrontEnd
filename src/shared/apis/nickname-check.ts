@@ -7,7 +7,8 @@ type NicknameCheckResponse = {
 };
 
 export async function checkNicknameDuplicate(nickname: string, token?: string) {
-  const res = await fetch(`https://api.devine.kr/api/v1/members/nickname/${encodeURIComponent(nickname)}`, {
+  const qs = new URLSearchParams({ nickname }).toString();
+  const res = await fetch(`https://api.devine.kr/api/v1/members/nickname/check?${qs}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

@@ -6,6 +6,7 @@ import LogoLight from '@assets/icons/logo-light.svg?react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import { useThemeStore } from '@store/theme';
 import BasicProfileSection from './BasicProfileSection';
 import AdditionalProfileSection from './AdditionalProfileSection';
@@ -32,6 +33,7 @@ type AgreementListProps = {
 
 const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps) => {
   const { theme } = useThemeStore();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const [serviceAgreed, setServiceAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
@@ -92,8 +94,11 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           <button
             type="button"
             onClick={() => {
-              sessionStorage.setItem('allow_main_once', 'true');
-              navigate('/');
+              sessionStorage.setItem('show_onboarding_modal', 'true');
+              localStorage.removeItem('userRole');
+              sessionStorage.removeItem('login_provider');
+              sessionStorage.removeItem('allow_main_once');
+              void signOut().finally(() => navigate('/'));
             }}
             className="flex items-center gap-[0.4rem] cursor-pointer"
             aria-label="메인으로 이동"
@@ -107,6 +112,13 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           <BasicProfileSection
             onNext={(data) => {
               setBasicProfile(data);
+              if (data.imageUrl) {
+                localStorage.setItem('profile_image_url', data.imageUrl);
+                window.dispatchEvent(new Event('profile-image-updated'));
+              } else {
+                localStorage.removeItem('profile_image_url');
+                window.dispatchEvent(new Event('profile-image-updated'));
+              }
               setStep('profilePage');
             }}
             onBack={() => setStep('agreements')}
@@ -313,9 +325,6 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
             }`}
           >
             다음
-          </button>
-          <button type="button" onClick={() => navigate('/login')} className="Body1 text-[var(--ui-400)]">
-            돌아가기
           </button>
         </div>
       </div>

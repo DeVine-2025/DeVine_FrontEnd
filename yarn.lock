@@ -3348,7 +3348,7 @@ react-calendar-heatmap@^1.10.0:
 
 react-day-picker@^9.13.1:
   version "9.13.1"
-  resolved "https://registry.npmjs.org/react-day-picker/-/react-day-picker-9.13.1.tgz"
+  resolved "https://registry.yarnpkg.com/react-day-picker/-/react-day-picker-9.13.1.tgz#17bbb1dacc17afa198aa5fbc01b7c1ae0b2b8613"
   integrity sha512-9nx2lBBJ0VZw5jJekId3DishwnJLiqY1Me1JvCrIyqbWwcflBTVaEkiK+w1bre5oMNWYo722eu+8UAMXWMqktw==
   dependencies:
     "@date-fns/tz" "^1.4.1"

@@ -175,6 +175,22 @@ const MainPage = () => {
   }, [weeklyProjects, fallbackRoles]);
   const recommendedProfiles = recommendedDevelopers;
   const handleProjectClick = (project: RecommendedProject | ProjectListItem | HighlightProject) => {
+    try {
+      const payload = {
+        id: String(project.id),
+        categoryLabel: 'categoryLabel' in project ? project.categoryLabel : undefined,
+        deadlineLabel: 'deadlineLabel' in project ? project.deadlineLabel : undefined,
+        title: project.title,
+        location: project.location,
+        period: project.period,
+        mode: project.mode,
+        dueLabel: 'dueLabel' in project ? project.dueLabel : undefined,
+        roles: 'roles' in project ? project.roles : undefined,
+      };
+      sessionStorage.setItem(`project_detail_${project.id}`, JSON.stringify(payload));
+    } catch {
+      // ignore storage errors
+    }
     navigate(`/project/${project.id}`);
   };
 

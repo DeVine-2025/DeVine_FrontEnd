@@ -182,9 +182,19 @@ const ProjectDetailPage = () => {
   const fallbackProject =
     PROJECT_LIST.find((project) => project.id === projectId) ??
     RECOMMENDED_PROJECTS.find((project) => project.id === projectId);
+  const sessionProject = useMemo(() => {
+    if (!projectId) return undefined;
+    try {
+      const raw = sessionStorage.getItem(`project_detail_${projectId}`);
+      if (!raw) return undefined;
+      return JSON.parse(raw) as ProjectDetailInfo;
+    } catch {
+      return undefined;
+    }
+  }, [projectId]);
 
   const project =
-    apiProject ?? (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
+    apiProject ?? sessionProject ?? (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
   const roleOptions = useMemo(() => {
     if (project?.roles && project.roles.length > 0) {
       return project.roles.map((role) => ({ key: role.key, label: role.label }));
@@ -366,21 +376,6 @@ const ProjectDetailPage = () => {
           </div>
 
           <div className="flex flex-col gap-3 lg:mt-[230px] lg:items-end">
-            <button
-              type="button"
-              className="inline-flex h-[44px] w-[240px] items-center justify-center gap-2 rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-6 text-[16px] font-medium text-[var(--ui-500)] hover:opacity-80"
-            >
-              <img
-                src={
-                  isDark
-                    ? '/src/shared/assets/icons/message.png'
-                    : '/src/shared/assets/icons/message-light.png'
-                }
-                alt="연락하기"
-                className={isDark ? 'h-9 w-9' : 'h-9 w-11'}
-              />
-              연락하기
-            </button>
             {!hasApplied && (
               <button
                 type="button"
@@ -458,7 +453,7 @@ const ProjectDetailPage = () => {
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {role.techStacks.length > 0 ? (
+                      {Array.isArray(role.techStacks) && role.techStacks.length > 0 ? (
                         role.techStacks.map((tech) =>
                           renderTechBadge(tech, `${role.key}-${tech}`),
                         )
