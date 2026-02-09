@@ -46,7 +46,10 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
         setIsCheckingNickname(true);
         setNicknameCheckError(null);
         const token = await getToken();
-        const isDuplicate = await checkNicknameDuplicate(trimmedNickname, token ?? undefined);
+        if (!token) {
+          throw new Error('missing token');
+        }
+        const isDuplicate = await checkNicknameDuplicate(trimmedNickname, token);
         if (isActive) {
           setIsDuplicateNickname(isDuplicate);
         }
@@ -86,11 +89,17 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
     setIsUploading(true);
     setUploadError(null);
 
+    const token = await getToken();
+    if (!token) {
+      setIsUploading(false);
+      setUploadError('이미지 업로드에 실패했어요. 다시 시도해주세요.');
+      return;
+    }
+
     try {
-      const token = await getToken();
       const presigned = await createPresignedUrl(
         { imageType: 'PROFILE', fileName: file.name },
-        token ?? undefined,
+        token,
       );
       const uploadRes = await fetch(presigned.presignedUrl, {
         method: 'PUT',
@@ -102,7 +111,7 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
       if (!uploadRes.ok) {
         throw new Error(`upload failed: ${uploadRes.status}`);
       }
-      const confirmed = await confirmImageUpload(presigned.imageId, presigned.imageUrl, token ?? undefined);
+      const confirmed = await confirmImageUpload(presigned.imageId, presigned.imageUrl, token);
       setImageUrl(confirmed?.imageUrl ?? presigned.imageUrl ?? null);
     } catch {
       setImageUrl(null);
