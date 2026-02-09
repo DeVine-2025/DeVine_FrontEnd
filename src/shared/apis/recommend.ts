@@ -44,6 +44,8 @@ export type RecommendProjectDto = {
   domainScore: number;
   techStackCountScore: number;
   totalScore: number;
+  bookmarked?: boolean;
+  bookmarkId?: number;
 };
 
 /** result.projects (페이징 + content) */
@@ -74,6 +76,7 @@ export type ProjectListItem = {
   mode: string;
   dueLabel: string;
   bookmarked?: boolean;
+  bookmarkId?: number;
   techSuitability?: number;
   domainSuitability?: number;
   growthPotential?: number;
@@ -122,6 +125,8 @@ export function mapRecommendProjectToListItem(dto: RecommendProjectDto): Project
     period,
     mode: dto.modeName ?? '',
     dueLabel: formatDueLabel(dto.recruitmentDeadline, dto.daysUntilDeadline),
+    bookmarked: dto.bookmarked,
+    bookmarkId: dto.bookmarkId,
     techSuitability: dto.techScore,
     domainSuitability: dto.domainScore,
     growthPotential: dto.techStackCountScore,

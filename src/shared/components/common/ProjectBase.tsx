@@ -1,4 +1,4 @@
-import BookmarkIcon from '@assets/icons/bookmark.svg?react';
+import BookmarkButton from '@components/common/BookmarkButton';
 import PersonIcon from '@assets/icons/person.svg?react';
 import { badgeToneToClass } from '@t/badgeTone';
 import type { ProjectCardBaseProps } from '@t/project/ui';
@@ -138,21 +138,14 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
   const Due = dueLabel ? <p className="w-[65px] text-badge-text-gray text-lg">{dueLabel}</p> : null;
 
   const Bookmark = (
-    <button
-      type="button"
-      aria-pressed={bookmarked}
-      onClick={(event) => {
-        event.stopPropagation();
-        onBookmarkChange?.(!bookmarked);
-      }}
-      className="cursor-pointer hover:opacity-80"
-    >
-      {bookmarked ? (
-        <BookmarkIcon aria-hidden="true" className="h-[36px] w-[36px] text-card-muted" />
-      ) : (
-        <BookmarkIcon aria-hidden="true" className="h-[36px] w-[36px] text-card-muted" />
-      )}
-    </button>
+    <BookmarkButton
+      bookmarked={bookmarked}
+      onBookmarkChange={onBookmarkChange}
+      stopPropagation
+      className=""
+      iconClassName="h-[28px] w-[28px]"
+      colorIconClassName="h-[40px] w-[40px]"
+    />
   );
 
   const CardActionProps = onClick

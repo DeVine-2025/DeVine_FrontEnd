@@ -29,6 +29,7 @@ export type ProjectCardModel = {
   thumbnailUrl?: string;
   dueLabel?: string;
   bookmarked: boolean;
+  bookmarkId?: number;
   roles: ProjectRole[];
 };
 
@@ -41,6 +42,7 @@ export function getDueLabel(daysUntilDeadline?: number) {
 
 // API position 배열 roles 형태로 반환
 export function mapPositionsToRoles(positions: ProjectItem['positions']): ProjectRole[] {
+  if (!Array.isArray(positions)) return [];
   return positions.slice(0, 3).map((pos) => ({
     key: pos.position,
     label: pos.positionName,
@@ -63,7 +65,8 @@ export function mapProjectItemToCard(p: ProjectItem): ProjectCardModel {
     mode: p.modeName,
     thumbnailUrl: p.thumbnailUrl ?? p.imageUrls?.[0] ?? undefined,
     dueLabel: getDueLabel(p.daysUntilDeadline),
-    bookmarked: false,
+    bookmarked: p.bookmarked ?? false,
+    bookmarkId: p.bookmarkId,
     roles: mapPositionsToRoles(p.positions),
   };
 }

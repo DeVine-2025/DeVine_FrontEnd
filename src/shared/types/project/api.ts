@@ -40,10 +40,11 @@ export type ProjectItem = {
   status: 'RECRUITING' | 'CLOSED' | string;
   thumbnailUrl: string | null;
   imageUrls?: string[];
-  /** 백엔드가 images 배열로 줄 수 있음 */
   images?: Array<{ imageUrl?: string; url?: string }>;
   positions: ProjectPosition[];
   creatorName: string;
+  bookmarked?: boolean;
+  bookmarkId?: number;
 };
 
 export type PageResponse<T> = {

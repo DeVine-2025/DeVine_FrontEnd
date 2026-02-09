@@ -441,7 +441,6 @@ const ProjectCreatePage = () => {
     editorProps: {
       attributes: {
         class:
-          // 에디터 스타일
           'min-h-[380px] w-full bg-transparent outline-none ' +
           'Caption1 font-medium tracking-[0.0912px] text-ui-900 ' +
           '[&_ul]:list-disc [&_ul]:pl-[20px] [&_ul]:mt-[8px] [&_ul]:mb-[8px] ' +
@@ -454,7 +453,7 @@ const ProjectCreatePage = () => {
     },
   });
 
-  // 저장된 초안 복원 시 에디터 내용 동기화
+  // 에디터 초안 복원
   useEffect(() => {
     if (editor && projectContent && editor.isEmpty) {
       editor.commands.setContent(projectContent, { emitUpdate: false });

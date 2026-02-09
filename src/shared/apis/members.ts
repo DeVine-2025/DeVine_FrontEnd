@@ -76,10 +76,13 @@ export type GetRecommendMembersParams = {
 };
 
 type RecommendMemberDto = {
+  memberId?: number;
   nickname: string;
   image: string;
   body: string;
   techstacks: string[];
+  bookmarked?: boolean;
+  bookmarkId?: number;
 };
 
 type RecommendMembersPage = {
@@ -98,6 +101,7 @@ type RecommendMembersResponse = {
 
 export type RecommendDeveloperListItem = {
   id: string;
+  memberId?: number;
   nickname: string;
   profileImageUrl?: string;
   introduction?: string;
@@ -105,11 +109,14 @@ export type RecommendDeveloperListItem = {
   role: string;
   roleTone: 'blue' | 'green' | 'pink' | 'orange';
   domains?: Array<{ label: string }>;
+  bookmarked?: boolean;
+  bookmarkId?: number;
 };
 
 function mapRecommendMemberToListItem(dto: RecommendMemberDto, index: number): RecommendDeveloperListItem {
   return {
-    id: `member-${index}-${dto.nickname ?? ''}`,
+    id: `member-${dto.memberId ?? index}-${dto.nickname ?? ''}`,
+    memberId: dto.memberId,
     nickname: dto.nickname ?? '',
     profileImageUrl: dto.image || undefined,
     introduction: dto.body ?? '',
@@ -117,6 +124,8 @@ function mapRecommendMemberToListItem(dto: RecommendMemberDto, index: number): R
     role: '개발자',
     roleTone: 'blue',
     domains: [],
+    bookmarked: dto.bookmarked,
+    bookmarkId: dto.bookmarkId,
   };
 }
 

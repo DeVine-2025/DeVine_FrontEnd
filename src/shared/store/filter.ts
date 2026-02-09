@@ -27,7 +27,7 @@ interface FilterState {
   };
   setRecommendProject: (slice: Partial<FilterState['recommendProject']>) => void;
 
-  // 프로젝트 검색 (useProjectFilter)
+  // 프로젝트 검색
   projectSearch: {
     projectTypes: string[];
     domains: string[];

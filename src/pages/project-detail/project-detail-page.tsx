@@ -1,8 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useThemeStore } from '@store/theme';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
+import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getProjectDetail } from '@apis/project-detail';
 import { applyProject } from '@apis/apply';
 import type { ProjectItem, Position, TechStack } from '@t/project/api';
@@ -13,7 +14,7 @@ import {
   type RecommendedProject,
 } from 'src/mocks/project.mock';
 import { badgeToneToClass, type BadgeTone } from 'src/shared/types/badgeTone';
-import BookmarkIcon from '@assets/icons/bookmark.svg?react';
+import BookmarkButton from '@components/common/BookmarkButton';
 
 type ProjectDetailInfo = {
   id: string;
@@ -28,6 +29,8 @@ type ProjectDetailInfo = {
   creatorName?: string;
   imageUrls?: string[];
   roles?: ProjectRoleInfo[];
+  bookmarked?: boolean;
+  bookmarkId?: number;
 };
 
 type ProjectRoleInfo = {
@@ -99,6 +102,8 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
     period: `${project.durationMonths}개월`,
     mode: project.modeName,
     dueLabel: project.recruitmentDeadline,
+    bookmarked: project.bookmarked,
+    bookmarkId: project.bookmarkId,
     summary,
     creatorName: project.creatorName,
     imageUrls,
@@ -172,9 +177,57 @@ const ProjectDetailPage = () => {
   const [apiProject, setApiProject] = useState<ProjectDetailInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [imageLightboxIndex, setImageLightboxIndex] = useState<number | null>(null);
+  const [bookmarkState, setBookmarkState] = useState<{
+    bookmarked: boolean;
+    bookmarkId?: number;
+  }>({ bookmarked: false });
+
+  /** 사용자가 북마크 버튼을 눌렀으면, fetch 결과로 덮어쓰지 않음 (색 유지) */
+  const userDidChangeBookmarkRef = useRef(false);
+  const prevProjectIdRef = useRef<string | undefined>(undefined);
+
+  const handleBookmarkChange = useCallback(
+    async (next: boolean) => {
+      if (!projectId) return;
+      const token = await getToken();
+      if (!token) return;
+      const targetId = Number(projectId);
+      if (Number.isNaN(targetId)) return;
+      try {
+        if (next) {
+          const { bookmarkId } = await createBookmark(
+            { targetType: 'PROJECT', targetId },
+            token,
+          );
+          userDidChangeBookmarkRef.current = true;
+          setBookmarkState({ bookmarked: true, bookmarkId });
+          setApiProject((prev) =>
+            prev ? { ...prev, bookmarked: true, bookmarkId } : null,
+          );
+        } else {
+          const id = bookmarkState.bookmarkId;
+          if (id == null) return;
+          await deleteBookmark(id, token);
+          userDidChangeBookmarkRef.current = true;
+          setBookmarkState({ bookmarked: false, bookmarkId: undefined });
+          setApiProject((prev) =>
+            prev ? { ...prev, bookmarked: false, bookmarkId: undefined } : null,
+          );
+        }
+      } catch (e) {
+        console.error('[북마크]', e);
+        alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
+      }
+    },
+    [projectId, bookmarkState.bookmarkId, getToken],
+  );
 
   useEffect(() => {
     if (!projectId) return;
+    if (prevProjectIdRef.current !== projectId) {
+      prevProjectIdRef.current = projectId;
+      userDidChangeBookmarkRef.current = false;
+    }
     let isActive = true;
 
     const fetchProject = async () => {
@@ -188,7 +241,30 @@ const ProjectDetailPage = () => {
         const token = await getToken();
         const result = await getProjectDetail(numericId, token);
         if (!isActive) return;
-        setApiProject(result ? toProjectDetailInfoFromApi(result) : null);
+        let mapped = result ? toProjectDetailInfoFromApi(result) : null;
+
+        // 상세 API가 bookmarked/bookmarkId를 내려주지 않는 경우가 있어, 북마크 목록으로 보정
+        if (mapped && token) {
+          try {
+            const bookmarks = await getBookmarks(token);
+            const hit = bookmarks.find(
+              (b) => b.targetType === 'PROJECT' && b.targetId === numericId,
+            );
+            if (hit) {
+              mapped = { ...mapped, bookmarked: true, bookmarkId: hit.bookmarkId };
+            }
+          } catch (e) {
+            console.error('[북마크] 목록 기반 보정 실패', e);
+          }
+        }
+
+        setApiProject(mapped);
+        if (mapped && !userDidChangeBookmarkRef.current) {
+          setBookmarkState({
+            bookmarked: mapped.bookmarked ?? false,
+            bookmarkId: mapped.bookmarkId,
+          });
+        }
       } catch {
         if (isActive) {
           setApiProject(null);
@@ -352,13 +428,13 @@ const ProjectDetailPage = () => {
                   <h1 className="max-w-[800px] text-[24px] font-semibold text-card-title lg:text-[28px]">
                     {project.title}
                   </h1>
-                  <button
-                    type="button"
-                    className="mt-2 ml-auto h-[52px] w-[52px] shrink-0 text-card-muted hover:opacity-80"
+                  <BookmarkButton
+                    bookmarked={bookmarkState.bookmarked}
+                    onBookmarkChange={handleBookmarkChange}
+                    className="mt-2 ml-auto h-[52px] w-[52px] shrink-0"
+                    iconClassName="h-[52px] w-[52px]"
                     aria-label="북마크"
-                  >
-                    <BookmarkIcon className="h-[52px] w-[52px]" aria-hidden="true" />
-                  </button>
+                  />
                 </div>
                 <div className="flex items-center gap-3 text-card-muted">
                   <div className="h-12 w-12 rounded-full bg-card-section-bg" />

@@ -4,6 +4,7 @@ import Pagination from '@components/common/Pagination';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useState } from 'react';
+import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import {
   getMyProjects,
   getRecommendMembers,
@@ -48,6 +49,32 @@ const RecommendDeveloperPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [bookmarkMap, setBookmarkMap] = useState<Record<number, number>>({});
+
+  // 새로고침 시에도 북마크가 칠해져 보이도록: 내 북마크 목록 로드
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const token = await getToken();
+      if (!token || cancelled) return;
+      try {
+        const bookmarks = await getBookmarks(token);
+        if (cancelled) return;
+        const next: Record<number, number> = {};
+        for (const b of bookmarks) {
+          if (b.targetType !== 'DEVELOPER') continue;
+          next[b.targetId] = b.bookmarkId;
+        }
+        setBookmarkMap(next);
+      } catch (e) {
+        console.error('[북마크] 목록 로드 실패', e);
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken]);
 
   const setMyProjects = useCallback(
     (v: string[] | ((prev: string[]) => string[])) => {
@@ -102,7 +129,7 @@ const RecommendDeveloperPage = () => {
     };
   }, [getToken]);
 
-  // 기본값: 저장된 선택이 없고 내가 만든 프로젝트가 있으면 "전체(=전부 선택)" 상태로 시작
+  // 옵션 로드 시 전체 선택
   useEffect(() => {
     if (myProjectOptionsLoading) return;
     if (myProjectOptions.length === 0) return;
@@ -111,7 +138,7 @@ const RecommendDeveloperPage = () => {
     setPage(1);
   }, [myProjectOptionsLoading, myProjectOptions, myProjects.length, setRecommendDeveloper]);
 
-  // 체크할 때마다 즉시 추천 개발자 갱신 (저장 버튼 없이도 동작)
+  // 선택 변경 시 목록 갱신
   useEffect(() => {
     if (myProjectOptionsLoading) return;
     if (myProjectOptions.length === 0) return;
@@ -140,7 +167,14 @@ const RecommendDeveloperPage = () => {
           return;
         }
         const result = await getRecommendMembers(token, params);
-        setList(result.list);
+        setList(
+          result.list.map((d) => {
+            const memberId = d.memberId;
+            if (memberId == null) return d;
+            const hit = bookmarkMap[memberId];
+            return hit ? { ...d, bookmarked: true, bookmarkId: hit } : d;
+          }),
+        );
         setTotalPages(result.totalPages);
       } catch (e) {
         const msg = e instanceof Error ? e.message : '추천 개발자를 불러오지 못했습니다.';
@@ -152,12 +186,24 @@ const RecommendDeveloperPage = () => {
         setLoading(false);
       }
     },
-    [getToken, myProjects, myProjectOptions],
+    [getToken, myProjects, myProjectOptions, bookmarkMap],
   );
 
   useEffect(() => {
     fetchList(page);
   }, [fetchList, page]);
+
+  // 북마크 목록이 늦게 로드된 경우에도 현재 리스트에 반영
+  useEffect(() => {
+    setList((prev) =>
+      prev.map((d) => {
+        const memberId = d.memberId;
+        if (memberId == null) return d;
+        const hit = bookmarkMap[memberId];
+        return hit ? { ...d, bookmarked: true, bookmarkId: hit } : d;
+      }),
+    );
+  }, [bookmarkMap]);
 
   const handleApply = useCallback(
     (key: DeveloperFilterKey) => {
@@ -166,6 +212,49 @@ const RecommendDeveloperPage = () => {
       fetchList(1);
     },
     [fetchList],
+  );
+
+  const handleBookmarkChange = useCallback(
+    async (dev: RecommendDeveloperListItem, next: boolean) => {
+      const token = await getToken();
+      if (!token) return;
+      const memberId = dev.memberId;
+      if (memberId == null) {
+        alert('개발자 북마크는 현재 지원되지 않습니다.');
+        return;
+      }
+      try {
+        if (next) {
+          const { bookmarkId } = await createBookmark(
+            { targetType: 'DEVELOPER', targetId: memberId },
+            token,
+          );
+          setBookmarkMap((prev) => ({ ...prev, [memberId]: bookmarkId }));
+          setList((prev) =>
+            prev.map((d) =>
+              d.id === dev.id ? { ...d, bookmarked: true, bookmarkId } : d,
+            ),
+          );
+        } else {
+          if (dev.bookmarkId == null) return;
+          await deleteBookmark(dev.bookmarkId, token);
+          setBookmarkMap((prev) => {
+            const nextMap = { ...prev };
+            delete nextMap[memberId];
+            return nextMap;
+          });
+          setList((prev) =>
+            prev.map((d) =>
+              d.id === dev.id ? { ...d, bookmarked: false, bookmarkId: undefined } : d,
+            ),
+          );
+        }
+      } catch (e) {
+        console.error('[북마크]', e);
+        alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
+      }
+    },
+    [getToken],
   );
 
   return (
@@ -234,8 +323,8 @@ const RecommendDeveloperPage = () => {
                   introduction={dev.introduction}
                   domains={dev.domains}
                   techStack={dev.techStack}
-                  bookmarked={false}
-                  onBookmarkChange={(next) => console.log('bookmark', dev.id, next)}
+                  bookmarked={dev.bookmarked ?? false}
+                  onBookmarkChange={(next) => handleBookmarkChange(dev, next)}
                   onClick={() => console.log('click developer', dev.id)}
                 />
               ))

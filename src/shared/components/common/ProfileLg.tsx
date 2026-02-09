@@ -1,4 +1,4 @@
-import BookmarkIcon from '@assets/icons/bookmark.svg?react';
+import BookmarkButton from '@components/common/BookmarkButton';
 import { cn } from '@libs/cn';
 import { badgeToneToClass } from '../../types/badgeTone';
 import type { ProfileCardProps } from '../../types/profileCard.types';
@@ -61,17 +61,14 @@ export default function ProfileCardLg(props: ProfileCardProps) {
 
         <div className="ml-auto flex h-full items-center pr-5">
           {action ?? (
-            <button
-              type="button"
-              aria-pressed={bookmarked}
-              onClick={() => onBookmarkChange?.(!bookmarked, id)}
+            <BookmarkButton
+              bookmarked={bookmarked}
+              onBookmarkChange={(next) => onBookmarkChange?.(next, id)}
+              stopPropagation={false}
               className="inline-flex"
-            >
-              <BookmarkIcon
-                aria-hidden="true"
-                className="h-10 w-10 cursor-pointer text-card-muted"
-              />
-            </button>
+              iconClassName="h-[32px] w-[32px]"
+              colorIconClassName="h-[44px] w-[44px]"
+            />
           )}
         </div>
       </div>
