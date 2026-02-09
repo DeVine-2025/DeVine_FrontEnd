@@ -10,9 +10,12 @@ interface ThemeState {
 
 const THEME_KEY = 'theme';
 const DEFAULT_THEME: ThemeMode = 'dark';
+const initialTheme = (localStorage.getItem(THEME_KEY) as ThemeMode) ?? DEFAULT_THEME;
+
+document.documentElement.dataset.theme = initialTheme;
 
 export const useThemeStore = create<ThemeState>((set) => ({
-  theme: (localStorage.getItem(THEME_KEY) as ThemeMode) ?? DEFAULT_THEME,
+  theme: initialTheme,
 
   setTheme: (theme) => {
     document.documentElement.dataset.theme = theme;
