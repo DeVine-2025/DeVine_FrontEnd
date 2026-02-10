@@ -3,35 +3,38 @@ import LockOpenIcon from '@assets/icons/lock-open.svg?react';
 import PlusIcon from '@assets/icons/plus.svg?react';
 import { cn } from '@libs/cn';
 import { useState } from 'react';
+import {useNavigate} from 'react-router-dom';
 
 type ReportCardProps = {
   type: 'create' | 'main';
   label?: string;
   title?: string;
   description?: string;
+  isPublic?: boolean;
   onClickCreate?: () => void;
   onClickShowDetails?: () => void;
   onClickLock?: () => void;
 };
-const ReportCard = ({ type, label, title, description }: ReportCardProps) => {
-  const [isOn, setIsOn] = useState(false);
+const ReportCard = ({ type, label, title, description, isPublic }: ReportCardProps) => {
+  const [isOn, setIsOn] = useState(isPublic);
+  const navigate = useNavigate();
 
   return (
-    <div className="inline-flex h-[29.8rem] cursor-pointer rounded-3xl border border-[var(--ui-200)] p-[3.2rem]">
-      <div className="w-[24.2rem]">
+    <div className="inline-flex w-fit h-[22rem] cursor-pointer rounded-3xl border border-[var(--ui-200)] p-[3.2rem]">
+      <div className="w-[21rem]">
         {type === 'create' && (
-          <div className="flex h-full w-full cursor-pointer items-center justify-center">
+          <button className="flex h-full w-full cursor-pointer items-center justify-center" onClick={()=> navigate('/report/create')}>
             <div className="flex-col-center gap-[3.3rem]">
               <PlusIcon className="text-ui-200 h-[6rem] w-[6rem]" />
-              <p className="Title3 text-[var(--ui-400)]">리포트 생성하기</p>
+              <p className="text-3xl text-[var(--ui-400)]">리포트 생성하기</p>
             </div>
-          </div>
+          </button>
         )}
         {type === 'main' && (
           <div>
             <div className="flex justify-between">
               <div className="flex-col-center rounded-lg bg-[var(--badge-bg-primary)] px-[0.8rem] py-[0.4rem]">
-                <p className="Label1 text-[var(--badge-text-primary)]">{label}</p>
+                <p className="Label1 text-[var(--badge-text-primary)]">{label === "MAIN" ? '메인' : '상세'}</p>
               </div>
               <div>
                 <button

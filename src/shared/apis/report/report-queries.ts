@@ -14,8 +14,8 @@ export const getReports = async (
 };
 
 export const reportQueries = {
-  report: (params: ReportCardRequest) => ({
-    queryKey: ['reports', params],
+  report: (params: { type: 'MAIN' | 'DETAIL' } | undefined) => ({
+    queryKey: ['reports', params?.type],
     queryFn: () => getReports(params),
   }),
 };

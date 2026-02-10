@@ -14,3 +14,8 @@ export interface ReportCardResponse extends ApiResponse<{ reports: ReportCard[] 
 export interface ReportCardRequest {
   type: 'MAIN' | 'DETAIL';
 }
+
+export interface ReportDetailRequest {
+  gitRepoId: number;
+  token: string;
+}

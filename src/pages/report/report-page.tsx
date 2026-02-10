@@ -7,19 +7,29 @@ import {reportQueries} from '@apis/report/report-queries';
 import ReportCard from '@components/report/ReportCard';
 import Blank from '@components/report/Blank';
 import TabMenu from '@components/report/TabMenu';
+import { ReportCardRequest } from '@apis/report/report';
 
+const TAB_TYPE_MAP: Record<string, ReportCardRequest['type'] | undefined> = {
+  전체: undefined,
+  '메인 리포트': 'MAIN',
+  '상세 리포트': 'DETAIL',
+};
 
 
 const ReportPage = () => {
   const [activeTab, setActiveTab] = useState('전체');
-  const { data, isLoading } = useQuery(reportQueries.report());
-  const reportData = data?.result?.reports;
 
-  // const navigate = useNavigate();
+  const type = TAB_TYPE_MAP[activeTab];
+
+  const { data } = useQuery(
+    reportQueries.report(type ? { type } : undefined)
+  );
+
+  const reportData = data?.result?.reports;
   const tabs = ['전체', '메인 리포트', '상세 리포트'];
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col gap-[3rem]">
       {/* 상단 탭 */}
       <div className="flex gap-[1.2rem]">
         {tabs.map((tab) => (
@@ -33,14 +43,25 @@ const ReportPage = () => {
       </div>
 
       {/* 하단 컨텐츠 영역 */}
-      <div className="flex flex-1 items-center justify-center gap-[1.6rem]">
+      <div>
         {reportData?.length > 0 ? (
-          <div>
+          <div className="grid flex-1 items-center justify-start gap-[1.6rem] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <ReportCard type="create" />
-            <ReportCard type="main" />
+            {reportData?.map((report) => (
+              <ReportCard
+                type="main"
+                label={report.reportType}
+                title={report.repoName}
+                isPublic={report.visibility === 'PUBLIC'}
+                description={report.repoDescription}
+              />
+            ))}
           </div>
         ): (
-          <Blank />
+          <div>
+            <Blank />
+          </div>
+
         )}
 
 

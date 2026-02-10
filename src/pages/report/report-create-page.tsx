@@ -1,61 +1,60 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {reportQueries} from '@apis/report/report-queries';
 import {useQuery} from '@tanstack/react-query';
 
 import CheckBox from '@components/report/CheckBox';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
-
-const CHECKBOX_ITEMS = [
-  {
-    id: 'dummy1',
-    title: '더미데이터 1',
-    description: '더미데이터 1',
-  },
-  {
-    id: 'dummy2',
-    title: '더미데이터 2',
-    description: '더미데이터 2',
-  },
-  {
-    id: 'dummy3',
-    title: '더미데이터 3',
-    description: '더미데이터 3',
-  },
-];
+import { BeatLoader } from 'react-spinners';
 
 const ReportCreatePage = () => {
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const {data} = useQuery(myInfoQueries.repos());
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { data, isLoading } = useQuery(myInfoQueries.repos());
   const repo = data?.result?.repos;
 
-  console.log("마이레포", repo);
-
   const navigate = useNavigate();
+
   const toggleCheckbox = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.indexOf(id) !== -1 ? prev.filter((itemId) => itemId !== id) : [...prev, id],
-    );
+    setSelectedId((prev) => (prev === id ? null : id));
   };
+
+  const handleCreateRepo = () => {
+    if (!selectedId) return;
+
+    navigate('/report/loading', {
+      state: {
+        gitRepoId: selectedId,
+      },
+    });
+  };
+
 
   return (
     <div className="mt-[8rem] flex w-full items-center justify-center">
       <div className="w-[41.5rem] flex-col gap-[2.4rem]">
         <p className="Heading2 font-bold text-[var(--ui-1000)]">깃허브 레포지토리 목록</p>
         <div className="flex-col gap-[0.8rem] h-[250px] overflow-hidden overflow-y-scroll">
-          {repo?.map((item) => (
+          {!isLoading && repo?.map((item) => (
             <CheckBox
-              key={item.id}
+              key={item.gitRepoId}
               title={item.name}
               description={item.description}
-              isActive={selectedIds.indexOf(item.id) !== -1}
-              onClick={() => toggleCheckbox(item.id)}
+              isActive={selectedId === item.gitRepoId}
+              onClick={() => toggleCheckbox(item.gitRepoId)}
             />
           ))}
+          {isLoading && (
+            <div className="flex-col items-center h-full justify-center gap-3">
+              <BeatLoader/>
+              <p className="text-ui-600 text-xl font-bold">레포지토리 불러오는 중..</p>
+            </div>
+
+          )}
         </div>
         <div className="mt-[4.7rem] flex-col-center gap-[1.4rem]">
           <button
             type="button"
+            onClick={handleCreateRepo}
+            disabled={isLoading}
             className="w-full cursor-pointer rounded-2xl bg-primary py-[1.6rem] text-2xl text-white"
           >
             생성하기
