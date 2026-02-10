@@ -6,7 +6,7 @@ import svgr from 'vite-plugin-svgr';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
+  const env = loadEnv(mode, '.', '');
   const apiBase = env.VITE_API_BASE_URL || 'https://api.devine.kr';
 
   return {

@@ -17,6 +17,7 @@ import {
   MyPMPage,
   MyProjectPage,
   PmPage,
+  ProjectCreateCompletePage,
   ProjectCreatePage,
   ProjectDetailPage,
   ProjectSearchPage,
@@ -97,6 +98,7 @@ export const router = createBrowserRouter([
           },
 
           { path: 'project/create', element: <ProjectCreatePage /> },
+          { path: 'project/create/complete', element: <ProjectCreateCompletePage /> },
 
           {
             path: 'my-info',

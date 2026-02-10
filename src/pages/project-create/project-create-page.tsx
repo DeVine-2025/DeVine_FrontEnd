@@ -590,8 +590,7 @@ const ProjectCreatePage = () => {
       }
       const result = await createProject(body, token);
       clearDraft();
-      alert(`등록 완료 (projectId: ${result.projectId})`);
-      navigate(`/project/${result.projectId}`);
+      navigate('/project/create/complete', { state: { projectId: result.projectId } });
     } catch (e) {
       if (isDev) {
         console.error('[project-create] submit failed', e);
