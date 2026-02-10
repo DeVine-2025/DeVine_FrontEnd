@@ -15,6 +15,7 @@ export { default as MyInfoSettingPage } from './my-info/my-info-setting';
 export { default as MyDeveloperPage } from './my-project/developer/my-developer-page';
 export { default as MyProjectPage } from './my-project/my-project-page';
 export { default as MyPMPage } from './my-project/pm/my-pm-page';
+export { default as ProjectCreateCompletePage } from './project-create/project-create-complete-page';
 export { default as ProjectCreatePage } from './project-create/project-create-page';
 export { default as ProjectDetailPage } from './project-detail/project-detail-page';
 export { default as RecommendDeveloperPage } from './recommend/developer/recommend-developer-page';

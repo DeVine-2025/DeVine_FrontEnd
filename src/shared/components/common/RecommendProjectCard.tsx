@@ -1,9 +1,10 @@
+import { memo } from 'react';
 import BookmarkButton from '@components/common/BookmarkButton';
 import PersonIcon from '@assets/icons/person.svg?react';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
 import type { RecommendProjectCardProps } from 'src/shared/types/recommendProjectCard.types';
 
-export default function RecommendProjectCard({
+function RecommendProjectCard({
   categoryLabel,
   deadlineLabel,
   thumbnailUrl,
@@ -16,12 +17,18 @@ export default function RecommendProjectCard({
   dueLabel,
   bookmarked = false,
   onBookmarkChange,
+  projectId,
+  bookmarkId,
+  onBookmarkChangeById,
   onClick,
   techSuitability,
   domainSuitability,
   growthPotential,
   overallScore,
 }: RecommendProjectCardProps) {
+  const handleBookmark = onBookmarkChangeById && projectId != null
+    ? (next: boolean) => onBookmarkChangeById(projectId, next, bookmarkId)
+    : onBookmarkChange;
   const hasSuitability =
     techSuitability != null ||
     domainSuitability != null ||
@@ -143,7 +150,7 @@ export default function RecommendProjectCard({
 
       <BookmarkButton
         bookmarked={bookmarked}
-        onBookmarkChange={onBookmarkChange}
+        onBookmarkChange={handleBookmark}
         stopPropagation
         className="-translate-y-1/2 absolute top-1/2 right-[24px] h-[52px] w-[52px]"
         iconClassName="h-12 w-12"
@@ -158,3 +165,5 @@ export default function RecommendProjectCard({
     </article>
   );
 }
+
+export default memo(RecommendProjectCard);

@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PROJECT_FILTERS, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 import { getBookmarks } from '@apis/bookmarks';
+import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 
 export default function ProjectSearchPage() {
   const { getToken } = useAuth();
@@ -137,6 +138,19 @@ export default function ProjectSearchPage() {
     async (projectId: number, next: boolean, currentBookmarkId?: number) => {
       const token = await getToken();
       if (!token) return;
+      const prevOverride = bookmarkOverrides[projectId];
+      if (next) {
+        setBookmarkOverrides((prev) => ({
+          ...prev,
+          [projectId]: { bookmarked: true, bookmarkId: undefined },
+        }));
+      } else {
+        if (currentBookmarkId == null) return;
+        setBookmarkOverrides((prev) => ({
+          ...prev,
+          [projectId]: { bookmarked: false, bookmarkId: undefined },
+        }));
+      }
       try {
         if (next) {
           const { bookmarkId } = await createBookmark(
@@ -147,36 +161,21 @@ export default function ProjectSearchPage() {
             ...prev,
             [projectId]: { bookmarked: true, bookmarkId },
           }));
-          setProjects((prev) =>
-            prev.map((p) => (p.id === projectId ? { ...p, bookmarked: true, bookmarkId } : p)),
-          );
-          setRecommendedPreview((prev) =>
-            prev.map((p) =>
-              p.id === String(projectId) ? { ...p, bookmarked: true, bookmarkId } : p,
-            ),
-          );
         } else {
           if (currentBookmarkId == null) return;
           await deleteBookmark(currentBookmarkId, token);
-          setBookmarkOverrides((prev) => ({
-            ...prev,
-            [projectId]: { bookmarked: false, bookmarkId: undefined },
-          }));
-          setProjects((prev) =>
-            prev.map((p) =>
-              p.id === projectId ? { ...p, bookmarked: false, bookmarkId: undefined } : p,
-            ),
-          );
-          setRecommendedPreview((prev) =>
-            prev.map((p) =>
-              p.id === String(projectId)
-                ? { ...p, bookmarked: false, bookmarkId: undefined }
-                : p,
-            ),
-          );
         }
       } catch (e) {
         console.error('[북마크]', e);
+        setBookmarkOverrides((prev) => {
+          const nextOverrides = { ...prev };
+          if (prevOverride != null) {
+            nextOverrides[projectId] = prevOverride;
+          } else {
+            delete nextOverrides[projectId];
+          }
+          return nextOverrides;
+        });
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
@@ -243,9 +242,7 @@ export default function ProjectSearchPage() {
           className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
         >
           더 많은 추천 프로젝트 보러가기
-          <span aria-hidden="true" className="text-3xl leading-none">
-            ›
-          </span>
+          <ChevronRightIcon className="h-6 w-6 shrink-0" aria-hidden />
         </button>
       </header>
 
