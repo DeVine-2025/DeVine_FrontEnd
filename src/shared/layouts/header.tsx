@@ -22,14 +22,20 @@ import { SignedIn, SignedOut, UserButton, useAuth as useClerkAuth } from '@clerk
 import NotificationModal from '@components/common/NotificationModal';
 import { useThemeStore } from '@store/theme';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/shared/auth/useAuth';
 
-const Header = () => {
+type HeaderProps = {
+  navLocked?: boolean;
+  onLogoClick?: () => void;
+};
+
+const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const { theme, toggleTheme } = useThemeStore();
   const { isAuthed, user, setDevAuthed } = useAuth();
   const { getToken } = useClerkAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -168,16 +174,37 @@ const Header = () => {
         <div className="relative mx-auto h-[7rem] w-full max-w-[1180px] flex-row-between pl-6 max-[391px]:px-2 max-[743px]:px-4">
           {/* 왼쪽: 로고 + 네비게이션 */}
           <div className="flex-items-center gap-[4.8rem] phone:gap-[2rem] tablet:gap-[3rem]">
-            <Link to="/" className="ml-[-14px] flex-items-center gap-[0.4rem]">
+            <div className="group relative ml-[-14px] flex-items-center gap-[0.4rem]">
               {/* 데스크톱/태블릿 로고 */}
-              <span className="max-[391px]:hidden">
-                {theme === 'dark' ? <LightLogo /> : <DarkLogo />}
-              </span>
-              {/* 모바일 로고 */}
-              <span className="hidden max-[391px]:block">
-                <MobileLogo />
-              </span>
-            </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  if (navLocked) return;
+                  if (onLogoClick) {
+                    onLogoClick();
+                    return;
+                  }
+                  navigate('/');
+                }}
+                disabled={navLocked}
+                aria-disabled={navLocked}
+                className={`flex-items-center gap-[0.4rem] ${
+                  navLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                }`}
+              >
+                <span className="max-[391px]:hidden">
+                  {theme === 'dark' ? <LightLogo /> : <DarkLogo />}
+                </span>
+                <span className="hidden max-[391px]:block">
+                  <MobileLogo />
+                </span>
+              </button>
+              {navLocked && (
+                <div className="pointer-events-none absolute left-0 top-full mt-2 hidden rounded-md bg-black/80 px-3 py-2 text-[12px] text-white group-hover:block">
+                  리포트 생성 중에는 이동할 수 없어요
+                </div>
+              )}
+            </div>
 
             {/* 네비게이션 - 데스크톱 */}
             <nav className="max-[743px]:!hidden ml-[28px] flex-items-center shrink-0 flex-nowrap gap-[5rem] phone:gap-[2rem] tablet:gap-[3rem]">

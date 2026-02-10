@@ -4,11 +4,16 @@ import { useUser } from '@clerk/clerk-react';
 import Footer from '@layouts/footer';
 import Header from '@layouts/header';
 
+export type RootLayoutOutletContext = {
+  setNavLocked: (value: boolean) => void;
+};
+
 const RootLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isLoaded, user } = useUser();
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [navLocked, setNavLocked] = useState(false);
 
   useLayoutEffect(() => {
     const { scrollRestoration } = window.history;
@@ -69,11 +74,22 @@ const RootLayout = () => {
     }
   }, [isLoaded, location.pathname, navigate, user]);
 
+  const handleLogoClick = () => {
+    if (isLoaded && user) {
+      const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
+      if (!onboardingComplete) {
+        setShowOnboardingModal(true);
+        return;
+      }
+    }
+    navigate('/');
+  };
+
   return (
     <div className="flex min-h-[100vh] flex-col">
-      <Header />
+      <Header navLocked={navLocked} onLogoClick={handleLogoClick} />
       <main className="min-h-0 flex-1 py-12">
-        <Outlet />
+        <Outlet context={{ setNavLocked }} />
       </main>
       <Footer />
 
@@ -96,13 +112,6 @@ const RootLayout = () => {
                 className="h-[48px] w-full rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
               >
                 회원가입 계속하기
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowOnboardingModal(false)}
-                className="text-[14px] text-[var(--ui-400)]"
-              >
-                나중에 하기
               </button>
             </div>
           </div>

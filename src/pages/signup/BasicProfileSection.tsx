@@ -152,7 +152,7 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
                   htmlFor="profileImage"
                   className="absolute -bottom-1 -right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-200)] text-xl text-white"
                 >
-                  +
+                  <span className="-translate-y-0.5 leading-none">+</span>
                 </label>
               </div>
             </div>
@@ -166,7 +166,7 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
               id="nickname"
               type="text"
               placeholder="닉네임을 입력해주세요"
-              className={`h-[48px] w-full rounded-2xl border-2 bg-[var(--ui-50)] px-4 text-[var(--ui-900)] placeholder:text-[var(--ui-300)] ${
+              className={`h-[50px] w-full rounded-2xl border-2 bg-[var(--ui-50)] px-4 text-[14px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)] ${
                 canUseNickname
                   ? 'border-[#00BF40]'
                   : hasWhitespace || isDuplicateNickname

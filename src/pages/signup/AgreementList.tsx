@@ -23,6 +23,7 @@ type BasicProfileData = {
 type ProfileData = {
   mainType: 'PM' | 'DEVELOPER';
   categoryIds: number[];
+  domainLabels: string[];
 };
 
 type AgreementListProps = {
@@ -37,7 +38,6 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
   const navigate = useNavigate();
   const [serviceAgreed, setServiceAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
-  const [marketingAgreed, setMarketingAgreed] = useState(false);
   const [activeTermsKey, setActiveTermsKey] = useState<keyof typeof TERMS_CONTENT | null>(null);
   const [basicProfile, setBasicProfile] = useState<BasicProfileData>({
     nickname: '',
@@ -46,6 +46,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
   const [profileInfo, setProfileInfo] = useState<ProfileData>({
     mainType: 'PM',
     categoryIds: [],
+    domainLabels: [],
   });
   const [step, setStep] = useState<
     'agreements' | 'basicProfile' | 'profilePage' | 'additionalProfile' | 'signupComplete' | 'githubRepos'
@@ -55,15 +56,11 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
     () => serviceAgreed && privacyAgreed,
     [serviceAgreed, privacyAgreed],
   );
-  const allChecked = useMemo(
-    () => serviceAgreed && privacyAgreed && marketingAgreed,
-    [serviceAgreed, privacyAgreed, marketingAgreed],
-  );
+  const allChecked = useMemo(() => serviceAgreed && privacyAgreed, [serviceAgreed, privacyAgreed]);
 
   const handleAllChange = (checked: boolean) => {
     setServiceAgreed(checked);
     setPrivacyAgreed(checked);
-    setMarketingAgreed(checked);
   };
 
   const handleConfirm = () => {
@@ -132,28 +129,30 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
               setStep('additionalProfile');
             }}
             onBack={() => setStep('basicProfile')}
+            initialRole={profileInfo.mainType === 'DEVELOPER' ? 'dev' : 'pm'}
+            initialDomains={profileInfo.domainLabels}
           />
         </div>
       ) : step === 'signupComplete' ? (
-        <div className="relative mx-auto mt-[104px] flex h-[520px] w-[632px] flex-col items-center justify-center gap-6 px-8 py-12 text-center">
+        <div className="relative mx-auto mt-[104px] flex h-[560px] w-[680px] flex-col items-center justify-center gap-8 px-10 py-14 text-center">
           <Lottie
             animationData={confettiAnimation}
             loop
-            className="pointer-events-none absolute left-1/2 top-1/2 h-full w-[900px] -translate-x-1/2 -translate-y-1/2"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-full w-[980px] -translate-x-1/2 -translate-y-1/2"
           />
-          <div className="-mt-8 flex flex-col gap-3 text-[var(--ui-1000)]">
-            <h2 className="Heading2 font-semibold">회원가입이 완료되었어요!</h2>
-            <p className="Caption1 text-[var(--ui-400)]">
+          <div className="-mt-6 flex flex-col gap-4 text-[var(--ui-1000)]">
+            <h2 className="text-[28px] font-semibold">회원가입이 완료되었어요!</h2>
+            <p className="text-[16px] leading-7 text-[var(--ui-400)]">
               Github로 회원가입 시 1회 무료로 리포트를 생성해드려요!
               <br />
               지금 바로 리포트를 만들어 보세요!
             </p>
           </div>
-          <div className="mt-6 flex w-full max-w-[320px] flex-col gap-3">
+          <div className="mt-6 flex w-full max-w-[360px] flex-col gap-4">
             <button
               type="button"
               onClick={() => setStep('githubRepos')}
-              className="Body1 h-[48px] w-full rounded-xl bg-[var(--color-primary)] font-semibold text-white"
+              className="h-[54px] w-full rounded-xl bg-[var(--color-primary)] text-[17px] font-semibold text-white"
             >
               리포트 생성하기
             </button>
@@ -163,7 +162,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                 onConfirm();
                 navigate('/');
               }}
-              className="Body1 text-[var(--ui-400)]"
+              className="text-[15px] font-medium text-[var(--ui-400)]"
             >
               메인 화면으로 이동하기
             </button>
@@ -187,7 +186,6 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
               agreements: [
                 { termsId: TERMS_IDS.service, agreed: serviceAgreed },
                 { termsId: TERMS_IDS.privacy, agreed: privacyAgreed },
-                { termsId: TERMS_IDS.marketing, agreed: marketingAgreed },
               ],
               nickname: basicProfile.nickname,
               imageUrl: basicProfile.imageUrl,
@@ -218,21 +216,21 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
               role="checkbox"
               aria-checked={allChecked}
               onClick={() => handleAllChange(!allChecked)}
-              className="relative flex items-center gap-3 rounded-2xl bg-[var(--ui-50)] px-5 py-4 text-left"
+              className="relative flex items-center gap-3 rounded-2xl bg-[var(--ui-50)] px-6 py-5 text-left"
             >
               {allChecked ? (
                 <CheckboxCheckedIcon
-                  className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                  className="h-8 w-8 shrink-0 text-[var(--color-primary)]"
                   aria-hidden="true"
                 />
               ) : (
-                <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
+                <CheckboxUncheckedIcon className="h-8 w-8 shrink-0" aria-hidden="true" />
               )}
-              <span className="Body1 text-[var(--ui-900)]">전체 동의</span>
+              <span className="text-[17px] font-semibold text-[var(--ui-900)]">전체 동의</span>
             </button>
 
-            <div className="flex flex-col gap-3 rounded-2xl border border-[var(--ui-100)] px-5 py-4">
-              <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-4 rounded-2xl border border-[var(--ui-100)] px-6 py-5">
+              <div className="mt-1 flex items-center justify-between gap-3">
                 <button
                   type="button"
                   role="checkbox"
@@ -242,13 +240,13 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                 >
                   {serviceAgreed ? (
                     <CheckboxCheckedIcon
-                      className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                      className="h-8 w-8 shrink-0 text-[var(--color-primary)]"
                       aria-hidden="true"
                     />
                   ) : (
-                    <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
+                    <CheckboxUncheckedIcon className="h-8 w-8 shrink-0" aria-hidden="true" />
                   )}
-                  <span className="Body1 text-[var(--ui-900)]">
+                  <span className="text-[16px] font-semibold text-[var(--ui-900)]">
                     서비스 이용약관 동의 (필수)
                   </span>
                 </button>
@@ -261,8 +259,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                   {'>'}
                 </button>
               </div>
-
-              <div className="flex items-center justify-between gap-3">
+              <div className="mt-4 flex items-center justify-between gap-3">
                 <button
                   type="button"
                   role="checkbox"
@@ -272,13 +269,13 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                 >
                   {privacyAgreed ? (
                     <CheckboxCheckedIcon
-                      className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                      className="h-8 w-8 shrink-0 text-[var(--color-primary)]"
                       aria-hidden="true"
                     />
                   ) : (
-                    <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
+                    <CheckboxUncheckedIcon className="h-8 w-8 shrink-0" aria-hidden="true" />
                   )}
-                  <span className="Body1 text-[var(--ui-900)]">
+                  <span className="text-[16px] font-semibold text-[var(--ui-900)]">
                     개인정보 처리방침 동의 (필수)
                   </span>
                 </button>
@@ -292,35 +289,6 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                 </button>
               </div>
 
-              <div className="flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  role="checkbox"
-                  aria-checked={marketingAgreed}
-                  onClick={() => setMarketingAgreed((prev) => !prev)}
-                  className="flex items-center gap-3 text-left"
-                >
-                  {marketingAgreed ? (
-                    <CheckboxCheckedIcon
-                      className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
-                  )}
-                  <span className="Body1 text-[var(--ui-900)]">
-                    프로젝트 알림 수신 동의 (선택)
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTermsKey('marketing')}
-                  className="text-[var(--ui-400)] hover:text-[var(--ui-600)]"
-                  aria-label="프로젝트 알림 수신 동의 보기"
-                >
-                  {'>'}
-                </button>
-              </div>
             </div>
           </div>
         </div>
