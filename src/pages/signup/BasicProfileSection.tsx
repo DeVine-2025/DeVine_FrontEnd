@@ -7,9 +7,10 @@ import { checkNicknameDuplicate } from '@apis/nickname-check';
 type BasicProfileSectionProps = {
   onNext: (data: { nickname: string; imageUrl: string | null }) => void;
   onBack: () => void;
+  initialData?: { nickname: string; imageUrl: string | null };
 };
 
-const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
+const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectionProps) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -30,6 +31,13 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
     () => isLengthValid && !hasWhitespace,
     [isLengthValid, hasWhitespace],
   );
+
+  useEffect(() => {
+    if (!initialData) return;
+    setNickname(initialData.nickname ?? '');
+    setImageUrl(initialData.imageUrl ?? null);
+    setPreviewUrl(initialData.imageUrl ?? null);
+  }, [initialData?.imageUrl, initialData?.nickname]);
   const canUseNickname = isNicknameValid && !isDuplicateNickname && !isCheckingNickname;
 
   useEffect(() => {
