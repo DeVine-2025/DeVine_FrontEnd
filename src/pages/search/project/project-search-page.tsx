@@ -3,6 +3,7 @@ import {
   getRecommendProjectsPreview,
   type RecommendProjectPreviewItem,
 } from '@apis/mainrecommendproject';
+import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import ProjectListState from '@components/common/ListStateUI';
 import Pagination from '@components/common/Pagination';
@@ -146,6 +147,29 @@ export default function ProjectSearchPage() {
       const token = await getToken();
       if (!token) return;
 
+      // ✅ 이전 값을 안전하게 저장(린트 deps 필요 없음)
+      let prevOverride: (typeof bookmarkOverrides)[number] | undefined;
+
+      // 1) 낙관적 UI 업데이트 + prevOverride 확보
+      if (next) {
+        setBookmarkOverrides((prev) => {
+          prevOverride = prev[projectId];
+          return {
+            ...prev,
+            [projectId]: { bookmarked: true, bookmarkId: undefined },
+          };
+        });
+      } else {
+        if (currentBookmarkId == null) return;
+        setBookmarkOverrides((prev) => {
+          prevOverride = prev[projectId];
+          return {
+            ...prev,
+            [projectId]: { bookmarked: false, bookmarkId: undefined },
+          };
+        });
+      }
+
       try {
         if (next) {
           const { bookmarkId } = await createBookmark(
@@ -166,6 +190,18 @@ export default function ProjectSearchPage() {
         }
       } catch (e) {
         console.error('[북마크]', e);
+
+        // 2) 실패 시 롤백
+        setBookmarkOverrides((prev) => {
+          const nextOverrides = { ...prev };
+          if (prevOverride != null) {
+            nextOverrides[projectId] = prevOverride;
+          } else {
+            delete nextOverrides[projectId];
+          }
+          return nextOverrides;
+        });
+
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
@@ -243,9 +279,7 @@ export default function ProjectSearchPage() {
           className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
         >
           더 많은 추천 프로젝트 보러가기
-          <span aria-hidden="true" className="text-3xl leading-none">
-            ›
-          </span>
+          <ChevronRightIcon className="h-6 w-6 shrink-0" aria-hidden />
         </button>
       </header>
 

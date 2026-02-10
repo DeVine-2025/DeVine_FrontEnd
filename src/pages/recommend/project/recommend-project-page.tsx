@@ -7,7 +7,7 @@ import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import { buildParams } from '@mappers/projectFilters';
 import { useFilterStore } from '@store/filter';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PROJECT_FILTERS, PROJECT_ROLES } from 'src/mocks/recommendProject.mock';
 
@@ -25,6 +25,12 @@ const RecommendProjectPage = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [bookmarkMap, setBookmarkMap] = useState<Record<number, number>>({});
 
+  const bookmarkMapRef = useRef<Record<number, number>>({});
+
+  useEffect(() => {
+    bookmarkMapRef.current = bookmarkMap;
+  }, [bookmarkMap]);
+
   const params = useMemo(
     () =>
       buildParams({
@@ -38,9 +44,10 @@ const RecommendProjectPage = () => {
     [projectTypes, domains, expectedPeriods, techStacks, page],
   );
 
-  // 새로고침 시에도 북마크가 칠해져 보이도록: 내 북마크 목록을 먼저 로드
+  // 북마크 목록 로드 후 list에 한 번만 병합
   useEffect(() => {
     let cancelled = false;
+
     (async () => {
       const token = await getToken();
       if (!token || cancelled) return;
@@ -54,7 +61,15 @@ const RecommendProjectPage = () => {
           if (b.targetType !== 'PROJECT') continue;
           next[b.targetId] = b.bookmarkId;
         }
+
         setBookmarkMap(next);
+
+        setList((prev) =>
+          prev.map((p) => {
+            const hit = next[Number(p.id)];
+            return hit ? { ...p, bookmarked: true, bookmarkId: hit } : p;
+          }),
+        );
       } catch (e) {
         console.error('[북마크] 목록 로드 실패', e);
       }
@@ -81,9 +96,11 @@ const RecommendProjectPage = () => {
     try {
       const result = await getRecommendProjects(token, params);
 
+      const map = bookmarkMapRef.current;
+
       setList(
         result.list.map((p: ProjectListItem) => {
-          const hit = bookmarkMap[Number(p.id)];
+          const hit = map[Number(p.id)];
           return hit ? { ...p, bookmarked: true, bookmarkId: hit } : p;
         }),
       );
@@ -96,64 +113,7 @@ const RecommendProjectPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [getToken, params, bookmarkMap]);
-
-  useEffect(() => {
-    fetchList();
-  }, [fetchList]);
-
-  // 북마크 목록이 늦게 로드된 경우에도 현재 리스트에 반영
-  useEffect(() => {
-    setList((prev) =>
-      prev.map((p) => {
-        const hit = bookmarkMap[Number(p.id)];
-        return hit ? { ...p, bookmarked: true, bookmarkId: hit } : p;
-      }),
-    );
-  }, [bookmarkMap]);
-
-  const handleProjectClick = (project: ProjectListItem) => {
-    navigate(`/project/${project.id}`);
-  };
-
-  const handleBookmarkChange = useCallback(
-    async (projectId: string, next: boolean, currentBookmarkId?: number) => {
-      const token = await getToken();
-      if (!token) return;
-      const targetId = Number(projectId);
-      if (Number.isNaN(targetId)) return;
-      try {
-        if (next) {
-          const { bookmarkId } = await createBookmark({ targetType: 'PROJECT', targetId }, token);
-          setBookmarkMap((prev) => ({ ...prev, [targetId]: bookmarkId }));
-          setList((prev) =>
-            prev.map((p) => (p.id === projectId ? { ...p, bookmarked: true, bookmarkId } : p)),
-          );
-        } else {
-          if (currentBookmarkId == null) return;
-          await deleteBookmark(currentBookmarkId, token);
-          setBookmarkMap((prev) => {
-            const nextMap = { ...prev };
-            delete nextMap[targetId];
-            return nextMap;
-          });
-          setList((prev) =>
-            prev.map((p) =>
-              p.id === projectId ? { ...p, bookmarked: false, bookmarkId: undefined } : p,
-            ),
-          );
-        }
-      } catch (e) {
-        console.error('[북마크]', e);
-        alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
-      }
-    },
-    [getToken],
-  );
-
-  const handleRetry = useCallback(() => {
-    setPage(1);
-  }, []);
+  }, [getToken, params]);
 
   const setDomains = useCallback(
     (v: string[]) => setRecommendProject({ domains: v }),
@@ -171,6 +131,88 @@ const RecommendProjectPage = () => {
     (v: string[]) => setRecommendProject({ techStacks: v }),
     [setRecommendProject],
   );
+
+  useEffect(() => {
+    fetchList();
+  }, [fetchList]);
+
+  const handleProjectClick = (project: ProjectListItem) => {
+    navigate(`/project/${project.id}`);
+  };
+
+  const handleBookmarkChange = useCallback(
+    async (projectId: string, next: boolean, currentBookmarkId?: number) => {
+      const token = await getToken();
+      if (!token) return;
+      const targetId = Number(projectId);
+      if (Number.isNaN(targetId)) return;
+
+      // 낙관적 UI: 먼저 UI 반영 (placeholder -1 사용, 0은 effect에서 falsy로 롤백되므로)
+      const prevMap = bookmarkMapRef.current;
+      const prevBookmarkId = prevMap[targetId];
+      if (next) {
+        setBookmarkMap((prev) => ({ ...prev, [targetId]: -1 }));
+        setList((prev) =>
+          prev.map((p) =>
+            p.id === projectId ? { ...p, bookmarked: true, bookmarkId: undefined } : p,
+          ),
+        );
+      } else {
+        if (currentBookmarkId == null) return;
+        setBookmarkMap((prev) => {
+          const nextMap = { ...prev };
+          delete nextMap[targetId];
+          return nextMap;
+        });
+        setList((prev) =>
+          prev.map((p) =>
+            p.id === projectId ? { ...p, bookmarked: false, bookmarkId: undefined } : p,
+          ),
+        );
+      }
+
+      try {
+        if (next) {
+          const { bookmarkId } = await createBookmark({ targetType: 'PROJECT', targetId }, token);
+          setBookmarkMap((prev) => ({ ...prev, [targetId]: bookmarkId }));
+          setList((prev) =>
+            prev.map((p) => (p.id === projectId ? { ...p, bookmarked: true, bookmarkId } : p)),
+          );
+        } else {
+          if (currentBookmarkId == null) return;
+          await deleteBookmark(currentBookmarkId, token);
+        }
+      } catch (e) {
+        console.error('[북마크]', e);
+        // 실패 시 롤백
+        if (next) {
+          setBookmarkMap((prev) => {
+            const nextMap = { ...prev };
+            delete nextMap[targetId];
+            return nextMap;
+          });
+          setList((prev) =>
+            prev.map((p) =>
+              p.id === projectId ? { ...p, bookmarked: false, bookmarkId: prevBookmarkId } : p,
+            ),
+          );
+        } else {
+          setBookmarkMap((prev) => ({ ...prev, [targetId]: currentBookmarkId! }));
+          setList((prev) =>
+            prev.map((p) =>
+              p.id === projectId ? { ...p, bookmarked: true, bookmarkId: currentBookmarkId } : p,
+            ),
+          );
+        }
+        alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
+      }
+    },
+    [getToken],
+  );
+
+  const handleRetry = useCallback(() => {
+    setPage(1);
+  }, []);
 
   const handleApply = useCallback(() => {
     setOpenFilter(null);
@@ -228,7 +270,9 @@ const RecommendProjectPage = () => {
               domainSuitability={p.domainSuitability}
               growthPotential={p.growthPotential}
               overallScore={p.overallScore}
-              onBookmarkChange={(next) => handleBookmarkChange(p.id, next, p.bookmarkId)}
+              projectId={p.id}
+              bookmarkId={p.bookmarkId}
+              onBookmarkChangeById={handleBookmarkChange}
               onClick={() => handleProjectClick(p)}
             />
           ))}
