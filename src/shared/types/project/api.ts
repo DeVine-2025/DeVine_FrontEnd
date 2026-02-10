@@ -23,7 +23,8 @@ export type DurationRange = 'UNDER_ONE' | 'ONE_TO_THREE' | 'THREE_TO_SIX' | 'SIX
 
 export type TechStack = {
   techStackId: number;
-  techStackName: string;
+  techStackName?: string;
+  techStack?: string;
 };
 
 export type ProjectPosition = {
@@ -39,19 +40,25 @@ export type ProjectItem = {
   title: string;
   projectField: ProjectField;
   projectFieldName: string;
+  category?: Category;
   categoryName: string;
   mode: Mode;
   modeName: string;
   durationMonths: number;
+  durationRange?: DurationRange;
+  durationRangeName?: string;
   location: string;
   recruitmentDeadline: string;
   daysUntilDeadline: number;
+  content?: string;
   status: 'RECRUITING' | 'CLOSED' | string;
+  creatorId?: number;
   thumbnailUrl: string | null;
   imageUrls?: string[];
   images?: Array<{ imageUrl?: string; url?: string }>;
-  positions: ProjectPosition[];
-  creatorName: string;
+  positions?: ProjectPosition[];
+  recruitments?: ProjectPosition[];
+  creatorName: string | null;
   bookmarked?: boolean;
   bookmarkId?: number;
 };

@@ -145,7 +145,7 @@ const AdditionalProfileSection = ({
   }, []);
 
   return (
-    <div className="mx-auto flex h-[540px] w-full max-w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
+    <div className="mx-auto flex h-[560px] w-full max-w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
       {/* 토스트 UI (상단) */}
       {toast && (
         <div className="px-10 pt-6">
@@ -283,13 +283,17 @@ const AdditionalProfileSection = ({
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 px-10 pb-0">
+      <div className="flex flex-col gap-3 px-10 pb-6">
         <button
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
-            hasAnyInput ? 'bg-[var(--color-primary)] text-white' : 'bg-[#1E1D4D] text-[#7E7AFF]'
+            hasAnyInput
+              ? 'bg-[var(--color-primary)] text-white'
+              : theme === 'dark'
+                ? 'bg-[#1E1D4D] text-[#7E7AFF]'
+                : 'bg-[#EEEDFF] text-[#4E49FF]'
           } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
         >
           {isSubmitting ? '처리 중…' : hasAnyInput ? '회원가입' : '건너뛰기'}

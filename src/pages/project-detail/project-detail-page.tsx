@@ -5,7 +5,7 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getProjectDetail } from '@apis/project-detail';
-import { applyProject } from '@apis/apply';
+import { applyProject, getMyApplyStatus } from '@apis/apply';
 import type { ProjectItem, Position, TechStack } from '@t/project/api';
 import {
   PROJECT_LIST,
@@ -16,6 +16,7 @@ import {
 import { badgeToneToClass, type BadgeTone } from 'src/shared/types/badgeTone';
 import BookmarkButton from '@components/common/BookmarkButton';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
+import PersonIcon from '@assets/icons/person.svg?react';
 
 type ProjectDetailInfo = {
   id: string;
@@ -27,7 +28,7 @@ type ProjectDetailInfo = {
   mode?: string;
   dueLabel?: string;
   summary?: string;
-  creatorName?: string;
+  creatorName?: string | null;
   imageUrls?: string[];
   roles?: ProjectRoleInfo[];
   bookmarked?: boolean;
@@ -100,7 +101,7 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
     deadlineLabel: project.categoryName,
     title: project.title,
     location: project.location,
-    period: `${project.durationMonths}개월`,
+    period: project.durationRangeName ?? undefined,
     mode: project.modeName,
     dueLabel: project.recruitmentDeadline,
     bookmarked: project.bookmarked,
@@ -122,7 +123,7 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
         total: recruitment.count ?? 0,
         techStacks: Array.isArray(recruitment.techStacks)
           ? recruitment.techStacks
-              .map((stack) => stack.techStackName)
+              .map((stack) => stack.techStackName ?? (stack as TechStack & { techStack?: string }).techStack)
               .filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
           : [],
       };
@@ -273,6 +274,18 @@ const ProjectDetailPage = () => {
           }
         }
 
+        if (token) {
+          try {
+            const applyStatus = await getMyApplyStatus(numericId, token);
+            if (isActive) setHasApplied(applyStatus.exists);
+          } catch (e) {
+            console.error('[지원 상태] 조회 실패', e);
+            if (isActive) setHasApplied(false);
+          }
+        } else if (isActive) {
+          setHasApplied(false);
+        }
+
         setApiProject(mapped);
         if (mapped && !userDidChangeBookmarkRef.current) {
           setBookmarkState({
@@ -369,7 +382,7 @@ const ProjectDetailPage = () => {
         setIsLoginModalOpen(true);
         return;
       }
-      await applyProject(Number(projectId), token);
+      await applyProject(Number(projectId), selectedRole, token);
       setHasApplied(true);
       setIsApplyModalOpen(false);
     } catch (error) {
@@ -409,14 +422,22 @@ const ProjectDetailPage = () => {
           <div className="flex min-w-0 flex-col gap-6">
               {(project.imageUrls?.length ?? 0) > 0 && (
                 <div
-                  className={`grid grid-cols-1 gap-4 ${project.imageUrls!.length >= 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}
+                  className={`-mt-10 grid grid-cols-1 gap-4 ${
+                    project.imageUrls!.length === 1
+                      ? 'place-items-center'
+                      : project.imageUrls!.length >= 3
+                        ? 'lg:grid-cols-3'
+                        : 'lg:grid-cols-2'
+                  }`}
                 >
                   {project.imageUrls!.map((imageUrl, index) => (
                     <button
                       type="button"
                       key={`project-image-${index}`}
                       onClick={() => setImageLightboxIndex(index)}
-                      className="group relative aspect-[4/3] w-full min-h-[140px] max-h-[220px] overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-card-section-bg text-left shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--ui-400)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] hover:border-[var(--ui-300)] hover:shadow-lg"
+                      className={`group relative aspect-[4/3] w-full min-h-[140px] max-h-[220px] overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-card-section-bg text-left shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--ui-400)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] hover:border-[var(--ui-300)] hover:shadow-lg ${
+                        project.imageUrls!.length === 1 ? 'max-w-[600px] max-h-[250px]' : ''
+                      }`}
                     >
                       <img
                         src={imageUrl}
@@ -431,18 +452,7 @@ const ProjectDetailPage = () => {
 
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap gap-2">
-                  {project.categoryLabel && (
-                    <span className="inline-flex rounded-lg bg-badge-bg-gray px-3 py-1 font-medium text-badge-text-gray text-base">
-                      {project.categoryLabel}
-                    </span>
-                  )}
-                  {project.deadlineLabel && (
-                    <span className="inline-flex rounded-lg bg-badge-bg-gray px-3 py-1 font-medium text-badge-text-gray text-base">
-                      {project.deadlineLabel}
-                    </span>
-                  )}
-                </div>
+                {/* 카테고리 배지 숨김 */}
                 <div className="flex items-start gap-3">
                   <h1 className="max-w-[800px] text-[24px] font-semibold text-card-title lg:text-[28px]">
                     {project.title}
@@ -514,14 +524,6 @@ const ProjectDetailPage = () => {
                 지원하기
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => navigate(`/recommend/developer?projectId=${projectId}`)}
-              className="inline-flex items-center gap-1.5 whitespace-nowrap text-[14px] font-medium text-[var(--ui-600)] transition-colors hover:text-[var(--color-primary)]"
-            >
-              <span>해당 프로젝트 추천개발자 보러가기</span>
-              <ChevronRightIcon className="h-6 w-6 shrink-0 opacity-70 [&_path]:[stroke-width:6]" aria-hidden />
-            </button>
           </div>
         </div>
 
@@ -578,8 +580,20 @@ const ProjectDetailPage = () => {
                   <div key={role.key} className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
                       <RoleBadge label={role.label} tone={role.tone} />
-                      <span className="text-card-muted text-sm">
-                        {role.current}/{role.total}명
+                      <span className="flex items-center gap-2 text-[14px] font-semibold">
+                        <PersonIcon
+                          className="h-6 w-6"
+                          style={{ color: isDark ? '#D4DAE7' : '#41444D' }}
+                          aria-hidden
+                        />
+                        <span className="flex items-center">
+                          <span style={{ color: isDark ? '#D4DAE7' : '#41444D' }}>
+                            {role.current}
+                          </span>
+                          <span style={{ color: isDark ? '#7F8596' : '#939AAE' }}>
+                            /{role.total}명
+                          </span>
+                        </span>
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">

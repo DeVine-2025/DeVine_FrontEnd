@@ -10,7 +10,7 @@ import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock
 import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
 import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-detail';
-import { getMyProjects, getRecommendMembers } from '@apis/members';
+import { getRecommendDevelopersPreview } from '@apis/members';
 import { getRecommendProjectsPreview, type RecommendProjectPreviewItem } from '@apis/mainrecommendproject';
 import { getDueLabel, mapPositionsToRoles } from 'src/shared/mappers/project';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
@@ -75,7 +75,7 @@ const mapWeeklyProject = (project: WeeklyBestProject): HighlightProject => ({
   categoryLabel: project.projectFieldName,
   deadlineLabel: project.categoryName,
   location: project.location,
-  period: `${project.durationMonths}개월`,
+  period: project.durationRangeName ?? undefined,
   mode: project.modeName,
   thumbnailUrl: project.thumbnailUrl ?? undefined,
   roles: mapWeeklyRoles(project.positions),
@@ -87,6 +87,7 @@ const MainPage = () => {
   const userRole = useAuthStore((state) => state.role);
   const isLoggedIn = Boolean(isSignedIn);
   const isPm = userRole === 'pm';
+  const isDev = userRole === 'dev';
   const [weeklyProjects, setWeeklyProjects] = useState<HighlightProject[]>([]);
   const fallbackRoles = useMemo(() => PROJECT_ROLES.map((role) => ({ ...role })), []);
   const [recommendedDevelopers, setRecommendedDevelopers] = useState<MainRecommendDeveloper[]>(
@@ -247,25 +248,18 @@ const MainPage = () => {
       try {
         const token = await getToken();
         if (!token || !isActive) return;
-        const myProjects = await getMyProjects(token);
+        const result = await getRecommendDevelopersPreview(3, token);
         if (!isActive) return;
-        if (myProjects.length === 0) {
-          setRecommendedDevelopers(PROFILE_CARD_LIST.slice(0, 3).map((d) => ({ ...d, bookmarkId: undefined })));
-          return;
-        }
-        const projectId = myProjects[0].id;
-        const result = await getRecommendMembers(token, { projectId, page: 1, size: 3 });
-        if (!isActive) return;
-        const mapped = result.list.map((d) => ({
-          id: d.id,
+        const mapped = result.map((d, index) => ({
+          id: `member-preview-${index}-${d.nickname}`,
           memberId: d.memberId,
-          role: d.role,
-          roleTone: d.roleTone,
+          role: '개발자',
+          roleTone: 'blue' as const,
           nickname: d.nickname,
-          profileImageUrl: d.profileImageUrl ?? '',
-          introduction: d.introduction ?? '',
+          profileImageUrl: d.image ?? '',
+          introduction: d.body ?? '',
           badges: [],
-          techStack: d.techStack,
+          techStack: (d.techstacks ?? []).map((name, i) => ({ id: `t-${index}-${i}`, name })),
           bookmarked: d.bookmarked,
           bookmarkId: d.bookmarkId,
         }));
@@ -284,7 +278,7 @@ const MainPage = () => {
   }, [getToken, isLoggedIn, isPm]);
 
   useEffect(() => {
-    if (!isLoggedIn || isPm) return;
+    if (!isLoggedIn || userRole !== 'dev') return;
     let isActive = true;
 
     const fetchRecommendedProjects = async () => {
@@ -300,7 +294,7 @@ const MainPage = () => {
           title: item.title,
           thumbnailUrl: item.thumbnailUrl ?? '',
           location: item.location,
-          period: `${item.durationMonths}개월`,
+          period: item.durationRangeName ?? undefined,
           mode: item.modeName,
           dueLabel: getDueLabel(item.daysUntilDeadline) ?? '추후 결정 예정',
           bookmarked: item.bookmarked,
@@ -343,6 +337,14 @@ const MainPage = () => {
     }));
   }, [weeklyProjects, fallbackRoles]);
   const recommendedProfiles = recommendedDevelopers;
+  const recommendTitle = isLoggedIn
+    ? isPm
+      ? '나에게 딱 맞는 추천 개발자'
+      : '나에게 딱 맞는 추천 프로젝트'
+    : '나에게 딱 맞는 추천 프로젝트/개발자';
+  const loginCtaLabel = !isLoggedIn
+    ? '나에게 딱 맞는 추천 프로젝트/개발자'
+    : null;  
   const handleProjectClick = (
     project: RecommendedProject | ProjectListItem | HighlightProject | MainRecommendProject,
   ) => {
@@ -395,7 +397,7 @@ const MainPage = () => {
 
       <section className="flex flex-col gap-6">
         <h2 className="Heading2 font-semibold text-card-title">
-          나에게 딱 맞는 추천 프로젝트/개발자
+          {recommendTitle}
         </h2>
         <div className="relative">
           <div
@@ -464,7 +466,7 @@ const MainPage = () => {
                     로그인이 필요해요
                   </span>
                   <span className="text-[15px] text-card-muted">
-                    로그인하면 추천 프로젝트를 확인할 수 있어요
+                    {loginCtaLabel}
                   </span>
                 </div>
                 <Link
