@@ -8,6 +8,8 @@ import { useAuth } from '@clerk/clerk-react';
 import { getGitRepos } from '@apis/github-repos';
 import { createReportSync, getReportDetail, getReportMain } from '@apis/reports';
 import { useMutation } from '@tanstack/react-query';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import type { RootLayoutOutletContext } from '@layouts/root-layout';
 
 type GithubRepoSelectionSectionProps = {
   onBack: () => void;
@@ -37,6 +39,8 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
   const [mainReport, setMainReport] = useState<ReportCardData | null>(null);
   const [detailReport, setDetailReport] = useState<ReportCardData | null>(null);
   const { getToken } = useAuth();
+  const { setNavLocked } = useOutletContext<RootLayoutOutletContext>();
+  const navigate = useNavigate();
 
   const tips = [
     {
@@ -94,6 +98,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
     createReportMutation.mutate(selectedRepo);
   };
 
+
   const getReportCardData = (data: unknown, fallback?: RepoOption | null): ReportCardData => {
     const record = data && typeof data === 'object' ? (data as Record<string, unknown>) : null;
     const content = record?.content && typeof record.content === 'object'
@@ -131,6 +136,11 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
   }, [phase, tips.length]);
 
   useEffect(() => {
+    setNavLocked(phase === 'generating');
+    return () => setNavLocked(false);
+  }, [phase, setNavLocked]);
+
+  useEffect(() => {
     let isActive = true;
     setIsLoading(true);
     setLoadError(null);
@@ -166,17 +176,17 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
 
   if (phase === 'generating') {
     return (
-      <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col items-center justify-start pt-[40px] text-center">
-        <div className="flex flex-col items-center gap-2">
-          <Lottie animationData={reportAnimation} loop className="h-[300px] w-[300px]" />
-          <h2 className="-mt-34 Heading2 font-semibold text-[var(--ui-1000)]">
+    <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col items-center justify-start pt-[32px] text-center">
+        <div className="flex flex-col items-center gap-3">
+          <Lottie animationData={reportAnimation} loop className="h-[340px] w-[340px]" />
+          <h2 className="-mt-28 text-[24px] font-semibold text-[var(--ui-1000)]">
             리포트를 생성하는 중이에요
           </h2>
-          <div className="mt-15 flex flex-col items-center gap-2">
-            <span className="Caption1 inline-flex items-center rounded-full bg-[var(--badge-bg-primary)] px-3 py-1 text-[var(--badge-text-primary)]">
+          <div className="mt-10 flex flex-col items-center gap-3">
+            <span className="inline-flex items-center rounded-full bg-[var(--badge-bg-primary)] px-4 py-2 text-[13px] font-semibold text-[var(--badge-text-primary)]">
               TIP
             </span>
-            <p className="Caption1 text-[var(--ui-400)]">
+            <p className="text-[14px] leading-6 text-[var(--ui-400)]">
               {tips[tipIndex]?.title}
               <br />
               {tips[tipIndex]?.body}
@@ -266,7 +276,16 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
                 );
               })}
               {!isLoading && repoOptions.length === 0 && !loadError && (
-                <span className="Caption1 text-[var(--ui-400)]">가져올 레포지토리가 없어요.</span>
+                <div className="flex flex-col items-start gap-3">
+                  <span className="Caption1 text-[var(--ui-400)]">가져올 레포지토리가 없어요.</span>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/')}
+                    className="Body1 h-[40px] rounded-lg bg-[var(--color-primary)] px-4 font-semibold text-white"
+                  >
+                    메인으로 가기
+                  </button>
+                </div>
               )}
             </div>
           </div>

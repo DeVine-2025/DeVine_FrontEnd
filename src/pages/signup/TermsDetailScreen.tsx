@@ -106,10 +106,10 @@ const parseTermsContent = (content: string): ReactNode[] => {
         key={`line-${i}`}
         className={
           isArticleTitle
-            ? 'text-[20px] font-semibold text-[var(--ui-1000)]'
+            ? 'text-[22px] font-semibold text-[var(--ui-1000)]'
             : isSubsectionTitle
-              ? 'text-[14px] font-semibold text-[var(--ui-700)]'
-              : 'text-[12px] text-[var(--ui-700)]'
+              ? 'text-[16px] font-semibold text-[var(--ui-700)]'
+              : 'text-[14px] text-[var(--ui-700)]'
         }
       >
         {rawLine}
@@ -176,9 +176,9 @@ const TermsDetailScreen = ({ open, title, content, onClose }: TermsDetailScreenP
           <h2 className="Heading2 !text-[24px] font-semibold">{title}</h2>
         </header>
 
-        <div className="mt-6 flex max-h-[calc(100vh-130px)] flex-col rounded-[32px] bg-[var(--ui-bg)] px-10 pb-16 pt-10 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
-          <div className="min-h-0 flex-1 overflow-y-auto rounded-3xl bg-[var(--ui-bg)] px-8 py-6 pb-12 text-[15px] leading-6 text-[var(--ui-700)] whitespace-pre-wrap">
-          <div className="mx-auto flex max-w-[640px] flex-col gap-3">{parsedContent}</div>
+        <div className="mt-6 flex max-h-[calc(100vh-130px)] flex-col rounded-[32px] bg-[var(--ui-bg)] px-10 pb-40 pt-10 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
+          <div className="min-h-0 flex-1 overflow-y-auto rounded-3xl bg-[var(--ui-bg)] px-8 py-6 pb-12 text-[14px] leading-7 text-[var(--ui-700)] whitespace-pre-wrap">
+          <div className="mx-auto flex max-w-[640px] flex-col gap-5">{parsedContent}</div>
           </div>
         </div>
       </div>
