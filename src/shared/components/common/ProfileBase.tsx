@@ -1,5 +1,4 @@
-import BookmarkIcon from '@assets/icons/bookmark.svg?react';
-import BookmarkFilled from '@assets/icons/bookmark-filled.svg?react';
+import BookmarkButton from '@components/common/BookmarkButton';
 import { cn } from '@libs/cn';
 import { badgeToneToClass } from '../../types/badgeTone';
 import type { ProfileCardProps, TechStackItem } from '../../types/profileCard.types';
@@ -61,18 +60,14 @@ export function HeaderBlock({
         <div className={cn('mt-2 truncate text-card-title', titleClass)}>{nickname}</div>
       </div>
 
-      <button
-        type="button"
-        aria-pressed={bookmarked}
-        onClick={() => onBookmarkChange?.(!bookmarked, id)}
-        className="-right-1 absolute top-0 cursor-pointer hover:opacity-80"
-      >
-        {bookmarked ? (
-          <BookmarkFilled aria-hidden="true" className="h-[36px] w-[36px] text-card-muted" />
-        ) : (
-          <BookmarkIcon aria-hidden="true" className="h-[36px] w-[36px] text-card-muted" />
-        )}
-      </button>
+      <BookmarkButton
+        bookmarked={bookmarked}
+        onBookmarkChange={(next) => onBookmarkChange?.(next, id)}
+        stopPropagation={false}
+        className="-right-1 absolute top-0"
+        iconClassName="h-[32px] w-[32px]"
+        colorIconClassName="h-[44px] w-[44px]"
+      />
     </div>
   );
 }

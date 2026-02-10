@@ -33,7 +33,7 @@ type ProjectDetailResponse = {
   result?: ProjectItem;
 };
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
 
 export async function getWeeklyBestProjects() {
   const res = await fetch(`${BASE_URL}/api/v1/projects/weekly-best`, {

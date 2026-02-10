@@ -1,10 +1,13 @@
 import { buildQuery } from '@libs/queryString';
 
 type RecommendDeveloperPreviewItem = {
+  memberId?: number;
   nickname: string;
   image: string | null;
   body: string;
   techstacks: string[];
+  bookmarked?: boolean;
+  bookmarkId?: number;
 };
 
 type RecommendDeveloperPreviewResponse = {
@@ -30,7 +33,43 @@ export async function getRecommendDevelopersPreview(limit: number, token: string
   return data.result ?? [];
 }
 
+/** GET /api/v1/members/me/projects - 내가 만든(게시한) 프로젝트 목록 */
+export type MyProjectDto = {
+  id: number;
+  name: string;
+  content: string;
+  status: string;
+  imageUrls: string[];
+};
+
+type MyProjectsResponse = {
+  isSuccess?: boolean;
+  message?: string;
+  result?: { projects?: MyProjectDto[] };
+};
+
+export async function getMyProjects(token: string, signal?: AbortSignal): Promise<MyProjectDto[]> {
+  const res = await fetch(`${BASE_URL}/api/v1/members/me/projects`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    signal,
+  });
+
+  const json = (await res.json().catch(() => null)) as MyProjectsResponse | null;
+  if (!res.ok) {
+    const message =
+      json && typeof json.message === 'string' ? json.message : `요청 실패 (${res.status})`;
+    throw new Error(message);
+  }
+
+  return json?.result?.projects ?? [];
+}
+
 export type GetRecommendMembersParams = {
+  /** 서버 필수: 해당 프로젝트에 맞는 개발자 추천 */
+  projectId: number;
   projectIds?: number[];
   category?: string;
   techGenre?: string;
@@ -40,11 +79,43 @@ export type GetRecommendMembersParams = {
 };
 
 type RecommendMemberDto = {
+  id?: number;
+  memberId?: number;
   nickname: string;
   image: string;
   body: string;
   techstacks: string[];
+  bookmarked?: boolean;
+  bookmarkId?: number;
+  [key: string]: unknown;
 };
+
+function extractMemberId(dto: Record<string, unknown>): number | undefined {
+  const keys = [
+    'memberId',
+    'id',
+    'member_id',
+    'userId',
+    'user_id',
+    'memberNo',
+    'userNo',
+    'developerId',
+    'accountId',
+  ];
+  for (const key of keys) {
+    const v = dto[key];
+    if (typeof v === 'number' && Number.isFinite(v) && v > 0) return v;
+    if (typeof v === 'string' && /^\d+$/.test(v)) return parseInt(v, 10);
+  }
+  for (const nest of ['member', 'user', 'profile', 'developer', 'account']) {
+    const obj = dto[nest] as Record<string, unknown> | undefined;
+    if (obj && typeof obj === 'object') {
+      const fromNest = extractMemberId(obj);
+      if (fromNest != null) return fromNest;
+    }
+  }
+  return undefined;
+}
 
 type RecommendMembersPage = {
   content: RecommendMemberDto[];
@@ -62,6 +133,7 @@ type RecommendMembersResponse = {
 
 export type RecommendDeveloperListItem = {
   id: string;
+  memberId?: number;
   nickname: string;
   profileImageUrl?: string;
   introduction?: string;
@@ -69,11 +141,21 @@ export type RecommendDeveloperListItem = {
   role: string;
   roleTone: 'blue' | 'green' | 'pink' | 'orange';
   domains?: Array<{ label: string }>;
+  bookmarked?: boolean;
+  bookmarkId?: number;
 };
 
 function mapRecommendMemberToListItem(dto: RecommendMemberDto, index: number): RecommendDeveloperListItem {
+  const memberId =
+    (typeof dto.memberId === 'number' && dto.memberId > 0 ? dto.memberId : undefined) ??
+    (typeof dto.id === 'number' && dto.id > 0 ? dto.id : undefined) ??
+    extractMemberId(dto as Record<string, unknown>);
+  if (memberId == null && import.meta.env?.DEV) {
+    console.warn('[추천 개발자] memberId 없음 – 북마크 불가', Object.keys(dto), dto);
+  }
   return {
-    id: `member-${index}-${dto.nickname ?? ''}`,
+    id: `member-${memberId ?? index}-${dto.nickname ?? ''}`,
+    memberId: memberId ?? undefined,
     nickname: dto.nickname ?? '',
     profileImageUrl: dto.image || undefined,
     introduction: dto.body ?? '',
@@ -81,6 +163,8 @@ function mapRecommendMemberToListItem(dto: RecommendMemberDto, index: number): R
     role: '개발자',
     roleTone: 'blue',
     domains: [],
+    bookmarked: dto.bookmarked,
+    bookmarkId: dto.bookmarkId,
   };
 }
 
@@ -100,6 +184,7 @@ export async function getRecommendMembers(
   signal?: AbortSignal,
 ): Promise<RecommendMembersResult> {
   const qs = buildQuery({
+    projectId: params?.projectId,
     projectIds: params?.projectIds,
     category: params?.category,
     techGenre: params?.techGenre,
@@ -118,6 +203,13 @@ export async function getRecommendMembers(
 
   const json = (await res.json().catch(() => null)) as RecommendMembersResponse | null;
   if (!res.ok) {
+    const url = `${BASE_URL}/api/v1/members/recommend${qs}`;
+    console.error('[추천 개발자 API] 요청 실패', {
+      url,
+      status: res.status,
+      params: { projectId: params?.projectId, projectIds: params?.projectIds, category: params?.category, techGenre: params?.techGenre, techstackName: params?.techstackName, page: params?.page, size: params?.size },
+      responseBody: json,
+    });
     const message =
       json && typeof (json as { message?: string }).message === 'string'
         ? (json as { message: string }).message

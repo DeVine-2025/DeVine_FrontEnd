@@ -204,3 +204,76 @@ export async function getUnreadNotificationCount(
 
   return json?.result?.count ?? 0;
 }
+
+/** 알림 SSE 구독 옵션 */
+export type SubscribeNotificationStreamParams = {
+  timeout?: number;
+};
+
+/** 알림 SSE 이벤트 수신 시 콜백 */
+export type NotificationStreamCallbacks = {
+  onMessage?: (data: unknown) => void;
+  onError?: (err: Error) => void;
+};
+
+/**
+ * GET /api/v1/notifications/stream (text/event-stream)
+ * 인증 필요. 알림 실시간 구독.
+ */
+export function subscribeNotificationStream(
+  token: string,
+  callbacks: NotificationStreamCallbacks,
+  params?: SubscribeNotificationStreamParams,
+  signal?: AbortSignal,
+): void {
+  const qs = buildQuery({ timeout: params?.timeout ?? 0 });
+  const url = `${BASE_URL}/api/v1/notifications/stream${qs}`;
+
+  fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'text/event-stream',
+      Authorization: `Bearer ${token}`,
+    },
+    signal,
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(res.status === 401 ? '인증이 필요합니다.' : `요청 실패 (${res.status})`);
+      }
+      const reader = res.body?.getReader();
+      if (!reader) {
+        callbacks.onError?.(new Error('스트림을 읽을 수 없습니다.'));
+        return;
+      }
+      const decoder = new TextDecoder();
+      let buffer = '';
+      const read = (): Promise<void> =>
+        reader.read().then(({ done, value }) => {
+          if (done) return;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
+          let dataLine: string | null = null;
+          for (const line of lines) {
+            if (line.startsWith('data:')) {
+              dataLine = line.slice(5).trim();
+            } else if (dataLine !== null && line === '') {
+              try {
+                const data = dataLine === '' ? null : JSON.parse(dataLine);
+                callbacks.onMessage?.(data);
+              } catch {
+                callbacks.onMessage?.(dataLine);
+              }
+              dataLine = null;
+            }
+          }
+          return read();
+        });
+      return read();
+    })
+    .catch((err) => {
+      if (err?.name === 'AbortError') return;
+      callbacks.onError?.(err instanceof Error ? err : new Error(String(err)));
+    });
+}

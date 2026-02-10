@@ -1,5 +1,5 @@
 import SelectAllIcon from '@assets/icons/select-all.svg?react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useThemeStore } from '@store/theme';
 
 import {
@@ -36,7 +36,13 @@ export default function PositionBasedTechStackDropdown({
 }: Props) {
   const { theme } = useThemeStore();
   const ref = useRef<HTMLDivElement | null>(null);
-  const selected = useMemo(() => new Set(value), [value]);
+  const [draft, setDraft] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (open) setDraft(value);
+  }, [open, value]);
+
+  const selected = useMemo(() => new Set(draft), [draft]);
 
   useEffect(() => {
     if (!open) return;
@@ -61,21 +67,21 @@ export default function PositionBasedTechStackDropdown({
   const allSelected = keys.length > 0 && keys.every((k) => selected.has(k));
 
   const toggle = (key: string) => {
-    const next = new Set(selected);
+    const next = new Set(draft);
     if (next.has(key)) next.delete(key);
     else next.add(key);
-    onChange(Array.from(next));
+    setDraft(Array.from(next));
   };
 
   const toggleAll = () => {
     if (keys.length === 0) return;
     if (allSelected) {
-      onChange(value.filter((k) => keys.indexOf(k) === -1));
+      setDraft(draft.filter((k) => keys.indexOf(k) === -1));
       return;
     }
-    const next = new Set(value);
+    const next = new Set(draft);
     for (const k of keys) next.add(k);
-    onChange(Array.from(next));
+    setDraft(Array.from(next));
   };
 
   const renderChip = (b: TechStackChip) => {
@@ -175,7 +181,7 @@ export default function PositionBasedTechStackDropdown({
           type="button"
           onClick={() => {
             onReset?.();
-            onChange([]);
+            setDraft([]);
           }}
           className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-ui-50 px-[10px] text-ui-500 hover:bg-ui-100 hover:text-ui-700"
         >
@@ -184,6 +190,7 @@ export default function PositionBasedTechStackDropdown({
         <button
           type="button"
           onClick={() => {
+            onChange(draft);
             onApply?.();
             onClose();
           }}

@@ -1,8 +1,11 @@
 import { useAuth } from '@clerk/clerk-react';
+import Pagination from '@components/common/Pagination';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
+import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import {
   getRecommendProjects,
   type GetRecommendProjectsParams,
@@ -10,22 +13,22 @@ import {
 } from '@apis/recommend';
 import { PROJECT_FILTERS, PROJECT_ROLES } from 'src/mocks/recommendProject.mock';
 
-/** 필터 UI 값 → API 파라미터 */
+/** 필터 UI 값 → API 파라미터 (GET /api/v1/projects/recommend 스펙) */
 const projectFieldMap: Record<string, string> = {
   웹: 'WEB',
   '모바일/앱': 'MOBILE',
   게임: 'GAME',
-  블록체인: 'GAME',
-  기타: 'WEB',
+  블록체인: 'BLOCKCHAIN',
+  기타: 'ETC',
 };
 const categoryMap: Record<string, string> = {
   헬스케어: 'HEALTHCARE',
-  핀테크: 'FINANCE',
+  핀테크: 'FINTECH',
   이커머스: 'ECOMMERCE',
   교육: 'EDUCATION',
-  '소셜/커뮤니티': 'ETC',
+  '소셜/커뮤니티': 'SOCIAL',
   엔터테인먼트: 'ENTERTAINMENT',
-  'AI/데이터': 'ETC',
+  'AI/데이터': 'AI_DATA',
   기타: 'ETC',
 };
 const durationRangeMap: Record<string, string> = {
@@ -34,14 +37,29 @@ const durationRangeMap: Record<string, string> = {
   '3-6개월': 'THREE_TO_SIX',
   '6개월 이상': 'SIX_PLUS',
 };
+/** API positions: ALL, FRONTEND, BACKEND, INFRA 만 지원 */
 const positionMap: Record<string, string> = {
   프론트엔드: 'FRONTEND',
   백엔드: 'BACKEND',
-  인프라: 'BACKEND',
-  디자인: 'DESIGN',
-  PM: 'PM',
-  iOS: 'IOS',
-  안드로이드: 'ANDROID',
+  인프라: 'INFRA',
+};
+/** 기술스택 UI → API techstackNames (일부 예시, 필요 시 확장) */
+const techstackNameMap: Record<string, string> = {
+  JAVA: 'JAVA',
+  JAVASCRIPT: 'JAVASCRIPT',
+  TYPESCRIPT: 'TYPESCRIPT',
+  REACT: 'REACT',
+  SPRINGBOOT: 'SPRINGBOOT',
+  NODEJS: 'NODEJS',
+  PYTHON: 'PYTHON',
+  KOTLIN: 'KOTLIN',
+  SWIFT: 'SWIFT',
+  REACT_NATIVE: 'REACT_NATIVE',
+  FLUTTER: 'FLUTTER',
+  AWS: 'AWS',
+  DOCKER: 'DOCKER',
+  MYSQL: 'MYSQL',
+  MONGODB: 'MONGODB',
 };
 
 function buildApiParams(
@@ -51,44 +69,78 @@ function buildApiParams(
   techStacks: string[],
   page: number,
 ): GetRecommendProjectsParams {
-  const projectField = projectTypes
+  const projectFields = projectTypes
     .filter((t) => t !== '전체')
     .map((t) => projectFieldMap[t])
-    .find(Boolean);
-  const category = domains
+    .filter(Boolean);
+  const categories = domains
     .filter((d) => d !== '전체')
     .map((d) => categoryMap[d])
-    .find(Boolean);
-  const durationRange = expectedPeriods
+    .filter(Boolean);
+  const durationRanges = expectedPeriods
     .map((p) => durationRangeMap[p])
-    .find(Boolean);
-  const position = techStacks
+    .filter(Boolean);
+  const positions = techStacks
     .map((t) => positionMap[t])
-    .find(Boolean);
-  const techstackName = techStacks.find((t) => !positionMap[t]);
+    .filter(Boolean);
+  const techstackNames = techStacks
+    .filter((t) => !positionMap[t])
+    .map((t) => techstackNameMap[t] ?? t.toUpperCase().replace(/\s+/g, '_'))
+    .filter(Boolean);
   return {
     page,
     size: 10,
-    ...(projectField && { projectField }),
-    ...(category && { category }),
-    ...(durationRange && { durationRange }),
-    ...(position && { position }),
-    ...(techstackName && { techstackName: techstackName.toUpperCase().replace(/\s+/g, '') }),
+    ...(projectFields.length > 0 && { projectFields }),
+    ...(categories.length > 0 && { categories }),
+    ...(durationRanges.length > 0 && { durationRanges }),
+    ...(positions.length > 0 && { positions }),
+    ...(techstackNames.length > 0 && { techstackNames }),
   };
 }
 
 const RecommendProjectPage = () => {
   const { getToken } = useAuth();
   const navigate = useNavigate();
+  const { recommendProject, setRecommendProject } = useFilterStore();
+  const { domains, expectedPeriods, projectTypes, techStacks } = recommendProject;
+
   const [openFilter, setOpenFilter] = useState<null | (typeof PROJECT_FILTERS)[number]>(null);
-  const [domains, setDomains] = useState<string[]>([]);
-  const [expectedPeriods, setExpectedPeriods] = useState<string[]>([]);
-  const [projectTypes, setProjectTypes] = useState<string[]>([]);
-  const [techStacks, setTechStacks] = useState<string[]>([]);
   const [list, setList] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [bookmarkMap, setBookmarkMap] = useState<Record<number, number>>({});
+
+  // 새로고침 시에도 북마크가 칠해져 보이도록: 내 북마크 목록을 먼저 로드
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const token = await getToken();
+      if (!token || cancelled) return;
+      try {
+        const bookmarks = await getBookmarks(token);
+        if (cancelled) return;
+        const next: Record<number, number> = {};
+        for (const b of bookmarks) {
+          if (b.targetType !== 'PROJECT') continue;
+          next[b.targetId] = b.bookmarkId;
+        }
+        setBookmarkMap(next);
+      } catch (e) {
+        console.error('[북마크] 목록 로드 실패', e);
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken]);
+
+  const setDomains = useCallback((v: string[]) => setRecommendProject({ domains: v }), [setRecommendProject]);
+  const setExpectedPeriods = useCallback((v: string[]) => setRecommendProject({ expectedPeriods: v }), [setRecommendProject]);
+  const setProjectTypes = useCallback((v: string[]) => setRecommendProject({ projectTypes: v }), [setRecommendProject]);
+  const setTechStacks = useCallback((v: string[]) => setRecommendProject({ techStacks: v }), [setRecommendProject]);
 
   const fetchList = useCallback(
     async (pageNum: number = 1) => {
@@ -109,24 +161,81 @@ const RecommendProjectPage = () => {
           pageNum,
         );
         const result = await getRecommendProjects(token, params);
-        setList(result.list);
+        setList(
+          result.list.map((p) => {
+            const hit = bookmarkMap[Number(p.id)];
+            return hit ? { ...p, bookmarked: true, bookmarkId: hit } : p;
+          }),
+        );
+        setTotalPages(result.totalPages);
       } catch (e) {
         setError(e instanceof Error ? e.message : '추천 프로젝트를 불러오지 못했습니다.');
         setList([]);
+        setTotalPages(0);
       } finally {
         setLoading(false);
       }
     },
-    [getToken, projectTypes, domains, expectedPeriods, techStacks],
+    [getToken, projectTypes, domains, expectedPeriods, techStacks, bookmarkMap],
   );
 
   useEffect(() => {
     fetchList(page);
   }, [fetchList, page]);
 
+  // 북마크 목록이 늦게 로드된 경우에도 현재 리스트에 반영
+  useEffect(() => {
+    setList((prev) =>
+      prev.map((p) => {
+        const hit = bookmarkMap[Number(p.id)];
+        return hit ? { ...p, bookmarked: true, bookmarkId: hit } : p;
+      }),
+    );
+  }, [bookmarkMap]);
+
   const handleProjectClick = (project: ProjectListItem) => {
     navigate(`/project/${project.id}`);
   };
+
+  const handleBookmarkChange = useCallback(
+    async (projectId: string, next: boolean, currentBookmarkId?: number) => {
+      const token = await getToken();
+      if (!token) return;
+      const targetId = Number(projectId);
+      if (Number.isNaN(targetId)) return;
+      try {
+        if (next) {
+          const { bookmarkId } = await createBookmark(
+            { targetType: 'PROJECT', targetId },
+            token,
+          );
+          setBookmarkMap((prev) => ({ ...prev, [targetId]: bookmarkId }));
+          setList((prev) =>
+            prev.map((p) =>
+              p.id === projectId ? { ...p, bookmarked: true, bookmarkId } : p,
+            ),
+          );
+        } else {
+          if (currentBookmarkId == null) return;
+          await deleteBookmark(currentBookmarkId, token);
+          setBookmarkMap((prev) => {
+            const nextMap = { ...prev };
+            delete nextMap[targetId];
+            return nextMap;
+          });
+          setList((prev) =>
+            prev.map((p) =>
+              p.id === projectId ? { ...p, bookmarked: false, bookmarkId: undefined } : p,
+            ),
+          );
+        }
+      } catch (e) {
+        console.error('[북마크]', e);
+        alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
+      }
+    },
+    [getToken],
+  );
 
   const handleApply = useCallback(
     (key: (typeof PROJECT_FILTERS)[number]) => {
@@ -178,23 +287,27 @@ const RecommendProjectPage = () => {
                 categoryLabel={p.categoryLabel}
                 deadlineLabel={p.deadlineLabel}
                 title={p.title}
+                thumbnailUrl={p.thumbnailUrl}
+                thumbnailAlt={p.title}
                 location={p.location}
                 period={p.period}
                 mode={p.mode}
                 roles={[...PROJECT_ROLES]}
                 dueLabel={p.dueLabel}
-                bookmarked={p.bookmarked}
+                bookmarked={p.bookmarked ?? false}
                 techSuitability={p.techSuitability}
                 domainSuitability={p.domainSuitability}
                 growthPotential={p.growthPotential}
                 overallScore={p.overallScore}
-                onBookmarkChange={(next) => console.log('bookmark', p.id, next)}
+                onBookmarkChange={(next) => handleBookmarkChange(p.id, next, p.bookmarkId)}
                 onClick={() => handleProjectClick(p)}
               />
             ))
           )}
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
     </div>
   );
 };

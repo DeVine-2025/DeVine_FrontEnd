@@ -153,7 +153,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
             <button
               type="button"
               onClick={() => setStep('githubRepos')}
-              className="Body1 h-[48px] w-full rounded-xl bg-[#4E49FF] font-semibold text-white"
+              className="Body1 h-[48px] w-full rounded-xl bg-[var(--color-primary)] font-semibold text-white"
             >
               리포트 생성하기
             </button>
@@ -221,7 +221,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
               className="relative flex items-center gap-3 rounded-2xl bg-[var(--ui-50)] px-5 py-4 text-left"
             >
               {allChecked ? (
-                <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                <CheckboxCheckedIcon
+                  className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                  aria-hidden="true"
+                />
               ) : (
                 <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
               )}
@@ -238,7 +241,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                   className="flex items-center gap-3 text-left"
                 >
                   {serviceAgreed ? (
-                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                    <CheckboxCheckedIcon
+                      className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                      aria-hidden="true"
+                    />
                   ) : (
                     <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
                   )}
@@ -265,7 +271,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                   className="flex items-center gap-3 text-left"
                 >
                   {privacyAgreed ? (
-                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                    <CheckboxCheckedIcon
+                      className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                      aria-hidden="true"
+                    />
                   ) : (
                     <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
                   )}
@@ -292,7 +301,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                   className="flex items-center gap-3 text-left"
                 >
                   {marketingAgreed ? (
-                    <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                    <CheckboxCheckedIcon
+                      className="h-7 w-7 shrink-0 text-[var(--color-primary)]"
+                      aria-hidden="true"
+                    />
                   ) : (
                     <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
                   )}
@@ -320,7 +332,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
             disabled={!requiredAgreed}
             className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
               requiredAgreed
-                ? 'bg-[#4E49FF] text-white'
+                ? 'bg-[var(--color-primary)] text-white'
                 : 'bg-[var(--ui-50)] text-[var(--ui-300)]'
             }`}
           >

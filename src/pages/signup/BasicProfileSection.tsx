@@ -213,7 +213,7 @@ const BasicProfileSection = ({ onNext, onBack }: BasicProfileSectionProps) => {
           disabled={!canUseNickname || isUploading}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
             canUseNickname && !isUploading
-              ? 'bg-[#4E49FF] text-white'
+              ? 'bg-[var(--color-primary)] text-white'
               : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
           }`}
         >

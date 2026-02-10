@@ -1,4 +1,4 @@
-import BookmarkFilledIcon from '@assets/icons/bookmark-filled.svg?react';
+import BookmarkButton from '@components/common/BookmarkButton';
 import PersonIcon from '@assets/icons/person.svg?react';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
 import type { RecommendProjectCardProps } from 'src/shared/types/recommendProjectCard.types';
@@ -141,20 +141,14 @@ export default function RecommendProjectCard({
         {dueLabel}
       </div>
 
-      <button
-        type="button"
-        aria-pressed={bookmarked}
-        onClick={(e) => {
-          e.stopPropagation();
-          onBookmarkChange?.(!bookmarked);
-        }}
-        className="group -translate-y-1/2 absolute top-1/2 right-[24px] flex h-[52px] w-[52px] items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--ui-300)] focus-visible:outline-offset-2"
-      >
-        <BookmarkFilledIcon
-          aria-hidden
-          className="h-12 w-12 text-[var(--ui-200)] transition-transform duration-200 ease-out group-hover:scale-105 group-hover:text-[var(--ui-300)] group-active:scale-[0.98]"
-        />
-      </button>
+      <BookmarkButton
+        bookmarked={bookmarked}
+        onBookmarkChange={onBookmarkChange}
+        stopPropagation
+        className="-translate-y-1/2 absolute top-1/2 right-[24px] h-[52px] w-[52px]"
+        iconClassName="h-12 w-12"
+        colorIconClassName="h-[44px] w-[44px]"
+      />
 
       {hasSuitability && suitabilityText ? (
         <div className="absolute bottom-[12px] left-[24px] w-[908px] rounded-2xl bg-[var(--ui-100)] px-6 py-3">

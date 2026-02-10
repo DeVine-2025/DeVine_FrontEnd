@@ -1,5 +1,4 @@
-import BookmarkIcon from '@assets/icons/bookmark.svg?react';
-import BookmarkFilled from '@assets/icons/bookmark-filled.svg?react';
+import BookmarkButton from '@components/common/BookmarkButton';
 import PersonIcon from '@assets/icons/person.svg?react';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
 import type { RecommendProjectCardBaseProps } from 'src/shared/types/recommendProjectCard.types';
@@ -143,22 +142,13 @@ export default function RecommendProjectBase(props: RecommendProjectCardBaseProp
   const Due = dueLabel ? <p className="w-[65px] text-badge-text-gray text-lg">{dueLabel}</p> : null;
 
   const Bookmark = (
-    <button
-      type="button"
-      aria-pressed={bookmarked}
-      onClick={(e) => {
-        // 카드 클릭(onClick)과 분리되도록 이벤트 전파 방지
-        if (onClick) e.stopPropagation();
-        onBookmarkChange?.(!bookmarked);
-      }}
-      className="shrink-0 cursor-pointer hover:opacity-80"
-    >
-      {bookmarked ? (
-        <BookmarkFilled aria-hidden className="h-10 w-10 text-card-muted" />
-      ) : (
-        <BookmarkIcon aria-hidden className="h-10 w-10 text-card-muted" />
-      )}
-    </button>
+    <BookmarkButton
+      bookmarked={bookmarked}
+      onBookmarkChange={onBookmarkChange}
+      stopPropagation={!!onClick}
+      className="shrink-0"
+      iconClassName="h-10 w-10"
+    />
   );
 
   return (

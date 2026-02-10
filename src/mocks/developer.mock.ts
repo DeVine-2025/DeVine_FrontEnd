@@ -4,6 +4,8 @@ export type BadgeTone = 'blue' | 'green' | 'pink' | 'orange';
 
 export type ProfileCardProps = {
   id: string;
+  /** API targetId로 사용할 개발자(member) ID (mock에서도 북마크 테스트용) */
+  memberId?: number;
   role: string;
   roleTone: BadgeTone;
   nickname: string;
@@ -23,6 +25,7 @@ export type ProfileCardProps = {
   }[];
 
   bookmarked?: boolean;
+  bookmarkId?: number;
 };
 
 export const DEVELOPER_FILTERS = ['내 프로젝트 선택', '포지션 / 기술스택', '관심 도메인'] as const;
@@ -30,6 +33,7 @@ export const DEVELOPER_FILTERS = ['내 프로젝트 선택', '포지션 / 기술
 export const PROFILE_CARD_LIST: ProfileCardProps[] = [
   {
     id: 'u-1',
+    memberId: 1,
     role: '백엔드',
     roleTone: 'green',
     nickname: '닉네임',
@@ -49,6 +53,7 @@ export const PROFILE_CARD_LIST: ProfileCardProps[] = [
   },
   {
     id: 'u-2',
+    memberId: 2,
     role: '프론트엔드',
     roleTone: 'blue',
     nickname: '프론티',
@@ -68,6 +73,7 @@ export const PROFILE_CARD_LIST: ProfileCardProps[] = [
   },
   {
     id: 'u-3',
+    memberId: 3,
     role: '디자이너',
     roleTone: 'pink',
     nickname: '디자인러버',
@@ -86,6 +92,7 @@ export const PROFILE_CARD_LIST: ProfileCardProps[] = [
   },
   {
     id: 'u-4',
+    memberId: 4,
     role: '풀스택',
     roleTone: 'orange',
     nickname: '올라운더',

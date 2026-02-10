@@ -66,6 +66,8 @@ export type RecommendProjectPreviewItem = {
   domainScore?: number;
   techStackCountScore?: number;
   totalScore?: number;
+  bookmarked?: boolean;
+  bookmarkId?: number;
 };
 
 type RecommendProjectsResponse = {

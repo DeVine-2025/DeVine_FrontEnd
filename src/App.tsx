@@ -6,17 +6,6 @@ import { useAuth } from '@clerk/clerk-react';
 import { useEffect } from 'react';
 import { setTokenGetter } from '@apis/instance';
 
-function ClerkTokenLogger() {
-  const { isSignedIn, getToken } = useAuth();
-  useEffect(() => {
-    if (!isSignedIn) return;
-    getToken().then((token) => {
-      console.log('[Clerk token]', token);
-    });
-  }, [isSignedIn, getToken]);
-  return null;
-}
-
 function App() {
   const { getToken } = useAuth();
 
@@ -26,7 +15,6 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ClerkTokenLogger />
       <RouterProvider router={router} />
     </QueryClientProvider>
   );

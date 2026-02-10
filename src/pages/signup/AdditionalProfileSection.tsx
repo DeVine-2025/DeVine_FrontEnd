@@ -20,13 +20,15 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
   const [email, setEmail] = useState('');
   const [linkedin, setLinkedin] = useState('');
   const { getToken } = useAuth();
+  const LINKEDIN_MAX_LENGTH = 255;
   const trimmedEmail = email.trim();
   const trimmedLinkedin = linkedin.trim();
   const isEmailValid = trimmedEmail.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
   const isLinkedinValid =
     trimmedLinkedin.length === 0 || /^https?:\/\/(www\.)?linkedin\.com\/.+/i.test(trimmedLinkedin);
+  const isLinkedinLengthValid = trimmedLinkedin.length <= LINKEDIN_MAX_LENGTH;
   const showEmailError = trimmedEmail.length > 0 && !isEmailValid;
-  const showLinkedinError = trimmedLinkedin.length > 0 && !isLinkedinValid;
+  const showLinkedinError = trimmedLinkedin.length > 0 && (!isLinkedinValid || !isLinkedinLengthValid);
 
   const hasAnyInput =
     stacks.length > 0 ||
@@ -39,7 +41,7 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
   };
 
   const handleSubmit = async () => {
-    if (!isEmailValid || !isLinkedinValid) {
+    if (!isEmailValid || !isLinkedinValid || !isLinkedinLengthValid) {
       return;
     }
     const payload: SignupPayload = {
@@ -121,7 +123,7 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
                     )}
                     <span
                       aria-hidden
-                      className="absolute -right-[4px] -top-[4px] flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--ui-50)] text-[11px] text-[#9EA6BA]"
+                      className="absolute -right-[4px] -top-[4px] flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--ui-50)] text-[11px] text-[var(--ui-400)]"
                     >
                       ×
                     </span>
@@ -183,7 +185,9 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
             />
             {showLinkedinError && (
               <span className="Caption1 text-[#FF4242]">
-                링크드인 URL 형식이 올바르지 않아요.
+                {!isLinkedinLengthValid
+                  ? `링크드인 URL은 ${LINKEDIN_MAX_LENGTH}자 이내로 입력해주세요.`
+                  : '링크드인 URL 형식이 올바르지 않아요.'}
               </span>
             )}
           </div>
@@ -193,7 +197,7 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
               type="button"
               onClick={handleSubmit}
               className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
-                hasAnyInput ? 'bg-[#4E49FF] text-white' : 'bg-[#1E1D4D] text-[#7E7AFF]'
+                hasAnyInput ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
               }`}
             >
               {hasAnyInput ? '회원가입하기' : '건너뛰기'}
