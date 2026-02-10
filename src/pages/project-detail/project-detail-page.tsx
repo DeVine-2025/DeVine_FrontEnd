@@ -407,7 +407,7 @@ const ProjectDetailPage = () => {
       <section className="flex flex-col gap-8 rounded-3xl bg-card-bg p-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
           <div className="flex min-w-0 flex-col gap-6">
-              {(project.imageUrls?.length ?? 0) > 0 ? (
+              {(project.imageUrls?.length ?? 0) > 0 && (
                 <div
                   className={`grid grid-cols-1 gap-4 ${project.imageUrls!.length >= 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}
                 >
@@ -426,10 +426,6 @@ const ProjectDetailPage = () => {
                       />
                     </button>
                   ))}
-                </div>
-              ) : (
-                <div className="flex aspect-[4/3] min-h-[140px] max-h-[220px] w-full items-center justify-center rounded-2xl border border-dashed border-[var(--ui-200)] bg-[var(--ui-50)]">
-                  <span className="text-[var(--ui-400)] text-sm">대표 이미지가 없습니다</span>
                 </div>
               )}
 
@@ -497,7 +493,11 @@ const ProjectDetailPage = () => {
             <div className="h-px w-full bg-card-border" />
           </div>
 
-          <div className="mt-[20rem] flex flex-col gap-3 lg:mt-[30rem] lg:flex-row lg:items-center lg:justify-end lg:gap-6">
+          <div
+            className={`flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end lg:gap-6 ${
+              (project.imageUrls?.length ?? 0) > 0 ? 'mt-[20rem] lg:mt-[30rem]' : 'mt-20 lg:mt-24'
+            }`}
+          >
             {!hasApplied && (
               <button
                 type="button"
