@@ -87,15 +87,15 @@ const LoginPage = () => {
   return (
     <div className="bg-[var(--color-auth-bg)] text-[var(--color-auth-text)]">
       <main className="mx-auto flex min-h-screen w-full max-w-[360px] -mt-12 flex-col items-center justify-center px-6 text-center sm:max-w-[600px] sm:px-10 lg:max-w-[1200px] lg:px-16">
-        <div className="mb-6 -mt-14 flex items-center justify-center pl-100">
+        <div className="mb-4 -mt-24 flex items-center justify-center">
           {theme === 'dark' ? (
-            <LogoDark className="h-30 w-auto" aria-hidden="true" />
-          ) : (
             <LogoLight className="h-30 w-auto" aria-hidden="true" />
+          ) : (
+            <LogoDark className="h-30 w-auto" aria-hidden="true" />
           )}
         </div>
 
-        <p className="mt-1 w-full max-w-[320px] text-[16px] leading-[24px] text-[var(--color-auth-desc)] sm:max-w-[600px]">
+        <p className="-mt-4 w-full max-w-[320px] text-[16px] leading-[24px] text-[var(--color-auth-desc)] sm:max-w-[600px] font-semibold">
           코드로 증명하고, 데이터로 연결하다.
           <br />
           사이드 프로젝트 매칭 플랫폼
