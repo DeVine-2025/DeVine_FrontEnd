@@ -2,7 +2,6 @@ import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getRecommendProjects, type ProjectListItem } from '@apis/recommend';
 import { useAuth } from '@clerk/clerk-react';
 import ProjectListState from '@components/common/ListStateUI';
-import Pagination from '@components/common/Pagination';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import { buildParams } from '@mappers/projectFilters';
@@ -22,7 +21,6 @@ const RecommendProjectPage = () => {
   const [loading, setLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
   const [bookmarkMap, setBookmarkMap] = useState<Record<number, number>>({});
 
   const bookmarkMapRef = useRef<Record<number, number>>({});
@@ -84,7 +82,6 @@ const RecommendProjectPage = () => {
     const token = await getToken();
     if (!token) {
       setList([]);
-      setTotalPages(0);
       setLoading(false);
       setIsError(false);
       return;
@@ -104,12 +101,10 @@ const RecommendProjectPage = () => {
           return hit ? { ...p, bookmarked: true, bookmarkId: hit } : p;
         }),
       );
-      setTotalPages(result.totalPages);
     } catch (e) {
       console.error('[추천 프로젝트]', e);
       setIsError(true);
       setList([]);
-      setTotalPages(0);
     } finally {
       setLoading(false);
     }
@@ -277,8 +272,6 @@ const RecommendProjectPage = () => {
             />
           ))}
       </div>
-
-      <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
     </div>
   );
 };

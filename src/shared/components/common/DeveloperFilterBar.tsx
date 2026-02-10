@@ -71,10 +71,23 @@ export default function DeveloperFilterBar({
         const isOpen = openFilter === label;
 
         const uniq = Array.from(new Set(values));
+        const optionNames =
+          label === '내 프로젝트 선택' ? myProjectOptions?.map((o) => o.name) ?? [] : [];
+        const isAllProjectsSelected =
+          label === '내 프로젝트 선택' &&
+          optionNames.length > 0 &&
+          uniq.length === optionNames.length &&
+          optionNames.every((name) => uniq.includes(name));
+
         const shown = uniq.slice(0, 2);
         const rest = Math.max(0, uniq.length - shown.length);
         const summary = `${shown.join(', ')}${rest > 0 ? '…' : ''}`;
-        const displayLabel = isApplied ? summary : label;
+        const displayLabel =
+          label === '내 프로젝트 선택' && isAllProjectsSelected
+            ? '전체 프로젝트'
+            : isApplied
+              ? summary
+              : label;
 
         return (
           <div key={label} className="relative">

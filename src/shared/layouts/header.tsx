@@ -260,10 +260,13 @@ const Header = () => {
 
               {unreadCount > 0 && (
                 <span
-                  className="absolute top-[0.4rem] right-[0.4rem] flex min-w-[1.6rem] items-center justify-center rounded-full bg-[#FF4D4F] px-[0.5rem] py-0 font-semibold text-[1rem] text-white leading-none"
+                  className="absolute top-[0.4rem] right-[0.4rem] flex size-5 items-center justify-center rounded-full bg-[#4E49FF] font-semibold text-[0.7rem] text-white leading-none"
                   aria-hidden="true"
                 >
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                  <span className="absolute inset-0 rounded-full bg-[#4E49FF] animate-notification-pulse" />
+                  <span className="relative">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
                 </span>
               )}
             </button>

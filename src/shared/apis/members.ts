@@ -45,7 +45,10 @@ export type MyProjectDto = {
 type MyProjectsResponse = {
   isSuccess?: boolean;
   message?: string;
-  result?: { projects?: MyProjectDto[] };
+  // 백엔드 구현에 따라 result가 배열이거나, 내부 키가 다를 수 있어 유연하게 처리
+  result?: unknown;
+  data?: unknown;
+  projects?: unknown;
 };
 
 export async function getMyProjects(token: string, signal?: AbortSignal): Promise<MyProjectDto[]> {
@@ -64,7 +67,41 @@ export async function getMyProjects(token: string, signal?: AbortSignal): Promis
     throw new Error(message);
   }
 
-  return json?.result?.projects ?? [];
+  const pick = (v: unknown): MyProjectDto[] | null => {
+    if (!v) return null;
+    if (Array.isArray(v)) return v as MyProjectDto[];
+    if (typeof v === 'object') {
+      const obj = v as Record<string, unknown>;
+      const candidates = [
+        obj.projects,
+        obj.projectList,
+        obj.myProjects,
+        obj.list,
+        obj.items,
+      ];
+      for (const c of candidates) {
+        if (Array.isArray(c)) return c as MyProjectDto[];
+      }
+    }
+    return null;
+  };
+
+  // 흔한 응답 형태들을 순서대로 시도
+  const roots: unknown[] = [
+    json?.result,
+    json?.data,
+    json?.projects,
+    // result 안에 한 번 더 감싸진 형태도 방어
+    (json?.result as any)?.result,
+    (json?.result as any)?.data,
+  ];
+
+  for (const r of roots) {
+    const hit = pick(r);
+    if (hit) return hit;
+  }
+
+  return [];
 }
 
 export type GetRecommendMembersParams = {
