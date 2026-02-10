@@ -6,6 +6,9 @@ import Header from '@layouts/header';
 
 export type RootLayoutOutletContext = {
   setNavLocked: (value: boolean) => void;
+  onboardingIncomplete: boolean;
+  openOnboardingModal: () => void;
+  setLogoClickHandler: (handler: (() => void) | null) => void;
 };
 
 const RootLayout = () => {
@@ -14,6 +17,8 @@ const RootLayout = () => {
   const { isLoaded, user } = useUser();
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [navLocked, setNavLocked] = useState(false);
+  const [onboardingIncomplete, setOnboardingIncomplete] = useState(false);
+  const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
 
   useLayoutEffect(() => {
     const { scrollRestoration } = window.history;
@@ -40,10 +45,46 @@ const RootLayout = () => {
     if (!shouldShowModal) return;
     sessionStorage.removeItem('show_onboarding_modal');
     setShowOnboardingModal(true);
-    if (location.pathname !== '/') {
-      navigate('/', { replace: true });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isLoaded) return;
+    if (!user) {
+      setOnboardingIncomplete(false);
+      return;
     }
-  }, [location.pathname, navigate]);
+
+    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
+    setOnboardingIncomplete(!onboardingComplete);
+  }, [isLoaded, user]);
+
+  useLayoutEffect(() => {
+    if (!onboardingIncomplete) return;
+    const pathname = location.pathname;
+    const isSignupRoute = pathname.startsWith('/signup');
+    const isLoginRoute = pathname === '/login';
+    const isCallbackRoute = pathname === '/sso-callback';
+    if (isSignupRoute || isLoginRoute || isCallbackRoute) return;
+
+    const loginProvider = sessionStorage.getItem('login_provider');
+    if (pathname === '/' && loginProvider) {
+      navigate('/signup', { replace: true });
+      return;
+    }
+
+    const skipModalOnce = sessionStorage.getItem('skip_onboarding_modal_once') === 'true';
+    if (skipModalOnce) {
+      sessionStorage.removeItem('skip_onboarding_modal_once');
+      return;
+    }
+    setShowOnboardingModal(true);
+  }, [location.pathname, navigate, onboardingIncomplete]);
+
+  useLayoutEffect(() => {
+    if (!onboardingIncomplete) {
+      setShowOnboardingModal(false);
+    }
+  }, [onboardingIncomplete]);
 
   useLayoutEffect(() => {
     if (!isLoaded) return;
@@ -52,18 +93,7 @@ const RootLayout = () => {
     const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
     const pathname = location.pathname;
     const isSignupRoute = pathname === '/signup';
-    const isCallbackRoute = pathname === '/sso-callback';
     const isLoginRoute = pathname === '/login';
-    if (!onboardingComplete && !isSignupRoute && !isCallbackRoute && !isLoginRoute) {
-      const skipModalOnce = sessionStorage.getItem('skip_onboarding_modal_once') === 'true';
-      if (skipModalOnce) {
-        sessionStorage.removeItem('skip_onboarding_modal_once');
-        return;
-      }
-      navigate('/signup', { replace: true });
-      return;
-    }
-
     if (onboardingComplete && isSignupRoute) {
       navigate('/', { replace: true });
       return;
@@ -75,6 +105,10 @@ const RootLayout = () => {
   }, [isLoaded, location.pathname, navigate, user]);
 
   const handleLogoClick = () => {
+    if (logoClickHandler) {
+      logoClickHandler();
+      return;
+    }
     if (isLoaded && user) {
       const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
       if (!onboardingComplete) {
@@ -89,7 +123,14 @@ const RootLayout = () => {
     <div className="flex min-h-[100vh] flex-col">
       <Header navLocked={navLocked} onLogoClick={handleLogoClick} />
       <main className="min-h-0 flex-1 py-12">
-        <Outlet context={{ setNavLocked }} />
+        <Outlet
+          context={{
+            setNavLocked,
+            onboardingIncomplete,
+            openOnboardingModal: () => setShowOnboardingModal(true),
+            setLogoClickHandler,
+          }}
+        />
       </main>
       <Footer />
 
