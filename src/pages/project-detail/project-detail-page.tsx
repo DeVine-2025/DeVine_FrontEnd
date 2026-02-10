@@ -220,6 +220,7 @@ const ProjectDetailPage = () => {
             prev ? { ...prev, bookmarked: true, bookmarkId } : null,
           );
         } else {
+          if (prevBookmarkId == null) return;
           await deleteBookmark(prevBookmarkId, token);
         }
       } catch (e) {

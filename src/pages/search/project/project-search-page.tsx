@@ -162,6 +162,7 @@ export default function ProjectSearchPage() {
             [projectId]: { bookmarked: true, bookmarkId },
           }));
         } else {
+          if (currentBookmarkId == null) return;
           await deleteBookmark(currentBookmarkId, token);
         }
       } catch (e) {
