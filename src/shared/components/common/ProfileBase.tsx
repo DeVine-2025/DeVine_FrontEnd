@@ -116,7 +116,7 @@ export function TechChips({ techStack, max }: { techStack?: TechStackItem[]; max
           className="flex items-center gap-2 rounded-3xl border border-card-border bg-surface-tab px-4 py-1"
         >
           {s.icon}
-          <span className="font-medium text-base text-card-text">{s.name}</span>
+          <span className="font-medium text-card-text text-lg">{s.name}</span>
         </div>
       ))}
 
