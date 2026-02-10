@@ -95,10 +95,8 @@ export default function ProjectSearchPage() {
     setExpectedPeriods,
     techStacks,
     setTechStacks,
-    applied,
     page,
     setPage,
-    applyFilters,
     resetFilter,
   } = useProjectFilter();
 
@@ -120,7 +118,16 @@ export default function ProjectSearchPage() {
   );
 
   const size = 10;
-  const params = useMemo(() => buildParams({ ...applied, page, size }), [applied, page]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    setPage((prev) => (prev === 1 ? prev : 1));
+  }, [projectTypes, domains, expectedPeriods, techStacks]);
+
+  const params = useMemo(
+    () => buildParams({ projectTypes, domains, expectedPeriods, techStacks, page, size }),
+    [projectTypes, domains, expectedPeriods, techStacks, page],
+  );
 
   const { data, isLoading, isError } = useProjects(params);
   const totalPages = data?.totalPages ?? 0;
@@ -278,7 +285,7 @@ export default function ProjectSearchPage() {
         setExpectedPeriods={setExpectedPeriods}
         techStacks={techStacks}
         setTechStacks={setTechStacks}
-        onApply={() => applyFilters()}
+        onApply={() => setOpenFilter(null)}
         onReset={(key) => resetFilter(key)}
       />
 
