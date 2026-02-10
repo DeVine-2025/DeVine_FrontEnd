@@ -10,6 +10,7 @@ const ReportLoadingPage = () => {
   const gitRepoId = location.state?.gitRepoId;
 
   const { getToken } = useAuth();
+
   const { mutate } = useCreateReportMutation();
 
   useEffect(() => {

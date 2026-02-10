@@ -7,13 +7,13 @@ import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { BeatLoader } from 'react-spinners';
 
 const ReportCreatePage = () => {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const { data, isLoading } = useQuery(myInfoQueries.repos());
   const repo = data?.result?.repos;
 
   const navigate = useNavigate();
 
-  const toggleCheckbox = (id: string) => {
+  const toggleCheckbox = (id: number) => {
     setSelectedId((prev) => (prev === id ? null : id));
   };
 
