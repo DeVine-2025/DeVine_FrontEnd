@@ -1,12 +1,12 @@
+import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
+import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
+import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
 import ProfileCard from '@components/common/ProfileCard';
-import { useAuth } from '@clerk/clerk-react';
-import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEVELOPER_FILTERS, PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
-import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 
 const DeveloperSearchPage = () => {
   const navigate = useNavigate();
@@ -121,7 +121,9 @@ const DeveloperSearchPage = () => {
             key={profile.id}
             {...profile}
             size="sm"
-            bookmarked={profile.memberId != null ? bookmarkMap[profile.memberId] != null : profile.bookmarked}
+            bookmarked={
+              profile.memberId != null ? bookmarkMap[profile.memberId] != null : profile.bookmarked
+            }
             onBookmarkChange={(next) => handleBookmarkChange(profile.memberId, next)}
           />
         ))}
@@ -133,6 +135,7 @@ const DeveloperSearchPage = () => {
       {/* 필터 */}
       <DeveloperFilterBar
         filters={DEVELOPER_FILTERS}
+        excludeFilters={['내 프로젝트 선택']}
         openFilter={openFilter}
         setOpenFilter={setOpenFilter}
         myProjects={myProjects}
@@ -152,7 +155,9 @@ const DeveloperSearchPage = () => {
             key={profile.id}
             {...profile}
             size="lg"
-            bookmarked={profile.memberId != null ? bookmarkMap[profile.memberId] != null : profile.bookmarked}
+            bookmarked={
+              profile.memberId != null ? bookmarkMap[profile.memberId] != null : profile.bookmarked
+            }
             onBookmarkChange={(next) => handleBookmarkChange(profile.memberId, next)}
           />
         ))}
