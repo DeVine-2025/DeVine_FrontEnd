@@ -7,6 +7,7 @@ export type DeveloperFilterKey = '내 프로젝트 선택' | '포지션 / 기술
 
 type Props = {
   filters: readonly DeveloperFilterKey[];
+  excludeFilters?: readonly DeveloperFilterKey[];
 
   openFilter: DeveloperFilterKey | null;
   setOpenFilter: (v: DeveloperFilterKey | null) => void;
@@ -28,6 +29,7 @@ type Props = {
 
 export default function DeveloperFilterBar({
   filters,
+  excludeFilters = [],
   openFilter,
   setOpenFilter,
 
@@ -50,6 +52,7 @@ export default function DeveloperFilterBar({
   const defaultClass = 'border border-transparent bg-filter-bg text-filter-text';
   // 오픈 시 바깥 링 없이 테두리 색만 변경 (기본 border-transparent를 확실히 override)
   const openClass = '!border-[#4E49FF]';
+  const visibleFilters = filters.filter((f) => !excludeFilters.includes(f));
 
   const getValues = (label: DeveloperFilterKey) => {
     if (label === '내 프로젝트 선택') return myProjects;
@@ -62,7 +65,7 @@ export default function DeveloperFilterBar({
 
   return (
     <div className="flex flex-wrap gap-4">
-      {filters.map((label) => {
+      {visibleFilters.map((label) => {
         const values = getValues(label);
         const isApplied = values.length > 0;
         const isOpen = openFilter === label;

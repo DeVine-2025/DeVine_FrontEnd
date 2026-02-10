@@ -1,5 +1,3 @@
-import { buildQuery } from '@libs/queryString';
-
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
 
 /** GET /api/v1/projects/recommend 쿼리 파라미터 (API 스펙: 복수 선택 배열) */
@@ -151,20 +149,21 @@ export type RecommendProjectsResult = {
  */
 export async function getRecommendProjects(
   token: string,
-  params?: GetRecommendProjectsParams,
+  params: GetRecommendProjectsParams | string = '',
   signal?: AbortSignal,
 ): Promise<RecommendProjectsResult> {
-  const qs = buildQuery({
-    projectFields: params?.projectFields,
-    categories: params?.categories,
-    positions: params?.positions,
-    techstackNames: params?.techstackNames,
-    durationRanges: params?.durationRanges,
-    page: params?.page ?? 1,
-    size: params?.size ?? 10,
-  });
+  const qs =
+    typeof params === 'string'
+      ? params
+      : new URLSearchParams(
+          Object.entries(params).flatMap(([k, v]) =>
+            Array.isArray(v) ? v.map((vv) => [k, String(vv)]) : [[k, String(v)]],
+          ) as [string, string][],
+        ).toString();
 
-  const res = await fetch(`${BASE_URL}/api/v1/projects/recommend${qs}`, {
+  const queryString = qs.startsWith('?') ? qs : `?${qs}`;
+
+  const res = await fetch(`${BASE_URL}/api/v1/projects/recommend${queryString}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,

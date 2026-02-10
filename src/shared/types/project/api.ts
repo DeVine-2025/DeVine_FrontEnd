@@ -1,12 +1,21 @@
-export type ProjectField = 'WEB' | 'MOBILE' | 'AI' | 'GAME' | 'DATA' | 'BACKEND' | 'FRONTEND';
+export type ProjectField =
+  | 'WEB'
+  | 'MOBILE'
+  | 'AI'
+  | 'GAME'
+  | 'DATA'
+  | 'BACKEND'
+  | 'FRONTEND'
+  | 'BLOCKCHAIN'
+  | 'ETC';
 export type Category =
   | 'HEALTHCARE'
-  | 'FINANCE'
+  | 'FINTECH'
   | 'ECOMMERCE'
   | 'EDUCATION'
   | 'SOCIAL'
   | 'ENTERTAINMENT'
-  | 'AI'
+  | 'AI_DATA'
   | 'ETC';
 export type Position = 'BACKEND' | 'FRONTEND' | 'INFRA' | 'DESIGN' | 'PM' | 'IOS' | 'ANDROID';
 export type Mode = 'ONLINE' | 'OFFLINE' | 'HYBRID';

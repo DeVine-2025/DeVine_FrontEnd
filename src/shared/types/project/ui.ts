@@ -2,9 +2,24 @@ import type { HTMLAttributes, ReactNode } from 'react';
 
 export type BadgeTone = 'blue' | 'green' | 'pink' | 'orange';
 
+export const EMPTY_MESSAGE = '선택하신 조건에 맞는 프로젝트가 없습니다.';
+export const ERROR_MESSAGE =
+  '프로젝트를 불러오는 중 문제가 발생했어요.\n잠시 후 다시 시도해 주세요.';
+
 export type TechStackItem = {
   id: string;
   icon?: ReactNode;
+};
+
+export type RecommendPreviewItem = {
+  id: string;
+  categoryLabel: string;
+  deadlineLabel: string;
+  title: string;
+  location: string;
+  period: string;
+  mode: string;
+  roles: ProjectRole[];
 };
 
 export type ProjectRole = {
