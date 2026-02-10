@@ -91,26 +91,37 @@ const NotificationModal = ({
   if (anchorRef && position === null) return null;
 
   const useAnchor = anchorRef?.current && position !== null;
+  const modalHeight =
+    notifications.length === 0 ? 200 : notifications.length === 1 ? 220 : 260;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50">
       <div
         ref={modalRef}
-        className={`pointer-events-auto flex h-[240px] w-[340px] flex-col overflow-hidden rounded-3xl border border-[var(--ui-200)] bg-[var(--ui-bg)] shadow-xl backdrop-blur-sm ${
+        className={`pointer-events-auto flex w-[360px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.35)] ${
           !useAnchor ? 'absolute top-[7.6rem] right-[32rem] tablet:right-[18rem] max-[391px]:right-[5rem] max-[743px]:right-[10rem]' : ''
         } ${isClosing ? 'animate-modal-pop-out' : 'animate-modal-pop-in'}`}
         style={
           useAnchor
-            ? { position: 'fixed', top: position.top, right: position.right, width: 340, height: 240 }
-            : undefined
+            ? { position: 'fixed', top: position.top, right: position.right, width: 360, height: modalHeight }
+            : { height: modalHeight }
         }
       >
-        <div className="shrink-0 border-b border-[var(--ui-200)] px-4 py-3" />
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <div className="shrink-0 border-b border-[var(--ui-200)] bg-[var(--ui-50)]/50 px-4 py-3.5">
+          <h2 className="text-[15px] font-semibold text-[var(--ui-900)]">알림</h2>
+        </div>
+        <div
+          className={`flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3 ${notifications.length === 1 ? 'justify-center' : ''}`}
+        >
           {notifications.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-1 px-4 py-8">
-              <p className="text-[13px] text-[var(--ui-500)]">아직 새 알림이 없어요</p>
-              <p className="text-[11px] text-[var(--ui-400)]">새 소식이 오면 여기에 표시돼요</p>
+            <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 py-10">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--ui-100)] text-[var(--ui-400)]">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                </svg>
+              </div>
+              <p className="text-[14px] font-medium text-[var(--ui-600)]">아직 새 알림이 없어요</p>
+              <p className="text-[12px] text-[var(--ui-400)]">새 소식이 오면 여기에 표시돼요</p>
             </div>
           ) : (
             notifications.slice(0, 2).map((notification) => (
@@ -121,18 +132,18 @@ const NotificationModal = ({
                   if (!notification.isRead && onMarkAsRead) onMarkAsRead(notification.id);
                   handleClose();
                 }}
-                className={`group relative flex min-h-0 flex-1 flex-col gap-1 px-4 py-3.5 text-left transition-colors duration-150 ${
+                className={`group relative flex flex-col gap-1.5 rounded-xl px-3.5 py-3 text-left transition-colors duration-150 ${
                   !notification.isRead
                     ? 'bg-[var(--ui-50)] hover:bg-[var(--ui-100)]'
                     : 'hover:bg-[var(--ui-50)]'
                 }`}
               >
                 {!notification.isRead && (
-                  <span className="absolute left-2 top-4 h-1.5 w-1.5 shrink-0 rounded-full bg-[#4E49FF]" />
+                  <span className="absolute left-1 top-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#4E49FF]" />
                 )}
-                <div className="flex items-start justify-between gap-2 pl-1">
+                <div className="flex items-start justify-between gap-2 pl-0.5">
                   <h3
-                    className={`flex-1 truncate text-[14px] font-medium leading-tight ${
+                    className={`min-w-0 flex-1 truncate text-[14px] font-semibold leading-tight ${
                       !notification.isRead ? 'text-[var(--ui-900)]' : 'text-[var(--ui-600)]'
                     }`}
                   >
@@ -140,19 +151,28 @@ const NotificationModal = ({
                   </h3>
                   <span className="shrink-0 text-[11px] text-[var(--ui-400)]">{notification.timestamp}</span>
                 </div>
-                <p className="line-clamp-2 pl-1 text-[12px] leading-snug text-[var(--ui-600)]">
-                  {notification.description}
+                <p className="line-clamp-2 pl-0.5 text-[13px] leading-snug text-[var(--ui-600)]">
+                  {notification.description.includes('프로젝트에') ? (
+                    <>
+                      {notification.description.split('프로젝트에')[0]}
+                      프로젝트에
+                      <br />
+                      {notification.description.split('프로젝트에').slice(1).join('프로젝트에')}
+                    </>
+                  ) : (
+                    notification.description
+                  )}
                 </p>
               </button>
             ))
           )}
         </div>
         {onMarkAllAsRead && notifications.some((n) => !n.isRead) && (
-          <div className="shrink-0 border-t border-[var(--ui-200)] px-3 py-2.5">
+          <div className="shrink-0 border-t border-[var(--ui-200)] bg-[var(--ui-50)]/30 px-3 py-3">
             <button
               type="button"
               onClick={() => onMarkAllAsRead()}
-              className="w-full rounded-2xl py-2 text-[12px] font-medium text-[var(--ui-500)] transition-colors hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)]"
+              className="w-full rounded-xl py-2.5 text-[13px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#4E49FF]"
             >
               전체 읽음 처리
             </button>
