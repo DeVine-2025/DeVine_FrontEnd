@@ -8,7 +8,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { getGitRepos } from '@apis/github-repos';
 import { createReportSync, getReportDetail, getReportMain } from '@apis/reports';
 import { useMutation } from '@tanstack/react-query';
-import { useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import type { RootLayoutOutletContext } from '@layouts/root-layout';
 
 type GithubRepoSelectionSectionProps = {
@@ -40,6 +40,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
   const [detailReport, setDetailReport] = useState<ReportCardData | null>(null);
   const { getToken } = useAuth();
   const { setNavLocked } = useOutletContext<RootLayoutOutletContext>();
+  const navigate = useNavigate();
 
   const tips = [
     {
@@ -96,6 +97,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
     if (!selectedRepo) return;
     createReportMutation.mutate(selectedRepo);
   };
+
 
   const getReportCardData = (data: unknown, fallback?: RepoOption | null): ReportCardData => {
     const record = data && typeof data === 'object' ? (data as Record<string, unknown>) : null;
@@ -274,7 +276,16 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
                 );
               })}
               {!isLoading && repoOptions.length === 0 && !loadError && (
-                <span className="Caption1 text-[var(--ui-400)]">가져올 레포지토리가 없어요.</span>
+                <div className="flex flex-col items-start gap-3">
+                  <span className="Caption1 text-[var(--ui-400)]">가져올 레포지토리가 없어요.</span>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/')}
+                    className="Body1 h-[40px] rounded-lg bg-[var(--color-primary)] px-4 font-semibold text-white"
+                  >
+                    메인으로 가기
+                  </button>
+                </div>
               )}
             </div>
           </div>
