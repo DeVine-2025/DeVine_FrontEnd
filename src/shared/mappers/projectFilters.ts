@@ -4,8 +4,8 @@ export const PROJECT_TYPE_TO_FIELD: Record<string, ProjectField | undefined> = {
   웹: 'WEB',
   '모바일/앱': 'MOBILE',
   게임: 'GAME',
-  블록체인: undefined,
-  기타: undefined,
+  블록체인: 'BLOCKCHAIN',
+  기타: 'ETC',
 };
 
 export const DOMAIN_LABEL_TO_CATEGORY: Record<string, Category | undefined> = {
@@ -53,8 +53,8 @@ export const TECHSTACK_KEY_TO_NAME: Record<string, string | undefined> = {
 
 export const PERIOD_TO_DURATION: Record<string, DurationRange | undefined> = {
   '1개월 이하': 'UNDER_ONE',
-  '1~3개월': 'ONE_TO_THREE',
-  '3~6개월': 'THREE_TO_SIX',
+  '1-3개월': 'ONE_TO_THREE',
+  '3-6개월': 'THREE_TO_SIX',
   '6개월 이상': 'SIX_PLUS',
 };
 

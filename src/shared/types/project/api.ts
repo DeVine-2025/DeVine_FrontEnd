@@ -1,4 +1,13 @@
-export type ProjectField = 'WEB' | 'MOBILE' | 'AI' | 'GAME' | 'DATA' | 'BACKEND' | 'FRONTEND';
+export type ProjectField =
+  | 'WEB'
+  | 'MOBILE'
+  | 'AI'
+  | 'GAME'
+  | 'DATA'
+  | 'BACKEND'
+  | 'FRONTEND'
+  | 'BLOCKCHAIN'
+  | 'ETC';
 export type Category =
   | 'HEALTHCARE'
   | 'FINTECH'
