@@ -22,6 +22,11 @@ const ReportLoadingPage = () => {
 
       const token = await getToken();
 
+      if (!token) {
+        navigate(-1);
+        return;
+      }
+
       mutate(
         { gitRepoId, token },
         {

@@ -2,11 +2,12 @@ import { axiosInstance } from '@apis/instance';
 import {
   ReportCardResponse,
   ReportCardRequest,
+  ReportDetailRequest,
 } from '@apis/report/report';
 import { getReportMain, getReportDetail } from '@apis/reports';
 
 export const getReports = async (
-  params: ReportCardRequest
+  params?: ReportCardRequest
 ): Promise<ReportCardResponse> => {
   const { data } = await axiosInstance.get('/api/v1/reports/me', {
     params,
@@ -15,18 +16,18 @@ export const getReports = async (
 };
 
 export const reportQueries = {
-  report: (params: { type: 'MAIN' | 'DETAIL' } | undefined) => ({
+  report: (params?: ReportCardRequest) => ({
     queryKey: ['reports', params?.type],
     queryFn: () => getReports(params),
   }),
 
-  main: (params: { gitRepoId: number, token: string}) => ({
-   queryKey: ['gitRepoId/main', params?.gitRepoId],
-   queryFn: () =>  getReportMain(params)
+  main: ({ gitRepoId, token }: ReportDetailRequest) => ({
+   queryKey: ['gitRepoId/main', gitRepoId],
+   queryFn: () =>  getReportMain(gitRepoId, token)
   }),
 
-  detail: (params: { gitRepoId: number, token: string }) => ({
-    queryKey: ['gitRepoId/detail', params?.gitRepoId],
-    queryFn: () =>  getReportDetail(params)
+  detail: ({ gitRepoId, token }: ReportDetailRequest) => ({
+    queryKey: ['gitRepoId/detail', gitRepoId],
+    queryFn: () =>  getReportDetail(gitRepoId, token)
   })
 };

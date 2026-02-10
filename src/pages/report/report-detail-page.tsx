@@ -7,21 +7,29 @@ const ReportDetailPage = () => {
   const { reportId } = useParams();
   const [searchParams] = useSearchParams();
 
-  const type = searchParams.get('type'); // 'MAIN' or 'DETAIL'
+  const type = searchParams.get('type'); // 'MAIN' | 'DETAIL'
+  const gitRepoId = Number(reportId);
 
-  const reportIdNum = Number(reportId);
+  const { data } = useQuery({
+    queryKey: ['report-detail', gitRepoId, type],
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error('No token');
 
-  const { data } = useQuery(
-    type === 'MAIN'
-      ? reportQueries.main({
-        reportId: reportIdNum,
-        getToken,
-      })
-      : reportQueries.detail({
-        reportId: reportIdNum,
-        getToken,
-      })
-  );
+      if (type === 'MAIN') {
+        return reportQueries.main({
+          gitRepoId,
+          token,
+        }).queryFn();
+      }
+
+      return reportQueries.detail({
+        gitRepoId,
+        token,
+      }).queryFn();
+    },
+    enabled: !!gitRepoId && !!type,
+  });
 
   console.log(data);
 

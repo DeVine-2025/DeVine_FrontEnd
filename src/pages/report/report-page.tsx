@@ -44,7 +44,7 @@ const ReportPage = () => {
 
       {/* 하단 컨텐츠 영역 */}
       <div>
-        {reportData?.length > 0 ? (
+        {Array.isArray(reportData) && reportData.length > 0 ? (
           <div className="grid flex-1 items-center justify-start gap-[1.6rem] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <ReportCard type="create"  />
             {reportData?.map((report) => (
