@@ -20,4 +20,14 @@ export interface MyProfile {
   }[];
 }
 
+
+export interface GitRepo {
+  gitRepoId: number;
+  name: string;
+  gitUrl: string;
+  description: string;
+}
+
+
 export interface MyProfileResponse extends ApiResponse<MyProfile> {}
+export interface MyReposResponse extends ApiResponse<{ repos: GitRepo[] }> {}

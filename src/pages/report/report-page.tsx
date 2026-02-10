@@ -13,7 +13,7 @@ import TabMenu from '@components/report/TabMenu';
 const ReportPage = () => {
   const [activeTab, setActiveTab] = useState('전체');
   const { data, isLoading } = useQuery(reportQueries.report());
-  console.log(data);
+  const reportData = data?.result?.reports;
 
   // const navigate = useNavigate();
   const tabs = ['전체', '메인 리포트', '상세 리포트'];
@@ -34,9 +34,16 @@ const ReportPage = () => {
 
       {/* 하단 컨텐츠 영역 */}
       <div className="flex flex-1 items-center justify-center gap-[1.6rem]">
-        <Blank />
-         {/*<ReportCard type="create" />*/}
-         {/*<ReportCard type="main" />*/}
+        {reportData?.length > 0 ? (
+          <div>
+            <ReportCard type="create" />
+            <ReportCard type="main" />
+          </div>
+        ): (
+          <Blank />
+        )}
+
+
       </div>
     </div>
   );
