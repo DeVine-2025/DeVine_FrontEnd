@@ -14,7 +14,7 @@ export default function MainProjectCard(props: ProjectCardProps) {
         <article
           {...CardActionProps}
           className={cn(
-            'w-[280px] shrink-0 overflow-hidden rounded-3xl border-0 bg-[var(--ui-bg)] shadow-none outline-none ring-0',
+            'w-[230px] shrink-0 overflow-hidden rounded-3xl border-0 bg-[var(--ui-bg)] shadow-none outline-none ring-0',
             props.onClick && 'cursor-pointer',
             props.className,
           )}
@@ -29,7 +29,7 @@ export default function MainProjectCard(props: ProjectCardProps) {
             ) : (
               <div className="h-full w-full bg-[#F3F5FC]" />
             )}
-            <div className="absolute top-4 right-4 z-10">{Bookmark}</div>
+            {/*<div className="absolute top-4 right-4 z-10">{Bookmark}</div>*/}
           </div>
           <div className="flex flex-col gap-2 px-6 py-5">
             <div className="flex gap-2">{HeaderBadges}</div>
