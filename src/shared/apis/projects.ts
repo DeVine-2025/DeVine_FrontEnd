@@ -43,9 +43,18 @@ export async function getProjects(
   });
 
   const json = await res.json().catch(() => null);
-  console.log(json);
+  const projects = json?.result?.projects;
+  console.log(projects);
 
-  return json.result.projects;
+  if (!res.ok) {
+    throw new Error('프로젝트 목록을 불러오지 못했어요.');
+  }
+
+  if (!projects) {
+    return { content: [], totalPages: 0 };
+  }
+
+  return projects;
 }
 
 export type CreateProjectBody = {

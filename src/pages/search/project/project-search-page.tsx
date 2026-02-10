@@ -1,23 +1,65 @@
-import { createBookmark, deleteBookmark } from '@apis/bookmarks';
-import { getRecommendProjectsPreview, type RecommendProjectPreviewItem } from '@apis/mainrecommendproject';
+import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
+import {
+  getRecommendProjectsPreview,
+  type RecommendProjectPreviewItem,
+} from '@apis/mainrecommendproject';
+import { useAuth } from '@clerk/clerk-react';
+import ProjectListState from '@components/common/ListStateUI';
 import Pagination from '@components/common/Pagination';
-import ProjectFiltersBar from '@components/common/ProjectFilterBar';
+import ProjectFiltersBar, { type ProjectFilterKey } from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
-import { useAuth } from '@clerk/clerk-react';
 import { useProjectFilter } from '@hooks/useProjectFilters';
 import { useProjects } from '@hooks/useProjects';
 import { mapPositionsToRoles, mapProjectItemToCard, type ProjectCardModel } from '@mappers/project';
 import { buildParams } from '@mappers/projectFilters';
-import type { ProjectRole } from '@t/project/ui';
+import type { ProjectRole, RecommendPreviewItem } from '@t/project/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PROJECT_FILTERS, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
-import { getBookmarks } from '@apis/bookmarks';
+
+// 북마크 하이드레이션: 새로고침/재진입 시에도 북마크 상태 유지
+function useBookmarkHydration(getToken: () => Promise<string | null>, enabled: boolean) {
+  const [bookmarkOverrides, setBookmarkOverrides] = useState<
+    Record<number, { bookmarked: boolean; bookmarkId?: number }>
+  >({});
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    let cancelled = false;
+
+    (async () => {
+      const token = await getToken();
+      if (!token || cancelled) return;
+
+      try {
+        const bookmarks = await getBookmarks(token);
+        if (cancelled) return;
+
+        const next: Record<number, { bookmarked: boolean; bookmarkId?: number }> = {};
+        for (const b of bookmarks) {
+          if (b.targetType !== 'PROJECT') continue;
+          next[b.targetId] = { bookmarked: true, bookmarkId: b.bookmarkId };
+        }
+        setBookmarkOverrides(next);
+      } catch (e) {
+        console.error('[북마크] 목록 로드 실패', e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken, enabled]);
+
+  return { bookmarkOverrides, setBookmarkOverrides };
+}
 
 export default function ProjectSearchPage() {
   const { getToken } = useAuth();
   const navigate = useNavigate();
+
   const handleProjectClick = (
     projectId: number | string,
     payload?: {
@@ -59,20 +101,12 @@ export default function ProjectSearchPage() {
     applyFilters,
     resetFilter,
   } = useProjectFilter();
-  type RecommendPreviewItem = {
-    id: string;
-    categoryLabel: string;
-    deadlineLabel: string;
-    title: string;
-    location: string;
-    period: string;
-    mode: string;
-    roles: ProjectRole[];
-    bookmarked?: boolean;
-    bookmarkId?: number;
-  };
 
-  const [recommendedPreview, setRecommendedPreview] = useState<RecommendPreviewItem[]>(
+  // 북마크
+  const { bookmarkOverrides, setBookmarkOverrides } = useBookmarkHydration(getToken, true);
+
+  // 추천 프리뷰
+  const [recommendedPreview, setRecommendedPreview] = useState<RecommendPreviewItem[]>(() =>
     RECOMMENDED_PROJECTS.map((project) => ({
       id: project.id,
       categoryLabel: project.categoryLabel,
@@ -82,61 +116,29 @@ export default function ProjectSearchPage() {
       period: project.period,
       mode: project.mode,
       roles: [...PROJECT_ROLES],
-      bookmarked: false,
-      bookmarkId: undefined,
     })),
   );
 
   const size = 10;
-  const params = useMemo(() => buildParams({ ...applied, page, size }), [applied, page]); // console.log('params', params);
+  const params = useMemo(() => buildParams({ ...applied, page, size }), [applied, page]);
 
-  const { data, isLoading, isError, error } = useProjects(params);
-  const [bookmarkOverrides, setBookmarkOverrides] = useState<
-    Record<number, { bookmarked: boolean; bookmarkId?: number }>
-  >({});
-  const [projects, setProjects] = useState<ProjectCardModel[]>([]);
+  const { data, isLoading, isError } = useProjects(params);
   const totalPages = data?.totalPages ?? 0;
 
-  // console.log('project', projects);
-  useEffect(() => {
+  const projects = useMemo<ProjectCardModel[]>(() => {
     const mapped = data?.content?.map(mapProjectItemToCard) ?? [];
-    setProjects(
-      mapped.map((p: ProjectCardModel) => {
-        const o = bookmarkOverrides[p.id];
-        return o ? { ...p, ...o } : p;
-      }),
-    );
+    return mapped.map((p: ProjectCardModel) => {
+      const o = bookmarkOverrides[p.id];
+      return o ? { ...p, ...o } : p;
+    });
   }, [data, bookmarkOverrides]);
 
-  // 새로고침 시에도 북마크 상태가 유지되도록: 최초 로드에 내 북마크 목록을 하이드레이션
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      const token = await getToken();
-      if (!token || cancelled) return;
-      try {
-        const bookmarks = await getBookmarks(token);
-        if (cancelled) return;
-        const next: Record<number, { bookmarked: boolean; bookmarkId?: number }> = {};
-        for (const b of bookmarks) {
-          if (b.targetType !== 'PROJECT') continue;
-          next[b.targetId] = { bookmarked: true, bookmarkId: b.bookmarkId };
-        }
-        setBookmarkOverrides(next);
-      } catch (e) {
-        console.error('[북마크] 목록 로드 실패', e);
-      }
-    };
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [getToken]);
-
+  // 북마크 토글
   const handleBookmarkChange = useCallback(
     async (projectId: number, next: boolean, currentBookmarkId?: number) => {
       const token = await getToken();
       if (!token) return;
+
       try {
         if (next) {
           const { bookmarkId } = await createBookmark(
@@ -147,14 +149,6 @@ export default function ProjectSearchPage() {
             ...prev,
             [projectId]: { bookmarked: true, bookmarkId },
           }));
-          setProjects((prev) =>
-            prev.map((p) => (p.id === projectId ? { ...p, bookmarked: true, bookmarkId } : p)),
-          );
-          setRecommendedPreview((prev) =>
-            prev.map((p) =>
-              p.id === String(projectId) ? { ...p, bookmarked: true, bookmarkId } : p,
-            ),
-          );
         } else {
           if (currentBookmarkId == null) return;
           await deleteBookmark(currentBookmarkId, token);
@@ -162,27 +156,16 @@ export default function ProjectSearchPage() {
             ...prev,
             [projectId]: { bookmarked: false, bookmarkId: undefined },
           }));
-          setProjects((prev) =>
-            prev.map((p) =>
-              p.id === projectId ? { ...p, bookmarked: false, bookmarkId: undefined } : p,
-            ),
-          );
-          setRecommendedPreview((prev) =>
-            prev.map((p) =>
-              p.id === String(projectId)
-                ? { ...p, bookmarked: false, bookmarkId: undefined }
-                : p,
-            ),
-          );
         }
       } catch (e) {
         console.error('[북마크]', e);
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
-    [getToken],
+    [getToken, setBookmarkOverrides],
   );
 
+  // 추천 프리뷰 fetch
   useEffect(() => {
     let isActive = true;
 
@@ -190,9 +173,11 @@ export default function ProjectSearchPage() {
       try {
         const token = await getToken();
         if (!token || !isActive) return;
+
         const result = await getRecommendProjectsPreview(4, token);
         if (!isActive) return;
-        const mapped = result.map((item: RecommendProjectPreviewItem) => ({
+
+        const mapped: RecommendPreviewItem[] = result.map((item: RecommendProjectPreviewItem) => ({
           id: String(item.projectId),
           categoryLabel: item.projectFieldName,
           deadlineLabel: item.categoryName,
@@ -201,9 +186,8 @@ export default function ProjectSearchPage() {
           period: `${item.durationMonths}개월`,
           mode: item.modeName,
           roles: mapPositionsToRoles(item.positions as never),
-          bookmarked: false,
-          bookmarkId: undefined,
         }));
+
         setRecommendedPreview(mapped);
       } catch {
         if (isActive) {
@@ -217,8 +201,6 @@ export default function ProjectSearchPage() {
               period: project.period,
               mode: project.mode,
               roles: [...PROJECT_ROLES],
-              bookmarked: false,
-              bookmarkId: undefined,
             })),
           );
         }
@@ -230,6 +212,17 @@ export default function ProjectSearchPage() {
       isActive = false;
     };
   }, [getToken]);
+
+  const ALL_FILTER_KEYS = [
+    '프로젝트 유형',
+    '도메인',
+    '예상 기간',
+    '포지션 / 기술스택',
+  ] as const satisfies readonly ProjectFilterKey[];
+
+  const handleRetry = () => {
+    ALL_FILTER_KEYS.forEach(resetFilter);
+  };
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
@@ -250,27 +243,24 @@ export default function ProjectSearchPage() {
       </header>
 
       <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
-        {recommendedPreview.map((p) => (
-          <ProjectSm
-            key={p.id}
-            categoryLabel={p.categoryLabel}
-            deadlineLabel={p.deadlineLabel}
-            title={p.title}
-            location={p.location}
-            period={p.period}
-            mode={p.mode}
-            roles={p.roles}
-            bookmarked={bookmarkOverrides[Number(p.id)]?.bookmarked ?? (p.bookmarked ?? false)}
-            onBookmarkChange={(next) =>
-              handleBookmarkChange(
-                Number(p.id),
-                next,
-                bookmarkOverrides[Number(p.id)]?.bookmarkId ?? p.bookmarkId,
-              )
-            }
-            onClick={() => handleProjectClick(p.id)}
-          />
-        ))}
+        {recommendedPreview.map((p) => {
+          const ov = bookmarkOverrides[Number(p.id)];
+          return (
+            <ProjectSm
+              key={p.id}
+              categoryLabel={p.categoryLabel}
+              deadlineLabel={p.deadlineLabel}
+              title={p.title}
+              location={p.location}
+              period={p.period}
+              mode={p.mode}
+              roles={p.roles}
+              bookmarked={ov?.bookmarked ?? false}
+              onBookmarkChange={(next) => handleBookmarkChange(Number(p.id), next, ov?.bookmarkId)}
+              onClick={() => handleProjectClick(p.id)}
+            />
+          );
+        })}
       </div>
 
       <div className="h-px w-full bg-card-border" />
@@ -294,14 +284,23 @@ export default function ProjectSearchPage() {
 
       {/* 프로젝트 리스트 */}
       <div className="flex flex-col gap-6">
-        {projects.map((p) => (
-          <ProjectLg
-            key={p.id}
-            {...p}
-            onClick={() => handleProjectClick(p.id)}
-            onBookmarkChange={(next) => handleBookmarkChange(p.id, next, p.bookmarkId)}
-          />
-        ))}
+        {isLoading && <ProjectListState type="loading" />}
+
+        {!isLoading && isError && <ProjectListState type="error" onRetry={handleRetry} />}
+
+        {!isLoading && !isError && projects.length === 0 && <ProjectListState type="empty" />}
+
+        {!isLoading &&
+          !isError &&
+          projects.length > 0 &&
+          projects.map((p) => (
+            <ProjectLg
+              key={p.id}
+              {...p}
+              onClick={() => handleProjectClick(p.id)}
+              onBookmarkChange={(next) => handleBookmarkChange(p.id, next, p.bookmarkId)}
+            />
+          ))}
       </div>
 
       <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
