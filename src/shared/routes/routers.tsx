@@ -24,6 +24,7 @@ import {
   RecommendDeveloperPage,
   RecommendPage,
   RecommendProjectPage,
+  ReportDetailPage,
   ReportResultPage,
   ReportLoadingPage,
   ReportCreatePage,
@@ -87,6 +88,7 @@ export const router = createBrowserRouter([
               { path: 'create', element: <ReportCreatePage /> },
               { path: 'loading', element: <ReportLoadingPage /> },
               { path: 'result', element: <ReportResultPage /> },
+              { path: 'detail/:reportId', element: <ReportDetailPage /> },
             ],
           },
 

@@ -3,6 +3,7 @@ import {
   ReportCardResponse,
   ReportCardRequest,
 } from '@apis/report/report';
+import { getReportMain, getReportDetail } from '@apis/reports';
 
 export const getReports = async (
   params: ReportCardRequest
@@ -18,4 +19,14 @@ export const reportQueries = {
     queryKey: ['reports', params?.type],
     queryFn: () => getReports(params),
   }),
+
+  main: (params: { gitRepoId: number, token: string}) => ({
+   queryKey: ['gitRepoId/main', params?.gitRepoId],
+   queryFn: () =>  getReportMain(params)
+  }),
+
+  detail: (params: { gitRepoId: number, token: string }) => ({
+    queryKey: ['gitRepoId/detail', params?.gitRepoId],
+    queryFn: () =>  getReportDetail(params)
+  })
 };

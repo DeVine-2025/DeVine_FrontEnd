@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-
 import {useQuery} from '@tanstack/react-query';
+
 import {reportQueries} from '@apis/report/report-queries';
+import { ReportCardRequest } from '@apis/report/report';
 
 import ReportCard from '@components/report/ReportCard';
 import Blank from '@components/report/Blank';
 import TabMenu from '@components/report/TabMenu';
-import { ReportCardRequest } from '@apis/report/report';
+
 
 const TAB_TYPE_MAP: Record<string, ReportCardRequest['type'] | undefined> = {
   전체: undefined,
@@ -46,9 +46,11 @@ const ReportPage = () => {
       <div>
         {reportData?.length > 0 ? (
           <div className="grid flex-1 items-center justify-start gap-[1.6rem] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <ReportCard type="create" />
+            <ReportCard type="create"  />
             {reportData?.map((report) => (
               <ReportCard
+                key={report.reportId}
+                reportId={report.reportId}
                 type="main"
                 label={report.reportType}
                 title={report.repoName}
