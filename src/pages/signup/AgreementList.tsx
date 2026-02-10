@@ -1,12 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import Lottie from 'lottie-react';
 import confettiAnimation from './Confetti.json';
 import LogoDark from '@assets/icons/logo-dark.svg?react';
 import LogoLight from '@assets/icons/logo-light.svg?react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useThemeStore } from '@store/theme';
 import BasicProfileSection from './BasicProfileSection';
 import AdditionalProfileSection from './AdditionalProfileSection';
@@ -14,6 +13,7 @@ import GithubRepoSelectionSection from './GithubRepoSelectionSection';
 import ProfilePage from '@pages/login/profile-page';
 import TermsDetailScreen from '@pages/signup/TermsDetailScreen';
 import { TERMS_CONTENT, TERMS_IDS } from './terms-content';
+import type { RootLayoutOutletContext } from '@layouts/root-layout';
 
 type BasicProfileData = {
   nickname: string;
@@ -34,8 +34,10 @@ type AgreementListProps = {
 
 const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps) => {
   const { theme } = useThemeStore();
-  const { signOut } = useAuth();
   const navigate = useNavigate();
+  const { openOnboardingModal } = useOutletContext<RootLayoutOutletContext>();
+  const onboardingConfirmedRef = useRef(false);
+  const logoSubmitHandlerRef = useRef<null | (() => void)>(null);
   const [serviceAgreed, setServiceAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const [activeTermsKey, setActiveTermsKey] = useState<keyof typeof TERMS_CONTENT | null>(null);
@@ -70,6 +72,16 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
     setStep('basicProfile');
   };
 
+  const confirmOnboardingOnce = async () => {
+    if (onboardingConfirmedRef.current) return;
+    onboardingConfirmedRef.current = true;
+    await onConfirm();
+  };
+
+  const setAdditionalLogoHandler = useCallback((handler: (() => void) | null) => {
+    logoSubmitHandlerRef.current = handler;
+  }, []);
+
   const backgroundStyle =
     theme === 'dark'
       ? {
@@ -91,11 +103,15 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           <button
             type="button"
             onClick={() => {
-              sessionStorage.setItem('show_onboarding_modal', 'true');
-              localStorage.removeItem('userRole');
-              sessionStorage.removeItem('login_provider');
-              sessionStorage.removeItem('allow_main_once');
-              void signOut().finally(() => navigate('/'));
+              if (step === 'additionalProfile' && logoSubmitHandlerRef.current) {
+                logoSubmitHandlerRef.current();
+                return;
+              }
+              if (step === 'signupComplete' || step === 'githubRepos') {
+                void confirmOnboardingOnce().then(() => navigate('/'));
+                return;
+              }
+              openOnboardingModal();
             }}
             className="flex items-center gap-[0.4rem] cursor-pointer"
             aria-label="메인으로 이동"
@@ -119,6 +135,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
               setStep('profilePage');
             }}
             onBack={() => setStep('agreements')}
+            initialData={basicProfile}
           />
         </div>
       ) : step === 'profilePage' ? (
@@ -158,8 +175,8 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
             </button>
             <button
               type="button"
-              onClick={() => {
-                onConfirm();
+              onClick={async () => {
+                await confirmOnboardingOnce();
                 navigate('/');
               }}
               className="text-[15px] font-medium text-[var(--ui-400)]"
@@ -171,9 +188,9 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
       ) : step === 'githubRepos' ? (
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
           <GithubRepoSelectionSection
-            onBack={() => setStep('additionalProfile')}
-            onNext={() => {
-              onConfirm();
+            onBack={() => setStep('signupComplete')}
+            onNext={async () => {
+              await confirmOnboardingOnce();
               navigate('/');
             }}
           />
@@ -182,6 +199,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
           <AdditionalProfileSection
             onBack={() => setStep('profilePage')}
+            setLogoSubmitHandler={setAdditionalLogoHandler}
             signupData={{
               agreements: [
                 { termsId: TERMS_IDS.service, agreed: serviceAgreed },
@@ -192,12 +210,12 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
               mainType: profileInfo.mainType,
               categoryIds: profileInfo.categoryIds,
             }}
+            onComplete={loginProvider === 'github' ? undefined : confirmOnboardingOnce}
             onNext={() => {
               if (loginProvider === 'github') {
                 setStep('signupComplete');
               } else {
-                onConfirm();
-                navigate('/');
+                void confirmOnboardingOnce().then(() => navigate('/'));
               }
             }}
           />
