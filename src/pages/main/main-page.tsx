@@ -140,22 +140,35 @@ const MainPage = () => {
       if (!Number.isFinite(targetId) || targetId <= 0) return;
       const token = await requireToken();
       if (!token) return;
+      const prevId = projectBookmarkMap[targetId];
+      if (next) {
+        setProjectBookmarkMap((prev) => ({ ...prev, [targetId]: -1 }));
+      } else {
+        if (prevId == null || prevId <= 0) return;
+        setProjectBookmarkMap((prev) => {
+          const n = { ...prev };
+          delete n[targetId];
+          return n;
+        });
+      }
       try {
         if (next) {
           const { bookmarkId } = await createBookmark({ targetType: 'PROJECT', targetId }, token);
           setProjectBookmarkMap((prev) => ({ ...prev, [targetId]: bookmarkId }));
         } else {
-          const bookmarkId = projectBookmarkMap[targetId];
-          if (bookmarkId == null) return;
-          await deleteBookmark(bookmarkId, token);
+          await deleteBookmark(prevId, token);
+        }
+      } catch (e) {
+        console.error('[북마크]', e);
+        if (next) {
           setProjectBookmarkMap((prev) => {
             const n = { ...prev };
             delete n[targetId];
             return n;
           });
+        } else {
+          setProjectBookmarkMap((prev) => ({ ...prev, [targetId]: prevId }));
         }
-      } catch (e) {
-        console.error('[북마크]', e);
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
@@ -170,22 +183,35 @@ const MainPage = () => {
       }
       const token = await requireToken();
       if (!token) return;
+      const prevId = developerBookmarkMap[memberId];
+      if (next) {
+        setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: -1 }));
+      } else {
+        if (prevId == null || prevId <= 0) return;
+        setDeveloperBookmarkMap((prev) => {
+          const n = { ...prev };
+          delete n[memberId];
+          return n;
+        });
+      }
       try {
         if (next) {
           const { bookmarkId } = await createBookmark({ targetType: 'DEVELOPER', targetId: memberId }, token);
           setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: bookmarkId }));
         } else {
-          const bookmarkId = developerBookmarkMap[memberId];
-          if (bookmarkId == null) return;
-          await deleteBookmark(bookmarkId, token);
+          await deleteBookmark(prevId, token);
+        }
+      } catch (e) {
+        console.error('[북마크]', e);
+        if (next) {
           setDeveloperBookmarkMap((prev) => {
             const n = { ...prev };
             delete n[memberId];
             return n;
           });
+        } else {
+          setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: prevId }));
         }
-      } catch (e) {
-        console.error('[북마크]', e);
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },

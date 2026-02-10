@@ -52,8 +52,10 @@ const RecommendDeveloperPage = () => {
   const [bookmarkMap, setBookmarkMap] = useState<Record<number, number>>({});
   const bookmarkMapRef = useRef(bookmarkMap);
   bookmarkMapRef.current = bookmarkMap;
+  const listRef = useRef<RecommendDeveloperListItem[]>([]);
+  listRef.current = list;
 
-  // 새로고침 시에도 북마크가 칠해져 보이도록: 내 북마크 목록 로드
+  // 북마크 목록 로드 후 list에 한 번만 병합
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -67,7 +69,17 @@ const RecommendDeveloperPage = () => {
           if (b.targetType !== 'DEVELOPER') continue;
           next[b.targetId] = b.bookmarkId;
         }
+        bookmarkMapRef.current = next;
         setBookmarkMap(next);
+        setList((prev) =>
+          prev.map((d) => {
+            const memberId = d.memberId;
+            if (memberId == null) return d;
+            const hit = next[memberId];
+            if (hit === undefined || hit === null) return d;
+            return { ...d, bookmarked: true, bookmarkId: hit > 0 ? hit : undefined };
+          }),
+        );
       } catch (e) {
         console.error('[북마크] 목록 로드 실패', e);
       }
@@ -175,7 +187,8 @@ const RecommendDeveloperPage = () => {
             const memberId = d.memberId;
             if (memberId == null) return d;
             const hit = map[memberId];
-            return hit ? { ...d, bookmarked: true, bookmarkId: hit } : d;
+            if (hit === undefined || hit === null) return d;
+            return { ...d, bookmarked: true, bookmarkId: hit > 0 ? hit : undefined };
           }),
         );
         setTotalPages(result.totalPages);
@@ -195,18 +208,6 @@ const RecommendDeveloperPage = () => {
   useEffect(() => {
     fetchList(page);
   }, [fetchList, page]);
-
-  // 북마크 목록이 늦게 로드된 경우에도 현재 리스트에 반영
-  useEffect(() => {
-    setList((prev) =>
-      prev.map((d) => {
-        const memberId = d.memberId;
-        if (memberId == null) return d;
-        const hit = bookmarkMap[memberId];
-        return hit ? { ...d, bookmarked: true, bookmarkId: hit } : d;
-      }),
-    );
-  }, [bookmarkMap]);
 
   const handleApply = useCallback(
     (key: DeveloperFilterKey) => {
@@ -228,9 +229,9 @@ const RecommendDeveloperPage = () => {
       }
       const prevBookmarkId = bookmarkMapRef.current[memberId];
 
-      // 낙관적 UI: 먼저 UI 반영
+      // 낙관적 UI: 먼저 UI 반영 (placeholder -1 사용, 0은 effect에서 falsy로 롤백되므로)
       if (next) {
-        setBookmarkMap((prev) => ({ ...prev, [memberId]: 0 }));
+        setBookmarkMap((prev) => ({ ...prev, [memberId]: -1 }));
         setList((prev) =>
           prev.map((d) =>
             d.id === dev.id ? { ...d, bookmarked: true, bookmarkId: undefined } : d,
@@ -292,6 +293,15 @@ const RecommendDeveloperPage = () => {
       }
     },
     [getToken],
+  );
+
+  const handleBookmarkChangeById = useCallback(
+    (memberId: number, listItemId: string, next: boolean, _bookmarkId?: number) => {
+      const dev = listRef.current.find((d) => d.id === listItemId);
+      if (!dev) return;
+      void handleBookmarkChange(dev, next);
+    },
+    [handleBookmarkChange],
   );
 
   return (
@@ -361,8 +371,11 @@ const RecommendDeveloperPage = () => {
                   domains={dev.domains}
                   techStack={dev.techStack}
                   bookmarked={dev.bookmarked ?? false}
-                  onBookmarkChange={(next) => handleBookmarkChange(dev, next)}
-                  onClick={() => console.log('click developer', dev.id)}
+                memberId={dev.memberId ?? undefined}
+                bookmarkId={dev.bookmarkId}
+                listItemId={dev.id}
+                onBookmarkChangeById={handleBookmarkChangeById}
+                onClick={() => console.log('click developer', dev.id)}
                 />
               ))
             )}

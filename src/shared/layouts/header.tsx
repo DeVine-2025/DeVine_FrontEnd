@@ -113,30 +113,37 @@ const Header = () => {
       if (!token) return;
       const id = Number(notificationId);
       if (Number.isNaN(id)) return;
-      console.log('[알림] 읽음 처리 요청', notificationId);
+      const wasRead = notifications.find((n) => n.id === notificationId)?.isRead ?? false;
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n)),
+      );
+      setUnreadCount((c) => Math.max(0, c - 1));
       markNotificationAsRead(id, token)
-        .then(() => {
+        .then(() => console.log('[알림] 읽음 처리 성공', notificationId))
+        .catch((e) => {
+          console.warn('[알림] 읽음 처리 실패', notificationId, e);
           setNotifications((prev) =>
-            prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n)),
+            prev.map((n) => (n.id === notificationId ? { ...n, isRead: wasRead } : n)),
           );
-          setUnreadCount((c) => Math.max(0, c - 1));
-          console.log('[알림] 읽음 처리 성공', notificationId);
-        })
-        .catch((e) => console.warn('[알림] 읽음 처리 실패', notificationId, e));
+          setUnreadCount((c) => (wasRead ? c : c + 1));
+        });
     });
   };
 
   const handleMarkAllAsRead = () => {
     getToken().then((token) => {
       if (!token) return;
-      console.log('[알림] 전체 읽음 처리 요청');
+      const prevNotifications = notifications;
+      const prevUnreadCount = unreadCount;
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
       markAllNotificationsAsRead(token)
-        .then((result) => {
-          setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-          setUnreadCount(0);
-          console.log('[알림] 전체 읽음 처리 성공', result?.markedCount ?? '');
-        })
-        .catch((e) => console.warn('[알림] 전체 읽음 처리 실패', e));
+        .then((result) => console.log('[알림] 전체 읽음 처리 성공', result?.markedCount ?? ''))
+        .catch((e) => {
+          console.warn('[알림] 전체 읽음 처리 실패', e);
+          setNotifications(prevNotifications);
+          setUnreadCount(prevUnreadCount);
+        });
     });
   };
 
@@ -200,21 +207,9 @@ const Header = () => {
             <SignedIn>
               <Link
                 to="/project/create"
-                className="Caption1 group hover:-translate-y-[1px] relative h-[3.2rem] flex-row-center overflow-hidden whitespace-nowrap rounded-[8px] bg-[#4E49FF] px-[1.0rem] py-[0.6rem] font-semibold text-white transition-transform duration-200 ease-out hover:shadow-[0px_10px_24px_rgba(78,73,255,0.25)] active:translate-y-0 active:shadow-none"
+                className="Caption1 relative h-[3.2rem] flex-row-center whitespace-nowrap rounded-[8px] bg-[#4E49FF] px-[1.0rem] py-[0.6rem] font-semibold text-white transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:scale-[0.98] active:translate-y-[1px]"
               >
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                  style={{
-                    background:
-                      'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0) 90%)',
-                  }}
-                />
-                <span
-                  aria-hidden
-                  className="-left-[40%] -skew-x-12 pointer-events-none absolute top-0 h-full w-[40%] bg-white/20 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:translate-x-[380%] group-hover:opacity-100"
-                />
-                <span className="relative z-10">프로젝트 등록하기</span>
+                프로젝트 등록하기
               </Link>
             </SignedIn>
             {/* 다크모드 토글 */}

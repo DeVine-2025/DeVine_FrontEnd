@@ -114,7 +114,7 @@ const RecommendProjectPage = () => {
   const bookmarkMapRef = useRef(bookmarkMap);
   bookmarkMapRef.current = bookmarkMap;
 
-  // 새로고침 시에도 북마크가 칠해져 보이도록: 내 북마크 목록을 먼저 로드
+  // 북마크 목록 로드 후 list에 한 번만 병합
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -128,7 +128,15 @@ const RecommendProjectPage = () => {
           if (b.targetType !== 'PROJECT') continue;
           next[b.targetId] = b.bookmarkId;
         }
+        bookmarkMapRef.current = next;
         setBookmarkMap(next);
+        setList((prev) =>
+          prev.map((p) => {
+            const hit = next[Number(p.id)];
+            if (hit === undefined || hit === null) return p;
+            return { ...p, bookmarked: true, bookmarkId: hit > 0 ? hit : undefined };
+          }),
+        );
       } catch (e) {
         console.error('[북마크] 목록 로드 실패', e);
       }
@@ -167,7 +175,8 @@ const RecommendProjectPage = () => {
         setList(
           result.list.map((p) => {
             const hit = map[Number(p.id)];
-            return hit ? { ...p, bookmarked: true, bookmarkId: hit } : p;
+            if (hit === undefined || hit === null) return p;
+            return { ...p, bookmarked: true, bookmarkId: hit > 0 ? hit : undefined };
           }),
         );
         setTotalPages(result.totalPages);
@@ -186,16 +195,6 @@ const RecommendProjectPage = () => {
     fetchList(page);
   }, [fetchList, page]);
 
-  // 북마크 목록이 늦게 로드된 경우에도 현재 리스트에 반영
-  useEffect(() => {
-    setList((prev) =>
-      prev.map((p) => {
-        const hit = bookmarkMap[Number(p.id)];
-        return hit ? { ...p, bookmarked: true, bookmarkId: hit } : p;
-      }),
-    );
-  }, [bookmarkMap]);
-
   const handleProjectClick = (project: ProjectListItem) => {
     navigate(`/project/${project.id}`);
   };
@@ -207,11 +206,11 @@ const RecommendProjectPage = () => {
       const targetId = Number(projectId);
       if (Number.isNaN(targetId)) return;
 
-      // 낙관적 UI: 먼저 UI 반영
+      // 낙관적 UI: 먼저 UI 반영 (placeholder -1 사용, 0은 effect에서 falsy로 롤백되므로)
       const prevMap = bookmarkMapRef.current;
       const prevBookmarkId = prevMap[targetId];
       if (next) {
-        setBookmarkMap((prev) => ({ ...prev, [targetId]: 0 }));
+        setBookmarkMap((prev) => ({ ...prev, [targetId]: -1 }));
         setList((prev) =>
           prev.map((p) =>
             p.id === projectId ? { ...p, bookmarked: true, bookmarkId: undefined } : p,
@@ -337,7 +336,9 @@ const RecommendProjectPage = () => {
                 domainSuitability={p.domainSuitability}
                 growthPotential={p.growthPotential}
                 overallScore={p.overallScore}
-                onBookmarkChange={(next) => handleBookmarkChange(p.id, next, p.bookmarkId)}
+                projectId={p.id}
+                bookmarkId={p.bookmarkId}
+                onBookmarkChangeById={handleBookmarkChange}
                 onClick={() => handleProjectClick(p)}
               />
             ))

@@ -1027,23 +1027,9 @@ const ProjectCreatePage = () => {
                       type="button"
                       disabled={submitLoading}
                       onClick={handleSubmit}
-                      className="Body1 group hover:-translate-y-[1px] relative h-[52px] w-[292px] overflow-hidden rounded-[12px] bg-[#4E49FF] font-medium text-white transition-transform duration-200 ease-out hover:shadow-[0px_10px_24px_rgba(78,73,255,0.25)] active:translate-y-0 active:shadow-none disabled:pointer-events-none disabled:opacity-60"
+                      className="Body1 h-[52px] w-[292px] rounded-[12px] bg-[#4E49FF] font-medium text-white transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
                     >
-                      <span
-                        aria-hidden
-                        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                        style={{
-                          background:
-                            'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0) 90%)',
-                        }}
-                      />
-                      <span
-                        aria-hidden
-                        className="-left-[40%] -skew-x-12 pointer-events-none absolute top-0 h-full w-[40%] bg-white/20 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:translate-x-[380%] group-hover:opacity-100"
-                      />
-                      <span className="relative z-10">
-                        {submitLoading ? '등록 중...' : '등록하기'}
-                      </span>
+                      {submitLoading ? '등록 중...' : '등록하기'}
                     </button>
                   </div>
                 </div>

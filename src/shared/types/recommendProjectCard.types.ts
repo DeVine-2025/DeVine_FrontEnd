@@ -34,6 +34,10 @@ export type RecommendProjectCardCoreProps = {
 
   bookmarked?: boolean;
   onBookmarkChange?: (next: boolean) => void;
+  /** 메모/안정 콜백용 */
+  projectId?: string;
+  bookmarkId?: number;
+  onBookmarkChangeById?: (projectId: string, next: boolean, bookmarkId?: number) => void;
 
   className?: string;
   onClick?: () => void;

@@ -15,6 +15,7 @@ import {
 } from 'src/mocks/project.mock';
 import { badgeToneToClass, type BadgeTone } from 'src/shared/types/badgeTone';
 import BookmarkButton from '@components/common/BookmarkButton';
+import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 
 type ProjectDetailInfo = {
   id: string;
@@ -193,33 +194,46 @@ const ProjectDetailPage = () => {
       if (!token) return;
       const targetId = Number(projectId);
       if (Number.isNaN(targetId)) return;
+      const prevBookmarked = bookmarkState.bookmarked;
+      const prevBookmarkId = bookmarkState.bookmarkId;
+      userDidChangeBookmarkRef.current = true;
+      if (next) {
+        setBookmarkState({ bookmarked: true, bookmarkId: undefined });
+        setApiProject((prev) =>
+          prev ? { ...prev, bookmarked: true, bookmarkId: undefined } : null,
+        );
+      } else {
+        if (prevBookmarkId == null) return;
+        setBookmarkState({ bookmarked: false, bookmarkId: undefined });
+        setApiProject((prev) =>
+          prev ? { ...prev, bookmarked: false, bookmarkId: undefined } : null,
+        );
+      }
       try {
         if (next) {
           const { bookmarkId } = await createBookmark(
             { targetType: 'PROJECT', targetId },
             token,
           );
-          userDidChangeBookmarkRef.current = true;
           setBookmarkState({ bookmarked: true, bookmarkId });
           setApiProject((prev) =>
             prev ? { ...prev, bookmarked: true, bookmarkId } : null,
           );
         } else {
-          const id = bookmarkState.bookmarkId;
-          if (id == null) return;
-          await deleteBookmark(id, token);
-          userDidChangeBookmarkRef.current = true;
-          setBookmarkState({ bookmarked: false, bookmarkId: undefined });
-          setApiProject((prev) =>
-            prev ? { ...prev, bookmarked: false, bookmarkId: undefined } : null,
-          );
+          await deleteBookmark(prevBookmarkId, token);
         }
       } catch (e) {
         console.error('[북마크]', e);
+        setBookmarkState({ bookmarked: prevBookmarked, bookmarkId: prevBookmarkId });
+        setApiProject((prev) =>
+          prev
+            ? { ...prev, bookmarked: prevBookmarked, bookmarkId: prevBookmarkId }
+            : null,
+        );
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
-    [projectId, bookmarkState.bookmarkId, getToken],
+    [projectId, bookmarkState.bookmarked, bookmarkState.bookmarkId, getToken],
   );
 
   useEffect(() => {
@@ -371,11 +385,11 @@ const ProjectDetailPage = () => {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-card-bg text-[var(--ui-700)] hover:opacity-80"
+          className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-card-bg text-[var(--ui-700)] hover:opacity-80"
           aria-label="뒤로가기"
         >
           <svg
-            className="h-8 w-8"
+            className="h-12 w-12"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -392,33 +406,31 @@ const ProjectDetailPage = () => {
       <section className="flex flex-col gap-8 rounded-3xl bg-card-bg p-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
           <div className="flex min-w-0 flex-col gap-6">
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                  {Array.from({ length: 3 }).map((_, index) => {
-                    const imageUrl = project.imageUrls?.[index];
-                    return (
-                      <button
-                        type="button"
-                        key={`project-image-${index}`}
-                        onClick={() => imageUrl && setImageLightboxIndex(index)}
-                        className="group relative aspect-[4/3] w-full min-h-[140px] max-h-[220px] overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-card-section-bg text-left shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--ui-400)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] disabled:cursor-default hover:border-[var(--ui-300)] hover:shadow-lg"
-                        disabled={!imageUrl}
-                      >
-                        {imageUrl ? (
-                          <img
-                            src={imageUrl}
-                            alt={`${project.title} 이미지 ${index + 1}`}
-                            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <span className="flex h-full w-full items-center justify-center text-[var(--ui-400)] text-sm">
-                            사진 없음
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-              </div>
+              {(project.imageUrls?.length ?? 0) > 0 ? (
+                <div
+                  className={`grid grid-cols-1 gap-4 ${project.imageUrls!.length >= 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}
+                >
+                  {project.imageUrls!.map((imageUrl, index) => (
+                    <button
+                      type="button"
+                      key={`project-image-${index}`}
+                      onClick={() => setImageLightboxIndex(index)}
+                      className="group relative aspect-[4/3] w-full min-h-[140px] max-h-[220px] overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-card-section-bg text-left shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--ui-400)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] hover:border-[var(--ui-300)] hover:shadow-lg"
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={project.imageUrls!.length === 1 ? `${project.title} 대표 이미지` : `${project.title} 이미지 ${index + 1}`}
+                        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex aspect-[4/3] min-h-[140px] max-h-[220px] w-full items-center justify-center rounded-2xl border border-dashed border-[var(--ui-200)] bg-[var(--ui-50)]">
+                  <span className="text-[var(--ui-400)] text-sm">대표 이미지가 없습니다</span>
+                </div>
+              )}
 
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3">
@@ -441,8 +453,9 @@ const ProjectDetailPage = () => {
                   <BookmarkButton
                     bookmarked={bookmarkState.bookmarked}
                     onBookmarkChange={handleBookmarkChange}
-                    className="mt-2 ml-auto h-[52px] w-[52px] shrink-0"
-                    iconClassName="h-[52px] w-[52px]"
+                    className="mt-2 ml-auto h-[48px] w-[48px] shrink-0"
+                    iconClassName="h-[40px] w-[40px]"
+                    colorIconClassName="h-[48px] w-[48px]"
                     aria-label="북마크"
                   />
                 </div>
@@ -483,22 +496,7 @@ const ProjectDetailPage = () => {
             <div className="h-px w-full bg-card-border" />
           </div>
 
-          <div className="flex flex-col gap-3 lg:mt-[230px] lg:items-end">
-            <button
-              type="button"
-              className="inline-flex h-[36px] w-[200px] items-center justify-center gap-1.5 rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-4 text-[14px] font-medium text-[var(--ui-500)] hover:opacity-80"
-            >
-              <img
-                src={
-                  isDark
-                    ? '/src/shared/assets/icons/message.png'
-                    : '/src/shared/assets/icons/message-light.png'
-                }
-                alt="연락하기"
-                className={isDark ? 'h-7 w-7' : 'h-7 w-8'}
-              />
-              연락하기
-            </button>
+          <div className="mt-[20rem] flex flex-col gap-3 lg:mt-[30rem] lg:flex-row lg:items-center lg:justify-end lg:gap-6">
             {!hasApplied && (
               <button
                 type="button"
@@ -518,9 +516,10 @@ const ProjectDetailPage = () => {
             <button
               type="button"
               onClick={() => navigate(`/recommend/developer?projectId=${projectId}`)}
-              className="inline-flex h-[36px] items-center justify-center text-[14px] font-medium text-[var(--ui-500)] underline hover:opacity-80"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap text-[14px] font-medium text-[var(--ui-600)] transition-colors hover:text-[var(--color-primary)]"
             >
-              이 프로젝트에 맞는 개발자 보기
+              <span>해당 프로젝트 추천개발자 보러가기</span>
+              <ChevronRightIcon className="h-6 w-6 shrink-0 opacity-70 [&_path]:[stroke-width:6]" aria-hidden />
             </button>
           </div>
         </div>
