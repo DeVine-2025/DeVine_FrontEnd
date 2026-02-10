@@ -10,44 +10,45 @@ export const PROJECT_TYPE_TO_FIELD: Record<string, ProjectField | undefined> = {
 
 export const DOMAIN_LABEL_TO_CATEGORY: Record<string, Category | undefined> = {
   헬스케어: 'HEALTHCARE',
-  핀테크: 'FINANCE',
+  핀테크: 'FINTECH',
   이커머스: 'ECOMMERCE',
   교육: 'EDUCATION',
   '소셜/커뮤니티': 'SOCIAL',
   엔터테인먼트: 'ENTERTAINMENT',
-  'AI/데이터': 'AI',
+  'AI/데이터': 'AI_DATA',
   기타: 'ETC',
 };
 
 export const TECHSTACK_KEY_TO_NAME: Record<string, string | undefined> = {
-  JAVA: 'JAVA',
   JAVASCRIPT: 'JAVASCRIPT',
   TYPESCRIPT: 'TYPESCRIPT',
   REACT: 'REACT',
   NEXTJS: 'NEXTJS',
   VUEJS: 'VUEJS',
   SVELTE: 'SVELTE',
+  REACT_NATIVE: 'REACT_NATIVE',
+  FLUTTER: 'FLUTTER',
+  KOTLIN: 'KOTLIN',
+  SWIFT: 'SWIFT',
 
+  JAVA: 'JAVA',
+  PYTHON: 'PYTHON',
+  GO: 'GO',
+  C: 'C',
+  PHP: 'PHP',
+
+  SPRINGBOOT: 'SPRINGBOOT',
   NODEJS: 'NODEJS',
   EXPRESS: 'EXPRESS',
   NESTJS: 'NESTJS',
-  SPRING: 'SPRING',
   DJANGO: 'DJANGO',
-
-  MYSQL: 'MYSQL',
   MONGODB: 'MONGODB',
+  MYSQL: 'MYSQL',
 
   AWS: 'AWS',
+  FIREBASE: 'FIREBASE',
   DOCKER: 'DOCKER',
   KUBERNETES: 'KUBERNETES',
-  FIREBASE: 'FIREBASE',
-  FLUTTER: 'FLUTTER',
-  SWIFT: 'SWIFT',
-  KOTLIN: 'KOTLIN',
-  PYTHON: 'PYTHON',
-  GO: 'GO',
-  PHP: 'PHP',
-  C: 'C',
 };
 
 export const PERIOD_TO_DURATION: Record<string, DurationRange | undefined> = {
