@@ -1,20 +1,30 @@
-import { useRef, useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useThemeStore } from '@store/theme';
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 import { getTechBadgeByName, TECH_STACK_LABEL_BY_KEY } from '@constants/position-tech-stack';
 import { useAuth } from '@clerk/clerk-react';
 import { signupMember, type SignupPayload } from '@apis/signup';
 import { getTechstackIdsByKeys } from '@constants/signup-mapping';
+import { useOutletContext } from 'react-router-dom';
+import type { RootLayoutOutletContext } from '@layouts/root-layout';
 
 type AdditionalProfileSectionProps = {
   onBack: () => void;
   onNext: () => void;
   signupData: Omit<SignupPayload, 'techstackIds' | 'body' | 'email' | 'linkedin'>;
+  onComplete?: () => Promise<void> | void;
+  setLogoSubmitHandler?: (handler: (() => void) | null) => void;
 };
 
 type ToastType = 'success' | 'error';
 
-const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProfileSectionProps) => {
+const AdditionalProfileSection = ({
+  onBack,
+  onNext,
+  signupData,
+  onComplete,
+  setLogoSubmitHandler,
+}: AdditionalProfileSectionProps) => {
   const { theme } = useThemeStore();
   const [stacks, setStacks] = useState<string[]>([]);
   const [isTechStackOpen, setIsTechStackOpen] = useState(false);
@@ -22,6 +32,7 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
   const [email, setEmail] = useState('');
   const [linkedin, setLinkedin] = useState('');
   const { getToken } = useAuth();
+  const { setLogoClickHandler } = useOutletContext<RootLayoutOutletContext>();
 
   const LINKEDIN_MAX_LENGTH = 255;
 
@@ -67,7 +78,7 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
     setStacks((prev) => prev.filter((item) => item !== key));
   };
 
-  const handleSubmit = async () => {
+  const submitSignup = async (onSuccess: () => void) => {
     if (!isEmailValid || !isLinkedinValid || !isLinkedinLengthValid) {
       showToast('error', '입력값을 확인해주세요.');
       return;
@@ -90,13 +101,16 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
 
       const token = await getToken();
 
-      // token이 null이어도 서버 정책상 허용할 수도 있어서 그대로 전달(형님 코드 유지)
+      // token이 null이어도 서버 정책상 허용할 수도 있어서 그대로 전달
       await signupMember(payload, token ?? undefined);
+      if (onComplete) {
+        await onComplete();
+      }
 
       sessionStorage.setItem('skip_onboarding_modal_once', 'true');
 
       showToast('success', '가입이 완료되었습니다. 이동 중입니다…');
-      onNext();
+      onSuccess();
     } catch (e) {
       console.error(e);
 
@@ -107,6 +121,28 @@ const AdditionalProfileSection = ({ onBack, onNext, signupData }: AdditionalProf
       showToast('error', '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.');
     }
   };
+
+  const handleSubmit = async () => {
+    await submitSignup(onNext);
+  };
+
+  const logoHandlerRef = useRef<null | (() => Promise<void>)>(null);
+
+  useEffect(() => {
+    logoHandlerRef.current = async () => {
+      await submitSignup(onNext);
+    };
+  }, [onNext, submitSignup]);
+
+  useEffect(() => {
+    setLogoClickHandler(() => () => logoHandlerRef.current?.());
+    setLogoSubmitHandler?.(() => logoHandlerRef.current?.());
+    return () => {
+      setLogoClickHandler(null);
+      setLogoSubmitHandler?.(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="mx-auto flex h-[540px] w-full max-w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
