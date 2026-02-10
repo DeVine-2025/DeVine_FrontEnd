@@ -64,7 +64,7 @@ const LoginPage = () => {
       await signIn.authenticateWithRedirect({
         strategy,
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/',
+        redirectUrlComplete: '/signup',
       });
 
       // 보통 여기서 리다이렉트가 발생함
