@@ -1,5 +1,4 @@
 import { useAuth } from '@clerk/clerk-react';
-import Pagination from '@components/common/Pagination';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import { useFilterStore } from '@store/filter';
@@ -346,7 +345,6 @@ const RecommendProjectPage = () => {
         </div>
       )}
 
-      <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
     </div>
   );
 };

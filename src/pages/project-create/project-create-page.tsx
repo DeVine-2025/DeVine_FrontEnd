@@ -178,6 +178,7 @@ function ToolbarButton({
   HoverIcon,
   label,
   onClick,
+  onMouseDown,
   active,
   disabled,
 }: {
@@ -185,12 +186,17 @@ function ToolbarButton({
   HoverIcon: SvgIcon;
   label: string;
   onClick?: () => void;
+  onMouseDown?: (e: React.MouseEvent) => void;
   active?: boolean;
   disabled?: boolean;
 }) {
   return (
     <button
       type="button"
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onMouseDown?.(e);
+      }}
       onClick={onClick}
       disabled={disabled}
       className="group flex h-[28px] min-w-[28px] items-center justify-center rounded-md px-1 transition-colors disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-[var(--ui-200)] data-[active]:text-[var(--ui-800)] hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)]"
@@ -313,6 +319,7 @@ const ProjectCreatePage = () => {
   const [imageUploadingSlot, setImageUploadingSlot] = useState<number | null>(null);
   const [editorImageUploading, setEditorImageUploading] = useState(false);
   const editorImageInputRef = useRef<HTMLInputElement | null>(null);
+  const [, setEditorSelectionKey] = useState(0);
 
   const minDeadline = useMemo(() => {
     const t = new Date();
@@ -460,6 +467,16 @@ const ProjectCreatePage = () => {
     }
   }, [editor, projectContent]);
 
+  // 커서/선택 변경 시 툴바 H1·H2·B 등 적용 상태 반영
+  useEffect(() => {
+    if (!editor) return;
+    const onSelectionUpdate = () => setEditorSelectionKey((k) => k + 1);
+    editor.on('selectionUpdate', onSelectionUpdate);
+    return () => {
+      editor.off('selectionUpdate', onSelectionUpdate);
+    };
+  }, [editor]);
+
   const insertImageFromFile = async (file: File) => {
     const token = await getToken();
     if (!token) {
@@ -589,6 +606,23 @@ const ProjectCreatePage = () => {
         console.groupEnd();
       }
       const result = await createProject(body, token);
+
+      // 추천 개발자 페이지의 "내 프로젝트 선택" 필터가 즉시 프로젝트를 보여줄 수 있도록 로컬 캐시 저장
+      // (백엔드 /members/me/projects가 지연되거나 빈 값으로 내려오는 경우 대비)
+      try {
+        const cacheKey = 'devine_my_projects_cache_v1';
+        const raw = localStorage.getItem(cacheKey);
+        const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+        const prev = Array.isArray(parsed) ? parsed : [];
+        const next = [
+          ...prev.filter((p: any) => Number(p?.id) !== result.projectId),
+          { id: result.projectId, name: body.title.trim() },
+        ].filter((p: any) => Number.isFinite(Number(p?.id)) && String(p?.name ?? '').trim().length > 0);
+        localStorage.setItem(cacheKey, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+
       clearDraft();
       navigate('/project/create/complete', { state: { projectId: result.projectId } });
     } catch (e) {

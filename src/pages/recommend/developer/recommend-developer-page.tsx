@@ -1,6 +1,5 @@
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
-import Pagination from '@components/common/Pagination';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -16,6 +15,33 @@ import {
 const RECOMMEND_DEVELOPER_FILTERS = ['내 프로젝트 선택'] as const;
 
 type MyProjectOption = { id: number; name: string };
+const MY_PROJECTS_CACHE_KEY = 'devine_my_projects_cache_v1';
+
+function readMyProjectsCache(): MyProjectOption[] {
+  try {
+    const raw = localStorage.getItem(MY_PROJECTS_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (v): v is { id: unknown; name: unknown } =>
+          v != null && typeof v === 'object' && 'id' in (v as any) && 'name' in (v as any),
+      )
+      .map((v) => ({ id: Number((v as any).id), name: String((v as any).name) }))
+      .filter((v) => Number.isFinite(v.id) && v.id > 0 && v.name.trim().length > 0);
+  } catch {
+    return [];
+  }
+}
+
+function writeMyProjectsCache(options: MyProjectOption[]) {
+  try {
+    localStorage.setItem(MY_PROJECTS_CACHE_KEY, JSON.stringify(options));
+  } catch {
+    // ignore
+  }
+}
 
 function buildApiParams(
   selectedProjectNames: string[],
@@ -43,6 +69,7 @@ const RecommendDeveloperPage = () => {
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
   const [myProjectOptions, setMyProjectOptions] = useState<MyProjectOption[]>([]);
+  const lastLoadedProjectOptionsRef = useRef<MyProjectOption[]>([]);
   const [myProjectOptionsLoading, setMyProjectOptionsLoading] = useState(false);
   const [list, setList] = useState<RecommendDeveloperListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +81,14 @@ const RecommendDeveloperPage = () => {
   bookmarkMapRef.current = bookmarkMap;
   const listRef = useRef<RecommendDeveloperListItem[]>([]);
   listRef.current = list;
+
+  // API가 일시적으로 비어 내려와도, 사용자가 등록한 프로젝트가 "필터에서 안 보이는" 문제를 막기 위해 캐시를 먼저 로드
+  useEffect(() => {
+    const cached = readMyProjectsCache();
+    if (cached.length === 0) return;
+    lastLoadedProjectOptionsRef.current = cached;
+    setMyProjectOptions(cached);
+  }, []);
 
   // 북마크 목록 로드 후 list에 한 번만 병합
   useEffect(() => {
@@ -107,7 +142,7 @@ const RecommendDeveloperPage = () => {
     [setRecommendDeveloper],
   );
 
-  // 내 프로젝트 옵션 로드 (드롭다운 실제 데이터)
+  // 내 프로젝트 옵션 로드 (드롭다운 실제 데이터). 한 번이라도 로드된 목록은 유지(체크 해제해도 목록은 계속 표시).
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -119,19 +154,23 @@ const RecommendDeveloperPage = () => {
         if (cancelled) return;
         // 서버가 중복 프로젝트를 내려줄 수 있어 id 기준 dedupe + 이름 중복 시 라벨 구분
         const uniqById = Array.from(new Map(projects.map((p) => [p.id, p])).values());
-        // 중복 이름이면 먼저 나온 순서대로 (1)(2)... 붙이기
         const seenCounts: Record<string, number> = {};
-        setMyProjectOptions(
-          uniqById.map((p) => {
-            const base = p.name ?? '';
-            seenCounts[base] = (seenCounts[base] ?? 0) + 1;
-            const n = seenCounts[base];
-            const label = n > 1 ? `${base}(${n})` : base;
-            return { id: p.id, name: label };
-          }),
-        );
+        const next = uniqById.map((p) => {
+          const base = p.name ?? '';
+          seenCounts[base] = (seenCounts[base] ?? 0) + 1;
+          const n = seenCounts[base];
+          const label = n > 1 ? `${base}(${n})` : base;
+          return { id: p.id, name: label };
+        });
+        if (next.length > 0) {
+          lastLoadedProjectOptionsRef.current = next;
+          setMyProjectOptions(next);
+          writeMyProjectsCache(next);
+        } else {
+          setMyProjectOptions(lastLoadedProjectOptionsRef.current);
+        }
       } catch (e) {
-        if (!cancelled) setMyProjectOptions([]);
+        if (!cancelled) setMyProjectOptions(lastLoadedProjectOptionsRef.current);
         console.error('[내 프로젝트 옵션] 로드 실패', e);
       } finally {
         if (!cancelled) setMyProjectOptionsLoading(false);
@@ -330,20 +369,6 @@ const RecommendDeveloperPage = () => {
         <p className="text-[var(--ui-500)]">내 프로젝트를 불러오는 중...</p>
       )}
 
-      {!myProjectOptionsLoading && myProjectOptions.length === 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800">
-          <p className="font-medium">등록한 프로젝트가 없습니다.</p>
-          <p className="mt-1 text-sm">프로젝트를 만든 뒤 추천 개발자를 확인할 수 있어요.</p>
-        </div>
-      )}
-
-      {myProjects.length === 0 && !myProjectOptionsLoading && myProjectOptions.length > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800">
-          <p className="font-medium">내 프로젝트를 선택해 주세요.</p>
-          <p className="mt-1 text-sm">선택한 프로젝트(또는 전체 프로젝트) 기준으로 추천 개발자를 보여드려요.</p>
-        </div>
-      )}
-
       {error && (
         <p className="text-red-500" role="alert">
           {error}
@@ -354,33 +379,42 @@ const RecommendDeveloperPage = () => {
         <p className="text-[var(--ui-500)]">추천 개발자를 불러오는 중...</p>
       )}
 
-      {!loading && myProjects.length > 0 && (
+      {!loading && myProjects.length > 0 && list.length === 0 && (
+        <div className="flex min-h-[50vh] flex-1 flex-col items-center justify-center py-12 text-center">
+          <p className="text-2xl font-semibold text-[var(--ui-900)]">해당 프로젝트에 맞는 추천 개발자가 없습니다.</p>
+          <p className="mt-2 text-lg text-[var(--ui-600)]">다른 프로젝트를 선택하거나 필터 조건을 변경해 보세요.</p>
+        </div>
+      )}
+
+      {!loading && myProjects.length === 0 && !myProjectOptionsLoading && myProjectOptions.length === 0 && (
+        <div className="flex min-h-[50vh] flex-1 flex-col items-center justify-center py-12 text-center">
+          <p className="text-2xl font-semibold text-[var(--ui-900)]">등록한 프로젝트가 없습니다.</p>
+          <p className="mt-2 text-lg text-[var(--ui-600)]">프로젝트를 만든 뒤 추천 개발자를 확인할 수 있어요.</p>
+        </div>
+      )}
+
+      {!loading && myProjects.length > 0 && list.length > 0 && (
         <>
           <div className="flex flex-col gap-6">
-            {list.length === 0 ? (
-              <p className="text-[var(--ui-500)]">추천 개발자가 없습니다.</p>
-            ) : (
-              list.map((dev) => (
-                <RecommendDeveloperCard
-                  key={dev.id}
-                  role={dev.role}
-                  roleTone={dev.roleTone}
-                  nickname={dev.nickname}
-                  profileImageUrl={dev.profileImageUrl}
-                  introduction={dev.introduction}
-                  domains={dev.domains}
-                  techStack={dev.techStack}
-                  bookmarked={dev.bookmarked ?? false}
+            {list.map((dev) => (
+              <RecommendDeveloperCard
+                key={dev.id}
+                role={dev.role}
+                roleTone={dev.roleTone}
+                nickname={dev.nickname}
+                profileImageUrl={dev.profileImageUrl}
+                introduction={dev.introduction}
+                domains={dev.domains}
+                techStack={dev.techStack}
+                bookmarked={dev.bookmarked ?? false}
                 memberId={dev.memberId ?? undefined}
                 bookmarkId={dev.bookmarkId}
                 listItemId={dev.id}
                 onBookmarkChangeById={handleBookmarkChangeById}
                 onClick={() => console.log('click developer', dev.id)}
-                />
-              ))
-            )}
+              />
+            ))}
           </div>
-          <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
         </>
       )}
     </div>

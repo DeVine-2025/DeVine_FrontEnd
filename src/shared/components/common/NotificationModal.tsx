@@ -132,7 +132,7 @@ const NotificationModal = ({
                   if (!notification.isRead && onMarkAsRead) onMarkAsRead(notification.id);
                   handleClose();
                 }}
-                className={`group relative flex flex-col gap-1.5 rounded-xl px-3.5 py-3 text-left transition-colors duration-150 ${
+                className={`group relative flex min-h-[100px] flex-col justify-center gap-1.5 rounded-xl px-3.5 py-5 text-left transition-colors duration-150 ${
                   !notification.isRead
                     ? 'bg-[var(--ui-50)] hover:bg-[var(--ui-100)]'
                     : 'hover:bg-[var(--ui-50)]'

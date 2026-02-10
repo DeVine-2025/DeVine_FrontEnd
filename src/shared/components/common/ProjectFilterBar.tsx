@@ -1,10 +1,37 @@
 import ChevronDownIcon from '@assets/icons/chevron-down.svg?react';
+import { getKeysByPosition } from '@constants/position-tech-stack';
 import DomainDropdown from '@components/recommend/DomainDropdown';
 import ExpectedPeriodDropdown from '@components/recommend/ExpectedPeriodDropdown';
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 import ProjectTypeDropdown from '@components/recommend/ProjectTypeDropdown';
 
 export type ProjectFilterKey = '프로젝트 유형' | '도메인' | '예상 기간' | '포지션 / 기술스택';
+
+/** 필터별 전체 선택 시 버튼에 표시할 문구 */
+const FILTER_ALL_LABELS: Record<ProjectFilterKey, string> = {
+  '프로젝트 유형': '프로젝트 전체',
+  도메인: '도메인 전체',
+  '예상 기간': '예상기간 전체',
+  '포지션 / 기술스택': '포지션/기술스택 전체',
+};
+
+/** 필터별 "전체" 옵션 목록 (드롭다운과 동일한 순서/내용) */
+const PROJECT_TYPE_OPTIONS = ['웹', '모바일/앱', '게임', '블록체인', '기타'];
+const DOMAIN_OPTIONS = ['헬스케어', '핀테크', '이커머스', '교육', '소셜/커뮤니티', '엔터테인먼트', 'AI/데이터', '기타'];
+const EXPECTED_PERIOD_OPTIONS = ['1개월 이하', '1-3개월', '3-6개월', '6개월 이상'];
+const POSITION_TECH_OPTIONS = [
+  ...getKeysByPosition('frontend'),
+  ...getKeysByPosition('backend'),
+  ...getKeysByPosition('infra'),
+];
+
+function getAllOptions(label: ProjectFilterKey): string[] {
+  if (label === '프로젝트 유형') return PROJECT_TYPE_OPTIONS;
+  if (label === '도메인') return DOMAIN_OPTIONS;
+  if (label === '예상 기간') return EXPECTED_PERIOD_OPTIONS;
+  if (label === '포지션 / 기술스택') return POSITION_TECH_OPTIONS;
+  return [];
+}
 
 type Props = {
   filters: readonly ProjectFilterKey[];
@@ -57,11 +84,20 @@ export default function ProjectFiltersBar({
     const isApplied = values.length > 0;
     const isOpen = openFilter === label;
 
-    const uniq = Array.from(new Set(values));
-    const shown = uniq.slice(0, 2);
-    const rest = Math.max(0, uniq.length - shown.length);
-    const summary = `${shown.join(', ')}${rest > 0 ? '…' : ''}`;
-    const displayLabel = isApplied ? summary : label;
+    const uniq = Array.from(new Set(values.filter((v) => v !== '전체')));
+    const allOptions = getAllOptions(label);
+    const isAllSelected =
+      allOptions.length > 0 && uniq.length === allOptions.length && allOptions.every((opt) => uniq.includes(opt));
+
+    const displayLabel = isAllSelected
+      ? FILTER_ALL_LABELS[label]
+      : isApplied
+        ? (() => {
+            const shown = uniq.slice(0, 2);
+            const rest = Math.max(0, uniq.length - shown.length);
+            return `${shown.join(', ')}${rest > 0 ? '…' : ''}`;
+          })()
+        : label;
 
     const baseClass =
       'inline-flex max-w-[260px] cursor-pointer items-center gap-[10px] rounded-full px-5 py-4 font-semibold text-xl transition-colors';
