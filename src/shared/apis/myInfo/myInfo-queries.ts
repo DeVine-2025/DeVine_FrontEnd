@@ -6,6 +6,10 @@ export const getMyProfile = async (): Promise<MyProfileResponse> => {
   return data;
 };
 
+export const getMemberProfile = async (nickname: string) => {
+  const { data } = await axiosInstance.get(`/api/v1/members/${nickname}`);
+  return data;
+}
 export const updateMyProfile = async (profileData: UpdateProfileRequest): Promise<MyProfileResponse> => {
   const { data } = await axiosInstance.patch('/api/v1/members/me', profileData);
   return data;
@@ -46,11 +50,25 @@ export const getMyTechStacks = async () => {
   return data;
 }
 
+export const getMemberTechStacks = async (nickname: string) => {
+  const { data } = await axiosInstance.get(`/api/v1/members/${nickname}/techstacks`);
+  return data;
+}
 export const getMyGitContributions = async (
   from: string,
   to: string
 ): Promise<MyContributionsResponse> => {
   const { data } = await axiosInstance.get('/api/v1/members/me/contributions', {
+    params: { from, to }
+  });
+  return data;
+}
+export const getMemberGitContributions = async (
+  nickname: string,
+  from: string,
+  to: string
+): Promise<MyContributionsResponse> => {
+  const { data } = await axiosInstance.get(`/api/v1/members/${nickname}/contributions`, {
     params: { from, to }
   });
   return data;
@@ -62,10 +80,29 @@ export const myInfoQueries = {
     queryFn: getMyProfile,
   }),
 
+  memberProfile: (memberNick: string) => ({
+    queryKey: ['member/profile', memberNick],
+    queryFn: () => getMemberProfile(memberNick),
+  }),
+
   getMyTechStacks: () => ({
     queryKey: ['member/techstacks'],
     queryFn: getMyTechStacks,
   }),
+
+  getMemberTechStacks: (memberNick: string) => ({
+    queryKey: ['member/other/techstacks', memberNick],
+    queryFn: () => getMemberTechStacks(memberNick),
+  }),
+
+  getMemberGitContributions: (memberNick: string, year: number) => {
+    const from = `${year}-01-01`;
+    const to = `${year}-12-31`;
+    return {
+      queryKey: ['member/other/contributions', memberNick, year],
+      queryFn: () => getMemberGitContributions(memberNick, from, to),
+    };
+  },
 
   getMyContributions: (year: number) => {
     const from = `${year}-01-01`;

@@ -15,21 +15,23 @@ import { useNavigate } from 'react-router-dom';
 import { useMemo, useState, useRef, useEffect } from 'react';
 
 import type { Contribution, MyProfile, MyReposResponse } from '@apis/myInfo/myInfo';
-import { InfiniteData } from '@tanstack/react-query';
+import type { ReportCard } from '@apis/report/report';
 import { DOMAIN_REVERSE_MAP } from '@constants/domain';
+import { InfiniteData } from '@tanstack/react-query';
 
 type ProfileDetailProps = {
-  type: '내 정보' | '개발자 상세',
-  profile?: MyProfile,
-  techStack?: string[],
-  contributions?: Contribution[],
-  year?: number,
-  onYearChange?: (year: number) => void,
-  gitRepos?: InfiniteData<MyReposResponse> | undefined,
-  fetchNextPage?: () => void,
-  hasNextPage?: boolean,
-  isFetchingNextPage?: boolean
-}
+  type: '내 정보' | '개발자 상세';
+  profile?: MyProfile;
+  techStack?: string[];
+  contributions?: Contribution[];
+  year?: number;
+  onYearChange?: (year: number) => void;
+  gitRepos?: InfiniteData<MyReposResponse> | undefined;
+  fetchNextPage?: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  reports?: ReportCard[];
+};
 
 const ProfileDetail = ({
   type,
@@ -41,7 +43,8 @@ const ProfileDetail = ({
   gitRepos,
   fetchNextPage,
   hasNextPage,
-  isFetchingNextPage
+  isFetchingNextPage,
+  reports = [],
 }: ProfileDetailProps) => {
   const [projectTab, setProjectTab] = useState<ProjectTab>('ongoing');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -56,13 +59,11 @@ const ProfileDetail = ({
   const introduction = member?.body || '소개가 들어가는 자리 입니다.';
   const imageUrl = member?.imageUrl ?? null;
   const hasImage = Boolean(imageUrl);
-  
-  // 영문 도메인을 한글로 변환
   const domainBadges = useMemo(
-    () => {
-      if (domains.length === 0) return ['도메인 미등록'];
-      return domains.map(d => DOMAIN_REVERSE_MAP[d] || d);
-    },
+    () =>
+      domains.length > 0
+        ? domains.map((d) => DOMAIN_REVERSE_MAP[d] ?? d)
+        : ['도메인 미등록'],
     [domains]
   );
 
@@ -137,11 +138,15 @@ const ProfileDetail = ({
               onYearChange={onYearChange}
             />
             <div ref={scrollContainerRef} className="flex gap-[1.8rem] overflow-x-auto">
-              {gitRepos?.pages?.map((page) => (
-                page.result?.content?.map((content) => (
-                  <ReportCardSmall key={content?.gitRepoId} title={content?.name} description={content?.description} />
+              {gitRepos?.pages?.flatMap((page) =>
+                (page.result?.repos ?? []).map((repo) => (
+                  <ReportCardSmall
+                    key={repo.gitRepoId}
+                    title={repo.name}
+                    description={repo.description}
+                  />
                 ))
-              ))}
+              )}
               {isFetchingNextPage && (
                 <div className="min-w-64 flex items-center justify-center">
                   <p className="text-ui-400">로딩 중...</p>
@@ -150,6 +155,22 @@ const ProfileDetail = ({
             </div>
           </div>
         </div>
+
+        {type === '개발자 상세' && reports.length > 0 && (
+          <div className="flex flex-col gap-[2.4rem]">
+            <p className="text-ui-1000 text-3xl font-bold">리포트</p>
+            <div className="flex gap-[1.5rem] overflow-x-auto overflow-y-hidden flex-nowrap w-full [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-ui-200">
+              {reports.map((report) => (
+                <div key={report.reportId} className="flex-shrink-0 min-w-64 max-w-64">
+                  <ReportCardSmall
+                    title={report.repoName}
+                    description={report.repoDescription}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="w-full">
           <MyPMBottomSection projectTab={projectTab} onChangeProjectTab={setProjectTab} />
