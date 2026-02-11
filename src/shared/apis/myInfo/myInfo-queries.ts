@@ -30,8 +30,8 @@ export const myInfoQueries = {
 
     initialPageParam: 1,
 
-    // ⭐ 여기 핵심
-    getNextPageParam: (lastPage: MyReposResponse) => {
+
+    getNextPageParam: (lastPage) => {
       const currentPage = lastPage.result.page;
       const totalPages = lastPage.result.totalPages;
       const isLast = lastPage.result.last;
