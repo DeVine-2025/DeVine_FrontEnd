@@ -41,8 +41,8 @@ export type MemberSearchCategory =
   | 'ETC';
 
 export type GetDevelopersParams = {
-  categories?: MemberSearchCategory[];
-  techNames?: string[];
+  categories?: string[];
+  techstackNames?: string[];
   page?: number;
   size?: number;
 };
