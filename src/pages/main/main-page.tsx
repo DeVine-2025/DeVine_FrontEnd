@@ -461,7 +461,7 @@ const MainPage = () => {
 
           {!isLoggedIn && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <LoginRequiredCard description={loginCtaLabel} />
+              <LoginRequiredCard description={loginCtaLabel ?? '나에게 딱 맞는 추천 프로젝트/개발자를 보려면 로그인해 주세요.'} />
             </div>
           )}
         </div>
