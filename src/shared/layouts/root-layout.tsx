@@ -166,7 +166,7 @@ const RootLayout = () => {
           />
         </div>
       </main>
-      <Footer />
+      {location.pathname !== '/signup' && <Footer />}
 
       {showOnboardingModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">

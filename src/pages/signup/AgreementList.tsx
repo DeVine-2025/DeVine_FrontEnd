@@ -106,7 +106,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
         };
 
   return (
-    <div className="fixed inset-0 z-50" style={backgroundStyle}>
+    <div className="fixed inset-0 z-50 overflow-y-auto" style={backgroundStyle}>
 
       <div className="absolute left-1/2 top-0 h-[6rem] w-screen -translate-x-1/2">
         <div className="mx-auto flex h-full max-w-[144rem] items-center px-[12rem]">
