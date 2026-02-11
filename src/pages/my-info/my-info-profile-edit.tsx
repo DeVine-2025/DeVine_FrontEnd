@@ -35,7 +35,7 @@ const MyInfoProfileItem = ({ type, title, text, setText, placeholder, className 
   return (
     <div className="flex-col gap-[1.6rem]">
       <p className={cn('text-ui-900 text-2xl font-bold', className)}>{title}</p>
-      <MyInfoInput text={text} setText={setText} type={type} placeHolder={placeholder} />
+      <MyInfoInput text={text} setText={setText} type={type} placeholder={placeholder} />
     </div>
   )
 }

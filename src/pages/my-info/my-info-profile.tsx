@@ -1,4 +1,5 @@
 import ProfileDetail from '../../shared/templates/profileDetail';
+import type { Contribution } from '@apis/myInfo/myInfo';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
@@ -26,9 +27,13 @@ const MyInfoProfile = () => {
     return techStack.result.techstacks.map((item: { name: string }) => item.name);
   }, [techStack]);
 
-  const contributionsData = useMemo(() => {
-    const result = contributions?.result?.contributionList;
-    return Array.isArray(result) ? result : [];
+  const contributionsData = useMemo((): Contribution[] => {
+    const result = contributions?.result;
+    if (Array.isArray(result)) return result as Contribution[];
+    const list = result && typeof result === 'object' && 'contributionList' in result
+      ? (result as { contributionList: Contribution[] }).contributionList
+      : undefined;
+    return Array.isArray(list) ? list : [];
   }, [contributions]);
 
   const handleYearChange = (newYear: number) => {
