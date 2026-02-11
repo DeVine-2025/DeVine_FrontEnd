@@ -437,7 +437,14 @@ const ProjectDetailPage = () => {
     return <div>프로젝트 정보를 찾을 수 없습니다.</div>;
   }
   if (!project) {
-    return <div>프로젝트 정보를 불러오는 중입니다.</div>;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center">
+        <div
+          className="h-20 w-20 shrink-0 rounded-full border-[3px] border-[var(--ui-200)] border-t-[var(--color-primary)] animate-spin"
+          aria-hidden
+        />
+      </div>
+    );
   }
 
   const handleApply = async () => {
