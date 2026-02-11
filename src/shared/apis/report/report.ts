@@ -2,6 +2,7 @@ import { ApiResponse } from '@apis/base/api';
 
 export interface ReportCard {
   reportId: number;
+  gitRepoId: number;
   reportType: 'MAIN' | 'SUB' | string;
   visibility: 'PUBLIC' | 'PRIVATE' | string;
   repoName: string;
