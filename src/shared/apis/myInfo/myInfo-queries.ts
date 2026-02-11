@@ -25,6 +25,7 @@ export const myInfoQueries = {
     queryFn: ({ pageParam = 1 }) =>
       getMyRepo({ page: pageParam, size: 10 }),
 
+    initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const currentPage = lastPage.result.page;
       const totalPages = lastPage.result.totalPages;
