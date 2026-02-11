@@ -12,6 +12,7 @@ import type { DeveloperSearchContentDto, MemberSearchCategory } from '@t/profile
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEVELOPER_FILTERS, PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
+import { getMyRecruitingProjects } from '@apis/projects';
 
 type RoleCode = (typeof ROLE_PRIORITY)[number];
 type RoleKey = RoleCode | 'DEVELOPER';
@@ -30,6 +31,27 @@ const DeveloperSearchPage = () => {
   const { getToken } = useAuth();
   const { developerSearch, setDeveloperSearch } = useFilterStore();
   const { interestDomains, myProjects, techStacks } = developerSearch;
+
+  // 프로젝트 등록 유무 확인
+  const [hasProjects, setHasProjects] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const token = await getToken();
+      if (!token || cancelled) return;
+      try {
+        const projects = await getMyRecruitingProjects(token);
+        if (!cancelled) setHasProjects(projects.length > 0);
+      } catch {
+        if (!cancelled) setHasProjects(false);
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken]);
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
   const [searchContent, setSearchContent] = useState<DeveloperSearchContentDto[]>([]);
@@ -228,22 +250,28 @@ const DeveloperSearchPage = () => {
       </header>
 
       {/* 추천 개발자 카드 */}
-      <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
-        {profiles.map((profile) => (
-          <ProfileCard
-            key={profile.id}
-            {...profile}
-            size="sm"
-            bookmarked={
-              bookmarkMap[profile.memberId ?? profile.nickname] != null ||
-              (profile.bookmarked ?? false)
-            }
-            onBookmarkChange={(next) =>
-              handleBookmarkChange(profile.memberId, profile.nickname, next)
-            }
-          />
-        ))}
-      </div>
+      {hasProjects === false ? (
+        <p className="py-10 text-center text-[15px] text-[var(--ui-500)]">
+          프로젝트를 등록하고 추천 개발자를 보세요
+        </p>
+      ) : (
+        <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
+          {profiles.map((profile) => (
+            <ProfileCard
+              key={profile.id}
+              {...profile}
+              size="sm"
+              bookmarked={
+                bookmarkMap[profile.memberId ?? profile.nickname] != null ||
+                (profile.bookmarked ?? false)
+              }
+              onBookmarkChange={(next) =>
+                handleBookmarkChange(profile.memberId, profile.nickname, next)
+              }
+            />
+          ))}
+        </div>
+      )}
 
       {/* 구분선 */}
       <div className="h-px w-full bg-card-border" />

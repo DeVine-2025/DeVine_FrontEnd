@@ -3,7 +3,6 @@ import {
   getRecommendProjectsPreview,
   type RecommendProjectPreviewItem,
 } from '@apis/mainrecommendproject';
-import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import ProjectListState from '@components/common/ListStateUI';
 import Pagination from '@components/common/Pagination';
@@ -18,6 +17,7 @@ import type { ProjectRole, RecommendPreviewItem } from '@t/project/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PROJECT_FILTERS, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
+import { getReports } from '@apis/report/report-queries';
 
 // 북마크 하이드레이션: 새로고침/재진입 시에도 북마크 상태 유지
 function useBookmarkHydration(getToken: () => Promise<string | null>, enabled: boolean) {
@@ -102,6 +102,25 @@ export default function ProjectSearchPage() {
     setPage,
     resetFilter,
   } = useProjectFilter();
+
+  // 리포트 유무 확인
+  const [hasReport, setHasReport] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getReports()
+      .then((res) => {
+        if (cancelled) return;
+        const reports = res?.result?.reports ?? [];
+        setHasReport(reports.length > 0);
+      })
+      .catch(() => {
+        if (!cancelled) setHasReport(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // 북마크
   const { bookmarkOverrides, setBookmarkOverrides } = useBookmarkHydration(getToken, true);
@@ -273,37 +292,34 @@ export default function ProjectSearchPage() {
       {/* 추천 프로젝트 */}
       <header className="flex items-center justify-between">
         <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 프로젝트</h2>
-
-        <button
-          type="button"
-          onClick={() => navigate('/recommend')}
-          className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
-        >
-          더 많은 추천 프로젝트 보러가기
-          <ChevronRightIcon className="h-6 w-6 shrink-0" aria-hidden />
-        </button>
       </header>
 
-      <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
-        {recommendedPreview.map((p) => {
-          const ov = bookmarkOverrides[Number(p.id)];
-          return (
-            <ProjectSm
-              key={p.id}
-              categoryLabel={p.categoryLabel}
-              deadlineLabel={p.deadlineLabel}
-              title={p.title}
-              location={p.location}
-              period={p.period}
-              mode={p.mode}
-              roles={p.roles}
-              bookmarked={ov?.bookmarked ?? false}
-              onBookmarkChange={(next) => handleBookmarkChange(Number(p.id), next, ov?.bookmarkId)}
-              onClick={() => handleProjectClick(p.id)}
-            />
-          );
-        })}
-      </div>
+      {hasReport === false ? (
+        <p className="py-10 text-center text-[15px] text-[var(--ui-500)]">
+          리포트를 생성하고 추천 프로젝트를 보세요
+        </p>
+      ) : (
+        <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
+          {recommendedPreview.map((p) => {
+            const ov = bookmarkOverrides[Number(p.id)];
+            return (
+              <ProjectSm
+                key={p.id}
+                categoryLabel={p.categoryLabel}
+                deadlineLabel={p.deadlineLabel}
+                title={p.title}
+                location={p.location}
+                period={p.period}
+                mode={p.mode}
+                roles={p.roles}
+                bookmarked={ov?.bookmarked ?? false}
+                onBookmarkChange={(next) => handleBookmarkChange(Number(p.id), next, ov?.bookmarkId)}
+                onClick={() => handleProjectClick(p.id)}
+              />
+            );
+          })}
+        </div>
+      )}
 
       <div className="h-px w-full bg-card-border" />
 
