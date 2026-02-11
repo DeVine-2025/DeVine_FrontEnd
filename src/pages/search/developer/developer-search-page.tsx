@@ -7,53 +7,23 @@ import Pagination from '@components/common/Pagination';
 import ProfileCard from '@components/common/ProfileCard';
 import { useFilterStore } from '@store/filter';
 import type { BadgeTone } from '@t/badgeTone';
-import type { DeveloperSearchContentDto } from '@t/profileCard.types';
+import { DOMAIN_CODE_TO_LABEL, DOMAIN_LABEL_TO_CODE, ROLE_LABEL, ROLE_PRIORITY } from '@t/member';
+import type { DeveloperSearchContentDto, MemberSearchCategory } from '@t/profileCard.types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEVELOPER_FILTERS, PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 
-const ROLE_PRIORITY = ['FRONTEND', 'BACKEND', 'FULLSTACK', 'INFRA', 'DATA', 'MOBILE'] as const;
+type RoleCode = (typeof ROLE_PRIORITY)[number];
+type RoleKey = RoleCode | 'DEVELOPER';
 
-const pickRole = (roles: string[]) => {
+const pickRole = (roles: string[]): RoleKey => {
   for (const r of ROLE_PRIORITY) {
     if (roles.includes(r)) return r;
   }
-  return roles[0] ?? 'DEVELOPER';
+  return 'DEVELOPER';
 };
 
-const ROLE_LABEL: Record<string, string> = {
-  FRONTEND: '프론트엔드',
-  BACKEND: '백엔드',
-  FULLSTACK: '풀스택',
-  INFRA: '인프라',
-  DATA: '데이터',
-  MOBILE: '모바일',
-  DEVELOPER: '개발자',
-};
-
-const DOMAIN_LABEL_TO_CODE = {
-  헬스케어: 'HEALTHCARE',
-  핀테크: 'FINTECH',
-  이커머스: 'ECOMMERCE',
-  교육: 'EDUCATION',
-  '소셜/커뮤니티': 'SOCIAL',
-  엔터테인먼트: 'ENTERTAINMENT',
-  'AI/데이터': 'AI_DATA',
-  기타: 'ETC',
-} as const;
-
-const DOMAIN_CODE_TO_LABEL: Record<string, string> = {
-  HEALTHCARE: '헬스케어',
-  FINTECH: '핀테크',
-  ECOMMERCE: '이커머스',
-  EDUCATION: '교육',
-  SOCIAL: '소셜/커뮤니티',
-  ENTERTAINMENT: '엔터테인먼트',
-  AI_DATA: 'AI/데이터',
-  ETC: '기타',
-};
-
-type MemberSearchCategory = (typeof DOMAIN_LABEL_TO_CODE)[keyof typeof DOMAIN_LABEL_TO_CODE];
+const isMemberSearchCategory = (v: string): v is MemberSearchCategory => v in DOMAIN_CODE_TO_LABEL;
 
 const DeveloperSearchPage = () => {
   const navigate = useNavigate();
@@ -76,8 +46,12 @@ const DeveloperSearchPage = () => {
   const listTopRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    void interestDomains;
+    void techStacks;
+    void myProjects;
+
     setPage(1);
-  }, [interestDomains, myProjects, techStacks]);
+  }, [interestDomains, techStacks, myProjects]);
 
   useEffect(() => {
     if (page <= 0) return;
@@ -98,7 +72,7 @@ const DeveloperSearchPage = () => {
       page,
       size,
       categories,
-      techstackNames: techStacks,
+      techNames: techStacks,
     }),
     [page, categories, techStacks],
   );
@@ -181,7 +155,7 @@ const DeveloperSearchPage = () => {
 
         badges: (x.domains ?? []).map((d, i) => ({
           id: `d-${index}-${i}`,
-          label: DOMAIN_CODE_TO_LABEL[d] ?? d,
+          label: isMemberSearchCategory(d) ? DOMAIN_CODE_TO_LABEL[d] : d,
           tone: 'gray' as BadgeTone,
         })),
 

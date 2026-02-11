@@ -8,7 +8,6 @@ import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getRecommendMembers, type GetRecommendMembersParams, type RecommendDeveloperListItem } from '@apis/members';
 import { getMyRecruitingProjects } from '@apis/projects';
 
-/** 추천 개발자 페이지: 내 프로젝트 선택만 노출 (포지션/기술스택, 관심 도메인 제외) */
 const RECOMMEND_DEVELOPER_FILTERS = ['내 프로젝트 선택'] as const;
 
 type MyProjectOption = { id: number; name: string };
@@ -35,9 +34,7 @@ function readMyProjectsCache(): MyProjectOption[] {
 function writeMyProjectsCache(options: MyProjectOption[]) {
   try {
     localStorage.setItem(MY_PROJECTS_CACHE_KEY, JSON.stringify(options));
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 function buildApiParams(
@@ -146,13 +143,17 @@ const RecommendDeveloperPage = () => {
         if (cancelled) return;
         const uniqById = Array.from(new Map(projects.map((p) => [p.projectId, p])).values());
         const seenCounts: Record<string, number> = {};
-        const next: MyProjectOption[] = uniqById.map((p) => {
+        const fromApi: MyProjectOption[] = uniqById.map((p) => {
           const base = (p.title ?? '').trim() || `프로젝트 ${p.projectId}`;
           seenCounts[base] = (seenCounts[base] ?? 0) + 1;
           const n = seenCounts[base];
           const label = n > 1 ? `${base} (${n})` : base;
           return { id: p.projectId, name: label };
         });
+        const cached = readMyProjectsCache();
+        const apiIds = new Set(fromApi.map((p) => p.id));
+        const onlyInCache = cached.filter((p) => !apiIds.has(p.id));
+        const next = onlyInCache.length > 0 ? [...onlyInCache, ...fromApi] : fromApi;
         if (next.length > 0) {
           lastLoadedProjectOptionsRef.current = next;
           setMyProjectOptions(next);
@@ -173,7 +174,6 @@ const RecommendDeveloperPage = () => {
     };
   }, [getToken]);
 
-  // 디폴트: 가장 최근에 만든 프로젝트 1개 선택 (API 목록 순서 = 최신 순 가정)
   useEffect(() => {
     if (myProjectOptionsLoading) return;
     if (myProjectOptions.length === 0) return;

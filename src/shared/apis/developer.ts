@@ -23,7 +23,7 @@ export async function getDevelopers(
         });
 
   const queryString = qs.startsWith('?') ? qs : `?${qs}`;
-  console.log('REQUEST =>', `${BASE_URL}/api/v1/members/search${queryString}`);
+  // console.log('REQUEST =>', `${BASE_URL}/api/v1/members/search${queryString}`);
 
   const res = await fetch(`${BASE_URL}/api/v1/members/search${queryString}`, {
     method: 'GET',

@@ -22,7 +22,7 @@ export interface MyProfile {
   techStacks?: string[];
 }
 
-export interface GitRepoRequest {
+export interface GitRepoRequest{
   page: number;
   size: number;
 }
@@ -54,8 +54,8 @@ export interface UpdateProfileRequest {
   disclosure: boolean;
 }
 
-export interface MyProfileResponse extends ApiResponse<MyProfile> { }
-export interface MyReposResponse extends ApiResponse<{
+export interface MyProfileResponse extends ApiResponse<MyProfile> {}
+export interface MyReposResponse extends ApiResponse<{ 
   repos: GitRepo[];
   page: number;
   totalPages: number;
