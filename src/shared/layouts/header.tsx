@@ -22,7 +22,6 @@ import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
 import {
   SignedIn,
   SignedOut,
-  UserButton,
   useAuth as useClerkAuth,
   useUser,
 } from '@clerk/clerk-react';
@@ -381,23 +380,18 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                 내 정보
               </Link>
 
-              <div className="relative">
-                {profileImageUrl && (
-                  <img
-                    src={profileImageUrl}
-                    alt="프로필"
-                    className="pointer-events-none absolute inset-0 h-[2.7rem] w-[2.7rem] rounded-full object-cover"
-                  />
-                )}
-                <UserButton
-                  appearance={{
-                    elements: {
-                      avatarBox: '!w-[2.7rem] !h-[2.7rem] !rounded-full',
-                      avatarImage: profileImageUrl ? '!opacity-0' : '',
-                    },
-                  }}
+              <button
+                type="button"
+                onClick={() => navigate('/my-info')}
+                className="relative h-[2.7rem] w-[2.7rem] shrink-0 cursor-pointer overflow-hidden rounded-full -translate-y-[0.15rem]"
+                aria-label="내 정보 페이지로 이동"
+              >
+                <img
+                  src={profileImageUrl || clerkUser?.imageUrl}
+                  alt="프로필"
+                  className="h-full w-full rounded-full object-cover"
                 />
-              </div>
+              </button>
             </SignedIn>
 
             <SignedOut>
