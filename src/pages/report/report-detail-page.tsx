@@ -24,12 +24,12 @@ const ReportDetailPage = () => {
     if (type === 'MAIN') {
       const res = await reportQueries.main({ gitRepoId, token }).queryFn();
       if (!res) throw new Error('MAIN report not found');
-      return res;
+      return res as Report;
     }
 
     const res = await reportQueries.detail({ gitRepoId, token }).queryFn();
     if (!res) throw new Error('DETAIL report not found');
-    return res;
+    return res as Report;
   };
 
 

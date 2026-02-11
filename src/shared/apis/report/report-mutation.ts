@@ -19,6 +19,6 @@ export const useCreateReportMutation = () => {
 export const usePatchReportVisibility = () => {
   return useMutation({
     mutationFn: ({ reportId }: ReportPatchVisibilityRequest) =>
-      patchReportVisibility(reportId)
+      patchReportVisibility({ reportId })
   })
 }
