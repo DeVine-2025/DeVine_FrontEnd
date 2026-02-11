@@ -23,16 +23,21 @@ const ReportDetailPage = () => {
       const token = await getToken();
       if (!token) throw new Error('No token');
 
+      let res;
+
       if (type === 'MAIN') {
-        return reportQueries.main({ gitRepoId, token }).queryFn();
+        res = await reportQueries.main({ gitRepoId, token }).queryFn();
+      } else {
+        res = await reportQueries.detail({ gitRepoId, token }).queryFn();
       }
 
-      return reportQueries.detail({ gitRepoId, token }).queryFn();
+      if (!res) throw new Error('Report not found'); // 🔥 중요
+
+      return res;
     },
     enabled: !!gitRepoId && !!type,
   });
 
-  console.log(report);
 
   return (
     <div className="w-full max-w-[900px] mx-auto flex flex-col gap-10">
