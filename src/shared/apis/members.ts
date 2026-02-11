@@ -104,7 +104,12 @@ export async function getRecommendDevelopersPreview(
     const techstacks = (item.techstacks ?? [])
       .map((v) => {
         if (typeof v === 'string') return v;
-        return (v as { name?: string; techstack?: string; techStackName?: string })?.name ?? (v as { techstack?: string })?.techstack ?? (v as { techStackName?: string })?.techStackName ?? '';
+        return (
+          (v as { name?: string; techstack?: string; techStackName?: string })?.name ??
+          (v as { techstack?: string })?.techstack ??
+          (v as { techStackName?: string })?.techStackName ??
+          ''
+        );
       })
       .filter((v) => String(v).trim().length > 0);
     return {
@@ -158,13 +163,7 @@ export async function getMyProjects(token: string, signal?: AbortSignal): Promis
     if (Array.isArray(v)) return v as MyProjectDto[];
     if (typeof v === 'object') {
       const obj = v as Record<string, unknown>;
-      const candidates = [
-        obj.projects,
-        obj.projectList,
-        obj.myProjects,
-        obj.list,
-        obj.items,
-      ];
+      const candidates = [obj.projects, obj.projectList, obj.myProjects, obj.list, obj.items];
       for (const c of candidates) {
         if (Array.isArray(c)) return c as MyProjectDto[];
       }
@@ -298,13 +297,24 @@ export type RecommendDeveloperListItem = {
   bookmarkId?: number;
 };
 
-function mapRecommendMemberToListItem(dto: RecommendMemberDto, index: number): RecommendDeveloperListItem {
+function mapRecommendMemberToListItem(
+  dto: RecommendMemberDto,
+  index: number,
+): RecommendDeveloperListItem {
   const raw = dto as Record<string, unknown>;
   const memberId =
     (typeof dto.memberId === 'number' && dto.memberId > 0 ? dto.memberId : undefined) ??
     (typeof dto.id === 'number' && dto.id > 0 ? dto.id : undefined) ??
     extractMemberId(raw);
-  const nickname = pickString(raw, 'nickname', 'nickName', 'name', 'userName', 'username', 'displayName');
+  const nickname = pickString(
+    raw,
+    'nickname',
+    'nickName',
+    'name',
+    'userName',
+    'username',
+    'displayName',
+  );
   const introduction = pickString(raw, 'body', 'introduction', 'intro', 'bio', 'description');
   const profileImageUrl = pickImageUrl(raw);
   const techStack = (() => {
@@ -312,9 +322,12 @@ function mapRecommendMemberToListItem(dto: RecommendMemberDto, index: number): R
     let arr: unknown[] = [];
     if (Array.isArray(raw.techstacks) && raw.techstacks.length > 0) arr = raw.techstacks;
     else if (Array.isArray(raw.techStacks) && raw.techStacks.length > 0) arr = raw.techStacks;
-    else if (Array.isArray(raw.matchedTechstacks) && raw.matchedTechstacks.length > 0) arr = raw.matchedTechstacks;
-    else if (Array.isArray(raw.techstackNames) && raw.techstackNames.length > 0) arr = raw.techstackNames;
-    else if (Array.isArray(raw.techStackNames) && raw.techStackNames.length > 0) arr = raw.techStackNames;
+    else if (Array.isArray(raw.matchedTechstacks) && raw.matchedTechstacks.length > 0)
+      arr = raw.matchedTechstacks;
+    else if (Array.isArray(raw.techstackNames) && raw.techstackNames.length > 0)
+      arr = raw.techstackNames;
+    else if (Array.isArray(raw.techStackNames) && raw.techStackNames.length > 0)
+      arr = raw.techStackNames;
     else if (Array.isArray(raw.skills) && raw.skills.length > 0) arr = raw.skills;
     else {
       for (const nest of ['member', 'user', 'profile', 'developer']) {
@@ -346,7 +359,13 @@ function mapRecommendMemberToListItem(dto: RecommendMemberDto, index: number): R
         } else if (item != null && typeof item === 'object') {
           const o = item as Record<string, unknown>;
           const n =
-            o.name ?? o.techstack ?? o.techstackName ?? o.techStackName ?? o.skillName ?? o.label ?? o.displayName;
+            o.name ??
+            o.techstack ??
+            o.techstackName ??
+            o.techStackName ??
+            o.skillName ??
+            o.label ??
+            o.displayName;
           name = typeof n === 'string' ? n.trim() : String(item ?? '').trim();
         } else {
           name = String(item ?? '').trim();
@@ -384,17 +403,25 @@ function mapRecommendMemberToListItem(dto: RecommendMemberDto, index: number): R
           }
         }
       }
-      return arr.map((item) => {
-        const label =
-          typeof item === 'string'
-            ? item.trim()
-            : item != null && typeof item === 'object' && 'label' in item && typeof (item as { label: unknown }).label === 'string'
-              ? (item as { label: string }).label.trim()
-              : item != null && typeof item === 'object' && 'name' in item && typeof (item as { name: unknown }).name === 'string'
-                ? (item as { name: string }).name.trim()
-                : '';
-        return { label };
-      }).filter((d) => d.label.length > 0);
+      return arr
+        .map((item) => {
+          const label =
+            typeof item === 'string'
+              ? item.trim()
+              : item != null &&
+                  typeof item === 'object' &&
+                  'label' in item &&
+                  typeof (item as { label: unknown }).label === 'string'
+                ? (item as { label: string }).label.trim()
+                : item != null &&
+                    typeof item === 'object' &&
+                    'name' in item &&
+                    typeof (item as { name: unknown }).name === 'string'
+                  ? (item as { name: string }).name.trim()
+                  : '';
+          return { label };
+        })
+        .filter((d) => d.label.length > 0);
     })(),
     bookmarked: dto.bookmarked,
     bookmarkId: dto.bookmarkId,
@@ -440,7 +467,15 @@ export async function getRecommendMembers(
     console.error('[추천 개발자 API] 요청 실패', {
       url,
       status: res.status,
-      params: { projectId: params?.projectId, projectIds: params?.projectIds, category: params?.category, techGenre: params?.techGenre, techstackName: params?.techstackName, page: params?.page, size: params?.size },
+      params: {
+        projectId: params?.projectId,
+        projectIds: params?.projectIds,
+        category: params?.category,
+        techGenre: params?.techGenre,
+        techstackName: params?.techstackName,
+        page: params?.page,
+        size: params?.size,
+      },
       responseBody: json,
     });
     const message =

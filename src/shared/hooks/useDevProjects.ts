@@ -48,8 +48,6 @@ async function fetchDevProjects(args: { endpoint: string; token: string; signal?
     projects: Page<MatchingProject>;
   }>;
 
-  console.log(json);
-
   return json.result.projects;
 }
 
@@ -61,11 +59,6 @@ export function useDevProjects(tab: DevTab) {
     queryKey: ['dev-projects', tab],
     queryFn: async ({ signal }) => {
       const token = await getToken();
-
-      console.log('endpoint:', endpoint);
-      console.log(token);
-
-      console.log('token exists:', Boolean(token));
       if (!token) throw new Error('No auth token');
       return fetchDevProjects({ endpoint, token, signal });
     },

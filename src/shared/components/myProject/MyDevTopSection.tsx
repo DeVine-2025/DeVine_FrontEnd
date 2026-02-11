@@ -69,6 +69,7 @@ const AppliedBadge = ({ decision }: { decision?: string }) => {
 const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
   const navigate = useNavigate();
   const { data, isLoading, isError } = useDevProjects(devTab);
+  // console.log(data);
 
   const handleProjectClick = (projectId: number) => {
     navigate(`/project/${projectId}`);
