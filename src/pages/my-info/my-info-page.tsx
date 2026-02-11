@@ -1,4 +1,5 @@
 import { cn } from '@libs/cn';
+import {useAuth} from '@clerk/clerk-react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 type MenuItem = {
@@ -17,6 +18,8 @@ const MyInfoPage = () => {
   const location = useLocation();
 
   const currentPath = location.pathname;
+
+  const {signOut} = useAuth();
 
   return (
     <div className="flex">
@@ -59,7 +62,10 @@ const MyInfoPage = () => {
               <hr className="border-ui-400" />
             </li>
 
-            <li className="cursor-pointer hover:text-ui-900 text-ui-400">
+            <li className="cursor-pointer hover:text-ui-900 text-ui-400" onClick={() => {
+              signOut();
+              navigate('/')
+            }}>
               로그아웃
             </li>
           </ul>

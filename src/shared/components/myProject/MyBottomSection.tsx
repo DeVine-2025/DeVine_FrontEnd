@@ -2,11 +2,8 @@ import Tabs from '@components/tab/CommonTabs';
 import MainProjectCard from '@components/common/MainProjectCard';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  PROJECT_ROLES,
-  RECOMMENDED_PROJECTS,
-  type RecommendedProject,
-} from 'src/mocks/project.mock';
+import { useQuery } from '@tanstack/react-query';
+import { projectQueries } from '@apis/project/project-queries';
 
 export type ProjectTab = 'ongoing' | 'done';
 
@@ -16,11 +13,19 @@ type Props = {
 };
 
 const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
-  const highlightProjects = useMemo(() => RECOMMENDED_PROJECTS.slice(0, 4), []);
   const navigate = useNavigate();
+  
+  const { data: inProgressData } = useQuery(projectQueries.getMYProjectInprogress());
+  const { data: completedData } = useQuery(projectQueries.getMYProjectCompleted());
 
-  const handleProjectClick = (project: RecommendedProject) => {
-    navigate(`/project/${project.id}`);
+  const currentProjects = useMemo(() => {
+    const data = projectTab === 'ongoing' ? inProgressData : completedData;
+    const projects = data?.result?.projects?.content || [];
+    return projects;
+  }, [projectTab, inProgressData, completedData]);
+
+  const handleProjectClick = (projectId: number) => {
+    navigate(`/project/${projectId}`);
   };
 
   return (
@@ -37,20 +42,27 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
       </div>
 
       <div className="mt-6 gap-[1.6rem] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {highlightProjects.map((project) => (
-          <MainProjectCard
-            key={project.id}
-            categoryLabel={project.categoryLabel}
-            deadlineLabel={project.deadlineLabel}
-            title={project.title}
-            location={project.location}
-            period={project.period}
-            mode={project.mode}
-            roles={[...PROJECT_ROLES]}
-            bookmarked={project.bookmarked}
-            onClick={() => handleProjectClick(project)}
-          />
-        ))}
+        {currentProjects.length > 0 ? (
+          currentProjects.map((project: any) => (
+            <MainProjectCard
+              key={project.projectId}
+              categoryLabel={project.projectField}
+              deadlineLabel={project.category?.name}
+              title={project.title}
+              location={project.location}
+              period={project.durationRange}
+              mode={project.mode}
+              thumbnailUrl={project.imageUrls?.[0]}
+              onClick={() => handleProjectClick(project.projectId)}
+            />
+          ))
+        ) : (
+          <div className="col-span-full flex items-center justify-center py-12">
+            <p className="text-ui-400 text-lg">
+              {projectTab === 'ongoing' ? '진행 중인 프로젝트가 없습니다.' : '완료된 프로젝트가 없습니다.'}
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

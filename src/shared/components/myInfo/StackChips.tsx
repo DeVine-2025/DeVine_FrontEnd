@@ -1,33 +1,5 @@
-import CancelIcon from "@assets/icons/cancel.svg?react";
-
-const stackIconByName: Record<string, string> = {
-  JavaScript: 'https://skillicons.dev/icons?i=js',
-  TypeScript: 'https://skillicons.dev/icons?i=ts',
-  React: 'https://skillicons.dev/icons?i=react',
-  Vuejs: 'https://skillicons.dev/icons?i=vue',
-  Nextjs: 'https://skillicons.dev/icons?i=nextjs',
-  Svelte: 'https://skillicons.dev/icons?i=svelte',
-  ReactNative: 'https://skillicons.dev/icons?i=react',
-  Flutter: 'https://skillicons.dev/icons?i=flutter',
-  Kotlin: 'https://skillicons.dev/icons?i=kotlin',
-  Swift: 'https://skillicons.dev/icons?i=swift',
-  Java: 'https://skillicons.dev/icons?i=java',
-  Python: 'https://skillicons.dev/icons?i=python',
-  C: 'https://skillicons.dev/icons?i=c',
-  'C++': 'https://skillicons.dev/icons?i=cpp',
-  Php: 'https://skillicons.dev/icons?i=php',
-  Springboot: 'https://skillicons.dev/icons?i=spring',
-  Nodejs: 'https://skillicons.dev/icons?i=nodejs',
-  Express: 'https://skillicons.dev/icons?i=express',
-  Nestjs: 'https://skillicons.dev/icons?i=nestjs',
-  Django: 'https://skillicons.dev/icons?i=django',
-  MongoDB: 'https://skillicons.dev/icons?i=mongodb',
-  MySQL: 'https://skillicons.dev/icons?i=mysql',
-  AWS: 'https://skillicons.dev/icons?i=aws',
-  Firebase: 'https://skillicons.dev/icons?i=firebase',
-  Docker: 'https://skillicons.dev/icons?i=docker',
-  Kubernetes: 'https://skillicons.dev/icons?i=kubernetes',
-};
+import { getTechBadgeByName, TECH_STACK_LABEL_BY_KEY } from '@constants/position-tech-stack';
+import { useThemeStore } from '@store/theme';
 
 type StackChipsProps = {
   stacks: string[];
@@ -35,37 +7,42 @@ type StackChipsProps = {
 };
 
 const StackChips = ({ stacks, onRemove }: StackChipsProps) => {
+  const { theme } = useThemeStore();
+
+  const removeStack = (key: string) => {
+    onRemove?.(key);
+  };
+
   return (
     <div className="flex flex-wrap gap-2">
-      {stacks.map((stack) => {
-        const iconSrc = stackIconByName[stack];
+      {stacks.map((key) => {
+        const label = TECH_STACK_LABEL_BY_KEY[key] ?? key;
+        const badge = getTechBadgeByName(label);
+        const iconSrc = badge && 'off' in badge && 'on' in badge 
+          ? (theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off) 
+          : undefined;
 
         return (
-          <div
-            key={stack}
-            className="flex items-center gap-[0.8rem] rounded-full bg-ui-100 border border-ui-200 px-[1.2rem] py-[0.8rem]"
+          <button 
+            key={key} 
+            type="button" 
+            onClick={() => removeStack(key)} 
+            className="relative inline-flex items-center"
           >
-            {iconSrc && (
-              <img
-                src={iconSrc}
-                alt={`${stack} 로고`}
-                className="h-5 w-5"
-                loading="lazy"
-              />
+            {iconSrc ? (
+              <img src={iconSrc} alt={`${label} 배지`} className="h-[32px] w-auto" loading="lazy" />
+            ) : (
+              <div className="inline-flex h-[32px] items-center gap-[8px] rounded-[24px] px-[12px] py-[6px] bg-[var(--ui-100)] ring-[1.5px] ring-[var(--ui-200)]">
+                <span className="Caption1 font-medium text-[var(--ui-800)]">{label}</span>
+              </div>
             )}
-
-            <span className="text-l font-semibold text-ui-800">
-              {stack}
-            </span>
-
-            <button
-              type="button"
-              onClick={() => onRemove?.(stack)}
-              className="flex items-center justify-center rounded-full hover:bg-[var(--ui-200)]"
+            <span
+              aria-hidden
+              className="absolute -right-[4px] -top-[4px] flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--ui-50)] text-[11px] text-[var(--ui-400)]"
             >
-              <CancelIcon className="h-3 w-3 text-badge-text-gray" />
-            </button>
-          </div>
+              ×
+            </span>
+          </button>
         );
       })}
     </div>
