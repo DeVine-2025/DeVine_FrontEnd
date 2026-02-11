@@ -1,6 +1,7 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import LoginRequiredCard from '@components/common/LoginRequiredCard';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
@@ -463,22 +464,7 @@ const MainPage = () => {
 
           {!isLoggedIn && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-[210px] w-[400px] flex-col items-start gap-7 rounded-2xl border border-card-border bg-card-bg p-11 text-left shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
-                <div className="flex flex-col gap-2">
-                  <span className="font-semibold text-[21px] text-card-title">
-                    로그인이 필요해요
-                  </span>
-                  <span className="text-[15px] text-card-muted">
-                    {loginCtaLabel}
-                  </span>
-                </div>
-                <Link
-                  to="/login"
-                  className="inline-flex h-[52px] w-full items-center justify-center rounded-2xl bg-[#4E49FF] font-semibold text-[18px] text-white"
-                >
-                  로그인하기
-                </Link>
-              </div>
+              <LoginRequiredCard description={loginCtaLabel ?? '나에게 딱 맞는 추천 프로젝트/개발자를 보려면 로그인해 주세요.'} />
             </div>
           )}
         </div>

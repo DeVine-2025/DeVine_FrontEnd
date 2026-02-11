@@ -1,0 +1,6 @@
+<svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 흰색 원: style로 고정해 부모 색상에 덮이지 않도록 함 -->
+  <circle cx="17" cy="17" r="16" style="fill:#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+  <!-- 더하기(+) 아이콘 -->
+  <path d="M17 9v16M9 17h16" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+</svg>
