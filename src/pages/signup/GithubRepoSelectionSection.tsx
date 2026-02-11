@@ -39,8 +39,9 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
   const [mainReport, setMainReport] = useState<ReportCardData | null>(null);
   const [detailReport, setDetailReport] = useState<ReportCardData | null>(null);
   const { getToken } = useAuth();
-  const { setNavLocked } = useOutletContext<RootLayoutOutletContext>();
+  const { setNavLocked, setLogoClickHandler } = useOutletContext<RootLayoutOutletContext>();
   const navigate = useNavigate();
+  const [isWaitModalOpen, setIsWaitModalOpen] = useState(false);
 
   const tips = [
     {
@@ -141,6 +142,11 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
   }, [phase, setNavLocked]);
 
   useEffect(() => {
+    setLogoClickHandler(() => () => setIsWaitModalOpen(true));
+    return () => setLogoClickHandler(null);
+  }, [setLogoClickHandler]);
+
+  useEffect(() => {
     let isActive = true;
     setIsLoading(true);
     setLoadError(null);
@@ -176,13 +182,13 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
 
   if (phase === 'generating') {
     return (
-    <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col items-center justify-start pt-[32px] text-center">
+    <div className="mx-auto flex h-[660px] w-full max-w-[632px] -translate-y-12 flex-col items-center justify-start pt-0 text-center">
         <div className="flex flex-col items-center gap-3">
-          <Lottie animationData={reportAnimation} loop className="h-[340px] w-[340px]" />
-          <h2 className="-mt-28 text-[24px] font-semibold text-[var(--ui-1000)]">
+          <Lottie animationData={reportAnimation} loop className="-mt-20 h-[550px] w-[550px]" />
+          <h2 className="-mt-74 text-[24px] font-semibold text-[var(--ui-1000)]">
             리포트를 생성하는 중이에요
           </h2>
-          <div className="mt-10 flex flex-col items-center gap-3">
+          <div className="mt-12 flex flex-col items-center gap-3">
             <span className="inline-flex items-center rounded-full bg-[var(--badge-bg-primary)] px-4 py-2 text-[13px] font-semibold text-[var(--badge-text-primary)]">
               TIP
             </span>
@@ -232,7 +238,8 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
   }
 
   return (
-    <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] px-10 pb-20 pt-10 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
+    <>
+      <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] px-10 pb-20 pt-10 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
       <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-2 text-[var(--ui-1000)]">
           <h2 className="Heading2 font-semibold">리포트를 생설할 <br/>레포지토리를 선택해주세요</h2>
@@ -281,35 +288,58 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
                   <button
                     type="button"
                     onClick={() => navigate('/')}
-                    className="Body1 h-[40px] rounded-lg bg-[var(--color-primary)] px-4 font-semibold text-white"
-                  >
+                    className="Body1 h-[48px] w-full rounded-xl font-semibold bg-[var(--color-primary)] text-white"                  >
                     메인으로 가기
                   </button>
                 </div>
+                
               )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-auto mb-24 flex flex-col gap-3">
-        <button
-          type="button"
-          disabled={!canProceed || createReportMutation.isPending}
-          onClick={handleGenerate}
-          className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
-            canProceed
-              ? 'bg-[var(--color-primary)] text-white'
-              : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
-          }`}
-        >
-          {createReportMutation.isPending ? '리포트 생성 중...' : '선택 완료'}
-        </button>
-        <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
-          돌아가기
-        </button>
+      {repoOptions.length > 0 && (
+        <div className="mt-auto mb-24 flex flex-col gap-3">
+          <button
+            type="button"
+            disabled={!canProceed || createReportMutation.isPending}
+            onClick={handleGenerate}
+            className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
+              canProceed
+                ? 'bg-[var(--color-primary)] text-white'
+                : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
+            }`}
+          >
+            {createReportMutation.isPending ? '리포트 생성 중...' : '선택 완료'}
+          </button>
+          <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
+            돌아가기
+          </button>
+        </div>
+      )}
       </div>
-    </div>
+
+      {isWaitModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">
+          <div className="w-full max-w-[360px] rounded-[24px] bg-[var(--ui-bg)] px-8 pb-8 pt-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
+            <h2 className="text-[18px] font-semibold text-[var(--ui-900)]">
+              리포트 제작 중이에요
+            </h2>
+            <p className="mt-2 text-[13px] text-[var(--ui-400)]">
+              제작이 끝날 때까지 잠시만 기다려 주세요.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsWaitModalOpen(false)}
+              className="mt-6 h-[48px] w-full rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

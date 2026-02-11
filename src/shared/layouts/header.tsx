@@ -18,9 +18,16 @@ import ModeDarkHoverIcon from '@assets/icons/mode-dark-hover.svg?react';
 import ModeLightIcon from '@assets/icons/mode-light.svg?react';
 import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
 import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
-import { SignedIn, SignedOut, UserButton, useAuth as useClerkAuth } from '@clerk/clerk-react';
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  useAuth as useClerkAuth,
+  useUser,
+} from '@clerk/clerk-react';
 import NotificationModal from '@components/common/NotificationModal';
 import { useThemeStore } from '@store/theme';
+import { getProfileImageKey, getStoredProfileImageUrl } from '@utils/storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/shared/auth/useAuth';
@@ -32,15 +39,19 @@ type HeaderProps = {
 
 const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const { theme, toggleTheme } = useThemeStore();
-  const { isAuthed, user, setDevAuthed } = useAuth();
+  const { isAuthed, user: devUser, setDevAuthed } = useAuth();
   const { getToken } = useClerkAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notificationPage, setNotificationPage] = useState(0);
+  const [hasNextNotifications, setHasNextNotifications] = useState(false);
+  const [loadingMoreNotifications, setLoadingMoreNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const { user: clerkUser } = useUser();
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
 
   const fetchUnreadCount = useCallback(() => {
@@ -61,7 +72,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   useEffect(() => {
     const syncProfileImage = () => {
       try {
-        const stored = localStorage.getItem('profile_image_url');
+        const stored = getStoredProfileImageUrl(clerkUser?.id ?? null);
         setProfileImageUrl(stored && stored.trim().length > 0 ? stored : null);
       } catch {
         setProfileImageUrl(null);
@@ -71,7 +82,9 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
     syncProfileImage();
 
     const handleStorage = (event: StorageEvent) => {
-      if (event.key === 'profile_image_url') {
+      const userKey = getProfileImageKey(clerkUser?.id ?? null);
+      const legacyKey = getProfileImageKey();
+      if (event.key === userKey || event.key === legacyKey) {
         syncProfileImage();
       }
     };
@@ -84,7 +97,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('profile-image-updated', handleProfileUpdate as EventListener);
     };
-  }, []);
+  }, [clerkUser?.id]);
 
   useEffect(() => {
     fetchUnreadCount();
@@ -102,17 +115,43 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
       .then((result) => {
         if (result && !cancelled) {
           setNotifications(result.notifications);
-          console.log('[알림] 목록 조회 성공', result.notifications.length, '건', result.notifications);
+          setNotificationPage(0);
+          setHasNextNotifications(result.hasNext);
+          console.log('[알림] 목록 조회 성공', result.notifications.length, '건', result.hasNext ? '(다음 페이지 있음)' : '');
         }
       })
       .catch((e) => {
-        if (!cancelled) setNotifications([]);
+        if (!cancelled) {
+          setNotifications([]);
+          setHasNextNotifications(false);
+        }
         console.warn('[알림] 목록 조회 실패', e);
       });
     return () => {
       cancelled = true;
     };
   }, [isNotificationOpen, getToken]);
+
+  const loadMoreNotifications = useCallback(() => {
+    if (loadingMoreNotifications || !hasNextNotifications) return;
+    setLoadingMoreNotifications(true);
+    const pageToLoad = notificationPage + 1;
+    getToken()
+      .then((token) => {
+        if (!token) return;
+        return getNotifications(token, { page: pageToLoad, size: 20 });
+      })
+      .then((result) => {
+        if (result) {
+          setNotifications((prev) => [...prev, ...result.notifications]);
+          setHasNextNotifications(result.hasNext);
+          setNotificationPage(pageToLoad);
+          console.log('[알림] 더 보기 성공', result.notifications.length, '건 추가');
+        }
+      })
+      .catch((e) => console.warn('[알림] 더 보기 실패', e))
+      .finally(() => setLoadingMoreNotifications(false));
+  }, [getToken, notificationPage, hasNextNotifications, loadingMoreNotifications]);
 
   const handleMarkAsRead = (notificationId: string) => {
     getToken().then((token) => {
@@ -406,6 +445,9 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
         notifications={notifications}
         onMarkAsRead={handleMarkAsRead}
         onMarkAllAsRead={handleMarkAllAsRead}
+        hasMore={hasNextNotifications}
+        onLoadMore={loadMoreNotifications}
+        loadingMore={loadingMoreNotifications}
       />
     </>
   );

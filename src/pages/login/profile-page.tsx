@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
+import { useUser } from '@clerk/clerk-react';
 import { getCategoryIdsByLabels } from '@constants/signup-mapping';
 import { useAuthStore } from '@store/auth';
+import { getStoredUserRole } from '@utils/storage';
 
 type ProfilePageProps = {
   onBack: () => void;
@@ -30,12 +32,12 @@ const domainOptions = [
   'AI/데이터',
 ];
 
-const USER_ROLE_KEY = 'userRole';
-
 const ProfilePage = ({ onBack, onNext, initialRole = null, initialDomains = [] }: ProfilePageProps) => {
   const setAuthRole = useAuthStore((state) => state.setRole);
+  const { user } = useUser();
+  const storedRole = getStoredUserRole(user?.id ?? null) as 'pm' | 'dev' | null;
   const [role, setRole] = useState<'pm' | 'dev' | null>(
-    initialRole ?? (localStorage.getItem(USER_ROLE_KEY) as 'pm' | 'dev' | null) ?? 'pm',
+    initialRole ?? storedRole ?? 'pm',
   );
   const [domains, setDomains] = useState<string[]>(initialDomains);
 

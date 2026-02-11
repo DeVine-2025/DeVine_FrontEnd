@@ -1,6 +1,7 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import LoginRequiredCard from '@components/common/LoginRequiredCard';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
@@ -88,14 +89,14 @@ const MainPage = () => {
   const isLoggedIn = Boolean(isSignedIn);
   const isPm = userRole === 'pm';
   const isDev = userRole === 'dev';
+  const isDevOrUnknown = isDev || userRole == null;
   const [weeklyProjects, setWeeklyProjects] = useState<HighlightProject[]>([]);
   const fallbackRoles = useMemo(() => PROJECT_ROLES.map((role) => ({ ...role })), []);
   const [recommendedDevelopers, setRecommendedDevelopers] = useState<MainRecommendDeveloper[]>(
     PROFILE_CARD_LIST.slice(0, 3).map((d) => ({ ...d, bookmarkId: undefined })),
   );
-  const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>(
-    PROJECT_LIST.slice(0, 3),
-  );
+  const [isDeveloperPreviewEmpty, setIsDeveloperPreviewEmpty] = useState(false);
+  const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>([]);
   const [projectBookmarkMap, setProjectBookmarkMap] = useState<Record<number, number>>({});
   const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<number, number>>({});
 
@@ -250,6 +251,12 @@ const MainPage = () => {
         if (!token || !isActive) return;
         const result = await getRecommendDevelopersPreview(3, token);
         if (!isActive) return;
+        if (result.length === 0) {
+          setIsDeveloperPreviewEmpty(true);
+          setRecommendedDevelopers([]);
+          return;
+        }
+        setIsDeveloperPreviewEmpty(false);
         const mapped = result.map((d, index) => ({
           id: `member-preview-${index}-${d.nickname}`,
           memberId: d.memberId,
@@ -266,6 +273,7 @@ const MainPage = () => {
         setRecommendedDevelopers(mapped);
       } catch {
         if (isActive) {
+          setIsDeveloperPreviewEmpty(false);
           setRecommendedDevelopers(PROFILE_CARD_LIST.slice(0, 3));
         }
       }
@@ -278,7 +286,7 @@ const MainPage = () => {
   }, [getToken, isLoggedIn, isPm]);
 
   useEffect(() => {
-    if (!isLoggedIn || userRole !== 'dev') return;
+    if (!isLoggedIn || !isDevOrUnknown) return;
     let isActive = true;
 
     const fetchRecommendedProjects = async () => {
@@ -307,9 +315,7 @@ const MainPage = () => {
         }));
         setRecommendedProjects(mapped);
       } catch {
-        if (isActive) {
-          setRecommendedProjects(PROJECT_LIST.slice(0, 3));
-        }
+        if (isActive) setRecommendedProjects([]);
       }
     };
 
@@ -317,7 +323,13 @@ const MainPage = () => {
     return () => {
       isActive = false;
     };
-  }, [getToken, isLoggedIn, isPm]);
+  }, [getToken, isLoggedIn, isDevOrUnknown]);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setRecommendedProjects(PROJECT_LIST.slice(0, 3));
+    }
+  }, [isLoggedIn]);
 
   const highlightProjects: HighlightProject[] = useMemo(() => {
     if (weeklyProjects.length > 0) {
@@ -373,7 +385,7 @@ const MainPage = () => {
         <h2 className="Heading2 pt-5 font-semibold text-card-title">
           이번주 모두가 주목하는 프로젝트
         </h2>
-        <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {highlightProjects.map((project) => (
             <MainProjectCard
               key={project.id}
@@ -405,8 +417,13 @@ const MainPage = () => {
               isLoggedIn ? '' : 'pointer-events-none select-none blur-sm'
             }`}
           >
-            {isPm
-              ? recommendedProfiles.map((profile) => (
+            {isPm ? (
+              isDeveloperPreviewEmpty ? (
+                <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
+                  나에게 딱 맞는 추천 개발자가 아직 없어요.
+                </div>
+              ) : (
+                recommendedProfiles.map((profile) => (
                   <RecommendDeveloperCard
                     key={profile.id}
                     role={profile.role}
@@ -425,7 +442,9 @@ const MainPage = () => {
                     matchedReason="의 Java/Springboot 요구사항과 일치합니다."
                   />
                 ))
-              : recommendedProjects.map((project) => (
+              )
+            ) : (
+              recommendedProjects.map((project) => (
                   (() => {
                     const targetId = Number(project.id);
                     const hasNumericId = Number.isFinite(targetId) && targetId > 0;
@@ -455,27 +474,13 @@ const MainPage = () => {
                   />
                     );
                   })()
-                ))}
+                ))
+            )}
           </div>
 
           {!isLoggedIn && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-[210px] w-[400px] flex-col items-start gap-7 rounded-2xl border border-card-border bg-card-bg p-11 text-left shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
-                <div className="flex flex-col gap-2">
-                  <span className="font-semibold text-[21px] text-card-title">
-                    로그인이 필요해요
-                  </span>
-                  <span className="text-[15px] text-card-muted">
-                    {loginCtaLabel}
-                  </span>
-                </div>
-                <Link
-                  to="/login"
-                  className="inline-flex h-[52px] w-full items-center justify-center rounded-2xl bg-[#4E49FF] font-semibold text-[18px] text-white"
-                >
-                  로그인하기
-                </Link>
-              </div>
+              <LoginRequiredCard description={loginCtaLabel ?? '나에게 딱 맞는 추천 프로젝트/개발자를 보려면 로그인해 주세요.'} />
             </div>
           )}
         </div>
