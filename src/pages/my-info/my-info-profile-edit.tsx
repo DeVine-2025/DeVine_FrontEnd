@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { cn } from '@libs/cn';
 
-import { DOMAIN_OPTIONS } from '@constants/domain';
+import { DOMAIN_OPTIONS, DOMAIN_MAP, DOMAIN_REVERSE_MAP } from '@constants/domain';
 
 import BackIcon from "@assets/icons/back.svg?react";
 import PlusNolineIcon from "@assets/icons/plus-noline.svg?react";
@@ -12,6 +12,13 @@ import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import ImagePreview from '@components/profileDetail/ImagePreview';
 import MyInfoInput from '@components/myInfo/MyInfoInput';
 import StackChips from '@components/myInfo/StackChips';
+import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { myInfoQueries, updateMyProfile } from '@apis/myInfo/myInfo-queries';
+import type { UpdateProfileRequest } from '@apis/myInfo/myInfo';
+import { createPresignedUrl, confirmImageUpload } from '@apis/image';
+import { useAuth } from '@clerk/clerk-react';
 
 
 type MyInfoProfileItemProps = {
@@ -34,18 +41,138 @@ const MyInfoProfileItem = ({ type, title, text, setText, placeholder, className 
 
 const MyInfoProfileEdit = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { getToken } = useAuth();
 
-  const [myInfo, setMyInfo] = useState({
-    nickname: "",
-    email: "",
-    linkedIn: "",
-    stack: [],
-    domain: []
+  // API로 프로필 정보 가져오기
+  const { data: profileData, isLoading } = useQuery(myInfoQueries.profile());
+  const { data: techStackData } = useQuery(myInfoQueries.getMyTechStacks());
+
+  // 상태 관리
+  const [nickname, setNickname] = useState<string>('');
+  const [introduction, setIntroduction] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [githubLink, setGithubLink] = useState<string>('');
+  const [address, setAddress] = useState<string>('');
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [domains, setDomains] = useState<string[]>([]);
+  const [stack, setStack] = useState<string[]>([]);
+  const [mainType, setMainType] = useState<'DEVELOPER' | 'PM'>('DEVELOPER');
+  const [disclosure, setDisclosure] = useState<boolean>(true);
+  const [isStackDropdownOpen, setIsStackDropdownOpen] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  
+  // 파일 입력 ref
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 원본 데이터 저장 (비교용)
+  const [originalData, setOriginalData] = useState({
+    nickname: '',
+    introduction: '',
+    email: '',
+    githubLink: '',
+    address: '',
+    imageUrl: '',
+    domains: [] as string[],
+    stack: [] as string[],
+    mainType: 'DEVELOPER' as 'DEVELOPER' | 'PM',
+    disclosure: true,
   });
 
-  const [nickname, setNickname] = useState<string>('디바인');
-  const [domains, setDomains] = useState<string[]>([]);
-  const [stack, setStack] = useState<string[]>(["React"]);
+  // 프로필 데이터가 로드되면 상태 업데이트
+  useEffect(() => {
+    if (profileData?.result) {
+      const profile = profileData.result;
+      const nicknameValue = profile.member?.nickname || '';
+      const introductionValue = profile.member?.body || '';
+      const addressValue = profile.member?.address || '';
+      const imageUrlValue = profile.member?.imageUrl || '';
+      // API에서 받은 영문 도메인을 한글로 변환
+      const domainsValue = (profile.domains || []).map(d => DOMAIN_REVERSE_MAP[d] || d);
+      const mainTypeValue = profile.member?.mainType === 'PM' ? 'PM' : 'DEVELOPER';
+      const disclosureValue = profile.member?.disclosure ?? true;
+      
+      // 연락처 정보
+      const emailContact = profile.contacts?.find(c => c.type === 'EMAIL');
+      const githubContact = profile.contacts?.find(c => c.type === 'GITHUB');
+      const emailValue = emailContact?.value || '';
+      const githubLinkValue = githubContact?.link || '';
+
+      // 현재 상태 설정
+      setNickname(nicknameValue);
+      setIntroduction(introductionValue);
+      setAddress(addressValue);
+      setImageUrl(imageUrlValue);
+      setDomains(domainsValue);
+      setMainType(mainTypeValue);
+      setDisclosure(disclosureValue);
+      setEmail(emailValue);
+      setGithubLink(githubLinkValue);
+
+      // 원본 데이터 저장
+      setOriginalData({
+        nickname: nicknameValue,
+        introduction: introductionValue,
+        email: emailValue,
+        githubLink: githubLinkValue,
+        address: addressValue,
+        imageUrl: imageUrlValue,
+        domains: domainsValue,
+        stack: [],
+        mainType: mainTypeValue,
+        disclosure: disclosureValue,
+      });
+    }
+  }, [profileData]);
+
+  // 기술 스택 데이터가 로드되면 상태 업데이트
+  useEffect(() => {
+    if (techStackData?.result?.techstacks) {
+      const stackNames = techStackData.result.techstacks.map((item: { name: string }) => item.name);
+      setStack(stackNames);
+      setOriginalData(prev => ({ ...prev, stack: stackNames }));
+    }
+  }, [techStackData]);
+
+  // 프로필 수정 mutation
+  const updateMutation = useMutation({
+    mutationFn: updateMyProfile,
+    onSuccess: () => {
+      alert('프로필이 성공적으로 수정되었습니다.');
+      queryClient.invalidateQueries({ queryKey: ['member'] });
+      navigate('/my-info');
+    },
+    onError: (error) => {
+      console.error('프로필 수정 실패:', error);
+      alert('프로필 수정에 실패했습니다.');
+    },
+  });
+
+  // 데이터 변경 여부 확인
+  const hasChanges = () => {
+    // 배열 비교 함수
+    const arraysEqual = (a: string[], b: string[]) => {
+      if (a.length !== b.length) return false;
+      const sortedA = [...a].sort();
+      const sortedB = [...b].sort();
+      return sortedA.every((val, idx) => val === sortedB[idx]);
+    };
+
+    return (
+      nickname !== originalData.nickname ||
+      introduction !== originalData.introduction ||
+      email !== originalData.email ||
+      githubLink !== originalData.githubLink ||
+      address !== originalData.address ||
+      imageUrl !== originalData.imageUrl ||
+      mainType !== originalData.mainType ||
+      disclosure !== originalData.disclosure ||
+      !arraysEqual(domains, originalData.domains) ||
+      !arraysEqual(stack, originalData.stack)
+    );
+  };
+
+  const isButtonDisabled = !hasChanges() || updateMutation.isPending;
 
   const toggleDomain = (value: string) => {
     setDomains((prev) => {
@@ -59,88 +186,268 @@ const MyInfoProfileEdit = () => {
     });
   };
 
-  const techStack = [
-    { id: '1', name: 'React' },
-    { id: '2', name: 'TypeScript' },
-    { id: '3', name: 'Spring Boot' },
-    { id: '4', name: 'AWS' },
-  ];
-
-
-  const handleDeleteStack = (stack: string) => {
-    setStack(prev => prev.filter(item => item !== stack));
+  const handleDeleteStack = (stackName: string) => {
+    setStack(prev => prev.filter(item => item !== stackName));
   };
 
+  const handleStackChange = (selectedStacks: string[]) => {
+    setStack(selectedStacks);
+  };
+
+  const handleStackApply = () => {
+    setIsStackDropdownOpen(false);
+  };
+
+  // 이미지 파일 선택 핸들러
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 이미지 파일인지 확인
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 선택할 수 있습니다.');
+      return;
+    }
+
+    // 파일 크기 체크 (예: 5MB 제한)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert('이미지 크기는 5MB 이하여야 합니다.');
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+
+      // 1. 미리보기를 위해 로컬 URL 생성
+      const localUrl = URL.createObjectURL(file);
+      setImageUrl(localUrl);
+
+      // 2. 토큰 가져오기
+      const token = await getToken();
+      if (!token) {
+        throw new Error('인증 토큰을 가져올 수 없습니다.');
+      }
+
+      // 3. Presigned URL 요청
+      const { imageId, presignedUrl, imageUrl: finalImageUrl } = await createPresignedUrl(
+        {
+          imageType: 'PROFILE',
+          fileName: file.name,
+        },
+        token
+      );
+
+      // 4. S3에 이미지 업로드
+      const uploadResponse = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('이미지 업로드에 실패했습니다.');
+      }
+
+      // 5. 업로드 확인
+      await confirmImageUpload(imageId, finalImageUrl, token);
+
+      // 6. 최종 이미지 URL 설정
+      setImageUrl(finalImageUrl);
+      
+      // 로컬 URL 해제
+      URL.revokeObjectURL(localUrl);
+
+      console.log('이미지 업로드 성공:', finalImageUrl);
+    } catch (error) {
+      console.error('이미지 업로드 실패:', error);
+      alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.');
+      // 실패 시 원래 이미지로 복원
+      setImageUrl(originalData.imageUrl);
+    } finally {
+      setIsUploadingImage(false);
+      // 파일 입력 초기화 (같은 파일 재선택 가능하도록)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleSave = () => {
+    const contacts = [];
+    if (email) {
+      contacts.push({
+        type: 'EMAIL',
+        value: email,
+        link: ''
+      });
+    }
+    if (githubLink) {
+      contacts.push({
+        type: 'GITHUB',
+        value: '',
+        link: githubLink
+      });
+    }
+
+    // 한글 도메인을 영문으로 변환
+    const englishDomains = domains.map(d => DOMAIN_MAP[d] || d);
+
+    const updateData: UpdateProfileRequest = {
+      nickname,
+      imageUrl,
+      address,
+      body: introduction,
+      domains: englishDomains,
+      contacts,
+      mainType,
+      disclosure,
+    };
+
+    updateMutation.mutate(updateData);
+  };
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">로딩 중...</div>;
+  }
+
   return (
-    <div className="mx-auto w-full max-w-[1180px] flex-col gap-[2rem]">
-      <div className="flex-col gap-[2.4rem]">
-        <BackIcon className="cursor-pointer text-ui-700 w-12 h-12" onClick={() => navigate(-1)} />
-        <p className="text-ui-900 text-4xl font-bold">프로필 수정</p>
-      </div>
-      <div className="w-full flex-col items-center">
-        <div className="w-[536px]">
-          <p className="text-ui-900 text-2xl font-bold">프로필 사진</p>
-          <div className="w-full flex justify-center">
-            <div className="relative w-fit">
-              <ImagePreview isExist={false} className="w-40 h-40" />
-              <button type="button" className="absolute bg-ui-200 rounded-full right-0 bottom-0"><PlusNolineIcon className="w-10 h-10 p-2 text-white" /> </button>
+    <>
+      <div className="mx-auto w-full max-w-[1180px] flex-col gap-[2rem]">
+        <div className="flex-col gap-[2.4rem]">
+          <BackIcon className="cursor-pointer text-ui-700 w-12 h-12" onClick={() => navigate(-1)} />
+          <p className="text-ui-900 text-4xl font-bold">프로필 수정</p>
+        </div>
+        <div className="w-full flex-col items-center">
+          <div className="w-[536px]">
+            <p className="text-ui-900 text-2xl font-bold">프로필 사진</p>
+            <div className="w-full flex justify-center">
+              <div className="relative w-fit">
+                <ImagePreview isExist={!!imageUrl} imageUrl={imageUrl} className="w-40 h-40" />
+                {isUploadingImage && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                    <p className="text-white text-sm">업로드 중...</p>
+                  </div>
+                )}
+                <button 
+                  type="button" 
+                  onClick={handleImageClick}
+                  disabled={isUploadingImage}
+                  className="absolute bg-ui-200 rounded-full right-0 bottom-0 hover:bg-ui-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <PlusNolineIcon className="w-10 h-10 p-2 text-white" />
+                </button>
+                {/* 숨겨진 파일 입력 */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  disabled={isUploadingImage}
+                />
+              </div>
             </div>
-          </div>
-          <div className="flex-col gap-[4.8rem]">
-            <MyInfoProfileItem type={'text'} title={'닉네임'} text={nickname} setText={setNickname} />
-            <hr className="border-ui-200" />
-            <div className="flex-col gap-[2.4rem]">
-              <MyInfoProfileItem type={'text'} title={'한줄 소개'} text={nickname} setText={setNickname} />
-              <p className="text-ui-1000 text-2xl font-semibold ">연락처</p>
-              <MyInfoProfileItem type={'text'} title={'이메일'} text={nickname} setText={setNickname} className="text-ui-600 text-xl font-semibold" />
-            </div>
+            <div className="flex-col gap-[4.8rem]">
+              <MyInfoProfileItem type={'text'} title={'닉네임'} text={nickname} setText={setNickname} />
+              <hr className="border-ui-200" />
+              <div className="flex-col gap-[2.4rem]">
+                <MyInfoProfileItem type={'text'} title={'한줄 소개'} text={introduction} setText={setIntroduction} />
+                <p className="text-ui-1000 text-2xl font-semibold">연락처</p>
+                <MyInfoProfileItem 
+                  type={'text'} 
+                  title={'이메일'} 
+                  text={email} 
+                  setText={setEmail} 
+                  className="text-ui-600 text-xl font-semibold" 
+                />
+                <MyInfoProfileItem 
+                  type={'text'} 
+                  title={'GitHub 링크'} 
+                  text={githubLink} 
+                  setText={setGithubLink} 
+                  className="text-ui-600 text-xl font-semibold" 
+                />
+              </div>
 
-            <div className="flex-col gap-[1.6rem]">
-              <MyInfoProfileItem type={'search'} title={'보유 스택'} placeholder={"보유 스택을 검색해주세요"} />
               <div className="flex-col gap-[1.6rem]">
-                <StackChips stacks={stack} onRemove={handleDeleteStack} />
-                <hr className="border-ui-200" />
+                <div className="flex-col gap-[1.6rem]">
+                  <p className="text-ui-900 text-2xl font-bold">보유 스택</p>
+                  <MyInfoInput 
+                    type={'search'} 
+                    placeholder={"보유 스택을 검색해주세요"}
+                    onClick={() => setIsStackDropdownOpen(true)}
+                  />
+                </div>
+                <div className="flex-col gap-[1.6rem]">
+                  <StackChips stacks={stack} onRemove={handleDeleteStack} />
+                  <hr className="border-ui-200" />
+                </div>
               </div>
 
-            </div>
-
-            <div className="flex-col gap-[2.4rem]">
-              <p className="flex items-center gap-[0.4rem] text-ui-1000 text-2xl font-semibold ">관심 도메인<span
-                className="block text-ui-600 text-base">(최대 3개)</span></p>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                {DOMAIN_OPTIONS.map((domain) => {
-                  const selected = domains.indexOf(domain) !== -1;
-                  return (
-                    <button
-                      key={domain}
-                      type="button"
-                      onClick={() => toggleDomain(domain)}
-                      className="flex items-center gap-3 text-[var(--ui-900)]"
-                      aria-pressed={selected}
-                    >
-                      {selected ? (
-                        <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
-                      ) : (
-                        <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
-                      )}
-                      <span className="Body1">{domain}</span>
-                    </button>
-                  );
-                })}
+              <div className="flex-col gap-[2.4rem]">
+                <p className="flex items-center gap-[0.4rem] text-ui-1000 text-2xl font-semibold">
+                  관심 도메인
+                  <span className="block text-ui-600 text-base">(최대 3개)</span>
+                </p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                  {DOMAIN_OPTIONS.map((domain) => {
+                    const selected = domains.indexOf(domain) !== -1;
+                    return (
+                      <button
+                        key={domain}
+                        type="button"
+                        onClick={() => toggleDomain(domain)}
+                        className="flex items-center gap-3 text-[var(--ui-900)]"
+                        aria-pressed={selected}
+                      >
+                        {selected ? (
+                          <CheckboxCheckedIcon className="h-7 w-7 shrink-0 text-[#4E49FF]" aria-hidden="true" />
+                        ) : (
+                          <CheckboxUncheckedIcon className="h-7 w-7 shrink-0" aria-hidden="true" />
+                        )}
+                        <span className="Body1">{domain}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isButtonDisabled}
+                className={`w-full rounded-2xl py-[1.6rem] text-2xl font-semibold transition-colors ${
+                  isButtonDisabled
+                    ? 'bg-ui-50 text-ui-500 cursor-not-allowed'
+                    : 'bg-primary text-white cursor-pointer hover:bg-primary/90'
+                }`}
+              >
+                {updateMutation.isPending ? '저장 중...' : '저장'}
+              </button>
             </div>
-            <button
-              type="button"
-              className="w-full cursor-pointer rounded-2xl bg-primary py-[1.6rem] text-2xl text-white font-semibold"
-            >
-              저장
-            </button>
-
           </div>
-
         </div>
       </div>
-    </div>
+
+      {/* 보유 스택 드롭다운 모달 */}
+      <PositionTechStackDropdown
+        open={isStackDropdownOpen}
+        value={stack}
+        onChange={handleStackChange}
+        onApply={handleStackApply}
+        onReset={() => setStack([])}
+        onClose={() => setIsStackDropdownOpen(false)}
+        asModal={true}
+        title="보유 스택 선택"
+        showCloseButton={true}
+      />
+    </>
   );
 };
 

@@ -1,8 +1,13 @@
 import { axiosInstance } from '@apis/instance';
-import { GitRepoRequest, MyProfileResponse, MyReposResponse, MyContributionsResponse } from '@apis/myInfo/myInfo';
+import { GitRepoRequest, MyProfileResponse, MyReposResponse, MyContributionsResponse, UpdateProfileRequest } from '@apis/myInfo/myInfo';
 
 export const getMyProfile = async (): Promise<MyProfileResponse> => {
   const { data } = await axiosInstance.get('/api/v1/members/me');
+  return data;
+};
+
+export const updateMyProfile = async (profileData: UpdateProfileRequest): Promise<MyProfileResponse> => {
+  const { data } = await axiosInstance.patch('/api/v1/members/me', profileData);
   return data;
 };
 
