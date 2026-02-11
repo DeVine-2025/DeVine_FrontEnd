@@ -6,6 +6,7 @@ import LoginRequiredCard from '@components/common/LoginRequiredCard';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
+import ReportRequiredCard from '@components/common/ReportRequiredCard';
 import { useAuthStore } from '@store/auth';
 import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
@@ -15,6 +16,7 @@ import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-det
 import { getRecommendDevelopersPreview } from '@apis/members';
 import { getMyRecruitingProjects } from '@apis/projects';
 import { getRecommendProjectsPreview, type RecommendProjectPreviewItem } from '@apis/mainrecommendproject';
+import { getReports } from '@apis/report/report-queries';
 import { getDueLabel, mapPositionsToRoles } from 'src/shared/mappers/project';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 
@@ -97,6 +99,7 @@ const MainPage = () => {
   const [recommendedDevelopers, setRecommendedDevelopers] = useState<MainRecommendDeveloper[]>(
     PROFILE_CARD_LIST.slice(0, 3).map((d) => ({ ...d, bookmarkId: undefined })),
   );
+  const [hasReport, setHasReport] = useState<boolean | null>(null);
   const [isDeveloperPreviewEmpty, setIsDeveloperPreviewEmpty] = useState(false);
   const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>([]);
   const [projectBookmarkMap, setProjectBookmarkMap] = useState<Record<number, number>>({});
@@ -131,6 +134,27 @@ const MainPage = () => {
       cancelled = true;
     };
   }, [getToken]);
+
+  // 로그인 사용자 리포트 유무 확인
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setHasReport(null);
+      return;
+    }
+    let cancelled = false;
+    getReports()
+      .then((res) => {
+        if (cancelled) return;
+        const reports = res?.result?.reports ?? [];
+        setHasReport(reports.length > 0);
+      })
+      .catch(() => {
+        if (!cancelled) setHasReport(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn]);
 
   const requireToken = useCallback(async () => {
     const token = await getToken();
@@ -247,7 +271,7 @@ const MainPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!isLoggedIn || !isPm) return;
+    if (!isLoggedIn || !isPm || hasReport !== true) return;
     let isActive = true;
 
     const fetchRecommendedDevelopers = async () => {
@@ -299,10 +323,10 @@ const MainPage = () => {
     return () => {
       isActive = false;
     };
-  }, [getToken, isLoggedIn, isPm]);
+  }, [getToken, isLoggedIn, isPm, hasReport]);
 
   useEffect(() => {
-    if (!isLoggedIn || !isDevOrUnknown) return;
+    if (!isLoggedIn || !isDevOrUnknown || hasReport !== true) return;
     let isActive = true;
 
     const fetchRecommendedProjects = async () => {
@@ -339,7 +363,7 @@ const MainPage = () => {
     return () => {
       isActive = false;
     };
-  }, [getToken, isLoggedIn, isDevOrUnknown]);
+  }, [getToken, isLoggedIn, isDevOrUnknown, hasReport]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -446,7 +470,22 @@ const MainPage = () => {
               isLoggedIn ? '' : 'pointer-events-none select-none blur-sm'
             }`}
           >
-            {isPm ? (
+            {isLoggedIn && hasReport === false ? (
+              <div className="flex items-center justify-center py-6">
+                {isPm ? (
+                  <ReportRequiredCard
+                    title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
+                    description="나에게 맞는 추천 개발자를 받아 보세요"
+                    linkLabel="프로젝트 등록하러 가기"
+                    linkTo="/project/create"
+                  />
+                ) : (
+                  <ReportRequiredCard
+                    description="나에게 맞는 추천 프로젝트를 받아 보세요"
+                  />
+                )}
+              </div>
+            ) : isPm ? (
               isDeveloperPreviewEmpty ? (
                 <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
                   나에게 딱 맞는 추천 개발자가 아직 없어요.
@@ -477,6 +516,10 @@ const MainPage = () => {
                   />
                 ))
               )
+            ) : recommendedProjects.length === 0 ? (
+              <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
+                나에게 딱 맞는 추천 프로젝트가 아직 없어요.
+              </div>
             ) : (
               recommendedProjects.map((project) => (
                   (() => {

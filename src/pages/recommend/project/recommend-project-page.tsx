@@ -5,17 +5,23 @@ import ProjectListState from '@components/common/ListStateUI';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import { buildParams } from '@mappers/projectFilters';
+import { useAuthStore } from '@store/auth';
 import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import ReportRequiredCard from '@components/common/ReportRequiredCard';
+import { getReports } from '@apis/report/report-queries';
+import { useNavigate } from 'react-router-dom';
 import { PROJECT_FILTERS, PROJECT_ROLES } from 'src/mocks/recommendProject.mock';
 
 const RecommendProjectPage = () => {
   const { getToken } = useAuth();
   const navigate = useNavigate();
+  const userRole = useAuthStore((state) => state.role);
+  const isPm = userRole === 'pm';
   const { recommendProject, setRecommendProject } = useFilterStore();
   const { domains, expectedPeriods, projectTypes, techStacks } = recommendProject;
 
+  const [hasReport, setHasReport] = useState<boolean | null>(null);
   const [openFilter, setOpenFilter] = useState<null | (typeof PROJECT_FILTERS)[number]>(null);
   const [list, setList] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +45,23 @@ const RecommendProjectPage = () => {
       }),
     [projectTypes, domains, expectedPeriods, techStacks],
   );
+
+  // 리포트 유무 확인
+  useEffect(() => {
+    let cancelled = false;
+    getReports()
+      .then((res) => {
+        if (cancelled) return;
+        const reports = res?.result?.reports ?? [];
+        setHasReport(reports.length > 0);
+      })
+      .catch(() => {
+        if (!cancelled) setHasReport(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -214,14 +237,7 @@ const RecommendProjectPage = () => {
     setPage(1);
   }, []);
 
-  const showReportCardOverlay =
-    !loading &&
-    !isError &&
-    list.length === 0 &&
-    projectTypes.length === 0 &&
-    domains.length === 0 &&
-    expectedPeriods.length === 0 &&
-    techStacks.length === 0;
+  const showReportCardOverlay = hasReport === false;
 
   if (showReportCardOverlay) {
     return (
@@ -245,22 +261,12 @@ const RecommendProjectPage = () => {
           <div className="flex flex-col gap-6" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex w-[520px] flex-col items-center gap-10 rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)] px-16 py-14 text-center shadow-none">
-            <div className="flex flex-col items-center gap-3">
-              <span className="whitespace-nowrap font-semibold text-[21px] text-[var(--ui-900)]">
-                리포트를 생성하면 맞춤 추천을 받을 수 있어요
-              </span>
-              <span className="text-[15px] text-[var(--ui-500)]">
-                나에게 맞는 추천 프로젝트를 받아 보세요
-              </span>
-            </div>
-            <Link
-              to="/report/create"
-              className="inline-flex h-[52px] w-full max-w-[320px] items-center justify-center rounded-2xl bg-[#4E49FF] font-semibold text-[18px] text-white"
-            >
-              리포트 생성 페이지로 이동
-            </Link>
-          </div>
+            <ReportRequiredCard
+              title="리포트를 등록하면 맞춤 추천을 받을 수 있어요"
+              description="나에게 맞는 추천 프로젝트를 받아 보세요"
+              linkLabel="리포트 등록하러 가기"
+              linkTo="/report/create"
+            />
         </div>
       </div>
     );
