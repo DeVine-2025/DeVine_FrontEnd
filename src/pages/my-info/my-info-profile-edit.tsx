@@ -1,8 +1,8 @@
-import {useNavigate} from 'react-router-dom';
-import {useState} from 'react';
-import {cn} from '@libs/cn';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { cn } from '@libs/cn';
 
-import {DOMAIN_OPTIONS} from '@constants/domain';
+import { DOMAIN_OPTIONS } from '@constants/domain';
 
 import BackIcon from "@assets/icons/back.svg?react";
 import PlusNolineIcon from "@assets/icons/plus-noline.svg?react";
@@ -15,15 +15,15 @@ import StackChips from '@components/myInfo/StackChips';
 
 
 type MyInfoProfileItemProps = {
-  type : 'text' | 'search';
-  title : string;
+  type: 'text' | 'search';
+  title: string;
   text?: string;
   placeholder?: string;
   className?: string;
   setText?: (text: string) => void;
 }
 
-const MyInfoProfileItem = ({type, title, text, setText,placeholder, className}: MyInfoProfileItemProps) => {
+const MyInfoProfileItem = ({ type, title, text, setText, placeholder, className }: MyInfoProfileItemProps) => {
   return (
     <div className="flex-col gap-[1.6rem]">
       <p className={cn('text-ui-900 text-2xl font-bold', className)}>{title}</p>
@@ -82,24 +82,24 @@ const MyInfoProfileEdit = () => {
           <p className="text-ui-900 text-2xl font-bold">프로필 사진</p>
           <div className="w-full flex justify-center">
             <div className="relative w-fit">
-              <ImagePreview isExist={false} className="w-40 h-40"/>
-              <button type="button" className="absolute bg-ui-200 rounded-full right-0 bottom-0"><PlusNolineIcon className="w-10 h-10 p-2 text-white"/> </button>
+              <ImagePreview isExist={false} className="w-40 h-40" />
+              <button type="button" className="absolute bg-ui-200 rounded-full right-0 bottom-0"><PlusNolineIcon className="w-10 h-10 p-2 text-white" /> </button>
             </div>
           </div>
           <div className="flex-col gap-[4.8rem]">
-            <MyInfoProfileItem  type={'text'} title={'닉네임'} text={nickname} setText={setNickname} />
+            <MyInfoProfileItem type={'text'} title={'닉네임'} text={nickname} setText={setNickname} />
             <hr className="border-ui-200" />
             <div className="flex-col gap-[2.4rem]">
-              <MyInfoProfileItem type={'text'}  title={'한줄 소개'} text={nickname} setText={setNickname} />
+              <MyInfoProfileItem type={'text'} title={'한줄 소개'} text={nickname} setText={setNickname} />
               <p className="text-ui-1000 text-2xl font-semibold ">연락처</p>
               <MyInfoProfileItem type={'text'} title={'이메일'} text={nickname} setText={setNickname} className="text-ui-600 text-xl font-semibold" />
             </div>
 
             <div className="flex-col gap-[1.6rem]">
-              <MyInfoProfileItem  type={'search'} title={'보유 스택'} placeholder={"보유 스택을 검색해주세요"}/>
+              <MyInfoProfileItem type={'search'} title={'보유 스택'} placeholder={"보유 스택을 검색해주세요"} />
               <div className="flex-col gap-[1.6rem]">
-                <StackChips stacks={stack} onRemove={handleDeleteStack}/>
-                <hr className="border-ui-200"/>
+                <StackChips stacks={stack} onRemove={handleDeleteStack} />
+                <hr className="border-ui-200" />
               </div>
 
             </div>

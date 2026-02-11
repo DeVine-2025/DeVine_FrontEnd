@@ -16,8 +16,8 @@ const MyInfoProfile = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery(myInfoQueries.reposInfinite());
-  const {data:projectInprogress} = useQuery(projectQueries.getMYProjectInprogress());
-  const {data:projectCompleted} = useQuery(projectQueries.getMYProjectCompleted());
+  const { data: projectInprogress } = useQuery(projectQueries.getMYProjectInprogress());
+  const { data: projectCompleted } = useQuery(projectQueries.getMYProjectCompleted());
 
   console.log(projectInprogress, projectCompleted)
 
