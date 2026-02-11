@@ -17,6 +17,7 @@
                 'Helvetica Neue', Arial, sans-serif;
     }
     html, body {
+        font-family: var(--font-pretendard);
         font-size: 62.5%;
         min-width: var(--min-width);
         display: flex;
