@@ -40,7 +40,7 @@ import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { LinkCardExtension } from '@pages/project-create/LinkCardNode';
-import { useProjectCreateStore } from '@store/projectCreate';
+import { useProjectCreateStore, type SlotImage } from '@store/projectCreate';
 import { useThemeStore } from '@store/theme';
 import type { ChangeEvent, ComponentType, SVGProps } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
