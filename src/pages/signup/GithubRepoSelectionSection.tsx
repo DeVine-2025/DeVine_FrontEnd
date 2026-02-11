@@ -288,34 +288,36 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
                   <button
                     type="button"
                     onClick={() => navigate('/')}
-                    className="Body1 h-[40px] rounded-lg bg-[var(--color-primary)] px-4 font-semibold text-white"
-                  >
+                    className="Body1 h-[48px] w-full rounded-xl font-semibold bg-[var(--color-primary)] text-white"                  >
                     메인으로 가기
                   </button>
                 </div>
+                
               )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-auto mb-24 flex flex-col gap-3">
-        <button
-          type="button"
-          disabled={!canProceed || createReportMutation.isPending}
-          onClick={handleGenerate}
-          className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
-            canProceed
-              ? 'bg-[var(--color-primary)] text-white'
-              : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
-          }`}
-        >
-          {createReportMutation.isPending ? '리포트 생성 중...' : '선택 완료'}
-        </button>
-        <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
-          돌아가기
-        </button>
-      </div>
+      {repoOptions.length > 0 && (
+        <div className="mt-auto mb-24 flex flex-col gap-3">
+          <button
+            type="button"
+            disabled={!canProceed || createReportMutation.isPending}
+            onClick={handleGenerate}
+            className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
+              canProceed
+                ? 'bg-[var(--color-primary)] text-white'
+                : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
+            }`}
+          >
+            {createReportMutation.isPending ? '리포트 생성 중...' : '선택 완료'}
+          </button>
+          <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
+            돌아가기
+          </button>
+        </div>
+      )}
       </div>
 
       {isWaitModalOpen && (

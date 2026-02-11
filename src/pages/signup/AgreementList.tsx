@@ -80,6 +80,12 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
     if (onboardingConfirmedRef.current) return;
     onboardingConfirmedRef.current = true;
     await onConfirm();
+    try {
+      const key = `onboarding_complete:${user?.id ?? 'unknown'}`;
+      localStorage.setItem(key, 'true');
+    } catch {
+      // ignore storage errors
+    }
   };
 
   const setAdditionalLogoHandler = useCallback((handler: (() => void) | null) => {
