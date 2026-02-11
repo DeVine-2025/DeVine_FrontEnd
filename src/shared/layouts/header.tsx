@@ -76,6 +76,31 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
 
     syncProfileImage();
 
+    // 서버에서 프로필 이미지를 가져와 localStorage 동기화 (새로고침 시 복원)
+    if (clerkUser?.id) {
+      getToken().then((token) => {
+        if (!token) return;
+        const apiBase = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
+        fetch(`${apiBase}/api/v1/members/me`, {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            const serverImageUrl: string | null =
+              data?.result?.member?.imageUrl ?? data?.result?.imageUrl ?? null;
+            if (serverImageUrl && serverImageUrl.trim().length > 0) {
+              const key = getProfileImageKey(clerkUser.id);
+              localStorage.setItem(key, serverImageUrl);
+              setProfileImageUrl(serverImageUrl);
+            }
+          })
+          .catch(() => {
+            // 서버 조회 실패 시 localStorage 값 유지
+          });
+      });
+    }
+
     const handleStorage = (event: StorageEvent) => {
       const userKey = getProfileImageKey(clerkUser?.id ?? null);
       const legacyKey = getProfileImageKey();
@@ -92,7 +117,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('profile-image-updated', handleProfileUpdate as EventListener);
     };
-  }, [clerkUser?.id]);
+  }, [clerkUser?.id, getToken]);
 
   useEffect(() => {
     fetchUnreadCount();
