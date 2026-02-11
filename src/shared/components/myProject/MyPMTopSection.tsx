@@ -120,8 +120,10 @@ const MyPMTopSection = ({ devTab, onChangeDevTab }: Props) => {
       </div>
 
       <div className="mt-4 flex flex-col gap-4">
-        {isLoading && <div className="py-10 text-center">로딩중...</div>}
-        {isError && <div className="py-10 text-center">불러오기에 실패했어요.</div>}
+        {isLoading && <div className="py-30 text-center text-3xl text-card-muted">로딩중...</div>}
+        {isError && (
+          <div className="py-30 text-center text-3xl text-card-muted">불러오기에 실패했어요.</div>
+        )}
 
         {!isLoading && !isError && (data?.content?.length ?? 0) === 0 && (
           <div className="py-30 text-center text-3xl text-card-muted">
