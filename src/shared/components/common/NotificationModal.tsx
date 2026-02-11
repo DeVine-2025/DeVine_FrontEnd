@@ -101,44 +101,44 @@ const NotificationModal = ({
 
   const useAnchor = anchorRef?.current && position !== null;
   const modalHeight =
-    notifications.length === 0 ? 160 : notifications.length === 1 ? 180 : Math.min(320, 100 + notifications.length * 80);
+    notifications.length === 0 ? 220 : notifications.length === 1 ? 260 : Math.min(480, 140 + notifications.length * 88);
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50">
       <div
         ref={modalRef}
-        className={`pointer-events-auto flex w-[180px] flex-col overflow-hidden rounded-xl border border-[var(--ui-200)] bg-[var(--ui-bg)] ${
+        className={`pointer-events-auto flex w-[360px] flex-col overflow-hidden rounded-xl border border-[var(--ui-200)] bg-[var(--ui-bg)] ${
           !useAnchor ? 'absolute top-[7.6rem] right-[2rem]' : ''
         } ${isClosing ? 'animate-modal-pop-out' : 'animate-modal-pop-in'}`}
         style={
           useAnchor
-            ? { position: 'fixed', top: position.top, right: position.right, width: 180, height: modalHeight }
+            ? { position: 'fixed', top: position.top, right: position.right, width: 360, height: modalHeight }
             : { height: modalHeight }
         }
       >
-        <div className="shrink-0 flex items-center border-b border-[var(--ui-200)] bg-[var(--ui-50)]/50 px-3 py-2.5" aria-label="알림">
+        <div className="shrink-0 flex items-center border-b border-[var(--ui-200)] bg-[var(--ui-50)]/50 px-4 py-3" aria-label="알림">
           {theme === 'dark' ? (
-            <AlarmIcon className="size-7 shrink-0" aria-hidden />
+            <AlarmIcon className="size-8 shrink-0" aria-hidden />
           ) : (
-            <AlarmLightIcon className="size-7 shrink-0" aria-hidden />
+            <AlarmLightIcon className="size-8 shrink-0" aria-hidden />
           )}
         </div>
         <div
-          className={`flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2.5 ${!loading && notifications.length === 1 ? 'justify-center' : ''}`}
+          className={`flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 ${!loading && notifications.length === 1 ? 'justify-center' : ''}`}
         >
           {loading ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 px-3 py-8" aria-live="polite" aria-busy="true">
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10" aria-live="polite" aria-busy="true">
               <LoadingSpinner size="md" />
             </div>
           ) : notifications.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-1.5 px-3 py-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--ui-100)] text-[var(--ui-400)]">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+            <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 py-8">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--ui-100)] text-[var(--ui-400)]">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                 </svg>
               </div>
-              <p className="text-[13px] font-medium text-[var(--ui-600)]">아직 새 알림이 없어요</p>
-              <p className="text-[11px] text-[var(--ui-400)]">새 소식이 오면 여기에 표시돼요</p>
+              <p className="text-[15px] font-medium text-[var(--ui-600)]">아직 새 알림이 없어요</p>
+              <p className="text-[13px] text-[var(--ui-400)]">새 소식이 오면 여기에 표시돼요</p>
             </div>
           ) : (
             notifications.map((notification) => (
@@ -149,26 +149,26 @@ const NotificationModal = ({
                   if (!notification.isRead && onMarkAsRead) onMarkAsRead(notification.id);
                   handleClose();
                 }}
-                className={`group relative flex min-h-[72px] flex-col justify-center gap-1 rounded-lg px-3 py-3.5 text-left transition-colors duration-150 ${
+                className={`group relative flex min-h-[84px] flex-col justify-center gap-1.5 rounded-lg px-3.5 py-4 text-left transition-colors duration-150 ${
                   !notification.isRead
                     ? 'bg-[var(--ui-50)] hover:bg-[var(--ui-100)]'
                     : 'hover:bg-[var(--ui-50)]'
                 }`}
               >
                 {!notification.isRead && (
-                  <span className="absolute left-1 top-1.5 h-2 w-2 shrink-0 rounded-full bg-[#4E49FF]" />
+                  <span className="absolute left-1.5 top-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[#4E49FF]" />
                 )}
-                <div className="flex items-start justify-between gap-1.5 pl-0.5">
+                <div className="flex items-start justify-between gap-2 pl-0.5">
                   <h3
-                    className={`min-w-0 flex-1 truncate text-[13px] font-semibold leading-tight ${
+                    className={`min-w-0 flex-1 truncate text-[14px] font-semibold leading-tight ${
                       !notification.isRead ? 'text-[var(--ui-900)]' : 'text-[var(--ui-600)]'
                     }`}
                   >
                     {notification.title}
                   </h3>
-                  <span className="shrink-0 text-[10px] text-[var(--ui-400)]">{notification.timestamp}</span>
+                  <span className="shrink-0 text-[11px] text-[var(--ui-400)]">{notification.timestamp}</span>
                 </div>
-                <p className="line-clamp-2 pl-0.5 text-[12px] leading-snug text-[var(--ui-600)]">
+                <p className="line-clamp-2 pl-0.5 text-[13px] leading-snug text-[var(--ui-600)]">
                   {notification.description.includes('프로젝트에') ? (
                     <>
                       {notification.description.split('프로젝트에')[0]}
@@ -184,12 +184,12 @@ const NotificationModal = ({
             ))
           )}
           {hasMore && onLoadMore && (
-            <div className="shrink-0 border-t border-[var(--ui-200)] px-2.5 py-1.5">
+            <div className="shrink-0 border-t border-[var(--ui-200)] px-3 py-2">
               <button
                 type="button"
                 onClick={onLoadMore}
                 disabled={loadingMore}
-                className="w-full rounded-lg py-2 text-[12px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#4E49FF] disabled:opacity-60"
+                className="w-full rounded-lg py-2.5 text-[13px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#4E49FF] disabled:opacity-60"
               >
                 {loadingMore ? '불러오는 중…' : '더 보기'}
               </button>
@@ -197,11 +197,11 @@ const NotificationModal = ({
           )}
         </div>
         {onMarkAllAsRead && notifications.some((n) => !n.isRead) && (
-          <div className="shrink-0 border-t border-[var(--ui-200)] bg-[var(--ui-50)]/30 px-2.5 py-2">
+          <div className="shrink-0 border-t border-[var(--ui-200)] bg-[var(--ui-50)]/30 px-3 py-2.5">
             <button
               type="button"
               onClick={() => onMarkAllAsRead()}
-              className="w-full rounded-lg py-2 text-[12px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#4E49FF]"
+              className="w-full rounded-lg py-2.5 text-[13px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#4E49FF]"
             >
               전체 읽음 처리
             </button>

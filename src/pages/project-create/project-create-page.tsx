@@ -1,4 +1,4 @@
-import { getPresignedUrl, confirmImage } from '@apis/images';
+﻿import { getPresignedUrl, confirmImage } from '@apis/images';
 import { createProject, updateProject } from '@apis/projects';
 import { getProjectDetail } from '@apis/project-detail';
 import AddImageLightIcon from '@assets/icons/create-project/addimage-light.svg?react';
@@ -41,10 +41,6 @@ import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { LinkCardExtension } from '@pages/project-create/LinkCardNode';
-<<<<<<< HEAD
-=======
-import { useProjectCreateStore } from '@store/projectCreate';
->>>>>>> 33ef9d0bb266908db12b4e5af798f8f2e9c6a425
 import { useProjectCreateStore, type SlotImage } from '@store/projectCreate';
 import { useThemeStore } from '@store/theme';
 import type { ChangeEvent, ComponentType, SVGProps } from 'react';
