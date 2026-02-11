@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {useQuery} from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 import CheckBox from '@components/report/CheckBox';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
@@ -8,8 +8,17 @@ import { BeatLoader } from 'react-spinners';
 
 const ReportCreatePage = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const { data, isLoading } = useQuery(myInfoQueries.repos());
-  const repo = data?.result?.repos;
+
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery(myInfoQueries.reposInfinite());
+
+  const repo =
+    data?.pages.flatMap((page) => page.result.content) ?? [];
 
   const navigate = useNavigate();
 
@@ -27,30 +36,58 @@ const ReportCreatePage = () => {
     });
   };
 
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+
+    const isBottom = scrollTop + clientHeight >= scrollHeight - 30;
+
+    if (isBottom && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
 
   return (
     <div className="mt-[8rem] flex w-full items-center justify-center">
       <div className="w-[41.5rem] flex-col gap-[2.4rem]">
-        <p className="Heading2 font-bold text-[var(--ui-1000)]">깃허브 레포지토리 목록</p>
-        <div className="flex-col gap-[0.8rem] h-[250px] overflow-hidden overflow-y-scroll">
-          {!isLoading && repo?.map((item) => (
-            <CheckBox
-              key={item.gitRepoId}
-              title={item.name}
-              description={item.description}
-              isActive={selectedId === item.gitRepoId}
-              onClick={() => toggleCheckbox(item.gitRepoId)}
-            />
-          ))}
-          {isLoading && (
-            <div className="flex-col items-center h-full justify-center gap-3">
-              <BeatLoader/>
-              <p className="text-ui-600 text-xl font-bold">레포지토리 불러오는 중..</p>
-            </div>
+        <p className="Heading2 font-bold text-[var(--ui-1000)]">
+          깃허브 레포지토리 목록
+        </p>
 
+        <div
+          className="flex-col gap-[0.8rem] h-[320px] overflow-hidden overflow-y-scroll"
+          onScroll={handleScroll}
+        >
+          {/* 레포 리스트 */}
+          {!isLoading &&
+            repo.map((item) => (
+              <CheckBox
+                key={item.gitRepoId}
+                title={item.name}
+                description={item.description}
+                isActive={selectedId === item.gitRepoId}
+                onClick={() => toggleCheckbox(item.gitRepoId)}
+              />
+            ))}
+
+          {/* 최초 로딩 */}
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center h-full gap-3">
+              <BeatLoader />
+              <p className="text-ui-600 text-xl font-bold">
+                레포지토리 불러오는 중..
+              </p>
+            </div>
+          )}
+
+          {/* 다음 페이지 로딩 */}
+          {isFetchingNextPage && (
+            <div className="flex justify-center py-4">
+              <BeatLoader size={8} />
+            </div>
           )}
         </div>
-        <div className="mt-[4.7rem] flex-col-center gap-[1.4rem]">
+
+        <div className=" flex-col-center gap-[1.4rem]">
           <button
             type="button"
             onClick={handleCreateRepo}

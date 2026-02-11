@@ -20,6 +20,10 @@ export interface MyProfile {
   }[];
 }
 
+export interface GitRepoRequest{
+  page: number;
+  size: number;
+}
 
 export interface GitRepo {
   gitRepoId: number;

@@ -15,7 +15,7 @@ export interface ReportCard {
 }
 
 export interface ReportCardResponse
-  extends ApiResponse<{ reports: ReportCard[] }> {}
+  extends ApiResponse<{ reports: ReportCard[] }> { }
 
 export interface ReportCardRequest {
   type: 'MAIN' | 'DETAIL';
@@ -94,7 +94,7 @@ export interface ReportDetail {
 }
 
 export interface ReportDetailResponse
-  extends ApiResponse<ReportDetail> {}
+  extends ApiResponse<ReportDetail> { }
 
 /** =====================================================
  *  4. MAIN 리포트
@@ -144,7 +144,7 @@ export interface ReportMain {
 }
 
 export interface ReportMainResponse
-  extends ApiResponse<ReportMain> {}
+  extends ApiResponse<ReportMain> { }
 
 /** =====================================================
  *  5. MAIN + DETAIL 통합 타입 (핵심)

@@ -19,7 +19,7 @@ const MainDetail = ({data} : MainDetailProps) => {
   const projectScaleStyle = 'flex gap-[0.4rem] items-center';
   const titleContentGapStyle = 'flex-col gap-[2.4rem]';
 
-  const scale = data?.projectInfo?.scale.split(" | ");
+  const scale = data?.projectInfo?.scale?.split(" | ");
 
   return (
     <div className="flex-col gap-[4.9rem]">
@@ -71,11 +71,11 @@ const MainDetail = ({data} : MainDetailProps) => {
           <section className={contentStyle}>
             <p className={subtTitleStyle}>프로젝트 규모</p>
             <div className="flex items-center gap-[2.4rem]">
-              <p className={projectScaleStyle}><CodeIcon />{scale[0]}</p>
+              <p className={projectScaleStyle}><CodeIcon />{scale != undefined ? scale[0] : ''}</p>
               <p>|</p>
-              <p className={projectScaleStyle}><FileIcon />{scale[1]}</p>
+              <p className={projectScaleStyle}><FileIcon />{scale != undefined ? scale[1] : ''}</p>
               <p>|</p>
-              <p className={projectScaleStyle}><TimeIcon />{scale[2]}</p>
+              <p className={projectScaleStyle}><TimeIcon />{scale != undefined ? scale[2] : ''}</p>
             </div>
           </section>
         </ContentBox>
