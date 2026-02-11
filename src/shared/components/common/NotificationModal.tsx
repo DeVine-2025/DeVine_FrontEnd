@@ -121,7 +121,7 @@ const NotificationModal = ({
           <h2 className="text-[15px] font-semibold text-[var(--ui-900)]">알림</h2>
         </div>
         <div
-          className={`flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3 ${notifications.length === 1 ? 'justify-center' : ''}`}
+          className={`flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 ${notifications.length === 1 ? 'justify-center' : ''}`}
         >
           {notifications.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 py-10">
