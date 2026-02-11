@@ -1,16 +1,30 @@
 import { ReportDetailContent, ReportMainContent } from '@apis/report/report';
 import ContentBox from '@components/report/ContentBox';
+import FileSmallIcon from "@assets/icons/detail-page/file-small.svg?react";
 import CheckGreenIcon from "@assets/icons/detail-page/check-green.svg?react";
 import CancelRedIcon from "@assets/icons/detail-page/cacanel-red.svg?react";
 
 type ReportDetailProps = {
   data: ReportDetailContent;
 };
+
+type FileCardItemProps = {
+  filePath: string;
+}
+const FileCardItem = ({filePath} : FileCardItemProps) => {
+  return (
+    <div className="flex items-center gap-2  rounded-lg  px-[0.7rem] py-[1.2rem] w-96 h-8 relative bg-ui-bg border border-1 border-ui-100 ">
+      <FileSmallIcon/>
+      <p className="text-ui-800 text-xs font-normal">{filePath}</p>
+    </div>
+  )
+}
 const ReportDetail = ({ data }: ReportDetailProps) => {
   const sectionTitleStyle = 'text-ui-1000 text-3xl font-bold';
   const subtTitleStyle = 'text-ui-900 text-lg font-semibold min-w-[160px]';
   const contentGapStyle = 'flex-col gap-[2rem]';
   const contentStyle = 'flex-col gap-2 p-[1.6rem]';
+  const listGapStyle = 'flex-col gap-[0.2rem]';
 
   return (
     <div className="flex-col gap-[8rem]">
@@ -62,6 +76,40 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
         <div className="flex-col gap-[1rem]">
           <p className={sectionTitleStyle}>구현 기능 상세분석</p>
           <hr className="border-ui-100" />
+          {data?.implementedFeatures?.map((item) => (
+            <ContentBox>
+              <div className="p-[2rem] flex-col gap-10">
+                <p className="text-ui-1000 text-xl font-bold">{item?.categoryNumber + ' . '+item?.category}</p>
+                {item?.features?.map((feature, idx) => (
+                  <div className="flex-col gap-[2.9rem]">
+                    <div className="flex-col gap-[1rem]">
+                      <p className="text-ui-400 text-xs font-semibold">{feature?.name} - 구현 내용</p>
+                      <div className={listGapStyle}>
+                        {feature?.details?.map((detail, idx) => (
+                          <p className=" text-ui-900 text-sm font-medium">• {detail}</p>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex-col gap-[1rem]">
+                    <p className="text-ui-400 text-xs font-semibold">{feature?.name} - 코드 위치</p>
+                      <div className="flex flex-wrap gap-2">
+                        {feature?.codeLocation?.map((file) => (
+                          <FileCardItem filePath={file} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className={listGapStyle}>
+                      <p className="text-ui-400 text-xs font-semibold">{feature?.name} - 구현 방식</p>
+                      {feature?.implementation?.map((implementation, idx) => (
+                        <p className="text-ui-900 text-sm font-medium">• {implementation}</p>
+                      ))}
+
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ContentBox>
+          ))}
         </div>
       </section>
 
@@ -73,7 +121,8 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
             <ContentBox>
               <div className="flex p-[3.2rem]">
                 <div className="flex-col gap-4 flex-1/3">
-                  <p className="w-fit px-2 py-1 bg-positive-bg text-positive-text rounded-lg font-semibold">이 프로젝트에서 구현한 것</p>
+                  <p className="w-fit px-2 py-1 bg-positive-bg text-positive-text rounded-lg font-semibold">이 프로젝트에서 구현한
+                    것</p>
 
                   <div className="flex-col gap-2">
                     {data?.projectSummary.implemented.map((item) => (
@@ -100,6 +149,27 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
         <div className="flex-col gap-[1rem]">
           <p className={sectionTitleStyle}>코드 분석 인사이트</p>
           <hr className="border-ui-100" />
+          <ContentBox>
+            <div className="p-[3.2rem] flex-col gap-[3rem]">
+              {data?.codeInsights.map((item) => (
+                <div className="flex-col gap-[0.7rem]">
+                  <p className="text-ui-1000 text-lg font-semibold">{item?.number+' . ' +item?.title}</p>
+                  <div className="flex-col gap-[0.2rem]">
+                    {item.points.map((description) => (
+                      <p className="text-ui-1000 text-base">• {description}</p>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    {item?.codeLocation?.map((file) => (
+                      <FileCardItem filePath={file} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </ContentBox>
+
         </div>
       </section>
 
