@@ -155,14 +155,16 @@ const RootLayout = () => {
     <div className="flex min-h-[100vh] flex-col">
       <Header navLocked={navLocked} onLogoClick={handleLogoClick} />
       <main className="min-h-0 flex-1 py-12">
-        <Outlet
-          context={{
-            setNavLocked,
-            onboardingIncomplete,
-            openOnboardingModal: () => setShowOnboardingModal(true),
-            setLogoClickHandler,
-          }}
-        />
+        <div key={location.key} className="page-transition">
+          <Outlet
+            context={{
+              setNavLocked,
+              onboardingIncomplete,
+              openOnboardingModal: () => setShowOnboardingModal(true),
+              setLogoClickHandler,
+            }}
+          />
+        </div>
       </main>
       <Footer />
 
