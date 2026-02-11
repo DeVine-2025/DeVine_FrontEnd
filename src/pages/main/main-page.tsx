@@ -12,6 +12,7 @@ import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/pro
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
 import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-detail';
 import { getRecommendDevelopersPreview } from '@apis/members';
+import { getMyRecruitingProjects } from '@apis/projects';
 import { getRecommendProjectsPreview, type RecommendProjectPreviewItem } from '@apis/mainrecommendproject';
 import { getDueLabel, mapPositionsToRoles } from 'src/shared/mappers/project';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
@@ -249,7 +250,14 @@ const MainPage = () => {
       try {
         const token = await getToken();
         if (!token || !isActive) return;
-        const result = await getRecommendDevelopersPreview(3, token);
+        const myProjects = await getMyRecruitingProjects(token);
+        const targetProjectId = myProjects[0]?.projectId;
+        if (!targetProjectId) {
+          setIsDeveloperPreviewEmpty(true);
+          setRecommendedDevelopers([]);
+          return;
+        }
+        const result = await getRecommendDevelopersPreview(3, token, targetProjectId);
         if (!isActive) return;
         if (result.length === 0) {
           setIsDeveloperPreviewEmpty(true);
@@ -257,19 +265,23 @@ const MainPage = () => {
           return;
         }
         setIsDeveloperPreviewEmpty(false);
-        const mapped = result.map((d, index) => ({
-          id: `member-preview-${index}-${d.nickname}`,
-          memberId: d.memberId,
-          role: '개발자',
-          roleTone: 'blue' as const,
-          nickname: d.nickname,
-          profileImageUrl: d.image ?? '',
-          introduction: d.body ?? '',
-          badges: [],
-          techStack: (d.techstacks ?? []).map((name, i) => ({ id: `t-${index}-${i}`, name })),
-          bookmarked: d.bookmarked,
-          bookmarkId: d.bookmarkId,
-        }));
+        const mapped = result.map((d, index) => {
+          const roleTone: MainRecommendDeveloper['roleTone'] =
+            d.mainType === 'PM' ? 'blue' : 'green';
+          return {
+            id: `member-preview-${index}-${d.nickname}`,
+            memberId: d.memberId,
+            role: d.mainType === 'PM' ? 'PM' : '개발자',
+            roleTone,
+            nickname: d.nickname,
+            profileImageUrl: d.image ?? '',
+            introduction: d.body ?? '',
+            badges: (d.domains ?? []).map((domain) => ({ label: domain, tone: roleTone })),
+            techStack: (d.techstacks ?? []).map((name, i) => ({ id: `t-${index}-${i}`, name })),
+            bookmarked: d.bookmarked,
+            bookmarkId: d.bookmarkId,
+          };
+        });
         setRecommendedDevelopers(mapped);
       } catch {
         if (isActive) {

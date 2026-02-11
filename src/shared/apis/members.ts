@@ -6,8 +6,30 @@ type RecommendDeveloperPreviewItem = {
   image: string | null;
   body: string;
   techstacks: string[];
+  domains?: string[];
+  mainType?: string;
   bookmarked?: boolean;
   bookmarkId?: number;
+};
+
+type RecommendDeveloperPreviewRaw = {
+  memberId?: number;
+  nickname?: string;
+  image?: string | null;
+  body?: string;
+  techstacks?: Array<string | { name?: string; techstack?: string; techStackName?: string }>;
+  domains?: string[];
+  mainType?: string;
+  bookmarked?: boolean;
+  bookmarkId?: number;
+  member?: {
+    id?: number;
+    memberId?: number;
+    nickname?: string;
+    imageUrl?: string | null;
+    body?: string | null;
+    mainType?: string;
+  };
 };
 
 type RecommendDeveloperPreviewResponse = {
@@ -42,8 +64,13 @@ export async function getMemberProfileByNickname(nickname: string, signal?: Abor
   return data?.result ?? null;
 }
 
-export async function getRecommendDevelopersPreview(limit: number, token: string) {
-  const res = await fetch(`${BASE_URL}/api/v1/members/recommend/preview?limit=${limit}`, {
+export async function getRecommendDevelopersPreview(
+  limit: number,
+  token: string,
+  projectId?: number,
+) {
+  const qs = buildQuery({ limit, projectId });
+  const res = await fetch(`${BASE_URL}/api/v1/members/recommend/preview${qs}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -54,8 +81,28 @@ export async function getRecommendDevelopersPreview(limit: number, token: string
     throw new Error(`recommend developers failed: ${res.status}`);
   }
 
-  const data = (await res.json()) as RecommendDeveloperPreviewResponse;
-  return data.result ?? [];
+  const data = (await res.json()) as RecommendDeveloperPreviewResponse | null;
+  const list = (data?.result ?? []) as RecommendDeveloperPreviewRaw[];
+  return list.map((item) => {
+    const member = item.member;
+    const techstacks = (item.techstacks ?? [])
+      .map((v) => {
+        if (typeof v === 'string') return v;
+        return v?.name ?? v?.techstack ?? v?.techStackName ?? '';
+      })
+      .filter((v) => v.trim().length > 0);
+    return {
+      memberId: item.memberId ?? member?.memberId ?? member?.id,
+      nickname: item.nickname ?? member?.nickname ?? '',
+      image: item.image ?? member?.imageUrl ?? null,
+      body: item.body ?? member?.body ?? '',
+      techstacks,
+      domains: item.domains ?? [],
+      mainType: item.mainType ?? member?.mainType,
+      bookmarked: item.bookmarked,
+      bookmarkId: item.bookmarkId,
+    } as RecommendDeveloperPreviewItem;
+  });
 }
 
 /** GET /api/v1/members/me/projects - 내가 만든(게시한) 프로젝트 목록 */
