@@ -18,19 +18,11 @@ interface NotificationModalProps {
   notifications: NotificationItem[];
 
   anchorRef?: React.RefObject<HTMLElement | null>;
-
-  /** 최초 알림 목록 API 로딩 중이면 true */
   loading?: boolean;
-
   onMarkAsRead?: (notificationId: string) => void;
-
   onMarkAllAsRead?: () => void;
-
-  /** 다음 페이지가 있으면 true. 이때 하단에 "더 보기" 노출 */
   hasMore?: boolean;
-  /** 더 보기 클릭 시 호출 */
   onLoadMore?: () => void;
-  /** 더 보기 요청 중이면 true (로딩 표시) */
   loadingMore?: boolean;
 }
 

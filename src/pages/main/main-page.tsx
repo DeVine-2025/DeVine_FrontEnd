@@ -1,6 +1,7 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import LoginRequiredCard from '@components/common/LoginRequiredCard';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
@@ -99,7 +100,7 @@ const MainPage = () => {
   const [isDeveloperPreviewEmpty, setIsDeveloperPreviewEmpty] = useState(false);
   const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>([]);
   const [projectBookmarkMap, setProjectBookmarkMap] = useState<Record<number, number>>({});
-  const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<number, number>>({});
+  const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<string | number, number>>({});
 
   // 새로고침에도 북마크 반영: 내 북마크 목록을 하이드레이션
   useEffect(() => {
@@ -111,10 +112,13 @@ const MainPage = () => {
         const bookmarks = await getBookmarks(token);
         if (cancelled) return;
         const nextProjects: Record<number, number> = {};
-        const nextDevelopers: Record<number, number> = {};
+        const nextDevelopers: Record<string | number, number> = {};
         for (const b of bookmarks) {
-          if (b.targetType === 'PROJECT') nextProjects[b.targetId] = b.bookmarkId;
-          if (b.targetType === 'DEVELOPER') nextDevelopers[b.targetId] = b.bookmarkId;
+          if (b.targetType === 'PROJECT' && b.targetId != null) nextProjects[b.targetId] = b.bookmarkId;
+          if (b.targetType === 'DEVELOPER') {
+            const key = b.targetNickname ?? b.targetId;
+            if (key !== undefined && key !== null) nextDevelopers[key] = b.bookmarkId;
+          }
         }
         setProjectBookmarkMap(nextProjects);
         setDeveloperBookmarkMap(nextDevelopers);
@@ -179,28 +183,28 @@ const MainPage = () => {
   );
 
   const handleDeveloperBookmarkChange = useCallback(
-    async (memberId: number | undefined, next: boolean) => {
-      if (memberId == null) {
-        alert('개발자 북마크는 현재 지원되지 않습니다.');
-        return;
-      }
+    async (memberId: number | undefined, nickname: string, next: boolean) => {
+      const mapKey = memberId ?? nickname;
       const token = await requireToken();
       if (!token) return;
-      const prevId = developerBookmarkMap[memberId];
+      const prevId = developerBookmarkMap[mapKey];
       if (next) {
-        setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: -1 }));
+        setDeveloperBookmarkMap((prev) => ({ ...prev, [mapKey]: -1 }));
       } else {
         if (prevId == null || prevId <= 0) return;
         setDeveloperBookmarkMap((prev) => {
           const n = { ...prev };
-          delete n[memberId];
+          delete n[mapKey];
           return n;
         });
       }
       try {
         if (next) {
-          const { bookmarkId } = await createBookmark({ targetType: 'DEVELOPER', targetId: memberId }, token);
-          setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: bookmarkId }));
+          const { bookmarkId } = await createBookmark(
+            { targetType: 'DEVELOPER', targetNickname: nickname },
+            token,
+          );
+          setDeveloperBookmarkMap((prev) => ({ ...prev, [mapKey]: bookmarkId }));
         } else {
           await deleteBookmark(prevId, token);
         }
@@ -209,11 +213,11 @@ const MainPage = () => {
         if (next) {
           setDeveloperBookmarkMap((prev) => {
             const n = { ...prev };
-            delete n[memberId];
+            delete n[mapKey];
             return n;
           });
         } else {
-          setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: prevId }));
+          setDeveloperBookmarkMap((prev) => ({ ...prev, [mapKey]: prevId }));
         }
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
@@ -420,9 +424,22 @@ const MainPage = () => {
       </section>
 
       <section className="flex flex-col gap-6">
-        <h2 className="Heading2 font-semibold text-card-title">
-          {recommendTitle}
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="Heading2 font-semibold text-card-title">
+            {recommendTitle}
+          </h2>
+          {isPm && (
+            <button
+              type="button"
+              onClick={() => navigate('/recommend/developer')}
+              className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-[var(--ui-500)] transition-colors hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)]"
+              aria-label="추천 개발자 페이지로 이동"
+            >
+              <span className="Caption1 font-medium">더 많은 추천 개발자 보러가기</span>
+              <ChevronRightIcon aria-hidden className="h-5 w-5 shrink-0" />
+            </button>
+          )}
+        </div>
         <div className="relative">
           <div
             className={`flex flex-col gap-6 ${
@@ -446,11 +463,16 @@ const MainPage = () => {
                     domains={profile.badges?.map((badge) => ({ label: badge.label }))}
                     techStack={profile.techStack}
                     bookmarked={
-                      profile.memberId != null
-                        ? developerBookmarkMap[profile.memberId] != null
-                        : (profile.bookmarked ?? false)
+                      developerBookmarkMap[profile.memberId ?? profile.nickname] != null ||
+                      (profile.bookmarked ?? false)
                     }
-                    onBookmarkChange={(next) => handleDeveloperBookmarkChange(profile.memberId, next)}
+                    bookmarkId={
+                      (() => {
+                        const id = developerBookmarkMap[profile.memberId ?? profile.nickname];
+                        return id != null && id > 0 ? id : undefined;
+                      })()
+                    }
+                    onBookmarkChange={(next) => handleDeveloperBookmarkChange(profile.memberId, profile.nickname, next)}
                     matchedReason="의 Java/Springboot 요구사항과 일치합니다."
                   />
                 ))

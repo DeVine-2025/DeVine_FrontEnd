@@ -59,14 +59,8 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
     getToken().then((token) => {
       if (!token) return;
       getUnreadNotificationCount(token)
-        .then((count) => {
-          setUnreadCount(count);
-          console.log('[알림] 읽지 않은 개수:', count);
-        })
-        .catch((e) => {
-          setUnreadCount(0);
-          console.warn('[알림] unread-count 실패', e);
-        });
+        .then((count) => setUnreadCount(count))
+        .catch(() => setUnreadCount(0));
     });
   }, [getToken]);
 
@@ -120,12 +114,11 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
           setHasNextNotifications(result.hasNext);
         }
       })
-      .catch((e) => {
+      .catch(() => {
         if (!cancelled) {
           setNotifications([]);
           setHasNextNotifications(false);
         }
-        console.warn('[알림] 목록 조회 실패', e);
       })
       .finally(() => {
         if (!cancelled) setLoadingNotifications(false);
@@ -149,10 +142,9 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
           setNotifications((prev) => [...prev, ...result.notifications]);
           setHasNextNotifications(result.hasNext);
           setNotificationPage(pageToLoad);
-          console.log('[알림] 더 보기 성공', result.notifications.length, '건 추가');
         }
       })
-      .catch((e) => console.warn('[알림] 더 보기 실패', e))
+      .catch(() => {})
       .finally(() => setLoadingMoreNotifications(false));
   }, [getToken, notificationPage, hasNextNotifications, loadingMoreNotifications]);
 
@@ -166,15 +158,12 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
         prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n)),
       );
       setUnreadCount((c) => Math.max(0, c - 1));
-      markNotificationAsRead(id, token)
-        .then(() => console.log('[알림] 읽음 처리 성공', notificationId))
-        .catch((e) => {
-          console.warn('[알림] 읽음 처리 실패', notificationId, e);
-          setNotifications((prev) =>
-            prev.map((n) => (n.id === notificationId ? { ...n, isRead: wasRead } : n)),
-          );
-          setUnreadCount((c) => (wasRead ? c : c + 1));
-        });
+      markNotificationAsRead(id, token).catch(() => {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notificationId ? { ...n, isRead: wasRead } : n)),
+        );
+        setUnreadCount((c) => (wasRead ? c : c + 1));
+      });
     });
   };
 
@@ -185,13 +174,10 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
       const prevUnreadCount = unreadCount;
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
-      markAllNotificationsAsRead(token)
-        .then((result) => console.log('[알림] 전체 읽음 처리 성공', result?.markedCount ?? ''))
-        .catch((e) => {
-          console.warn('[알림] 전체 읽음 처리 실패', e);
-          setNotifications(prevNotifications);
-          setUnreadCount(prevUnreadCount);
-        });
+      markAllNotificationsAsRead(token).catch(() => {
+        setNotifications(prevNotifications);
+        setUnreadCount(prevUnreadCount);
+      });
     });
   };
 

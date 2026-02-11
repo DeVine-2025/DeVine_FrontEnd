@@ -54,7 +54,7 @@ const RecommendProjectPage = () => {
 
         const next: Record<number, number> = {};
         for (const b of bookmarks) {
-          if (b.targetType !== 'PROJECT') continue;
+          if (b.targetType !== 'PROJECT' || b.targetId == null) continue;
           next[b.targetId] = b.bookmarkId;
         }
 
@@ -140,7 +140,6 @@ const RecommendProjectPage = () => {
       const targetId = Number(projectId);
       if (Number.isNaN(targetId)) return;
 
-      // 낙관적 UI: 먼저 UI 반영 (placeholder -1 사용, 0은 effect에서 falsy로 롤백되므로)
       const prevMap = bookmarkMapRef.current;
       const prevBookmarkId = prevMap[targetId];
       if (next) {
