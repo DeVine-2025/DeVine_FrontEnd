@@ -19,6 +19,7 @@ import type { MyProfile } from '@apis/myInfo/myInfo';
 type ProfileDetailProps = {
   type: '내 정보' | '개발자 상세';
   profile?: MyProfile;
+  techStack?: string[];
 }
 
 const gitDummy = [
@@ -28,7 +29,7 @@ const gitDummy = [
   // ... 활동이 없는 날은 생략 가능
 ];
 
-const ProfileDetail = ({type, profile}: ProfileDetailProps) => {
+const ProfileDetail = ({type, profile, techStack}: ProfileDetailProps) => {
   const [projectTab, setProjectTab] = useState<ProjectTab>('ongoing');
 
   const navigate = useNavigate();
@@ -37,7 +38,6 @@ const ProfileDetail = ({type, profile}: ProfileDetailProps) => {
   const roleTone = member?.mainType === 'PM' ? 'blue' : 'green';
   const nickname = member?.nickname || member?.name || '닉네임';
   const domains = profile?.domains ?? [];
-  const techStack = profile?.techstacks ?? profile?.techStacks ?? [];
   const contacts = profile?.contacts ?? [];
   const introduction = member?.body || '소개가 들어가는 자리 입니다.';
   const imageUrl = member?.imageUrl ?? null;
@@ -81,7 +81,7 @@ const ProfileDetail = ({type, profile}: ProfileDetailProps) => {
         {/* Section 3 : 보유 스택 목록 */}
         <div className="flex-col gap-[2.4rem]">
           <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem]">보유 스택
-            <button type="button" className="border-2 border-ui-200 bg-ui-50 rounded-full">
+            <button type="button" className="border-2 border-ui-200 bg-ui-50 rounded-full cursor-pointer">
               <QuestionIcon className="text-ui-200 w-5 h-5" />
             </button>
           </p>

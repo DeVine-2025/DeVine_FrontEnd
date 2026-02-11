@@ -17,10 +17,20 @@ export const getMyRepo = async (
   return data;
 };
 
+export const getMyTechStacks = async () => {
+  const {data} = await axiosInstance.get('/api/v1/members/me/techstacks');
+  return data;
+}
+
 export const myInfoQueries = {
   profile: () => ({
     queryKey: ['member'],
     queryFn: getMyProfile,
+  }),
+
+  getMyTechStacks: () => ({
+    queryKey: ['member/techstacks'],
+    queryFn: getMyTechStacks,
   }),
 
   reposInfinite: () => ({

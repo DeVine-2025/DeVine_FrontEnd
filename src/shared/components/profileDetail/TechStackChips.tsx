@@ -57,7 +57,7 @@ const TechStackChips = ({ techStack = [] }: TechStackChipsProps) => {
 
   return (
     <div className="flex flex-wrap items-center gap-[4px] relative">
-      <CheckFillIcon className="absolute top-[-5px] left-[-6px]"/>
+      {/*<CheckFillIcon className="absolute top-[-5px] left-[-6px]"/>*/}
       {techStack.map((name) => {
         const badge = findBadge(name);
 

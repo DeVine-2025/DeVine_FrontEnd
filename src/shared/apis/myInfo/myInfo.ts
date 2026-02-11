@@ -34,11 +34,6 @@ export interface GitRepo {
   description: string;
 }
 
-export interface MyInfoResponse {
-
-}
-
-
 export interface MyProfileResponse extends ApiResponse<MyProfile> {}
 export interface MyReposResponse extends ApiResponse<{ 
   repos: GitRepo[];
