@@ -18,6 +18,13 @@ interface NotificationModalProps {
   onMarkAsRead?: (notificationId: string) => void;
 
   onMarkAllAsRead?: () => void;
+
+  /** 다음 페이지가 있으면 true. 이때 하단에 "더 보기" 노출 */
+  hasMore?: boolean;
+  /** 더 보기 클릭 시 호출 */
+  onLoadMore?: () => void;
+  /** 더 보기 요청 중이면 true (로딩 표시) */
+  loadingMore?: boolean;
 }
 
 const GAP_PX = 8;
@@ -31,6 +38,9 @@ const NotificationModal = ({
   anchorRef,
   onMarkAsRead,
   onMarkAllAsRead,
+  hasMore = false,
+  onLoadMore,
+  loadingMore = false,
 }: NotificationModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
@@ -92,7 +102,7 @@ const NotificationModal = ({
 
   const useAnchor = anchorRef?.current && position !== null;
   const modalHeight =
-    notifications.length === 0 ? 200 : notifications.length === 1 ? 220 : 260;
+    notifications.length === 0 ? 200 : notifications.length === 1 ? 220 : Math.min(400, 120 + notifications.length * 100);
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50">
@@ -124,7 +134,7 @@ const NotificationModal = ({
               <p className="text-[12px] text-[var(--ui-400)]">새 소식이 오면 여기에 표시돼요</p>
             </div>
           ) : (
-            notifications.slice(0, 2).map((notification) => (
+            notifications.map((notification) => (
               <button
                 key={notification.id}
                 type="button"
@@ -165,6 +175,18 @@ const NotificationModal = ({
                 </p>
               </button>
             ))
+          )}
+          {hasMore && onLoadMore && (
+            <div className="shrink-0 border-t border-[var(--ui-200)] px-3 py-2">
+              <button
+                type="button"
+                onClick={onLoadMore}
+                disabled={loadingMore}
+                className="w-full rounded-xl py-2.5 text-[13px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#4E49FF] disabled:opacity-60"
+              >
+                {loadingMore ? '불러오는 중…' : '더 보기'}
+              </button>
+            </div>
           )}
         </div>
         {onMarkAllAsRead && notifications.some((n) => !n.isRead) && (

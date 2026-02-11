@@ -39,6 +39,9 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notificationPage, setNotificationPage] = useState(0);
+  const [hasNextNotifications, setHasNextNotifications] = useState(false);
+  const [loadingMoreNotifications, setLoadingMoreNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
@@ -102,17 +105,43 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
       .then((result) => {
         if (result && !cancelled) {
           setNotifications(result.notifications);
-          console.log('[알림] 목록 조회 성공', result.notifications.length, '건', result.notifications);
+          setNotificationPage(0);
+          setHasNextNotifications(result.hasNext);
+          console.log('[알림] 목록 조회 성공', result.notifications.length, '건', result.hasNext ? '(다음 페이지 있음)' : '');
         }
       })
       .catch((e) => {
-        if (!cancelled) setNotifications([]);
+        if (!cancelled) {
+          setNotifications([]);
+          setHasNextNotifications(false);
+        }
         console.warn('[알림] 목록 조회 실패', e);
       });
     return () => {
       cancelled = true;
     };
   }, [isNotificationOpen, getToken]);
+
+  const loadMoreNotifications = useCallback(() => {
+    if (loadingMoreNotifications || !hasNextNotifications) return;
+    setLoadingMoreNotifications(true);
+    const pageToLoad = notificationPage + 1;
+    getToken()
+      .then((token) => {
+        if (!token) return;
+        return getNotifications(token, { page: pageToLoad, size: 20 });
+      })
+      .then((result) => {
+        if (result) {
+          setNotifications((prev) => [...prev, ...result.notifications]);
+          setHasNextNotifications(result.hasNext);
+          setNotificationPage(pageToLoad);
+          console.log('[알림] 더 보기 성공', result.notifications.length, '건 추가');
+        }
+      })
+      .catch((e) => console.warn('[알림] 더 보기 실패', e))
+      .finally(() => setLoadingMoreNotifications(false));
+  }, [getToken, notificationPage, hasNextNotifications, loadingMoreNotifications]);
 
   const handleMarkAsRead = (notificationId: string) => {
     getToken().then((token) => {
@@ -406,6 +435,9 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
         notifications={notifications}
         onMarkAsRead={handleMarkAsRead}
         onMarkAllAsRead={handleMarkAllAsRead}
+        hasMore={hasNextNotifications}
+        onLoadMore={loadMoreNotifications}
+        loadingMore={loadingMoreNotifications}
       />
     </>
   );
