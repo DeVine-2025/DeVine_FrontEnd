@@ -17,7 +17,7 @@ export async function getDevelopers(
       ? params
       : buildQuery({
           categories: params.categories?.length ? params.categories : undefined,
-          techNames: params.techstackNames?.length ? params.techstackNames : undefined,
+          techNames: params.techNames?.length ? params.techNames : undefined,
           page: params.page ?? 1,
           size: params.size ?? 10,
         });
