@@ -139,7 +139,7 @@ const ProfileDetail = ({
             />
             <div ref={scrollContainerRef} className="flex gap-[1.8rem] overflow-x-auto">
               {gitRepos?.pages?.flatMap((page) =>
-                (page.result?.repos ?? []).map((repo) => (
+                (page.result?.content ?? []).map((repo) => (
                   <ReportCardSmall
                     key={repo.gitRepoId}
                     title={repo.name}

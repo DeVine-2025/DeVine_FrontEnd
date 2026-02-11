@@ -19,7 +19,7 @@ const ReportCreatePage = () => {
   } = useInfiniteQuery(myInfoQueries.reposInfinite());
 
   const repo =
-    data?.pages.flatMap((page) => page.result?.repos ?? []) ?? [];
+    data?.pages.flatMap((page) => page.result?.content ?? []) ?? [];
 
 
   const navigate = useNavigate();
