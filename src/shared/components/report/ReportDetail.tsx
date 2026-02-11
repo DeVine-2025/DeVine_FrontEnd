@@ -1,13 +1,6 @@
-import {
-  ReportDetailContent,
-  CodeInsight,
-  Improvement,
-  NextStep,
-} from '@apis/report/report';
+import type { CodeInsight, Improvement, NextStep, ReportDetailContent } from '@apis/report/report';
+import FileSmallIcon from '@assets/icons/detail-page/file-small.svg?react';
 import ContentBox from '@components/report/ContentBox';
-import FileSmallIcon from "@assets/icons/detail-page/file-small.svg?react";
-import CheckGreenIcon from "@assets/icons/detail-page/check-green.svg?react";
-import CancelRedIcon from "@assets/icons/detail-page/cacanel-red.svg?react";
 
 type ReportDetailProps = {
   data: ReportDetailContent;
@@ -19,22 +12,34 @@ type FileCardItemProps = {
 
 const FileCardItem = ({ filePath }: FileCardItemProps) => {
   return (
-    <div className="flex items-center gap-2 rounded-lg px-[0.7rem] py-[1.2rem] w-96 h-8 relative bg-ui-bg border border-1 border-ui-100">
+    <div className="relative flex h-12 w-96 items-center gap-2 rounded-lg border border-1 border-ui-100 bg-ui-bg px-[0.7rem] py-[1.2rem]">
       <FileSmallIcon />
-      <p className="text-ui-800 text-xs font-normal">{filePath}</p>
+      <p className="font-normal text-sm text-ui-800">{filePath}</p>
     </div>
   );
 };
 
 const ReportDetail = ({ data }: ReportDetailProps) => {
   const sectionTitleStyle = 'text-ui-1000 text-3xl font-bold';
-  const subtTitleStyle = 'text-ui-900 text-lg font-semibold min-w-[160px]';
+  const subtTitleStyle = 'text-ui-900 text-xl font-semibold min-w-[160px]';
   const contentGapStyle = 'flex-col gap-[2rem]';
   const contentStyle = 'flex-col gap-2 p-[1.6rem]';
   const listGapStyle = 'flex-col gap-[0.2rem]';
+  const listItemStyle =
+    'flex items-start flex-col gap-[1rem] font-normal text-lg text-ui-1000 pb-2';
+  const bulletStyle = 'text-2xl leading-none';
+
+  const scale = data.projectOverview.projectScale;
+
+  const scaleItems = [
+    `총 코드 라인: ${scale.totalCodeLines}줄`,
+    `작업파일 : ${scale.mainCodeFiles}개 이상`,
+    `개발 기간: ${scale.developmentPeriod}`,
+    `패키지 구조: ${scale.architecturePattern}`,
+  ];
 
   return (
-    <div className="flex-col gap-[8rem]">
+    <div className="mb-30 flex-col gap-[8rem]">
       {/* 프로젝트 개요 */}
       <section className="flex-col gap-[2.4rem]">
         <div className="flex-col gap-[1rem]">
@@ -45,9 +50,7 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
         <div className="flex-col gap-[3rem]">
           <div>
             <p className={subtTitleStyle}>프로젝트 목적</p>
-            <p className="text-ui-700 text-base font-medium">
-              {data.projectOverview.purpose}
-            </p>
+            <p className="pt-3 font-medium text-lg text-ui-700">{data.projectOverview.purpose}</p>
           </div>
 
           {/* 기술 스택 */}
@@ -57,13 +60,11 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
               <section className={contentStyle}>
                 {data.projectOverview.techStack.map(
                   (item: { title: string; content: string }, idx: number) => (
-                    <div key={idx} className="flex gap-30 items-center">
+                    <div key={idx} className="flex items-center gap-20 pb-2 pl-5">
                       <p className={subtTitleStyle}>{item.title}</p>
-                      <p className="text-ui-900 text-sm font-medium">
-                        {item.content}
-                      </p>
+                      <p className="font-medium text-lg text-ui-900">{item.content}</p>
                     </div>
-                  )
+                  ),
                 )}
               </section>
             </ContentBox>
@@ -73,25 +74,13 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
           <div className={contentGapStyle}>
             <p className={subtTitleStyle}>프로젝트 규모</p>
             <ContentBox>
-              <div className="flex py-[2rem] px-[3rem]">
-                <p className={subtTitleStyle}>프로젝트 규모</p>
-                <div>
-                  <p className="text-ui-1000 text-sm font-normal flex items-center">
-                    <span className="text-2xl">•</span> 총 코드 라인:
-                    {data.projectOverview.projectScale.totalCodeLines}줄
-                  </p>
-                  <p className="text-ui-1000 text-sm font-normal flex items-center">
-                    <span className="text-2xl">•</span> 작업파일 :
-                    {data.projectOverview.projectScale.mainCodeFiles}개 이상
-                  </p>
-                  <p className="text-ui-1000 text-sm font-normal flex items-center">
-                    <span className="text-2xl">•</span> 개발 기간:
-                    {data.projectOverview.projectScale.developmentPeriod}
-                  </p>
-                  <p className="text-ui-1000 text-sm font-normal flex items-center">
-                    <span className="text-2xl">•</span> 패키지 구조:
-                    {data.projectOverview.projectScale.architecturePattern}
-                  </p>
+              <div className="flex px-[3rem] py-[1.5rem]">
+                <div className="gap-6">
+                  {scaleItems.map((text) => (
+                    <p key={text} className={listItemStyle}>
+                      <span>{text}</span>
+                    </p>
+                  ))}
                 </div>
               </div>
             </ContentBox>
@@ -107,30 +96,28 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
 
           {data.implementedFeatures.map((item: any, idx: number) => (
             <ContentBox key={idx}>
-              <div className="p-[2rem] flex-col gap-10">
-                <p className="text-ui-1000 text-xl font-bold">
+              <div className="flex-col gap-13 p-[2rem]">
+                <p className="font-bold text-ui-1000 text-xl">
                   {item.categoryNumber + ' . ' + item.category}
                 </p>
 
                 {item.features.map((feature: any, fIdx: number) => (
                   <div key={fIdx} className="flex-col gap-[2.9rem]">
                     <div className="flex-col gap-[1rem]">
-                      <p className="text-ui-400 text-xs font-semibold">
+                      <p className="font-semibold text-lg text-ui-400">
                         {feature.name} - 구현 내용
                       </p>
                       <div className={listGapStyle}>
-                        {feature.details.map(
-                          (detail: string, dIdx: number) => (
-                            <p key={dIdx} className="text-ui-900 text-sm font-medium">
-                              • {detail}
-                            </p>
-                          )
-                        )}
+                        {feature.details.map((detail: string, dIdx: number) => (
+                          <p key={dIdx} className="font-medium text-lg text-ui-900">
+                            • {detail}
+                          </p>
+                        ))}
                       </div>
                     </div>
 
                     <div className="flex-col gap-[1rem]">
-                      <p className="text-ui-400 text-xs font-semibold">
+                      <p className="font-semibold text-lg text-ui-400">
                         {feature.name} - 코드 위치
                       </p>
                       <div className="flex flex-wrap gap-2">
@@ -140,17 +127,17 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
                       </div>
                     </div>
 
-                    <div className={listGapStyle}>
-                      <p className="text-ui-400 text-xs font-semibold">
+                    <div className="flex-col gap-[1rem]">
+                      <p className="font-semibold text-lg text-ui-400">
                         {feature.name} - 구현 방식
                       </p>
-                      {feature.implementation.map(
-                        (implementation: string, iIdx: number) => (
-                          <p key={iIdx} className="text-ui-900 text-sm font-medium">
+                      <div className="flex flex-col flex-wrap gap-2">
+                        {feature.implementation.map((implementation: string, iIdx: number) => (
+                          <p key={iIdx} className="font-medium text-lg text-ui-900">
                             • {implementation}
                           </p>
-                        )
-                      )}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -166,14 +153,14 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
           <p className={sectionTitleStyle}>코드 분석 인사이트</p>
           <hr className="border-ui-100" />
           <ContentBox>
-            <div className="p-[3.2rem] flex-col gap-[3rem]">
+            <div className="flex-col gap-[3rem] p-[3.2rem]">
               {data.codeInsights.map((item: CodeInsight, idx: number) => (
                 <div key={idx} className="flex-col gap-[0.7rem]">
-                  <p className="text-ui-1000 text-lg font-semibold">
+                  <p className="pb-1 font-semibold text-ui-1000 text-xl">
                     {item.number + ' . ' + item.title}
                   </p>
                   {item.points.map((description: string, pIdx: number) => (
-                    <p key={pIdx} className="text-ui-1000 text-base">
+                    <p key={pIdx} className="text-lg text-ui-1000">
                       • {description}
                     </p>
                   ))}
@@ -192,10 +179,8 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
 
           {data.improvements.map((item: Improvement, idx: number) => (
             <ContentBox key={idx}>
-              <div className="p-[3rem] flex-col gap-10">
-                <p className="text-ui-1000 text-lg font-bold">
-                  {item.number + ' . ' + item.title}
-                </p>
+              <div className="flex-col gap-10 p-[3rem]">
+                <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
               </div>
             </ContentBox>
           ))}
@@ -210,13 +195,9 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
 
           {data.nextSteps.map((item: NextStep, idx: number) => (
             <ContentBox key={idx}>
-              <div className="p-[3rem] flex-col gap-[0.7rem]">
-                <p className="text-ui-1000 text-xl font-bold">
-                  {item.number + ' . ' + item.title}
-                </p>
-                <p className="text-ui-400 text-base">
-                  {item.description.join(', ')}
-                </p>
+              <div className="flex-col gap-[0.7rem] p-[3rem]">
+                <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
+                <p className="text-lg text-ui-400">{item.description.join(', ')}</p>
               </div>
             </ContentBox>
           ))}
