@@ -4,10 +4,10 @@ import { useThemeStore } from '@store/theme';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
-import { getProjectDetail } from '@apis/project-detail';
+import { getProjectDetail, updateProjectStatus, type ProjectStatus } from '@apis/project-detail';
 import { getMyRecruitingProjects } from '@apis/projects';
 import { getMemberProfileByNickname } from '@apis/members';
-import { applyProject, getMyApplyStatus } from '@apis/apply';
+import { applyProject, getMyApplyStatus, updateMyApply } from '@apis/apply';
 import type { ProjectItem, Position, TechStack } from '@t/project/api';
 import {
   PROJECT_LIST,
@@ -40,6 +40,7 @@ type ProjectDetailInfo = {
   roles?: ProjectRoleInfo[];
   bookmarked?: boolean;
   bookmarkId?: number;
+  status?: ProjectStatus;
 };
 
 type ProjectRoleInfo = {
@@ -104,6 +105,9 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
   const isOwner =
     'isOwner' in project ? Boolean((project as ProjectItem & { isOwner?: boolean }).isOwner) : undefined;
 
+  // eslint-disable-next-line no-console
+  console.log('[프로젝트 상세] API raw creatorImage:', project.creatorImage, '| creatorNickname:', project.creatorNickname, '| creatorName:', project.creatorName);
+
   return {
     id: String(project.projectId),
     categoryLabel: project.projectFieldName,
@@ -115,11 +119,12 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
     dueLabel: project.recruitmentDeadline,
     bookmarked: project.bookmarked,
     bookmarkId: project.bookmarkId,
+    status: (project.status as ProjectStatus) ?? undefined,
     summary,
-    creatorName: project.creatorName,
+    creatorName: project.creatorNickname ?? project.creatorName,
     creatorId: project.creatorId,
     isOwner,
-    creatorImage: (project as ProjectItem & { creatorImage?: string | null }).creatorImage ?? null,
+    creatorImage: project.creatorImage ?? null,
     imageUrls,
     roles: recruitments.map((recruitment) => {
       const positionKey = recruitment.position as Position;
@@ -187,6 +192,8 @@ const ProjectDetailPage = () => {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [appliedMatchingId, setAppliedMatchingId] = useState<number | undefined>(undefined);
+  const [appliedPart, setAppliedPart] = useState<string | undefined>(undefined);
   const [isApplying, setIsApplying] = useState(false);
   const [apiProject, setApiProject] = useState<ProjectDetailInfo | null>(null);
   const [isOwnerByList, setIsOwnerByList] = useState(false);
@@ -197,6 +204,10 @@ const ProjectDetailPage = () => {
     bookmarked: boolean;
     bookmarkId?: number;
   }>({ bookmarked: false });
+  const [projectStatus, setProjectStatus] = useState<ProjectStatus | null>(null);
+  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+  const [isStatusUpdating, setIsStatusUpdating] = useState(false);
+  const statusMenuRef = useRef<HTMLDivElement>(null);
 
   /** 사용자가 북마크 버튼을 눌렀으면, fetch 결과로 덮어쓰지 않음 (색 유지) */
   const userDidChangeBookmarkRef = useRef(false);
@@ -298,16 +309,29 @@ const ProjectDetailPage = () => {
         if (token) {
           try {
             const applyStatus = await getMyApplyStatus(numericId, token);
-            if (isActive) setHasApplied(applyStatus.exists);
+            if (isActive) {
+              setHasApplied(applyStatus.exists);
+              setAppliedMatchingId(applyStatus.matchingId);
+              setAppliedPart(applyStatus.part);
+            }
           } catch (e) {
             console.error('[지원 상태] 조회 실패', e);
-            if (isActive) setHasApplied(false);
+            if (isActive) {
+              setHasApplied(false);
+              setAppliedMatchingId(undefined);
+              setAppliedPart(undefined);
+            }
           }
         } else if (isActive) {
           setHasApplied(false);
+          setAppliedMatchingId(undefined);
+          setAppliedPart(undefined);
         }
 
         setApiProject(mapped);
+        if (mapped?.status) {
+          setProjectStatus(mapped.status);
+        }
         if (mapped && !userDidChangeBookmarkRef.current) {
           setBookmarkState({
             bookmarked: mapped.bookmarked ?? false,
@@ -356,6 +380,9 @@ const ProjectDetailPage = () => {
     isOwnerByList;
   const creatorImage = project?.creatorImage ?? creatorProfileImage;
 
+  // eslint-disable-next-line no-console
+  console.log('[프로젝트 상세] 렌더링 creatorImage:', creatorImage, '| project.creatorImage:', project?.creatorImage, '| creatorProfileImage:', creatorProfileImage);
+
   useEffect(() => {
     if (!project || project.creatorImage) {
       setCreatorProfileImage(null);
@@ -396,6 +423,18 @@ const ProjectDetailPage = () => {
       });
     return () => controller.abort();
   }, [getToken, isLoaded, isSignedIn, projectId]);
+
+  useEffect(() => {
+    if (!isStatusMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (statusMenuRef.current && !statusMenuRef.current.contains(e.target as Node)) {
+        setIsStatusMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isStatusMenuOpen]);
+
   const roleOptions = useMemo(() => {
     if (project?.roles && project.roles.length > 0) {
       return project.roles.map((role) => ({ key: role.key, label: role.label }));
@@ -458,14 +497,56 @@ const ProjectDetailPage = () => {
         setIsLoginModalOpen(true);
         return;
       }
-      await applyProject(Number(projectId), selectedRole, token);
-      setHasApplied(true);
+
+      if (hasApplied) {
+        // 이미 지원한 상태 → 역할 수정
+        await updateMyApply(Number(projectId), selectedRole, token);
+        setAppliedPart(selectedRole);
+      } else {
+        // 새 지원
+        await applyProject(Number(projectId), selectedRole, token);
+        setHasApplied(true);
+      }
+
       setIsApplyModalOpen(false);
     } catch (error) {
       console.error(error);
-      alert('프로젝트 지원에 실패했어요. 잠시 후 다시 시도해 주세요.');
+      alert(
+        hasApplied
+          ? '지원 역할 수정에 실패했어요. 잠시 후 다시 시도해 주세요.'
+          : '프로젝트 지원에 실패했어요. 잠시 후 다시 시도해 주세요.',
+      );
     } finally {
       setIsApplying(false);
+    }
+  };
+
+  const STATUS_OPTIONS: { key: ProjectStatus; label: string }[] = [
+    { key: 'RECRUITING', label: '프로젝트 모집 중' },
+    { key: 'IN_PROGRESS', label: '프로젝트 진행 중' },
+    { key: 'COMPLETED', label: '프로젝트 완료' },
+  ];
+
+  const currentStatusLabel =
+    STATUS_OPTIONS.find((o) => o.key === projectStatus)?.label ?? '상태 변경';
+
+  const handleStatusChange = async (status: ProjectStatus) => {
+    if (!projectId || isStatusUpdating) return;
+    try {
+      setIsStatusUpdating(true);
+      const token = await getToken();
+      if (!token) {
+        setIsLoginModalOpen(true);
+        return;
+      }
+      await updateProjectStatus(Number(projectId), status, token);
+      setProjectStatus(status);
+      setIsStatusMenuOpen(false);
+    } catch (error) {
+      console.error('[상태 변경]', error);
+      alert(error instanceof Error ? error.message : '프로젝트 상태 변경에 실패했습니다.');
+    } finally {
+      setIsStatusUpdating(false);
     }
   };
 
@@ -559,10 +640,11 @@ const ProjectDetailPage = () => {
                     {project.creatorName ?? '닉네임'}
                   </span>
                 </div>
-                {hasApplied && (
+                {hasApplied && !isOwner && (
                   <button
                     type="button"
                     onClick={() => {
+                      if (appliedPart) setSelectedRole(appliedPart);
                       setIsApplyModalOpen(true);
                       setIsRoleMenuOpen(false);
                     }}
@@ -584,6 +666,103 @@ const ProjectDetailPage = () => {
                     수정하기
                   </button>
                 )}
+                {isOwner && (
+                  <div className="mt-2 flex w-full items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate('/project/create', {
+                          state: { projectId: Number(project.id), mode: 'edit' },
+                        })
+                      }
+                      className="inline-flex h-[36px] flex-[3] items-center justify-center gap-2 rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-100)] text-[14px] font-medium text-[var(--ui-500)]"
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                      </svg>
+                      수정하기
+                    </button>
+                    <div ref={statusMenuRef} className="relative flex-[2]">
+                      <button
+                        type="button"
+                        onClick={() => setIsStatusMenuOpen((prev) => !prev)}
+                        disabled={isStatusUpdating}
+                        className={`inline-flex h-[36px] w-full items-center justify-center gap-2 rounded-[10px] text-[14px] font-medium text-white ${
+                          projectStatus === 'COMPLETED'
+                            ? 'bg-[var(--ui-400)]'
+                            : projectStatus === 'IN_PROGRESS'
+                              ? 'bg-[#22C55E]'
+                              : 'bg-[#4E49FF]'
+                        }`}
+                      >
+                        {isStatusUpdating ? '변경 중...' : currentStatusLabel}
+                        <svg
+                          className={`h-3.5 w-3.5 transition-transform ${isStatusMenuOpen ? 'rotate-180' : ''}`}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M6 9l6 6 6-6" />
+                        </svg>
+                      </button>
+                      {isStatusMenuOpen && (
+                        <div
+                          className="absolute z-20 mt-2 w-full rounded-[12px] py-2 shadow-[0_12px_30px_rgba(0,0,0,0.15)]"
+                          style={{
+                            backgroundColor: isDark ? '#212328' : '#FFFFFF',
+                            border: `1px solid ${isDark ? '#41444D' : 'var(--ui-200)'}`,
+                          }}
+                        >
+                          {STATUS_OPTIONS.map((option) => (
+                            <button
+                              key={option.key}
+                              type="button"
+                              onClick={() => handleStatusChange(option.key)}
+                              className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-[14px] transition-colors ${
+                                projectStatus === option.key
+                                  ? 'font-semibold'
+                                  : 'hover:bg-[var(--ui-100)]'
+                              }`}
+                              style={{
+                                color:
+                                  projectStatus === option.key
+                                    ? '#4E49FF'
+                                    : isDark
+                                      ? '#F8F9FB'
+                                      : 'var(--ui-700)',
+                              }}
+                            >
+                              <span
+                                className={`h-2 w-2 rounded-full ${
+                                  option.key === 'RECRUITING'
+                                    ? 'bg-[#4E49FF]'
+                                    : option.key === 'IN_PROGRESS'
+                                      ? 'bg-[#22C55E]'
+                                      : 'bg-[var(--ui-400)]'
+                                }`}
+                              />
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -595,16 +774,10 @@ const ProjectDetailPage = () => {
               (project.imageUrls?.length ?? 0) > 0 ? 'mt-[20rem] lg:mt-[30rem]' : 'mt-20 lg:mt-24'
             }`}
           >
-            {(isOwner || !hasApplied) && (
+            {!isOwner && !hasApplied && (
               <button
                 type="button"
                 onClick={() => {
-                  if (isOwner) {
-                    navigate('/project/create', {
-                      state: { projectId: Number(project.id), mode: 'edit' },
-                    });
-                    return;
-                  }
                   if (isLoaded && !isSignedIn) {
                     setIsLoginModalOpen(true);
                     return;
@@ -614,7 +787,7 @@ const ProjectDetailPage = () => {
                 }}
                 className="h-[36px] w-[200px] rounded-[10px] bg-[#4E49FF] px-4 text-[14px] font-medium text-white hover:opacity-80"
               >
-                {isOwner ? '수정하기' : '지원하기'}
+                지원하기
               </button>
             )}
           </div>
@@ -827,13 +1000,15 @@ const ProjectDetailPage = () => {
               >
                 [{project.title}]
                 <br />
-                에 지원하시겠어요?
+                {hasApplied ? '지원 역할을 변경하시겠어요?' : '에 지원하시겠어요?'}
               </h2>
               <p
                 className="text-[13px]"
                 style={{ color: isDark ? '#9EA6BA' : 'var(--ui-400)' }}
               >
-                지원 후 PM이 수락 시 팀원으로 합류하게 됩니다.
+                {hasApplied
+                  ? '변경할 포지션을 선택해 주세요.'
+                  : '지원 후 PM이 수락 시 팀원으로 합류하게 됩니다.'}
               </p>
             </div>
 
@@ -906,7 +1081,9 @@ const ProjectDetailPage = () => {
                     : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
                 }`}
               >
-                {isApplying ? '지원 중...' : '지원하기'}
+                {isApplying
+                  ? (hasApplied ? '수정 중...' : '지원 중...')
+                  : (hasApplied ? '수정하기' : '지원하기')}
               </button>
               <button
                 type="button"

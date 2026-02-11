@@ -100,6 +100,33 @@ export async function createProject(
   return { projectId: json.result?.projectId ?? json.projectId };
 }
 
+/** PATCH /api/v1/projects/{projectId} - 프로젝트 수정 */
+export async function updateProject(
+  projectId: number,
+  body: CreateProjectBody,
+  token: string,
+): Promise<CreateProjectResult> {
+  const res = await fetch(`${BASE_URL}/api/v1/projects/${projectId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const json = await res.json().catch(() => null);
+  if (import.meta.env.DEV) {
+    console.log('[updateProject] response status', res.status, 'body', json);
+  }
+  if (!res.ok) {
+    const message = json?.message ?? json?.error ?? `요청 실패 (${res.status})`;
+    throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
+  }
+
+  return { projectId: json.result?.projectId ?? json.projectId ?? projectId };
+}
+
 export type MyRecruitingProjectItem = {
   projectId: number;
   title: string;

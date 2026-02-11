@@ -1,5 +1,6 @@
 import { getPresignedUrl, confirmImage } from '@apis/images';
-import { createProject } from '@apis/projects';
+import { createProject, updateProject } from '@apis/projects';
+import { getProjectDetail } from '@apis/project-detail';
 import AddImageLightIcon from '@assets/icons/create-project/addimage-light.svg?react';
 import PlusIcon from '@assets/icons/create-project/plus.svg?react';
 import TablerIconBold from '@assets/icons/create-project/tabler-icon-bold.svg?react';
@@ -41,10 +42,11 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { LinkCardExtension } from '@pages/project-create/LinkCardNode';
 import { useProjectCreateStore } from '@store/projectCreate';
+import { useProjectCreateStore, type SlotImage } from '@store/projectCreate';
 import { useThemeStore } from '@store/theme';
 import type { ChangeEvent, ComponentType, SVGProps } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 type SvgIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -261,6 +263,23 @@ const domainToCategory: Record<string, string> = {
   'AI/데이터': 'AI',
   기타: 'OTHER',
 };
+/** API enum → 폼 라벨 (역매핑) */
+const reverseProjectFieldMap: Record<string, string> = Object.fromEntries(
+  Object.entries(projectFieldMap).map(([k, v]) => [v, k]),
+);
+const reverseModeMap: Record<string, string> = Object.fromEntries(
+  Object.entries(modeMap).map(([k, v]) => [v, k]),
+);
+const reverseDurationRangeMap: Record<string, string> = Object.fromEntries(
+  Object.entries(durationRangeMap).map(([k, v]) => [v, k]),
+);
+const reverseDomainToCategory: Record<string, string> = Object.fromEntries(
+  Object.entries(domainToCategory).map(([k, v]) => [v, k]),
+);
+const reversePositionMap: Record<string, string> = Object.fromEntries(
+  Object.entries(positionMap).map(([k, v]) => [v, k]),
+);
+
 const normalizeTechKey = (k: string) =>
   k.trim().replace(/\s+/g, '').replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
 
@@ -289,6 +308,11 @@ const ProjectCreatePage = () => {
   const isDev = Boolean((import.meta as any).env?.DEV);
   const { getToken } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const locState = location.state as { projectId?: number; mode?: string } | null;
+  const isEditMode = locState?.mode === 'edit' && locState?.projectId != null;
+  const editProjectId = locState?.projectId ?? null;
+  const [editDataLoaded, setEditDataLoaded] = useState(false);
 
   const {
     locationText,
@@ -327,6 +351,11 @@ const ProjectCreatePage = () => {
   const editorImageInputRef = useRef<HTMLInputElement | null>(null);
   const [, setEditorSelectionKey] = useState(0);
   const linkCardOpen = false; // 링크 카드는 본문 노드로만 사용 (미사용 변수 제거 시 에러 방지)
+
+  // 수정 모드 진입 시 기존 초안 정리 (API 데이터로 덮어쓸 예정)
+  useEffect(() => {
+    if (isEditMode) clearDraft();
+  }, [isEditMode]);
 
   const minDeadline = useMemo(() => {
     const t = new Date();
@@ -469,12 +498,88 @@ const ProjectCreatePage = () => {
     },
   });
 
-  // 에디터 초안 복원
+  // 에디터 초안 복원 (신규 작성 시에만)
   useEffect(() => {
-    if (editor && projectContent && editor.isEmpty) {
+    if (!isEditMode && editor && projectContent && editor.isEmpty) {
       editor.commands.setContent(projectContent, { emitUpdate: false });
     }
-  }, [editor, projectContent]);
+  }, [editor, projectContent, isEditMode]);
+
+  // 수정 모드: 기존 프로젝트 데이터 불러오기
+  useEffect(() => {
+    if (!isEditMode || !editProjectId || editDataLoaded) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getToken();
+        const project = await getProjectDetail(editProjectId, token);
+        if (cancelled || !project) return;
+
+        // 폼 필드 채우기
+        setProjectTitle(project.title ?? '');
+        setProjectContent(project.content ?? '');
+        setLocationText(project.location ?? '');
+        setDeadlineText(project.recruitmentDeadline ?? '');
+
+        // 드롭다운 값 역매핑
+        if (project.projectField) {
+          setProjectType(reverseProjectFieldMap[project.projectField] ?? project.projectFieldName ?? null);
+        }
+        if (project.category) {
+          setDomain(reverseDomainToCategory[project.category] ?? project.categoryName ?? null);
+        }
+        if (project.mode) {
+          setProgressType(reverseModeMap[project.mode] ?? project.modeName ?? null);
+        }
+        if (project.durationRange) {
+          setProgressPeriod(reverseDurationRangeMap[project.durationRange] ?? project.durationRangeName ?? null);
+        }
+
+        // 모집 분야 복원
+        const rawRecruitments = project.recruitments ?? project.positions ?? [];
+        if (rawRecruitments.length > 0) {
+          const restored: RecruitmentItem[] = rawRecruitments.map((r) => {
+            const posLabel = reversePositionMap[r.position] ?? r.positionName ?? String(r.position);
+            const techKeys = Array.isArray(r.techStacks)
+              ? r.techStacks
+                  .map((ts) => {
+                    const name = ts.techStackName ?? (ts as any).techStack ?? '';
+                    return normalizeTechKey(name);
+                  })
+                  .filter(Boolean)
+              : [];
+            return {
+              id: makeId(),
+              positionLabel: posLabel,
+              countLabel: `${r.count ?? 1}명`,
+              techStackKeys: techKeys,
+            };
+          });
+          setRecruitments(restored);
+        }
+
+        // 이미지 복원
+        const imgUrls = project.imageUrls ?? project.images?.map((i) => i.imageUrl ?? i.url).filter(Boolean) ?? [];
+        if (imgUrls.length > 0) {
+          const slots: [SlotImage, SlotImage, SlotImage] = [null, null, null];
+          imgUrls.slice(0, 3).forEach((url, i) => {
+            if (url) slots[i] = { imageId: 0, imageUrl: url };
+          });
+          setSlotImages(slots);
+        }
+
+        // 에디터에 기존 내용 반영
+        if (editor && project.content) {
+          editor.commands.setContent(project.content, { emitUpdate: false });
+        }
+
+        setEditDataLoaded(true);
+      } catch (e) {
+        console.error('[project-edit] 기존 데이터 불러오기 실패', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isEditMode, editProjectId, editDataLoaded, editor, getToken]);
 
   // 커서/선택 변경 시 툴바 H1·H2·B 등 적용 상태 반영
   useEffect(() => {
@@ -606,7 +711,7 @@ const ProjectCreatePage = () => {
         content: projectContent || '',
         imageIds: slotImages
           .map((s) => s?.imageId)
-          .filter((id): id is number => id != null)
+          .filter((id): id is number => id != null && id > 0)
           .slice(0, 3),
       };
       if (isDev) {
@@ -621,7 +726,9 @@ const ProjectCreatePage = () => {
         console.log('→ 백엔드 Swagger/API의 tech stack enum 목록과 위 "API로 전송" 값이 일치해야 합니다.');
         console.groupEnd();
       }
-      const result = await createProject(body, token);
+      const result = isEditMode && editProjectId
+        ? await updateProject(editProjectId, body, token)
+        : await createProject(body, token);
 
       // 추천 개발자 페이지의 "내 프로젝트 선택" 필터가 즉시 프로젝트를 보여줄 수 있도록 로컬 캐시 저장
       // (백엔드 /members/me/projects가 지연되거나 빈 값으로 내려오는 경우 대비)
@@ -640,7 +747,11 @@ const ProjectCreatePage = () => {
       }
 
       clearDraft();
-      navigate('/project/create/complete', { state: { projectId: result.projectId } });
+      if (isEditMode) {
+        navigate(`/project/${result.projectId}`, { replace: true });
+      } else {
+        navigate('/project/create/complete', { state: { projectId: result.projectId } });
+      }
     } catch (e) {
       if (isDev) {
         console.error('[project-create] submit failed', e);
@@ -669,8 +780,17 @@ const ProjectCreatePage = () => {
       <section className="bg-[var(--ui-bg)]">
         <div className="mx-auto w-full max-w-[1018px] px-6 py-[36px]">
           <h1 className="Title3 font-bold text-[var(--ui-900)]">
-            <span className="block">프로젝트를 등록하고</span>
-            <span className="block">함께 성장할 개발자들을 만나보세요</span>
+            {isEditMode ? (
+              <>
+                <span className="block">프로젝트 정보를 수정하고</span>
+                <span className="block">업데이트해 보세요</span>
+              </>
+            ) : (
+              <>
+                <span className="block">프로젝트를 등록하고</span>
+                <span className="block">함께 성장할 개발자들을 만나보세요</span>
+              </>
+            )}
           </h1>
         </div>
       </section>
@@ -1079,7 +1199,9 @@ const ProjectCreatePage = () => {
                       onClick={handleSubmit}
                       className="Body1 h-[52px] w-[292px] rounded-[12px] bg-[#4E49FF] font-medium text-white transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
                     >
-                      {submitLoading ? '등록 중...' : '등록하기'}
+                      {submitLoading
+                        ? (isEditMode ? '수정 중...' : '등록 중...')
+                        : (isEditMode ? '수정하기' : '등록하기')}
                     </button>
                   </div>
                 </div>

@@ -55,10 +55,12 @@ export type ProjectItem = {
   creatorId?: number;
   thumbnailUrl: string | null;
   imageUrls?: string[];
-  images?: Array<{ imageUrl?: string; url?: string }>;
+  images?: Array<{ imageId?: number; imageUrl?: string; url?: string }>;
   positions?: ProjectPosition[];
   recruitments?: ProjectPosition[];
   creatorName: string | null;
+  creatorNickname?: string | null;
+  creatorImage?: string | null;
   bookmarked?: boolean;
   bookmarkId?: number;
 };

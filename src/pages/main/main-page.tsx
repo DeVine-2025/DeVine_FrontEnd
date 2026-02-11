@@ -401,7 +401,7 @@ const MainPage = () => {
         <h2 className="Heading2 pt-5 font-semibold text-card-title">
           이번주 모두가 주목하는 프로젝트
         </h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-4 gap-6">
           {highlightProjects.map((project) => (
             <MainProjectCard
               key={project.id}
