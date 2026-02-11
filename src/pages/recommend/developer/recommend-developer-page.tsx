@@ -1,5 +1,6 @@
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
+import LoadingSpinner from '@components/common/LoadingSpinner';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -366,7 +367,9 @@ const RecommendDeveloperPage = () => {
       />
 
       {myProjectOptionsLoading && (
-        <p className="text-[var(--ui-500)]">내 프로젝트를 불러오는 중...</p>
+        <div className="flex justify-center py-8">
+          <LoadingSpinner size="lg" />
+        </div>
       )}
 
       {error && (
@@ -376,7 +379,9 @@ const RecommendDeveloperPage = () => {
       )}
 
       {loading && myProjects.length > 0 && (
-        <p className="text-[var(--ui-500)]">추천 개발자를 불러오는 중...</p>
+        <div className="flex justify-center py-8">
+          <LoadingSpinner size="lg" />
+        </div>
       )}
 
       {!loading && myProjects.length > 0 && list.length === 0 && (

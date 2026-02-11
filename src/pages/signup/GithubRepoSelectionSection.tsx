@@ -4,6 +4,7 @@ import Lottie from 'lottie-react';
 import reportAnimation from './Data _ Bundling.json';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
+import LoadingSpinner from '@components/common/LoadingSpinner';
 import { useAuth } from '@clerk/clerk-react';
 import { getGitRepos } from '@apis/github-repos';
 import { createReportSync, getReportDetail, getReportMain } from '@apis/reports';
@@ -249,7 +250,9 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
             깃허브 레포지토리 목록
           </span>
           {isLoading && (
-            <span className="Caption1 text-[var(--ui-400)]">레포지토리를 불러오는 중이에요.</span>
+            <div className="flex justify-center py-4">
+              <LoadingSpinner size="md" />
+            </div>
           )}
           {loadError && <span className="Caption1 text-[var(--ui-danger)]">{loadError}</span>}
           {createError && <span className="Caption1 text-[var(--ui-danger)]">{createError}</span>}

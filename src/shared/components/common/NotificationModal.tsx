@@ -1,5 +1,6 @@
 import AlarmIcon from '@assets/icons/alarm.svg?react';
 import AlarmLightIcon from '@assets/icons/alarm-light.svg?react';
+import LoadingSpinner from '@components/common/LoadingSpinner';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useThemeStore } from '@store/theme';
 
@@ -117,7 +118,7 @@ const NotificationModal = ({
       <div
         ref={modalRef}
         className={`pointer-events-auto flex w-[360px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)] ${
-          !useAnchor ? 'absolute top-[7.6rem] right-[32rem] tablet:right-[18rem] max-[391px]:right-[5rem] max-[743px]:right-[10rem]' : ''
+          !useAnchor ? 'absolute top-[7.6rem] right-[2rem]' : ''
         } ${isClosing ? 'animate-modal-pop-out' : 'animate-modal-pop-in'}`}
         style={
           useAnchor
@@ -137,11 +138,7 @@ const NotificationModal = ({
         >
           {loading ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12" aria-live="polite" aria-busy="true">
-              <div
-                className="h-10 w-10 shrink-0 rounded-full border-2 border-[var(--ui-200)] border-t-[var(--color-primary)] animate-spin"
-                aria-hidden
-              />
-              <p className="text-[14px] font-medium text-[var(--ui-600)]">불러오는 중</p>
+              <LoadingSpinner size="md" />
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 py-10">
