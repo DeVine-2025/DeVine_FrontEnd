@@ -7,7 +7,6 @@ const MyInfoProfile = () => {
   const {data} = useQuery(myInfoQueries.profile());
   const {data:techStack} = useQuery(myInfoQueries.getMyTechStacks());
 
-  // techStack 객체 배열에서 name 속성만 추출하여 문자열 배열로 변환
   const techStackNames = useMemo(() => {
     if (!techStack?.result?.techstacks) return [];
     return techStack.result.techstacks.map((item: { name: string }) => item.name);

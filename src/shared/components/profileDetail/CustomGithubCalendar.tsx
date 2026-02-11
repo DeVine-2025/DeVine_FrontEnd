@@ -70,7 +70,7 @@ const CustomGithubCalendar = ({
   const chevronButtonStyle = 'cursor-pointer p-[0.4rem] bg-ui-100 rounded-full';
 
   return (
-    <div className="p-[2rem] border border-ui-200 rounded-xl  inline-block ">
+    <div className="p-[2rem] border border-ui-200 rounded-xl w-full">
       <style>{`
         .calendar-container > * > :not(:first-child) {
           display: none !important;
@@ -80,6 +80,11 @@ const CustomGithubCalendar = ({
           fill: var(--color-ui-700) !important; 
           font-size: 12px;
           font-weight: 600;
+        }
+        
+        .calendar-container svg {
+          width: 100% !important;
+          height: auto !important;
         }
       `}</style>
 
@@ -110,9 +115,9 @@ const CustomGithubCalendar = ({
         <ActivityCalendar
           data={calendarData}
           theme={GITHUB_THEME}
-          blockSize={8}
-          blockRadius={1}
-          blockMargin={3}
+          blockSize={12}
+          blockRadius={2}
+          blockMargin={4}
           labels={{
             months: [
               '1월', '2월', '3월', '4월', '5월', '6월',
