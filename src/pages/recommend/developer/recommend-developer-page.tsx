@@ -146,13 +146,18 @@ const RecommendDeveloperPage = () => {
         if (cancelled) return;
         const uniqById = Array.from(new Map(projects.map((p) => [p.projectId, p])).values());
         const seenCounts: Record<string, number> = {};
-        const next: MyProjectOption[] = uniqById.map((p) => {
+        const fromApi: MyProjectOption[] = uniqById.map((p) => {
           const base = (p.title ?? '').trim() || `프로젝트 ${p.projectId}`;
           seenCounts[base] = (seenCounts[base] ?? 0) + 1;
           const n = seenCounts[base];
           const label = n > 1 ? `${base} (${n})` : base;
           return { id: p.projectId, name: label };
         });
+        // 방금 생성한 프로젝트가 API에 아직 안 나올 수 있으므로 캐시에만 있는 항목을 앞에 병합
+        const cached = readMyProjectsCache();
+        const apiIds = new Set(fromApi.map((p) => p.id));
+        const onlyInCache = cached.filter((p) => !apiIds.has(p.id));
+        const next = onlyInCache.length > 0 ? [...onlyInCache, ...fromApi] : fromApi;
         if (next.length > 0) {
           lastLoadedProjectOptionsRef.current = next;
           setMyProjectOptions(next);

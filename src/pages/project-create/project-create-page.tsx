@@ -1,4 +1,4 @@
-﻿import { getPresignedUrl, confirmImage } from '@apis/images';
+import { getPresignedUrl, confirmImage } from '@apis/images';
 import { createProject, updateProject } from '@apis/projects';
 import { getProjectDetail } from '@apis/project-detail';
 import AddImageLightIcon from '@assets/icons/create-project/addimage-light.svg?react';
@@ -729,16 +729,17 @@ const ProjectCreatePage = () => {
         ? await updateProject(editProjectId, body, token)
         : await createProject(body, token);
 
-      // 추천 개발자 페이지의 "내 프로젝트 선택" 필터가 즉시 프로젝트를 보여줄 수 있도록 로컬 캐시 저장
+      // 추천 개발자 페이지의 "내 프로젝트 선택" 필터가 즉시 반영되도록 로컬 캐시에 최신 순으로 저장
       // (백엔드 /members/me/projects가 지연되거나 빈 값으로 내려오는 경우 대비)
       try {
         const cacheKey = 'devine_my_projects_cache_v1';
         const raw = localStorage.getItem(cacheKey);
         const parsed = raw ? (JSON.parse(raw) as unknown) : [];
         const prev = Array.isArray(parsed) ? parsed : [];
+        const rest = prev.filter((p: any) => Number(p?.id) !== result.projectId);
         const next = [
-          ...prev.filter((p: any) => Number(p?.id) !== result.projectId),
           { id: result.projectId, name: body.title.trim() },
+          ...rest,
         ].filter((p: any) => Number.isFinite(Number(p?.id)) && String(p?.name ?? '').trim().length > 0);
         localStorage.setItem(cacheKey, JSON.stringify(next));
       } catch {
