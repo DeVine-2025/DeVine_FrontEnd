@@ -8,6 +8,7 @@ export function useProjects(params: GetProjectsParams | string) {
 
   return useQuery({
     queryKey: ['projects', params],
+    enabled: !!params,
     queryFn: async ({ signal }) => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');

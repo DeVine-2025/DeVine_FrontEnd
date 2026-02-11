@@ -15,6 +15,7 @@ export type WeeklyBestProject = {
   categoryName: string;
   modeName: string;
   durationMonths: number;
+  durationRangeName?: string;
   location: string;
   daysUntilDeadline: number;
   thumbnailUrl?: string | null;

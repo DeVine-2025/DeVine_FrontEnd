@@ -77,28 +77,32 @@ const MyInfoBookmark = () => {
     async (bookmarkId: number) => {
       const token = await getToken();
       if (!token) return;
+      const removed = projects.find((p) => p.bookmarkId === bookmarkId);
+      setProjects((prev) => prev.filter((p) => p.bookmarkId !== bookmarkId));
       try {
         await deleteBookmark(bookmarkId, token);
-        setProjects((prev) => prev.filter((p) => p.bookmarkId !== bookmarkId));
       } catch (e) {
         console.error(e);
+        if (removed) setProjects((prev) => [...prev, removed].sort((a, b) => a.bookmarkId - b.bookmarkId));
       }
     },
-    [getToken],
+    [getToken, projects],
   );
 
   const handleRemoveDeveloperBookmark = useCallback(
     async (bookmarkId: number) => {
       const token = await getToken();
       if (!token) return;
+      const removed = developers.find((d) => d.bookmarkId === bookmarkId);
+      setDevelopers((prev) => prev.filter((d) => d.bookmarkId !== bookmarkId));
       try {
         await deleteBookmark(bookmarkId, token);
-        setDevelopers((prev) => prev.filter((d) => d.bookmarkId !== bookmarkId));
       } catch (e) {
         console.error(e);
+        if (removed) setDevelopers((prev) => [...prev, removed].sort((a, b) => a.bookmarkId - b.bookmarkId));
       }
     },
-    [getToken],
+    [getToken, developers],
   );
 
   const baseTabClass =

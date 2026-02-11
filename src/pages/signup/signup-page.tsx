@@ -15,6 +15,10 @@ const SignupPage = () => {
   }, []);
 
   useEffect(() => {
+    sessionStorage.removeItem(LOGIN_PROVIDER_KEY);
+  }, []);
+
+  useEffect(() => {
     if (!isLoaded) return;
     if (user?.unsafeMetadata?.onboardingComplete) {
       navigate('/', { replace: true });

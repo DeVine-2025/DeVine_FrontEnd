@@ -4,11 +4,21 @@ import { useUser } from '@clerk/clerk-react';
 import Footer from '@layouts/footer';
 import Header from '@layouts/header';
 
+export type RootLayoutOutletContext = {
+  setNavLocked: (value: boolean) => void;
+  onboardingIncomplete: boolean;
+  openOnboardingModal: () => void;
+  setLogoClickHandler: (handler: (() => void) | null) => void;
+};
+
 const RootLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isLoaded, user } = useUser();
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [navLocked, setNavLocked] = useState(false);
+  const [onboardingIncomplete, setOnboardingIncomplete] = useState(false);
+  const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
 
   useLayoutEffect(() => {
     const { scrollRestoration } = window.history;
@@ -35,10 +45,46 @@ const RootLayout = () => {
     if (!shouldShowModal) return;
     sessionStorage.removeItem('show_onboarding_modal');
     setShowOnboardingModal(true);
-    if (location.pathname !== '/') {
-      navigate('/', { replace: true });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isLoaded) return;
+    if (!user) {
+      setOnboardingIncomplete(false);
+      return;
     }
-  }, [location.pathname, navigate]);
+
+    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
+    setOnboardingIncomplete(!onboardingComplete);
+  }, [isLoaded, user]);
+
+  useLayoutEffect(() => {
+    if (!onboardingIncomplete) return;
+    const pathname = location.pathname;
+    const isSignupRoute = pathname.startsWith('/signup');
+    const isLoginRoute = pathname === '/login';
+    const isCallbackRoute = pathname === '/sso-callback';
+    if (isSignupRoute || isLoginRoute || isCallbackRoute) return;
+
+    const loginProvider = sessionStorage.getItem('login_provider');
+    if (pathname === '/' && loginProvider) {
+      navigate('/signup', { replace: true });
+      return;
+    }
+
+    const skipModalOnce = sessionStorage.getItem('skip_onboarding_modal_once') === 'true';
+    if (skipModalOnce) {
+      sessionStorage.removeItem('skip_onboarding_modal_once');
+      return;
+    }
+    setShowOnboardingModal(true);
+  }, [location.pathname, navigate, onboardingIncomplete]);
+
+  useLayoutEffect(() => {
+    if (!onboardingIncomplete) {
+      setShowOnboardingModal(false);
+    }
+  }, [onboardingIncomplete]);
 
   useLayoutEffect(() => {
     if (!isLoaded) return;
@@ -47,18 +93,7 @@ const RootLayout = () => {
     const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
     const pathname = location.pathname;
     const isSignupRoute = pathname === '/signup';
-    const isCallbackRoute = pathname === '/sso-callback';
     const isLoginRoute = pathname === '/login';
-    if (!onboardingComplete && !isSignupRoute && !isCallbackRoute && !isLoginRoute) {
-      const skipModalOnce = sessionStorage.getItem('skip_onboarding_modal_once') === 'true';
-      if (skipModalOnce) {
-        sessionStorage.removeItem('skip_onboarding_modal_once');
-        return;
-      }
-      navigate('/signup', { replace: true });
-      return;
-    }
-
     if (onboardingComplete && isSignupRoute) {
       navigate('/', { replace: true });
       return;
@@ -69,11 +104,33 @@ const RootLayout = () => {
     }
   }, [isLoaded, location.pathname, navigate, user]);
 
+  const handleLogoClick = () => {
+    if (logoClickHandler) {
+      logoClickHandler();
+      return;
+    }
+    if (isLoaded && user) {
+      const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
+      if (!onboardingComplete) {
+        setShowOnboardingModal(true);
+        return;
+      }
+    }
+    navigate('/');
+  };
+
   return (
     <div className="flex min-h-[100vh] flex-col">
-      <Header />
+      <Header navLocked={navLocked} onLogoClick={handleLogoClick} />
       <main className="min-h-0 flex-1 py-12">
-        <Outlet />
+        <Outlet
+          context={{
+            setNavLocked,
+            onboardingIncomplete,
+            openOnboardingModal: () => setShowOnboardingModal(true),
+            setLogoClickHandler,
+          }}
+        />
       </main>
       <Footer />
 
@@ -96,13 +153,6 @@ const RootLayout = () => {
                 className="h-[48px] w-full rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
               >
                 회원가입 계속하기
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowOnboardingModal(false)}
-                className="text-[14px] text-[var(--ui-400)]"
-              >
-                나중에 하기
               </button>
             </div>
           </div>

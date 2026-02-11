@@ -6,7 +6,13 @@ import { useAuthStore } from '@store/auth';
 
 type ProfilePageProps = {
   onBack: () => void;
-  onNext: (data: { mainType: 'PM' | 'DEVELOPER'; categoryIds: number[] }) => void;
+  onNext: (data: {
+    mainType: 'PM' | 'DEVELOPER';
+    categoryIds: number[];
+    domainLabels: string[];
+  }) => void;
+  initialRole?: 'pm' | 'dev' | null;
+  initialDomains?: string[];
 };
 
 const roleOptions = [
@@ -26,12 +32,12 @@ const domainOptions = [
 
 const USER_ROLE_KEY = 'userRole';
 
-const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
+const ProfilePage = ({ onBack, onNext, initialRole = null, initialDomains = [] }: ProfilePageProps) => {
   const setAuthRole = useAuthStore((state) => state.setRole);
   const [role, setRole] = useState<'pm' | 'dev' | null>(
-    (localStorage.getItem(USER_ROLE_KEY) as 'pm' | 'dev' | null) ?? 'pm',
+    initialRole ?? (localStorage.getItem(USER_ROLE_KEY) as 'pm' | 'dev' | null) ?? 'pm',
   );
-  const [domains, setDomains] = useState<string[]>([]);
+  const [domains, setDomains] = useState<string[]>(initialDomains);
 
   const canProceed = useMemo(() => role !== null && domains.length > 0, [role, domains]);
 
@@ -42,6 +48,7 @@ const ProfilePage = ({ onBack, onNext }: ProfilePageProps) => {
     onNext({
       mainType: role === 'dev' ? 'DEVELOPER' : 'PM',
       categoryIds: getCategoryIdsByLabels(domains),
+      domainLabels: domains,
     });
   };
 

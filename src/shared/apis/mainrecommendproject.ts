@@ -55,6 +55,7 @@ export type RecommendProjectPreviewItem = {
   mode: string;
   modeName: string;
   durationMonths: number;
+  durationRangeName?: string;
   location: string;
   recruitmentDeadline: string;
   daysUntilDeadline: number;

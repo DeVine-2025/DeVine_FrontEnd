@@ -46,10 +46,11 @@ export default function MyProjectDropdown({
   const ref = useRef<HTMLDivElement | null>(null);
 
   const displayOptions = useMemo(() => {
-    // "전체" 옵션은 제거. 기본은 페이지에서 "전부 선택" 상태로 시작.
     if (options && options.length > 0) return options.map((o) => o.name);
+    // API에서 목록이 비어 와도, 이미 선택된 프로젝트가 있으면 그걸 보여줌 (등록한 프로젝트가 보이게)
+    if (value && value.length > 0) return Array.from(new Set(value));
     return [...PLACEHOLDER_OPTIONS];
-  }, [options]);
+  }, [options, value]);
 
   const realOptions = useMemo(() => displayOptions, [displayOptions]);
   const selected = useMemo(() => new Set(value), [value]);
@@ -98,7 +99,7 @@ export default function MyProjectDropdown({
         <div className="flex items-center justify-center py-8 text-[var(--ui-500)]">
           프로젝트 목록을 불러오는 중...
         </div>
-      ) : options && options.length === 0 ? (
+      ) : options && options.length === 0 && (!value || value.length === 0) ? (
         <div className="py-8 text-center text-[var(--ui-500)]">등록한 프로젝트가 없습니다.</div>
       ) : (
         <div className="flex flex-col pb-[8px]">

@@ -22,14 +22,20 @@ import { SignedIn, SignedOut, UserButton, useAuth as useClerkAuth } from '@clerk
 import NotificationModal from '@components/common/NotificationModal';
 import { useThemeStore } from '@store/theme';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/shared/auth/useAuth';
 
-const Header = () => {
+type HeaderProps = {
+  navLocked?: boolean;
+  onLogoClick?: () => void;
+};
+
+const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const { theme, toggleTheme } = useThemeStore();
   const { isAuthed, user, setDevAuthed } = useAuth();
   const { getToken } = useClerkAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -113,30 +119,37 @@ const Header = () => {
       if (!token) return;
       const id = Number(notificationId);
       if (Number.isNaN(id)) return;
-      console.log('[알림] 읽음 처리 요청', notificationId);
+      const wasRead = notifications.find((n) => n.id === notificationId)?.isRead ?? false;
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n)),
+      );
+      setUnreadCount((c) => Math.max(0, c - 1));
       markNotificationAsRead(id, token)
-        .then(() => {
+        .then(() => console.log('[알림] 읽음 처리 성공', notificationId))
+        .catch((e) => {
+          console.warn('[알림] 읽음 처리 실패', notificationId, e);
           setNotifications((prev) =>
-            prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n)),
+            prev.map((n) => (n.id === notificationId ? { ...n, isRead: wasRead } : n)),
           );
-          setUnreadCount((c) => Math.max(0, c - 1));
-          console.log('[알림] 읽음 처리 성공', notificationId);
-        })
-        .catch((e) => console.warn('[알림] 읽음 처리 실패', notificationId, e));
+          setUnreadCount((c) => (wasRead ? c : c + 1));
+        });
     });
   };
 
   const handleMarkAllAsRead = () => {
     getToken().then((token) => {
       if (!token) return;
-      console.log('[알림] 전체 읽음 처리 요청');
+      const prevNotifications = notifications;
+      const prevUnreadCount = unreadCount;
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
       markAllNotificationsAsRead(token)
-        .then((result) => {
-          setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-          setUnreadCount(0);
-          console.log('[알림] 전체 읽음 처리 성공', result?.markedCount ?? '');
-        })
-        .catch((e) => console.warn('[알림] 전체 읽음 처리 실패', e));
+        .then((result) => console.log('[알림] 전체 읽음 처리 성공', result?.markedCount ?? ''))
+        .catch((e) => {
+          console.warn('[알림] 전체 읽음 처리 실패', e);
+          setNotifications(prevNotifications);
+          setUnreadCount(prevUnreadCount);
+        });
     });
   };
 
@@ -161,16 +174,37 @@ const Header = () => {
         <div className="relative mx-auto h-[7rem] w-full max-w-[1180px] flex-row-between pl-6 max-[391px]:px-2 max-[743px]:px-4">
           {/* 왼쪽: 로고 + 네비게이션 */}
           <div className="flex-items-center gap-[4.8rem] phone:gap-[2rem] tablet:gap-[3rem]">
-            <Link to="/" className="ml-[-14px] flex-items-center gap-[0.4rem]">
+            <div className="group relative ml-[-14px] flex-items-center gap-[0.4rem]">
               {/* 데스크톱/태블릿 로고 */}
-              <span className="max-[391px]:hidden">
-                {theme === 'dark' ? <LightLogo /> : <DarkLogo />}
-              </span>
-              {/* 모바일 로고 */}
-              <span className="hidden max-[391px]:block">
-                <MobileLogo />
-              </span>
-            </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  if (navLocked) return;
+                  if (onLogoClick) {
+                    onLogoClick();
+                    return;
+                  }
+                  navigate('/');
+                }}
+                disabled={navLocked}
+                aria-disabled={navLocked}
+                className={`flex-items-center gap-[0.4rem] ${
+                  navLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                }`}
+              >
+                <span className="max-[391px]:hidden">
+                  {theme === 'dark' ? <LightLogo /> : <DarkLogo />}
+                </span>
+                <span className="hidden max-[391px]:block">
+                  <MobileLogo />
+                </span>
+              </button>
+              {navLocked && (
+                <div className="pointer-events-none absolute left-0 top-full mt-2 hidden rounded-md bg-black/80 px-3 py-2 text-[12px] text-white group-hover:block">
+                  리포트 생성 중에는 이동할 수 없어요
+                </div>
+              )}
+            </div>
 
             {/* 네비게이션 - 데스크톱 */}
             <nav className="max-[743px]:!hidden ml-[28px] flex-items-center shrink-0 flex-nowrap gap-[5rem] phone:gap-[2rem] tablet:gap-[3rem]">
@@ -200,21 +234,9 @@ const Header = () => {
             <SignedIn>
               <Link
                 to="/project/create"
-                className="Caption1 group hover:-translate-y-[1px] relative h-[3.2rem] flex-row-center overflow-hidden whitespace-nowrap rounded-[8px] bg-[#4E49FF] px-[1.0rem] py-[0.6rem] font-semibold text-white transition-transform duration-200 ease-out hover:shadow-[0px_10px_24px_rgba(78,73,255,0.25)] active:translate-y-0 active:shadow-none"
+                className="Caption1 relative h-[3.2rem] flex-row-center whitespace-nowrap rounded-[8px] bg-[#4E49FF] px-[1.0rem] py-[0.6rem] font-semibold text-white transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:scale-[0.98] active:translate-y-[1px]"
               >
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                  style={{
-                    background:
-                      'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0) 90%)',
-                  }}
-                />
-                <span
-                  aria-hidden
-                  className="-left-[40%] -skew-x-12 pointer-events-none absolute top-0 h-full w-[40%] bg-white/20 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:translate-x-[380%] group-hover:opacity-100"
-                />
-                <span className="relative z-10">프로젝트 등록하기</span>
+                프로젝트 등록하기
               </Link>
             </SignedIn>
             {/* 다크모드 토글 */}
@@ -265,10 +287,13 @@ const Header = () => {
 
               {unreadCount > 0 && (
                 <span
-                  className="absolute top-[0.4rem] right-[0.4rem] flex min-w-[1.6rem] items-center justify-center rounded-full bg-[#FF4D4F] px-[0.5rem] py-0 font-semibold text-[1rem] text-white leading-none"
+                  className="absolute top-[0.4rem] right-[0.4rem] flex size-5 items-center justify-center rounded-full bg-[#4E49FF] font-semibold text-[0.7rem] text-white leading-none"
                   aria-hidden="true"
                 >
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                  <span className="absolute inset-0 rounded-full bg-[#4E49FF] animate-notification-pulse" />
+                  <span className="relative">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
                 </span>
               )}
             </button>

@@ -178,6 +178,7 @@ function ToolbarButton({
   HoverIcon,
   label,
   onClick,
+  onMouseDown,
   active,
   disabled,
 }: {
@@ -185,12 +186,17 @@ function ToolbarButton({
   HoverIcon: SvgIcon;
   label: string;
   onClick?: () => void;
+  onMouseDown?: (e: React.MouseEvent) => void;
   active?: boolean;
   disabled?: boolean;
 }) {
   return (
     <button
       type="button"
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onMouseDown?.(e);
+      }}
       onClick={onClick}
       disabled={disabled}
       className="group flex h-[28px] min-w-[28px] items-center justify-center rounded-md px-1 transition-colors disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-[var(--ui-200)] data-[active]:text-[var(--ui-800)] hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)]"
@@ -313,6 +319,7 @@ const ProjectCreatePage = () => {
   const [imageUploadingSlot, setImageUploadingSlot] = useState<number | null>(null);
   const [editorImageUploading, setEditorImageUploading] = useState(false);
   const editorImageInputRef = useRef<HTMLInputElement | null>(null);
+  const [, setEditorSelectionKey] = useState(0);
 
   const minDeadline = useMemo(() => {
     const t = new Date();
@@ -460,6 +467,16 @@ const ProjectCreatePage = () => {
     }
   }, [editor, projectContent]);
 
+  // 커서/선택 변경 시 툴바 H1·H2·B 등 적용 상태 반영
+  useEffect(() => {
+    if (!editor) return;
+    const onSelectionUpdate = () => setEditorSelectionKey((k) => k + 1);
+    editor.on('selectionUpdate', onSelectionUpdate);
+    return () => {
+      editor.off('selectionUpdate', onSelectionUpdate);
+    };
+  }, [editor]);
+
   const insertImageFromFile = async (file: File) => {
     const token = await getToken();
     if (!token) {
@@ -589,9 +606,25 @@ const ProjectCreatePage = () => {
         console.groupEnd();
       }
       const result = await createProject(body, token);
+
+      // 추천 개발자 페이지의 "내 프로젝트 선택" 필터가 즉시 프로젝트를 보여줄 수 있도록 로컬 캐시 저장
+      // (백엔드 /members/me/projects가 지연되거나 빈 값으로 내려오는 경우 대비)
+      try {
+        const cacheKey = 'devine_my_projects_cache_v1';
+        const raw = localStorage.getItem(cacheKey);
+        const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+        const prev = Array.isArray(parsed) ? parsed : [];
+        const next = [
+          ...prev.filter((p: any) => Number(p?.id) !== result.projectId),
+          { id: result.projectId, name: body.title.trim() },
+        ].filter((p: any) => Number.isFinite(Number(p?.id)) && String(p?.name ?? '').trim().length > 0);
+        localStorage.setItem(cacheKey, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+
       clearDraft();
-      alert(`등록 완료 (projectId: ${result.projectId})`);
-      navigate(`/project/${result.projectId}`);
+      navigate('/project/create/complete', { state: { projectId: result.projectId } });
     } catch (e) {
       if (isDev) {
         console.error('[project-create] submit failed', e);
@@ -1028,23 +1061,9 @@ const ProjectCreatePage = () => {
                       type="button"
                       disabled={submitLoading}
                       onClick={handleSubmit}
-                      className="Body1 group hover:-translate-y-[1px] relative h-[52px] w-[292px] overflow-hidden rounded-[12px] bg-[#4E49FF] font-medium text-white transition-transform duration-200 ease-out hover:shadow-[0px_10px_24px_rgba(78,73,255,0.25)] active:translate-y-0 active:shadow-none disabled:pointer-events-none disabled:opacity-60"
+                      className="Body1 h-[52px] w-[292px] rounded-[12px] bg-[#4E49FF] font-medium text-white transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
                     >
-                      <span
-                        aria-hidden
-                        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                        style={{
-                          background:
-                            'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0) 90%)',
-                        }}
-                      />
-                      <span
-                        aria-hidden
-                        className="-left-[40%] -skew-x-12 pointer-events-none absolute top-0 h-full w-[40%] bg-white/20 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:translate-x-[380%] group-hover:opacity-100"
-                      />
-                      <span className="relative z-10">
-                        {submitLoading ? '등록 중...' : '등록하기'}
-                      </span>
+                      {submitLoading ? '등록 중...' : '등록하기'}
                     </button>
                   </div>
                 </div>

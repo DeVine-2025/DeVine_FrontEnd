@@ -1,7 +1,8 @@
+import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
+import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
+import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
 import ProfileCard from '@components/common/ProfileCard';
-import { useAuth } from '@clerk/clerk-react';
-import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -59,6 +60,17 @@ const DeveloperSearchPage = () => {
         navigate('/login');
         return;
       }
+      const prevId = bookmarkMap[memberId];
+      if (next) {
+        setBookmarkMap((prev) => ({ ...prev, [memberId]: -1 }));
+      } else {
+        if (prevId == null || prevId <= 0) return;
+        setBookmarkMap((prev) => {
+          const n = { ...prev };
+          delete n[memberId];
+          return n;
+        });
+      }
       try {
         if (next) {
           const { bookmarkId } = await createBookmark(
@@ -67,17 +79,19 @@ const DeveloperSearchPage = () => {
           );
           setBookmarkMap((prev) => ({ ...prev, [memberId]: bookmarkId }));
         } else {
-          const bookmarkId = bookmarkMap[memberId];
-          if (bookmarkId == null) return;
-          await deleteBookmark(bookmarkId, token);
+          await deleteBookmark(prevId, token);
+        }
+      } catch (e) {
+        console.error('[북마크]', e);
+        if (next) {
           setBookmarkMap((prev) => {
             const n = { ...prev };
             delete n[memberId];
             return n;
           });
+        } else {
+          setBookmarkMap((prev) => ({ ...prev, [memberId]: prevId }));
         }
-      } catch (e) {
-        console.error('[북마크]', e);
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
@@ -96,9 +110,7 @@ const DeveloperSearchPage = () => {
           className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
         >
           더 많은 추천 개발자 보러가기
-          <span aria-hidden="true" className="text-3xl leading-none">
-            ›
-          </span>
+          <ChevronRightIcon className="h-6 w-6 shrink-0" aria-hidden />
         </button>
       </header>
 
@@ -109,7 +121,9 @@ const DeveloperSearchPage = () => {
             key={profile.id}
             {...profile}
             size="sm"
-            bookmarked={profile.memberId != null ? bookmarkMap[profile.memberId] != null : profile.bookmarked}
+            bookmarked={
+              profile.memberId != null ? bookmarkMap[profile.memberId] != null : profile.bookmarked
+            }
             onBookmarkChange={(next) => handleBookmarkChange(profile.memberId, next)}
           />
         ))}
@@ -121,6 +135,7 @@ const DeveloperSearchPage = () => {
       {/* 필터 */}
       <DeveloperFilterBar
         filters={DEVELOPER_FILTERS}
+        excludeFilters={['내 프로젝트 선택']}
         openFilter={openFilter}
         setOpenFilter={setOpenFilter}
         myProjects={myProjects}
@@ -140,7 +155,9 @@ const DeveloperSearchPage = () => {
             key={profile.id}
             {...profile}
             size="lg"
-            bookmarked={profile.memberId != null ? bookmarkMap[profile.memberId] != null : profile.bookmarked}
+            bookmarked={
+              profile.memberId != null ? bookmarkMap[profile.memberId] != null : profile.bookmarked
+            }
             onBookmarkChange={(next) => handleBookmarkChange(profile.memberId, next)}
           />
         ))}

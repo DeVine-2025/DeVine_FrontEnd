@@ -17,6 +17,7 @@ import {
   MyPMPage,
   MyProjectPage,
   PmPage,
+  ProjectCreateCompletePage,
   ProjectCreatePage,
   ProjectDetailPage,
   ProjectSearchPage,
@@ -33,6 +34,7 @@ import {
   SearchPage,
   SignupPage,
   SsoCallbackPage,
+  TermsPage,
 } from '@pages';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
@@ -44,6 +46,7 @@ export const router = createBrowserRouter([
       { path: 'signup', element: <SignupPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'sso-callback', element: <SsoCallbackPage /> },
+      { path: 'terms/:type', element: <TermsPage /> },
       { path: 'project/:projectId', element: <ProjectDetailPage /> },
       {
         path: 'search',
@@ -103,6 +106,7 @@ export const router = createBrowserRouter([
           },
 
           { path: 'project/create', element: <ProjectCreatePage /> },
+          { path: 'project/create/complete', element: <ProjectCreateCompletePage /> },
 
           {
             path: 'my-info',

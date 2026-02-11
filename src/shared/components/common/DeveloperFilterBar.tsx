@@ -7,6 +7,7 @@ export type DeveloperFilterKey = '내 프로젝트 선택' | '포지션 / 기술
 
 type Props = {
   filters: readonly DeveloperFilterKey[];
+  excludeFilters?: readonly DeveloperFilterKey[];
 
   openFilter: DeveloperFilterKey | null;
   setOpenFilter: (v: DeveloperFilterKey | null) => void;
@@ -28,6 +29,7 @@ type Props = {
 
 export default function DeveloperFilterBar({
   filters,
+  excludeFilters = [],
   openFilter,
   setOpenFilter,
 
@@ -50,6 +52,7 @@ export default function DeveloperFilterBar({
   const defaultClass = 'border border-transparent bg-filter-bg text-filter-text';
   // 오픈 시 바깥 링 없이 테두리 색만 변경 (기본 border-transparent를 확실히 override)
   const openClass = '!border-[#4E49FF]';
+  const visibleFilters = filters.filter((f) => !excludeFilters.includes(f));
 
   const getValues = (label: DeveloperFilterKey) => {
     if (label === '내 프로젝트 선택') return myProjects;
@@ -62,16 +65,29 @@ export default function DeveloperFilterBar({
 
   return (
     <div className="flex flex-wrap gap-4">
-      {filters.map((label) => {
+      {visibleFilters.map((label) => {
         const values = getValues(label);
         const isApplied = values.length > 0;
         const isOpen = openFilter === label;
 
         const uniq = Array.from(new Set(values));
+        const optionNames =
+          label === '내 프로젝트 선택' ? myProjectOptions?.map((o) => o.name) ?? [] : [];
+        const isAllProjectsSelected =
+          label === '내 프로젝트 선택' &&
+          optionNames.length > 0 &&
+          uniq.length === optionNames.length &&
+          optionNames.every((name) => uniq.includes(name));
+
         const shown = uniq.slice(0, 2);
         const rest = Math.max(0, uniq.length - shown.length);
         const summary = `${shown.join(', ')}${rest > 0 ? '…' : ''}`;
-        const displayLabel = isApplied ? summary : label;
+        const displayLabel =
+          label === '내 프로젝트 선택' && isAllProjectsSelected
+            ? '전체 프로젝트'
+            : isApplied
+              ? summary
+              : label;
 
         return (
           <div key={label} className="relative">

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import BookmarkButton from '@components/common/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
@@ -34,10 +35,20 @@ export type RecommendDeveloperCardProps = {
 
   bookmarked?: boolean;
   onBookmarkChange?: (next: boolean) => void;
+  /** 메모/안정 콜백용 */
+  memberId?: number;
+  bookmarkId?: number;
+  listItemId?: string;
+  onBookmarkChangeById?: (
+    memberId: number,
+    listItemId: string,
+    next: boolean,
+    bookmarkId?: number,
+  ) => void;
   onClick?: () => void;
 };
 
-export default function RecommendDeveloperCard({
+function RecommendDeveloperCard({
   role,
   roleTone,
   nickname,
@@ -49,8 +60,16 @@ export default function RecommendDeveloperCard({
   matchedReason = '의 Java/Springboot 요구사항과 일치합니다.',
   bookmarked = false,
   onBookmarkChange,
+  memberId,
+  bookmarkId,
+  listItemId,
+  onBookmarkChangeById,
   onClick,
 }: RecommendDeveloperCardProps) {
+  const handleBookmark =
+    onBookmarkChangeById && memberId != null && listItemId != null
+      ? (next: boolean) => onBookmarkChangeById(memberId, listItemId, next, bookmarkId)
+      : onBookmarkChange;
   const { theme } = useThemeStore();
   const maxChips = 5;
   const chips = techStack?.slice(0, maxChips) ?? [];
@@ -194,7 +213,7 @@ export default function RecommendDeveloperCard({
       {/* 북마크 */}
       <BookmarkButton
         bookmarked={bookmarked}
-        onBookmarkChange={onBookmarkChange}
+        onBookmarkChange={handleBookmark}
         stopPropagation
         className="absolute right-[24px] top-1/2 h-[52px] w-[52px] -translate-y-1/2"
         iconClassName="h-[32px] w-[32px]"
@@ -211,4 +230,6 @@ export default function RecommendDeveloperCard({
     </article>
   );
 }
+
+export default memo(RecommendDeveloperCard);
 

@@ -188,4 +188,19 @@
     :lang(en) .Caption1 {
         font-weight: 500;
     }
+
+    /* 알림 배지 울리는 듯한 펄스 (초창기) */
+    @keyframes notification-badge-pulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 0.6;
+        }
+        50% {
+            transform: scale(1.4);
+            opacity: 0;
+        }
+    }
+    .animate-notification-pulse {
+        animation: notification-badge-pulse 1.5s ease-in-out infinite;
+    }
 }
