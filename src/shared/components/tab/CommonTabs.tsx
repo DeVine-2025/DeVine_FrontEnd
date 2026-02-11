@@ -1,4 +1,9 @@
-type TabItem<T extends string> = { value: T; label: string };
+import type { ReactNode } from 'react';
+
+type TabItem<T extends string> = {
+  value: T;
+  label: ReactNode;
+};
 
 export default function CommonTabs<T extends string>({
   value,

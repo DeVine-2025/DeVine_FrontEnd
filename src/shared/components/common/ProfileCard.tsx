@@ -1,4 +1,4 @@
-import type { ProfileCardProps } from '../../types/profileCard.types';
+import type { ProfileCardProps } from '@t/profileCard.types';
 import ProfileCardLg from './ProfileLg';
 import ProfileCardMd from './ProfileMd';
 import ProfileCardSm from './ProfileSm';

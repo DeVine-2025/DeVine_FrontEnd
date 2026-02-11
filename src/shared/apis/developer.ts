@@ -17,13 +17,13 @@ export async function getDevelopers(
       ? params
       : buildQuery({
           categories: params.categories?.length ? params.categories : undefined,
-          techNames: params.techNames?.length ? params.techNames : undefined,
+          techNames: params.techstackNames?.length ? params.techstackNames : undefined,
           page: params.page ?? 1,
           size: params.size ?? 10,
         });
 
   const queryString = qs.startsWith('?') ? qs : `?${qs}`;
-  console.log('REQUEST =>', `${BASE_URL}/api/v1/members/search${queryString}`);
+  // console.log('REQUEST =>', `${BASE_URL}/api/v1/members/search${queryString}`);
 
   const res = await fetch(`${BASE_URL}/api/v1/members/search${queryString}`, {
     method: 'GET',
