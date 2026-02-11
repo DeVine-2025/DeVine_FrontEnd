@@ -261,16 +261,12 @@ const RecommendProjectPage = () => {
           <div className="flex flex-col gap-6" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          {isPm ? (
             <ReportRequiredCard
-              title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
+              title="리포트를 등록하면 맞춤 추천을 받을 수 있어요"
               description="나에게 맞는 추천 프로젝트를 받아 보세요"
-              linkLabel="프로젝트 등록하러 가기"
-              linkTo="/project/create"
+              linkLabel="리포트 등록하러 가기"
+              linkTo="/report/create"
             />
-          ) : (
-            <ReportRequiredCard />
-          )}
         </div>
       </div>
     );
