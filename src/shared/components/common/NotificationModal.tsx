@@ -1,4 +1,8 @@
+import AlarmIcon from '@assets/icons/alarm.svg?react';
+import AlarmLightIcon from '@assets/icons/alarm-light.svg?react';
+import LoadingSpinner from '@components/common/LoadingSpinner';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useThemeStore } from '@store/theme';
 
 interface NotificationItem {
   id: string;
@@ -14,6 +18,9 @@ interface NotificationModalProps {
   notifications: NotificationItem[];
 
   anchorRef?: React.RefObject<HTMLElement | null>;
+
+  /** 최초 알림 목록 API 로딩 중이면 true */
+  loading?: boolean;
 
   onMarkAsRead?: (notificationId: string) => void;
 
@@ -36,12 +43,14 @@ const NotificationModal = ({
   onClose,
   notifications,
   anchorRef,
+  loading = false,
   onMarkAsRead,
   onMarkAllAsRead,
   hasMore = false,
   onLoadMore,
   loadingMore = false,
 }: NotificationModalProps) => {
+  const { theme } = useThemeStore();
   const modalRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
   const [position, setPosition] = useState<{ top: number; right: number } | null>(null);
@@ -108,8 +117,8 @@ const NotificationModal = ({
     <div className="pointer-events-none fixed inset-0 z-50">
       <div
         ref={modalRef}
-        className={`pointer-events-auto flex w-[360px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.35)] ${
-          !useAnchor ? 'absolute top-[7.6rem] right-[32rem] tablet:right-[18rem] max-[391px]:right-[5rem] max-[743px]:right-[10rem]' : ''
+        className={`pointer-events-auto flex w-[360px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)] ${
+          !useAnchor ? 'absolute top-[7.6rem] right-[2rem]' : ''
         } ${isClosing ? 'animate-modal-pop-out' : 'animate-modal-pop-in'}`}
         style={
           useAnchor
@@ -117,13 +126,21 @@ const NotificationModal = ({
             : { height: modalHeight }
         }
       >
-        <div className="shrink-0 border-b border-[var(--ui-200)] bg-[var(--ui-50)]/50 px-4 py-3.5">
-          <h2 className="text-[15px] font-semibold text-[var(--ui-900)]">알림</h2>
+        <div className="shrink-0 flex items-center border-b border-[var(--ui-200)] bg-[var(--ui-50)]/50 px-4 py-3.5" aria-label="알림">
+          {theme === 'dark' ? (
+            <AlarmIcon className="size-9 shrink-0" aria-hidden />
+          ) : (
+            <AlarmLightIcon className="size-9 shrink-0" aria-hidden />
+          )}
         </div>
         <div
-          className={`flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 ${notifications.length === 1 ? 'justify-center' : ''}`}
+          className={`flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 ${!loading && notifications.length === 1 ? 'justify-center' : ''}`}
         >
-          {notifications.length === 0 ? (
+          {loading ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-12" aria-live="polite" aria-busy="true">
+              <LoadingSpinner size="md" />
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 py-10">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--ui-100)] text-[var(--ui-400)]">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>

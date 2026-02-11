@@ -31,10 +31,10 @@ type MainRecommendProject = {
   dueLabel?: string;
   bookmarked?: boolean;
   bookmarkId?: number;
-  techSuitability?: number;
-  domainSuitability?: number;
-  growthPotential?: number;
-  overallScore?: number;
+  techstackScorePercent?: number | null;
+  similarityScorePercent?: number | null;
+  domainMatch?: boolean | null;
+  totalScore?: number | null;
 };
 
 type MainRecommendDeveloper = {
@@ -320,10 +320,10 @@ const MainPage = () => {
           bookmarked: item.bookmarked,
           bookmarkId: item.bookmarkId,
           roles: mapPositionsToRoles(item.positions as never),
-          techSuitability: item.techScore,
-          domainSuitability: item.domainScore,
-          growthPotential: item.techStackCountScore,
-          overallScore: item.totalScore,
+          techstackScorePercent: item.techstackScorePercent ?? item.techScore ?? null,
+          similarityScorePercent: item.similarityScorePercent ?? item.techStackCountScore ?? null,
+          domainMatch: item.domainMatch ?? null,
+          totalScore: item.totalScore ?? null,
         }));
         setRecommendedProjects(mapped);
       } catch {
@@ -475,10 +475,10 @@ const MainPage = () => {
                     roles={[...PROJECT_ROLES]}
                     dueLabel={project.dueLabel}
                     bookmarked={isBookmarked}
-                    techSuitability={project.techSuitability}
-                    domainSuitability={project.domainSuitability}
-                    growthPotential={project.growthPotential}
-                    overallScore={project.overallScore}
+                    techstackScorePercent={project.techstackScorePercent}
+                    similarityScorePercent={project.similarityScorePercent}
+                    domainMatch={project.domainMatch}
+                    totalScore={project.totalScore}
                     onBookmarkChange={(next) =>
                       hasNumericId ? handleProjectBookmarkChange(targetId, next) : undefined
                     }

@@ -36,10 +36,8 @@ const RecommendProjectPage = () => {
         domains,
         expectedPeriods,
         techStacks,
-        page,
-        size: 10,
       }),
-    [projectTypes, domains, expectedPeriods, techStacks, page],
+    [projectTypes, domains, expectedPeriods, techStacks],
   );
 
   // 북마크 목록 로드 후 list에 한 번만 병합
@@ -261,10 +259,10 @@ const RecommendProjectPage = () => {
               roles={[...PROJECT_ROLES]}
               dueLabel={p.dueLabel}
               bookmarked={p.bookmarked ?? false}
-              techSuitability={p.techSuitability}
-              domainSuitability={p.domainSuitability}
-              growthPotential={p.growthPotential}
-              overallScore={p.overallScore}
+              techstackScorePercent={p.techstackScorePercent}
+              similarityScorePercent={p.similarityScorePercent}
+              domainMatch={p.domainMatch}
+              totalScore={p.totalScore}
               projectId={p.id}
               bookmarkId={p.bookmarkId}
               onBookmarkChangeById={handleBookmarkChange}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 
 import BackIcon from '@assets/icons/back.svg?react';
+import LoadingSpinner from '@components/common/LoadingSpinner';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import { getBookmarks, deleteBookmark } from '@apis/bookmarks';
@@ -140,7 +141,9 @@ const MyInfoBookmark = () => {
       </div>
 
       {loading && (
-        <p className="text-ui-600">불러오는 중...</p>
+        <div className="flex justify-center py-12">
+          <LoadingSpinner size="lg" />
+        </div>
       )}
       {error && (
         <p className="text-red-500">{error}</p>
@@ -156,9 +159,9 @@ const MyInfoBookmark = () => {
                 return (
                   <div
                     key={bookmarkId}
-                    className="rounded-2xl border border-card-border bg-card-bg p-6 text-ui-600"
+                    className="flex min-h-[120px] items-center justify-center rounded-2xl border border-card-border bg-card-bg p-6"
                   >
-                    프로젝트 정보를 불러오는 중… (ID: {targetId})
+                    <LoadingSpinner size="md" />
                   </div>
                 );
               }

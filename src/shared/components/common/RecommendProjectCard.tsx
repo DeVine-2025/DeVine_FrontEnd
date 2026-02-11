@@ -21,25 +21,25 @@ function RecommendProjectCard({
   bookmarkId,
   onBookmarkChangeById,
   onClick,
-  techSuitability,
-  domainSuitability,
-  growthPotential,
-  overallScore,
+  techstackScorePercent,
+  similarityScorePercent,
+  domainMatch,
+  totalScore,
 }: RecommendProjectCardProps) {
   const handleBookmark = onBookmarkChangeById && projectId != null
     ? (next: boolean) => onBookmarkChangeById(projectId, next, bookmarkId)
     : onBookmarkChange;
   const hasSuitability =
-    techSuitability != null ||
-    domainSuitability != null ||
-    growthPotential != null ||
-    overallScore != null;
+    techstackScorePercent != null ||
+    similarityScorePercent != null ||
+    domainMatch != null ||
+    totalScore != null;
 
   const suitabilityParts: string[] = [];
-  if (techSuitability != null) suitabilityParts.push(`기술 적합도 : ${techSuitability}/5`);
-  if (domainSuitability != null) suitabilityParts.push(`도메인 적합도 : ${domainSuitability}/5`);
-  if (growthPotential != null) suitabilityParts.push(`성장 가능성 : ${growthPotential}/5`);
-  if (overallScore != null) suitabilityParts.push(`종합 점수: ${overallScore}`);
+  if (techstackScorePercent != null) suitabilityParts.push(`기술스택 일치 ${techstackScorePercent}%`);
+  if (domainMatch != null) suitabilityParts.push(domainMatch ? '도메인 일치' : '도메인 불일치');
+  if (similarityScorePercent != null) suitabilityParts.push(`리포트 유사도 ${similarityScorePercent}%`);
+  if (totalScore != null) suitabilityParts.push(`종합 ${totalScore}`);
   const suitabilityText = suitabilityParts.join(', ');
 
   // Recommend 전용 타입과 공용 배지 톤 매핑을 느슨하게 연결

@@ -1,3 +1,4 @@
+import LoadingSpinner from '@components/common/LoadingSpinner';
 import { useEffect, useMemo, useRef } from 'react';
 
 type MyProjectDropdownProps = {
@@ -96,8 +97,8 @@ export default function MyProjectDropdown({
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-8 text-[var(--ui-500)]">
-          프로젝트 목록을 불러오는 중...
+        <div className="flex items-center justify-center py-8">
+          <LoadingSpinner size="lg" />
         </div>
       ) : options && options.length === 0 && (!value || value.length === 0) ? (
         <div className="py-8 text-center text-[var(--ui-500)]">등록한 프로젝트가 없습니다.</div>

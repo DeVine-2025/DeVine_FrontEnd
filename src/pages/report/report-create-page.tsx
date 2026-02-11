@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {useQuery} from '@tanstack/react-query';
 
+import LoadingSpinner from '@components/common/LoadingSpinner';
 import CheckBox from '@components/report/CheckBox';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
-import { BeatLoader } from 'react-spinners';
 
 const ReportCreatePage = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -43,11 +43,9 @@ const ReportCreatePage = () => {
             />
           ))}
           {isLoading && (
-            <div className="flex-col items-center h-full justify-center gap-3">
-              <BeatLoader/>
-              <p className="text-ui-600 text-xl font-bold">레포지토리 불러오는 중..</p>
+            <div className="flex h-full items-center justify-center gap-3">
+              <LoadingSpinner size="lg" />
             </div>
-
           )}
         </div>
         <div className="mt-[4.7rem] flex-col-center gap-[1.4rem]">
