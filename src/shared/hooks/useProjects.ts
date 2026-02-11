@@ -11,8 +11,8 @@ export function useProjects(params: GetProjectsParams | string) {
     enabled: !!params,
     queryFn: async ({ signal }) => {
       const token = await getToken();
-      if (!token) throw new Error('No auth token');
-      return getProjects(params, token, signal);
+
+      return getProjects(params, token ?? undefined, signal);
     },
     placeholderData: keepPreviousData,
     staleTime: 30_000,
