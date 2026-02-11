@@ -44,10 +44,14 @@ export type RecommendProjectCardCoreProps = {
 };
 
 export type RecommendProjectSuitability = {
-  techSuitability?: number;
-  domainSuitability?: number;
-  growthPotential?: number;
-  overallScore?: number;
+  /** 기술스택 매칭 (%) - API techstackScorePercent */
+  techstackScorePercent?: number | null;
+  /** 리포트 유사도 (%) - API similarityScorePercent */
+  similarityScorePercent?: number | null;
+  /** 도메인 일치 여부 - API domainMatch */
+  domainMatch?: boolean | null;
+  /** 종합 점수 - API totalScore */
+  totalScore?: number | null;
 };
 
 export type RecommendProjectCardProps = RecommendProjectCardCoreProps & RecommendProjectSuitability;

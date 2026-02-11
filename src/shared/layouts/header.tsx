@@ -48,6 +48,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [notificationPage, setNotificationPage] = useState(0);
   const [hasNextNotifications, setHasNextNotifications] = useState(false);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [loadingMoreNotifications, setLoadingMoreNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
@@ -106,7 +107,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   useEffect(() => {
     if (!isNotificationOpen) return;
     let cancelled = false;
-    console.log('[알림] 목록 조회 요청');
+    setLoadingNotifications(true);
     getToken()
       .then((token) => {
         if (!token || cancelled) return;
@@ -117,7 +118,6 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
           setNotifications(result.notifications);
           setNotificationPage(0);
           setHasNextNotifications(result.hasNext);
-          console.log('[알림] 목록 조회 성공', result.notifications.length, '건', result.hasNext ? '(다음 페이지 있음)' : '');
         }
       })
       .catch((e) => {
@@ -126,6 +126,9 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
           setHasNextNotifications(false);
         }
         console.warn('[알림] 목록 조회 실패', e);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingNotifications(false);
       });
     return () => {
       cancelled = true;
@@ -443,6 +446,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
         notifications={notifications}
+        loading={loadingNotifications}
         onMarkAsRead={handleMarkAsRead}
         onMarkAllAsRead={handleMarkAllAsRead}
         hasMore={hasNextNotifications}

@@ -58,7 +58,7 @@ export const PERIOD_TO_DURATION: Record<string, DurationRange | undefined> = {
   '6개월 이상': 'SIX_PLUS',
 };
 
-export function buildParams(input: AppliedFilters & { page: number; size: number }) {
+export function buildParams(input: AppliedFilters & { page?: number; size?: number }) {
   const projectFields = input.projectTypes
     .map((label) => PROJECT_TYPE_TO_FIELD[label])
     .filter(Boolean) as ProjectField[];
@@ -71,28 +71,19 @@ export function buildParams(input: AppliedFilters & { page: number; size: number
     .map((key) => TECHSTACK_KEY_TO_NAME[key])
     .filter(Boolean) as string[];
 
-  const durationRange =
-    input.expectedPeriods.length > 0
-      ? (PERIOD_TO_DURATION[input.expectedPeriods[0]] as DurationRange | undefined)
-      : undefined;
+  const durationRanges = input.expectedPeriods
+    .map((label) => PERIOD_TO_DURATION[label])
+    .filter(Boolean) as DurationRange[];
 
   const qs = new URLSearchParams();
 
-  projectFields.forEach((f) => {
-    qs.append('projectFields', f);
-  });
-  categories.forEach((c) => {
-    qs.append('categories', c);
-  });
+  projectFields.forEach((f) => qs.append('projectFields', f));
+  categories.forEach((c) => qs.append('categories', c));
+  techstackNames.forEach((t) => qs.append('techstackNames', t));
+  durationRanges.forEach((d) => qs.append('durationRanges', d));
 
-  techstackNames.forEach((t) => {
-    qs.append('techstackNames', t);
-  });
-
-  if (durationRange) qs.set('durationRange', durationRange);
-
-  qs.set('page', String(input.page));
-  qs.set('size', String(input.size));
+  if (input.page != null) qs.set('page', String(input.page));
+  if (input.size != null) qs.set('size', String(input.size));
 
   return qs.toString();
 }
