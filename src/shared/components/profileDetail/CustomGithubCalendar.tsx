@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { ActivityCalendar, type Activity, type ThemeInput } from 'react-activity-calendar';
 import ChevronRightIcon from "@assets/icons/chevron-right.svg?react";
 import ChevronLeftIcon from "@assets/icons/chevron-left.svg?react";
@@ -11,6 +11,7 @@ export interface Contribution {
 interface CustomGithubCalendarProps {
   data?: Contribution[];
   initialYear?: number;
+  year?: number;
   onYearChange?: (year: number) => void;
 }
 
@@ -47,12 +48,22 @@ const generateFullYearData = (apiData: Contribution[] | undefined, year: number)
 };
 
 const CustomGithubCalendar = ({
-                                data = [],
-                                initialYear = new Date().getFullYear(),
-                                onYearChange
-                              }: CustomGithubCalendarProps) => {
+  data = [],
+  initialYear = new Date().getFullYear(),
+  year: yearProp,
+  onYearChange
+}: CustomGithubCalendarProps) => {
 
-  const [year, setYear] = useState(initialYear);
+  const [internalYear, setInternalYear] = useState(initialYear);
+  // year prop이 있으면 prop을 사용하고, 없으면 내부 상태 사용
+  const year = yearProp !== undefined ? yearProp : internalYear;
+
+  // year prop이 변경되면 내부 상태도 동기화
+  useEffect(() => {
+    if (yearProp !== undefined) {
+      setInternalYear(yearProp);
+    }
+  }, [yearProp]);
 
   const calendarData = useMemo(() => {
     return generateFullYearData(data, year);
@@ -60,11 +71,14 @@ const CustomGithubCalendar = ({
 
   const moveYear = useCallback((diff: number) => {
     const newYear = year + diff;
-    setYear(newYear);
+    // year prop이 없으면 내부 상태 업데이트
+    if (yearProp === undefined) {
+      setInternalYear(newYear);
+    }
     if (onYearChange) {
       onYearChange(newYear);
     }
-  }, [year, onYearChange]);
+  }, [year, yearProp, onYearChange]);
 
   const chevronStyle = 'w-7 h-7 text-ui-500';
   const chevronButtonStyle = 'cursor-pointer p-[0.4rem] bg-ui-100 rounded-full';
@@ -75,13 +89,13 @@ const CustomGithubCalendar = ({
         .calendar-container > * > :not(:first-child) {
           display: none !important;
         }
-        
+
         .calendar-container text {
-          fill: var(--color-ui-700) !important; 
+          fill: var(--color-ui-700) !important;
           font-size: 12px;
           font-weight: 600;
         }
-        
+
         .calendar-container svg {
           width: 100% !important;
           height: auto !important;
@@ -94,7 +108,7 @@ const CustomGithubCalendar = ({
           onClick={() => moveYear(-1)}
           className={chevronButtonStyle}
         >
-          <ChevronLeftIcon className={chevronStyle}/>
+          <ChevronLeftIcon className={chevronStyle} />
         </button>
 
         <span className="font-bold text-ui-1000 text-2xl select-none">
@@ -106,7 +120,7 @@ const CustomGithubCalendar = ({
           className={chevronButtonStyle}
           disabled={year >= new Date().getFullYear()}
         >
-          <ChevronRightIcon className={chevronStyle}/>
+          <ChevronRightIcon className={chevronStyle} />
         </button>
       </div>
 

@@ -1,5 +1,5 @@
 import { axiosInstance } from '@apis/instance';
-import { GitRepoRequest, MyProfileResponse, MyReposResponse } from '@apis/myInfo/myInfo';
+import { GitRepoRequest, MyProfileResponse, MyReposResponse, MyContributionsResponse } from '@apis/myInfo/myInfo';
 
 export const getMyProfile = async (): Promise<MyProfileResponse> => {
   const { data } = await axiosInstance.get('/api/v1/members/me');
@@ -18,7 +18,17 @@ export const getMyRepo = async (
 };
 
 export const getMyTechStacks = async () => {
-  const {data} = await axiosInstance.get('/api/v1/members/me/techstacks');
+  const { data } = await axiosInstance.get('/api/v1/members/me/techstacks');
+  return data;
+}
+
+export const getMyGitContributions = async (
+  from: string,
+  to: string
+): Promise<MyContributionsResponse> => {
+  const { data } = await axiosInstance.get('/api/v1/members/me/contributions', {
+    params: { from, to }
+  });
   return data;
 }
 
@@ -32,6 +42,15 @@ export const myInfoQueries = {
     queryKey: ['member/techstacks'],
     queryFn: getMyTechStacks,
   }),
+
+  getMyContributions: (year: number) => {
+    const from = `${year}-01-01`;
+    const to = `${year}-12-31`;
+    return {
+      queryKey: ['member/contributions', year],
+      queryFn: () => getMyGitContributions(from, to),
+    };
+  },
 
   reposInfinite: () => ({
     queryKey: ['repos'],

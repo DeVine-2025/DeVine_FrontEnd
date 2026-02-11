@@ -11,25 +11,28 @@ import ReportCardSmall from '@components/profileDetail/ReportCardSmall';
 import CustomGithubCalendar from '@components/profileDetail/CustomGithubCalendar';
 import MyPMBottomSection, { type ProjectTab } from '@components/myProject/MyBottomSection';
 
-import {useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 
-import type { MyProfile } from '@apis/myInfo/myInfo';
+import type { Contribution, MyProfile } from '@apis/myInfo/myInfo';
 
 type ProfileDetailProps = {
-  type: '내 정보' | '개발자 상세';
-  profile?: MyProfile;
-  techStack?: string[];
+  type: '내 정보' | '개발자 상세',
+  profile?: MyProfile,
+  techStack?: string[],
+  contributions?: Contribution[],
+  year?: number
+  onYearChange?: (year: number) => void
 }
 
 const gitDummy = [
   { date: '2026-01-05', count: 12 },
   { date: '2026-01-06', count: 5 },
-  { date: '2026-02-14', count: 8 },
+  { date: '2026-02-14', count: 8 }
   // ... 활동이 없는 날은 생략 가능
 ];
 
-const ProfileDetail = ({type, profile, techStack}: ProfileDetailProps) => {
+const ProfileDetail = ({ type, profile, techStack, contributions, year, onYearChange }: ProfileDetailProps) => {
   const [projectTab, setProjectTab] = useState<ProjectTab>('ongoing');
 
   const navigate = useNavigate();
@@ -62,7 +65,7 @@ const ProfileDetail = ({type, profile, techStack}: ProfileDetailProps) => {
                   <DomainBadges key={domain} label={domain} />
                 ))}
               </div>
-              <NormalButton label={'프로필 수정'} onClick={() => navigate('/profile-edit')}/>
+              <NormalButton label={'프로필 수정'} onClick={() => navigate('/profile-edit')} />
             </div>
           </div>
         </div>
@@ -92,11 +95,15 @@ const ProfileDetail = ({type, profile, techStack}: ProfileDetailProps) => {
         <div>
           <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem] mb-[2.4rem]">깃허브 기록</p>
           <div className="flex-col gap-[1.5rem]">
-            <CustomGithubCalendar data={gitDummy} />
+            <CustomGithubCalendar 
+              data={contributions} 
+              year={year}
+              onYearChange={onYearChange}
+            />
             <div className="flex gap-[1.8rem]">
-              <ReportCardSmall title={"레포1"} description={"레포 1입니다."} />
-              <ReportCardSmall title={"레포2"} description={"레포 2입니다."} />
-              <ReportCardSmall title={"레포3"} description={"레포 3입니다."} />
+              <ReportCardSmall title={'레포1'} description={'레포 1입니다.'} />
+              <ReportCardSmall title={'레포2'} description={'레포 2입니다.'} />
+              <ReportCardSmall title={'레포3'} description={'레포 3입니다.'} />
             </div>
           </div>
         </div>
