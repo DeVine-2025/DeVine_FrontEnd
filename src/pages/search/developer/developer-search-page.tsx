@@ -98,7 +98,7 @@ const DeveloperSearchPage = () => {
       page,
       size,
       categories,
-      techstackNames: techStacks,
+      techNames: techStacks,
     }),
     [page, categories, techStacks],
   );

@@ -42,7 +42,7 @@ export type MemberSearchCategory =
 
 export type GetDevelopersParams = {
   categories?: string[];
-  techstackNames?: string[];
+  techNames?: string[];
   page?: number;
   size?: number;
 };
