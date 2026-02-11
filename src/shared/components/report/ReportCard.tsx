@@ -7,7 +7,7 @@ import {useNavigate} from 'react-router-dom';
 
 type ReportCardProps = {
   type: 'create' | 'main';
-  reportId?: number;
+  gitRepoId?: number;
   label?: string;
   title?: string;
   description?: string;
@@ -16,7 +16,7 @@ type ReportCardProps = {
   onClickShowDetails?: () => void;
   onClickLock?: () => void;
 };
-const ReportCard = ({ type, label,reportId, title, description, isPublic }: ReportCardProps) => {
+const ReportCard = ({ type, label,gitRepoId, title, description, isPublic }: ReportCardProps) => {
   const [isOn, setIsOn] = useState(isPublic);
   const navigate = useNavigate();
 
@@ -24,7 +24,7 @@ const ReportCard = ({ type, label,reportId, title, description, isPublic }: Repo
     if (type === 'create') {
       navigate('/report/create');
     } else if (type === 'main') {
-      navigate(`/report/detail/${reportId}?type=${label}`)
+      navigate(`/report/detail/${gitRepoId}?type=${label}`)
     }
   };
 
