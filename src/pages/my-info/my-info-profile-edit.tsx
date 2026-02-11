@@ -15,10 +15,11 @@ import StackChips from '@components/myInfo/StackChips';
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { myInfoQueries, updateMyProfile } from '@apis/myInfo/myInfo-queries';
+import { myInfoQueries, updateMyProfile, addMyTechStacks, deleteMyTechStacks } from '@apis/myInfo/myInfo-queries';
 import type { UpdateProfileRequest } from '@apis/myInfo/myInfo';
 import { createPresignedUrl, confirmImageUpload } from '@apis/image';
 import { useAuth } from '@clerk/clerk-react';
+import { getTechstackIdsByKeys } from '@constants/signup-mapping';
 
 
 type MyInfoProfileItemProps = {
@@ -53,10 +54,11 @@ const MyInfoProfileEdit = () => {
   const [introduction, setIntroduction] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [githubLink, setGithubLink] = useState<string>('');
+  const [linkedInLink, setLinkedInLink] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [imageUrl, setImageUrl] = useState<string>('');
   const [domains, setDomains] = useState<string[]>([]);
-  const [stack, setStack] = useState<string[]>([]);
+  const [stack, setStack] = useState<string[]>([]); // 기술 스택 키 배열 (예: ['React', 'Typescript'])
   const [mainType, setMainType] = useState<'DEVELOPER' | 'PM'>('DEVELOPER');
   const [disclosure, setDisclosure] = useState<boolean>(true);
   const [isStackDropdownOpen, setIsStackDropdownOpen] = useState(false);
@@ -71,6 +73,7 @@ const MyInfoProfileEdit = () => {
     introduction: '',
     email: '',
     githubLink: '',
+    linkedInLink: '',
     address: '',
     imageUrl: '',
     domains: [] as string[],
@@ -95,8 +98,10 @@ const MyInfoProfileEdit = () => {
       // 연락처 정보
       const emailContact = profile.contacts?.find(c => c.type === 'EMAIL');
       const githubContact = profile.contacts?.find(c => c.type === 'GITHUB');
+      const linkedInContact = profile.contacts?.find(c => c.type === 'LINKEDIN');
       const emailValue = emailContact?.value || '';
       const githubLinkValue = githubContact?.link || '';
+      const linkedInLinkValue = linkedInContact?.link || '';
 
       // 현재 상태 설정
       setNickname(nicknameValue);
@@ -108,6 +113,7 @@ const MyInfoProfileEdit = () => {
       setDisclosure(disclosureValue);
       setEmail(emailValue);
       setGithubLink(githubLinkValue);
+      setLinkedInLink(linkedInLinkValue);
 
       // 원본 데이터 저장
       setOriginalData({
@@ -115,6 +121,7 @@ const MyInfoProfileEdit = () => {
         introduction: introductionValue,
         email: emailValue,
         githubLink: githubLinkValue,
+        linkedInLink: linkedInLinkValue,
         address: addressValue,
         imageUrl: imageUrlValue,
         domains: domainsValue,
@@ -125,12 +132,32 @@ const MyInfoProfileEdit = () => {
     }
   }, [profileData]);
 
+  // API 이름을 드롭다운 키로 변환하는 함수
+  const convertApiNameToKey = (apiName: string): string => {
+    // REACT_NATIVE -> ReactNative, SPRING_BOOT -> Springboot 등
+    return apiName
+      .split('_')
+      .map((word, index) => {
+        if (index === 0) {
+          // 첫 단어: 첫 글자만 대문자, 나머지 소문자
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }
+        // 나머지 단어: 전체 소문자 (Springboot, Reactnative 형태)
+        return word.toLowerCase();
+      })
+      .join('');
+  };
+
   // 기술 스택 데이터가 로드되면 상태 업데이트
   useEffect(() => {
     if (techStackData?.result?.techstacks) {
-      const stackNames = techStackData.result.techstacks.map((item: { name: string }) => item.name);
-      setStack(stackNames);
-      setOriginalData(prev => ({ ...prev, stack: stackNames }));
+      const stackKeys = techStackData.result.techstacks.map((item: { name: string }) => 
+        convertApiNameToKey(item.name)
+      );
+      console.log('API에서 받은 기술 스택 (원본):', techStackData.result.techstacks.map((item: { name: string }) => item.name));
+      console.log('변환된 기술 스택 키:', stackKeys);
+      setStack(stackKeys);
+      setOriginalData(prev => ({ ...prev, stack: stackKeys }));
     }
   }, [techStackData]);
 
@@ -163,6 +190,7 @@ const MyInfoProfileEdit = () => {
       introduction !== originalData.introduction ||
       email !== originalData.email ||
       githubLink !== originalData.githubLink ||
+      linkedInLink !== originalData.linkedInLink ||
       address !== originalData.address ||
       imageUrl !== originalData.imageUrl ||
       mainType !== originalData.mainType ||
@@ -186,16 +214,79 @@ const MyInfoProfileEdit = () => {
     });
   };
 
-  const handleDeleteStack = (stackName: string) => {
-    setStack(prev => prev.filter(item => item !== stackName));
+  const handleDeleteStack = async (stackName: string) => {
+    try {
+      // ID로 변환
+      const stackIds = getTechstackIdsByKeys([stackName]);
+      if (stackIds.length > 0) {
+        // 삭제 API 호출
+        await deleteMyTechStacks(stackIds, 'MANUAL');
+        console.log('기술 스택 삭제 성공:', stackName);
+        
+        // 상태 업데이트
+        setStack(prev => prev.filter(item => item !== stackName));
+        setOriginalData(prev => ({ 
+          ...prev, 
+          stack: prev.stack.filter(item => item !== stackName) 
+        }));
+        
+        // 기술 스택 쿼리 무효화
+        queryClient.invalidateQueries({ queryKey: ['member/techstacks'] });
+      }
+    } catch (error) {
+      console.error('기술 스택 삭제 실패:', error);
+      alert('기술 스택 삭제에 실패했습니다.');
+    }
   };
 
   const handleStackChange = (selectedStacks: string[]) => {
     setStack(selectedStacks);
   };
 
-  const handleStackApply = () => {
-    setIsStackDropdownOpen(false);
+  const handleStackApply = async () => {
+    try {
+      // 원본 스택과 현재 선택된 스택 비교
+      const originalStackSet = new Set(originalData.stack);
+      const currentStackSet = new Set(stack);
+
+      // 추가된 스택 (현재에는 있지만 원본에는 없는 것)
+      const addedStacks = stack.filter(s => !originalStackSet.has(s));
+      
+      // 삭제된 스택 (원본에는 있지만 현재에는 없는 것)
+      const deletedStacks = originalData.stack.filter(s => !currentStackSet.has(s));
+
+      // 추가할 스택이 있으면 추가 API 호출
+      if (addedStacks.length > 0) {
+        const addedIds = getTechstackIdsByKeys(addedStacks);
+        if (addedIds.length > 0) {
+          await addMyTechStacks(addedIds);
+          console.log('기술 스택 추가 성공:', addedStacks);
+        }
+      }
+
+      // 삭제할 스택이 있으면 삭제 API 호출
+      if (deletedStacks.length > 0) {
+        const deletedIds = getTechstackIdsByKeys(deletedStacks);
+        if (deletedIds.length > 0) {
+          await deleteMyTechStacks(deletedIds, 'MANUAL');
+          console.log('기술 스택 삭제 성공:', deletedStacks);
+        }
+      }
+
+      // 원본 데이터 업데이트
+      setOriginalData(prev => ({ ...prev, stack }));
+      
+      // 기술 스택 쿼리 무효화하여 최신 데이터 가져오기
+      queryClient.invalidateQueries({ queryKey: ['member/techstacks'] });
+      
+    } catch (error) {
+      console.error('기술 스택 업데이트 실패:', error);
+      alert('기술 스택 업데이트에 실패했습니다.');
+      // 실패 시 원래 상태로 복원
+      setStack(originalData.stack);
+    } finally {
+      setIsStackDropdownOpen(false);
+    }
   };
 
   // 이미지 파일 선택 핸들러
@@ -291,8 +382,15 @@ const MyInfoProfileEdit = () => {
     if (githubLink) {
       contacts.push({
         type: 'GITHUB',
-        value: '',
+        value: githubLink,
         link: githubLink
+      });
+    }
+    if (linkedInLink) {
+      contacts.push({
+        type: 'LINKEDIN',
+        value: linkedInLink,
+        link: linkedInLink
       });
     }
 
@@ -374,13 +472,20 @@ const MyInfoProfileEdit = () => {
                   setText={setGithubLink} 
                   className="text-ui-600 text-xl font-semibold" 
                 />
+                <MyInfoProfileItem 
+                  type={'text'} 
+                  title={'LinkedIn 링크'} 
+                  text={linkedInLink} 
+                  setText={setLinkedInLink} 
+                  className="text-ui-600 text-xl font-semibold" 
+                />
               </div>
 
               <div className="flex-col gap-[1.6rem]">
                 <div className="flex-col gap-[1.6rem]">
                   <p className="text-ui-900 text-2xl font-bold">보유 스택</p>
                   <MyInfoInput 
-                    type={'search'} 
+                    type={'search'}
                     placeholder={"보유 스택을 검색해주세요"}
                     onClick={() => setIsStackDropdownOpen(true)}
                   />
@@ -436,17 +541,22 @@ const MyInfoProfileEdit = () => {
       </div>
 
       {/* 보유 스택 드롭다운 모달 */}
-      <PositionTechStackDropdown
-        open={isStackDropdownOpen}
-        value={stack}
-        onChange={handleStackChange}
-        onApply={handleStackApply}
-        onReset={() => setStack([])}
-        onClose={() => setIsStackDropdownOpen(false)}
-        asModal={true}
-        title="보유 스택 선택"
-        showCloseButton={true}
-      />
+      {isStackDropdownOpen && (
+        <>
+          {console.log('모달 열림 - 현재 스택:', stack)}
+          <PositionTechStackDropdown
+            open={isStackDropdownOpen}
+            value={stack}
+            onChange={handleStackChange}
+            onApply={handleStackApply}
+            onReset={() => setStack([])}
+            onClose={() => setIsStackDropdownOpen(false)}
+            asModal={true}
+            title="보유 스택 선택"
+            showCloseButton={true}
+          />
+        </>
+      )}
     </>
   );
 };

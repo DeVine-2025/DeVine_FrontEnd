@@ -11,6 +11,25 @@ export const updateMyProfile = async (profileData: UpdateProfileRequest): Promis
   return data;
 };
 
+// 보유 기술 추가
+export const addMyTechStacks = async (techstackIds: number[]) => {
+  const { data } = await axiosInstance.post('/api/v1/members/me/techstacks', {
+    techstackIds
+  });
+  return data;
+};
+
+// 보유 기술 삭제
+export const deleteMyTechStacks = async (techstackIds: number[], source?: 'AUTO' | 'MANUAL') => {
+  const { data } = await axiosInstance.delete('/api/v1/members/me/techstacks', {
+    data: {
+      techstackIds,
+      ...(source && { source })
+    }
+  });
+  return data;
+};
+
 export const getMyRepo = async (
   params?: GitRepoRequest
 ): Promise<MyReposResponse> => {

@@ -16,6 +16,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 
 import type { Contribution, MyProfile, MyReposResponse } from '@apis/myInfo/myInfo';
 import { InfiniteData } from '@tanstack/react-query';
+import { DOMAIN_REVERSE_MAP } from '@constants/domain';
 
 type ProfileDetailProps = {
   type: '내 정보' | '개발자 상세',
@@ -55,8 +56,13 @@ const ProfileDetail = ({
   const introduction = member?.body || '소개가 들어가는 자리 입니다.';
   const imageUrl = member?.imageUrl ?? null;
   const hasImage = Boolean(imageUrl);
+  
+  // 영문 도메인을 한글로 변환
   const domainBadges = useMemo(
-    () => (domains.length > 0 ? domains : ['도메인 미등록']),
+    () => {
+      if (domains.length === 0) return ['도메인 미등록'];
+      return domains.map(d => DOMAIN_REVERSE_MAP[d] || d);
+    },
     [domains]
   );
 
