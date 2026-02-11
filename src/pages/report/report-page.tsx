@@ -50,6 +50,7 @@ const ReportPage = () => {
             {reportData?.map((report) => (
               <ReportCard
                 key={report.reportId}
+                reportId={report.reportId}
                 gitRepoId={report.gitRepoId}
                 type="main"
                 label={report.reportType}

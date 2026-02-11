@@ -71,6 +71,10 @@ export interface ProjectSummary {
   notImplemented: string[];
 }
 
+export interface ReportPatchVisibilityRequest {
+  reportId: number;
+}
+
 export interface ReportDetailContent {
   codeInsights: CodeInsight[];
   implementedFeatures: any[];

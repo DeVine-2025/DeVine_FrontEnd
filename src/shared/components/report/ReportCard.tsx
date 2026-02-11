@@ -4,10 +4,12 @@ import PlusIcon from '@assets/icons/plus.svg?react';
 import { cn } from '@libs/cn';
 import { useState } from 'react';
 import {useNavigate} from 'react-router-dom';
+import { usePatchReportVisibility } from '@apis/report/report-mutation';
 
 type ReportCardProps = {
   type: 'create' | 'main';
   gitRepoId?: number;
+  reportId?: number;
   label?: string;
   title?: string;
   description?: string;
@@ -16,10 +18,12 @@ type ReportCardProps = {
   onClickShowDetails?: () => void;
   onClickLock?: () => void;
 };
-const ReportCard = ({ type, label,gitRepoId, title, description, isPublic }: ReportCardProps) => {
+const ReportCard = ({ type, label,gitRepoId,reportId, title, description, isPublic }: ReportCardProps) => {
   const [isOn, setIsOn] = useState(isPublic);
   const navigate = useNavigate();
+  const {mutate} = usePatchReportVisibility();
 
+  console.log(isOn)
   const handleCardClick = () => {
     if (type === 'create') {
       navigate('/report/create');
