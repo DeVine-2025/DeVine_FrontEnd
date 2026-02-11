@@ -110,7 +110,7 @@ function RecommendProjectCard({
           {roles?.slice(0, 3).map((r) => (
             <div
               key={r.key}
-              className="grid w-full grid-cols-[96px_56px_1px_1fr] items-center gap-x-[12px]"
+              className="grid w-full grid-cols-[96px_56px_1fr] items-center gap-x-[12px]"
             >
               <span
                 className={`Label2 inline-flex w-fit max-w-[96px] items-center justify-center justify-self-center truncate rounded-[8px] px-4 py-2 font-semibold ${
@@ -126,8 +126,6 @@ function RecommendProjectCard({
                 <span className="Caption2 font-semibold text-[var(--ui-500)]">/</span>
                 <span className="Caption2 font-semibold text-[var(--ui-400)]">{r.total}</span>
               </div>
-
-              <span className="h-[10px] w-px bg-[var(--ui-300)]" />
 
               <div className="flex items-center gap-[4px] overflow-hidden">
                 {r.techStack?.slice(0, 5).map((t) => (

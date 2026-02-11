@@ -35,7 +35,6 @@ export type RecommendDeveloperCardProps = {
 
   bookmarked?: boolean;
   onBookmarkChange?: (next: boolean) => void;
-  /** 메모/안정 콜백용 */
   memberId?: number;
   bookmarkId?: number;
   listItemId?: string;
@@ -57,7 +56,7 @@ function RecommendDeveloperCard({
   domains,
   techStack,
   matchedProjectName = 'A 프로젝트',
-  matchedReason = '의 Java/Springboot 요구사항과 일치합니다.',
+  matchedReason = '프로젝트의 요구사항과 일치합니다.',
   bookmarked = false,
   onBookmarkChange,
   memberId,
@@ -67,22 +66,24 @@ function RecommendDeveloperCard({
   onClick,
 }: RecommendDeveloperCardProps) {
   const handleBookmark =
-    onBookmarkChangeById && memberId != null && listItemId != null
-      ? (next: boolean) => onBookmarkChangeById(memberId, listItemId, next, bookmarkId)
+    onBookmarkChangeById && listItemId != null
+      ? (next: boolean) => onBookmarkChangeById(memberId ?? 0, listItemId, next, bookmarkId)
       : onBookmarkChange;
   const { theme } = useThemeStore();
   const maxChips = 5;
   const chips = techStack?.slice(0, maxChips) ?? [];
   const overflow = (techStack?.length ?? 0) - chips.length;
 
-  const normalizeTechKey = (v: string) =>
-    v
+  const normalizeTechKey = (v: unknown): string => {
+    const s = typeof v === 'string' ? v : v != null ? String(v) : '';
+    return s
       .trim()
       .toLowerCase()
       .replace(/\s/g, '')
       .replace(/\./g, '')
       .replace(/-/g, '')
       .replace(/_/g, '');
+  };
 
   const ALL_TECH_STACK_BADGES: Array<Extract<TechStackChip, { off: string; on: string }>> = [
     ...FRONTEND_LANGUAGE_FRAMEWORK,
@@ -101,10 +102,10 @@ function RecommendDeveloperCard({
     ]),
   );
 
-  const findBadge = (name: string) => {
+  const findBadge = (name: unknown) => {
     const normalized = normalizeTechKey(name);
-    // 목데이터/백엔드에서 들어올 수 있는 표기 흔들림 대응
     const alias = normalized
+      .replace(/^spring$/g, 'springboot')
       .replace(/typescript/g, 'typescript')
       .replace(/nextjs/g, 'nextjs')
       .replace(/nodejs/g, 'nodejs')
@@ -182,7 +183,6 @@ function RecommendDeveloperCard({
             {(() => {
               const badge = findBadge(t.name);
               if (badge) {
-                // 추천 카드의 기술스택은 "선택 상태"가 아니므로 Off 배지를 사용
                 const offSrc = theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off;
                 return (
                   <img
@@ -194,7 +194,6 @@ function RecommendDeveloperCard({
                 );
               }
 
-              // 에셋이 없는 항목(Figma 등)은 기존 pill fallback
               return (
                 <span className="flex items-center gap-[8px] rounded-[24px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-[12px] py-[8px]">
                   {t.icon ? <span className="h-[20px] w-[20px]">{t.icon}</span> : null}
