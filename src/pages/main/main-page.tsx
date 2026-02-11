@@ -88,14 +88,13 @@ const MainPage = () => {
   const isLoggedIn = Boolean(isSignedIn);
   const isPm = userRole === 'pm';
   const isDev = userRole === 'dev';
+  const isDevOrUnknown = isDev || userRole == null;
   const [weeklyProjects, setWeeklyProjects] = useState<HighlightProject[]>([]);
   const fallbackRoles = useMemo(() => PROJECT_ROLES.map((role) => ({ ...role })), []);
   const [recommendedDevelopers, setRecommendedDevelopers] = useState<MainRecommendDeveloper[]>(
     PROFILE_CARD_LIST.slice(0, 3).map((d) => ({ ...d, bookmarkId: undefined })),
   );
-  const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>(
-    PROJECT_LIST.slice(0, 3),
-  );
+  const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>([]);
   const [projectBookmarkMap, setProjectBookmarkMap] = useState<Record<number, number>>({});
   const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<number, number>>({});
 
@@ -278,7 +277,7 @@ const MainPage = () => {
   }, [getToken, isLoggedIn, isPm]);
 
   useEffect(() => {
-    if (!isLoggedIn || userRole !== 'dev') return;
+    if (!isLoggedIn || !isDevOrUnknown) return;
     let isActive = true;
 
     const fetchRecommendedProjects = async () => {
@@ -307,9 +306,7 @@ const MainPage = () => {
         }));
         setRecommendedProjects(mapped);
       } catch {
-        if (isActive) {
-          setRecommendedProjects(PROJECT_LIST.slice(0, 3));
-        }
+        if (isActive) setRecommendedProjects([]);
       }
     };
 
@@ -317,7 +314,13 @@ const MainPage = () => {
     return () => {
       isActive = false;
     };
-  }, [getToken, isLoggedIn, isPm]);
+  }, [getToken, isLoggedIn, isDevOrUnknown]);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setRecommendedProjects(PROJECT_LIST.slice(0, 3));
+    }
+  }, [isLoggedIn]);
 
   const highlightProjects: HighlightProject[] = useMemo(() => {
     if (weeklyProjects.length > 0) {
