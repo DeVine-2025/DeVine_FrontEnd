@@ -17,20 +17,21 @@ const ReportDetailPage = () => {
   const gitRepoId = Number(reportId);
   const title = type === 'MAIN' ? '메인' : '상세';
 
-  const fetchReport: QueryFunction<Report> = async () => {
+  const fetchReport = async (): Promise<Report> => {
     const token = await getToken();
     if (!token) throw new Error('No token');
 
     if (type === 'MAIN') {
       const res = await reportQueries.main({ gitRepoId, token }).queryFn();
       if (!res) throw new Error('MAIN report not found');
-      return res;
+      return res.data;
     }
 
     const res = await reportQueries.detail({ gitRepoId, token }).queryFn();
     if (!res) throw new Error('DETAIL report not found');
-    return res;
+    return res.data;
   };
+
 
   const { data: report, isLoading, isError } = useQuery<Report, Error>({
     queryKey: ['report-detail', gitRepoId, type],

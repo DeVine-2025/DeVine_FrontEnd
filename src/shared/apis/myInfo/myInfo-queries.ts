@@ -1,18 +1,21 @@
 import { axiosInstance } from '@apis/instance';
-import { GitRepoRequest, MyProfileResponse } from '@apis/myInfo/myInfo';
-import {MyReposResponse} from '@apis/myInfo/myInfo';
+import { GitRepoRequest, MyProfileResponse, MyReposResponse } from '@apis/myInfo/myInfo';
 
-export const getMyProfile = async () : Promise<MyProfileResponse> => {
-  const {data} = await axiosInstance.get('/api/v1/members/me');
+export const getMyProfile = async (): Promise<MyProfileResponse> => {
+  const { data } = await axiosInstance.get('/api/v1/members/me');
   return data;
-}
+};
 
-export const getMyRepo= async (params?: GitRepoRequest) : Promise<MyReposResponse> => {
-  const {data} = await axiosInstance.post('/api/v1/members/me/git-repos',null, {
-    params,
-  });
+export const getMyRepo = async (
+  params?: GitRepoRequest
+): Promise<MyReposResponse> => {
+  const { data } = await axiosInstance.post(
+    '/api/v1/members/me/git-repos',
+    null,
+    { params }
+  );
   return data;
-}
+};
 
 export const myInfoQueries = {
   profile: () => ({
@@ -22,11 +25,13 @@ export const myInfoQueries = {
 
   reposInfinite: () => ({
     queryKey: ['repos'],
-    queryFn: ({ pageParam = 1 }) =>
+    queryFn: ({ pageParam = 1 }: { pageParam?: number }) =>
       getMyRepo({ page: pageParam, size: 10 }),
 
     initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
+
+    // ⭐ 여기 핵심
+    getNextPageParam: (lastPage: MyReposResponse) => {
       const currentPage = lastPage.result.page;
       const totalPages = lastPage.result.totalPages;
       const isLast = lastPage.result.last;
@@ -34,5 +39,5 @@ export const myInfoQueries = {
       if (isLast) return undefined;
       return currentPage + 1;
     },
-  })
-}
+  }),
+};
