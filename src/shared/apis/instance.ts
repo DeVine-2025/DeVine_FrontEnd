@@ -12,7 +12,6 @@ export const setTokenGetter = (fn: TokenGetter) => {
 export const createAxiosInstance = (): AxiosInstance => {
   const instance = axios.create({
     baseURL: BASE_URL,
-    timeout: 15_000,
     withCredentials: true,
   });
 

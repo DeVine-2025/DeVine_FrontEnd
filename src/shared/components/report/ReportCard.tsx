@@ -29,10 +29,9 @@ const ReportCard = ({ type, label,gitRepoId, title, description, isPublic }: Rep
   };
 
   return (
-    <button
-      type="button"
+    <div
       onClick={handleCardClick}
-      className="inline-flex w-fit h-[22rem] cursor-pointer rounded-3xl border border-[var(--ui-200)] p-[3.2rem] text-left"
+      className="inline-flex w-fit h-[25rem] cursor-pointer rounded-3xl border border-[var(--ui-200)] p-[3.2rem] text-left"
     >
       <div className="w-[21rem]">
         {type === 'create' && (
@@ -87,13 +86,13 @@ const ReportCard = ({ type, label,gitRepoId, title, description, isPublic }: Rep
             <p className="Heading1 mt-[2rem] line-clamp-2 font-semibold text-[var(--ui-1000)]">
               {title}
             </p>
-            <p className="Body1 mt-[1.6rem] line-clamp-4 text-[var(--ui-400)]">
+            <p className="Body1 mt-[1.6rem] line-clamp-2 text-[var(--ui-400)]">
               {description}
             </p>
           </div>
         )}
       </div>
-    </button>
+    </div>
   );
 };
 
