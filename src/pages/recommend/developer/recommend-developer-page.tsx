@@ -383,7 +383,12 @@ const RecommendDeveloperPage = () => {
               linkTo="/project/create"
             />
           ) : (
-            <ReportRequiredCard description="나에게 맞는 추천 개발자를 받아 보세요" />
+            <ReportRequiredCard
+              title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
+              description="나에게 맞는 추천 개발자를 받아 보세요"
+              linkLabel="프로젝트 등록 페이지로 이동"
+              linkTo="/project/create"
+            />
           )}
         </div>
       </div>
