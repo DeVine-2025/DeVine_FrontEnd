@@ -3,7 +3,7 @@ type ContentBoxProps = {
 };
 
 const ContentBox = ({ children }: ContentBoxProps) => {
-  return <div className="bg-ui-50 rounded-3xl">{children}</div>;
+  return <div className="rounded-3xl bg-ui-50 px-7 py-3">{children}</div>;
 };
 
 export default ContentBox;
