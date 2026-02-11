@@ -3,6 +3,7 @@ import {
   getUnreadNotificationCount,
   markAllNotificationsAsRead,
   markNotificationAsRead,
+  subscribeNotificationStream,
   type NotificationItem,
 } from '@apis/notifications';
 import AlarmIcon from '@assets/icons/alarm.svg?react';
@@ -26,6 +27,7 @@ import {
   useUser,
 } from '@clerk/clerk-react';
 import NotificationModal from '@components/common/NotificationModal';
+import { useNotificationStore } from '@store/notification';
 import { useThemeStore } from '@store/theme';
 import { getProfileImageKey, getStoredProfileImageUrl } from '@utils/storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -40,7 +42,7 @@ type HeaderProps = {
 const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const { theme, toggleTheme } = useThemeStore();
   const { isAuthed, user: devUser, setDevAuthed } = useAuth();
-  const { getToken } = useClerkAuth();
+  const { getToken, isSignedIn } = useClerkAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -50,10 +52,12 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const [hasNextNotifications, setHasNextNotifications] = useState(false);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [loadingMoreNotifications, setLoadingMoreNotifications] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const { user: clerkUser } = useUser();
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
+
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
 
   const fetchUnreadCount = useCallback(() => {
     getToken().then((token) => {
@@ -62,7 +66,24 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
         .then((count) => setUnreadCount(count))
         .catch(() => setUnreadCount(0));
     });
-  }, [getToken]);
+  }, [getToken, setUnreadCount]);
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+    const controller = new AbortController();
+    getToken().then((token) => {
+      if (!token) return;
+      subscribeNotificationStream(
+        token,
+        {
+          onMessage: () => useNotificationStore.getState().incrementUnreadCount(),
+        },
+        undefined,
+        controller.signal,
+      );
+    });
+    return () => controller.abort();
+  }, [isSignedIn, getToken]);
 
   useEffect(() => {
     const syncProfileImage = () => {
@@ -179,15 +200,16 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
       const id = Number(notificationId);
       if (Number.isNaN(id)) return;
       const wasRead = notifications.find((n) => n.id === notificationId)?.isRead ?? false;
+      const beforeCount = useNotificationStore.getState().unreadCount;
       setNotifications((prev) =>
         prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n)),
       );
-      setUnreadCount((c) => Math.max(0, c - 1));
+      setUnreadCount(Math.max(0, beforeCount - 1));
       markNotificationAsRead(id, token).catch(() => {
         setNotifications((prev) =>
           prev.map((n) => (n.id === notificationId ? { ...n, isRead: wasRead } : n)),
         );
-        setUnreadCount((c) => (wasRead ? c : c + 1));
+        setUnreadCount(wasRead ? beforeCount - 1 : beforeCount);
       });
     });
   };
@@ -196,7 +218,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
     getToken().then((token) => {
       if (!token) return;
       const prevNotifications = notifications;
-      const prevUnreadCount = unreadCount;
+      const prevUnreadCount = useNotificationStore.getState().unreadCount;
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
       markAllNotificationsAsRead(token).catch(() => {
