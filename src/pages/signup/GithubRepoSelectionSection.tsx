@@ -22,6 +22,7 @@ type RepoOption = {
   name: string;
   desc: string | null;
   url: string;
+  hasReport: boolean;
 };
 
 type ReportCardData = {
@@ -163,6 +164,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
             name: repo.name,
             desc: repo.description,
             url: repo.gitUrl,
+            hasReport: repo.hasReport,
           })),
         );
       } catch (error) {
