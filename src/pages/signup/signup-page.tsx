@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import AgreementList from './AgreementList';
@@ -9,14 +9,21 @@ const SignupPage = () => {
   const navigate = useNavigate();
   const { isLoaded, user } = useUser();
 
-  const loginProvider = useMemo(() => {
+  // useState의 lazy initializer는 StrictMode 재마운트에도 값이 보존됨
+  const [storedProvider] = useState<'github' | 'google'>(() => {
     const stored = sessionStorage.getItem(LOGIN_PROVIDER_KEY);
-    return stored === 'github' ? 'github' : 'google';
-  }, []);
-
-  useEffect(() => {
     sessionStorage.removeItem(LOGIN_PROVIDER_KEY);
-  }, []);
+    return stored === 'github' ? 'github' : 'google';
+  });
+
+  // 폴백: sessionStorage 값이 유실된 경우 Clerk 외부 계정으로 판별
+  const loginProvider = useMemo<'github' | 'google'>(() => {
+    if (storedProvider === 'github') return 'github';
+    const hasGithub = user?.externalAccounts?.some(
+      (acc) => acc.provider === 'github',
+    );
+    return hasGithub ? 'github' : storedProvider;
+  }, [storedProvider, user?.externalAccounts]);
 
   useEffect(() => {
     if (!isLoaded) return;
