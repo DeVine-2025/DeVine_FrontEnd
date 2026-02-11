@@ -191,8 +191,15 @@ const ProjectDetailPage = () => {
   const handleBookmarkChange = useCallback(
     async (next: boolean) => {
       if (!projectId) return;
+      if (isLoaded && !isSignedIn) {
+        setIsLoginModalOpen(true);
+        return;
+      }
       const token = await getToken();
-      if (!token) return;
+      if (!token) {
+        setIsLoginModalOpen(true);
+        return;
+      }
       const targetId = Number(projectId);
       if (Number.isNaN(targetId)) return;
       const prevBookmarked = bookmarkState.bookmarked;
@@ -235,7 +242,7 @@ const ProjectDetailPage = () => {
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
-    [projectId, bookmarkState.bookmarked, bookmarkState.bookmarkId, getToken],
+    [projectId, bookmarkState.bookmarked, bookmarkState.bookmarkId, getToken, isLoaded, isSignedIn],
   );
 
   useEffect(() => {
@@ -852,7 +859,7 @@ const ProjectDetailPage = () => {
                 className="text-[13px]"
                 style={{ color: isDark ? '#9EA6BA' : 'var(--ui-400)' }}
               >
-                지원하려면 먼저 로그인해 주세요.
+                해당 기능을 이용하려면 먼저 로그인해 주세요.
               </p>
             </div>
 
