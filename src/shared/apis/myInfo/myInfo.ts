@@ -38,8 +38,8 @@ export interface MyInfoResponse {
 
 
 export interface MyProfileResponse extends ApiResponse<MyProfile> {}
-export interface MyReposResponse extends ApiResponse<{ 
-  repos: GitRepo[];
+export interface MyReposResponse extends ApiResponse<{
+  content: GitRepo[];
   page: number;
   totalPages: number;
   last: boolean;
