@@ -175,7 +175,6 @@ const RecommendProjectPage = () => {
         }
       } catch (e) {
         console.error('[북마크]', e);
-        // 실패 시 롤백
         if (next) {
           setBookmarkMap((prev) => {
             const nextMap = { ...prev };
