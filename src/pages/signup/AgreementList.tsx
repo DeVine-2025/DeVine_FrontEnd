@@ -53,6 +53,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
     categoryIds: [],
     domainLabels: [],
   });
+  const [isWaitModalOpen, setIsWaitModalOpen] = useState(false);
   const [step, setStep] = useState<
     'agreements' | 'basicProfile' | 'profilePage' | 'additionalProfile' | 'signupComplete' | 'githubRepos'
   >('agreements');
@@ -106,11 +107,15 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           <button
             type="button"
             onClick={() => {
+              if (step === 'githubRepos') {
+                setIsWaitModalOpen(true);
+                return;
+              }
               if (step === 'additionalProfile' && logoSubmitHandlerRef.current) {
                 logoSubmitHandlerRef.current();
                 return;
               }
-              if (step === 'signupComplete' || step === 'githubRepos') {
+              if (step === 'signupComplete') {
                 void confirmOnboardingOnce().then(() => navigate('/'));
                 return;
               }
@@ -330,6 +335,26 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           </button>
         </div>
       </div>
+      )}
+
+      {isWaitModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">
+          <div className="w-full max-w-[360px] rounded-[24px] bg-[var(--ui-bg)] px-8 pb-8 pt-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
+            <h2 className="text-[18px] font-semibold text-[var(--ui-900)]">
+              리포트 제작 중이에요
+            </h2>
+            <p className="mt-2 text-[13px] text-[var(--ui-400)]">
+              제작이 끝날 때까지 잠시만 기다려 주세요.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsWaitModalOpen(false)}
+              className="mt-6 h-[48px] w-full rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
+            >
+              확인
+            </button>
+          </div>
+        </div>
       )}
       <TermsDetailScreen
         open={activeTermsKey !== null}
