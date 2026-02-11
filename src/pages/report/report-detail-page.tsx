@@ -17,16 +17,19 @@ const ReportDetailPage = () => {
   const gitRepoId = Number(reportId);
   const title = type === 'MAIN' ? '메인' : '상세';
 
-  /** 🔥 queryFn 반환 타입 명시 */
   const fetchReport: QueryFunction<Report> = async () => {
     const token = await getToken();
     if (!token) throw new Error('No token');
 
     if (type === 'MAIN') {
-      return await reportQueries.main({ gitRepoId, token }).queryFn();
+      const res = await reportQueries.main({ gitRepoId, token }).queryFn();
+      if (!res) throw new Error('MAIN report not found');
+      return res;
     }
 
-    return await reportQueries.detail({ gitRepoId, token }).queryFn();
+    const res = await reportQueries.detail({ gitRepoId, token }).queryFn();
+    if (!res) throw new Error('DETAIL report not found');
+    return res;
   };
 
   const { data: report, isLoading, isError } = useQuery<Report, Error>({
