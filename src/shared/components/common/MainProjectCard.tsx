@@ -19,7 +19,7 @@ export default function MainProjectCard(props: ProjectCardProps) {
             props.className,
           )}
         >
-          <div className="relative h-[160px] w-full overflow-hidden rounded-3xl border-0 bg-[#F3F5FC] shadow-none outline-none ring-0">
+          <div className="relative h-[180px] w-full overflow-hidden rounded-3xl border-0 bg-[#F3F5FC] shadow-none outline-none ring-0">
             {hasThumbnail ? (
               <img
                 src={props.thumbnailUrl}

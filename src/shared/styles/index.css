@@ -25,6 +25,7 @@
         flex-direction: column;
         scroll-behavior: smooth;
         background-color: #191B1E;
+        overflow-x: hidden;
     }
 
     #root {
@@ -44,4 +45,18 @@
     html[data-theme='light'] body {
         background-color: #FFFFFF;
     }
+}
+
+@keyframes page-enter {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.page-transition {
+    animation: page-enter 0.2s ease-out forwards;
+    width: 100%;
 }

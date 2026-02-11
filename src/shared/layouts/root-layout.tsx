@@ -3,6 +3,8 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import Footer from '@layouts/footer';
 import Header from '@layouts/header';
+import { useAuthStore, type UserRole } from '@store/auth';
+import { getStoredUserRole, setCurrentUserId } from '@utils/storage';
 
 export type RootLayoutOutletContext = {
   setNavLocked: (value: boolean) => void;
@@ -15,6 +17,7 @@ const RootLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isLoaded, user } = useUser();
+  const hydrateRole = useAuthStore((state) => state.hydrateRole);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [navLocked, setNavLocked] = useState(false);
   const [onboardingIncomplete, setOnboardingIncomplete] = useState(false);
@@ -41,11 +44,23 @@ const RootLayout = () => {
   }, [location.key]);
 
   useLayoutEffect(() => {
+    if (!isLoaded) return;
     const shouldShowModal = sessionStorage.getItem('show_onboarding_modal') === 'true';
     if (!shouldShowModal) return;
     sessionStorage.removeItem('show_onboarding_modal');
+    const localComplete = (() => {
+      try {
+        return user?.id
+          ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true'
+          : false;
+      } catch {
+        return false;
+      }
+    })();
+    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true || localComplete;
+    if (onboardingComplete) return;
     setShowOnboardingModal(true);
-  }, []);
+  }, [isLoaded, user]);
 
   useLayoutEffect(() => {
     if (!isLoaded) return;
@@ -54,9 +69,26 @@ const RootLayout = () => {
       return;
     }
 
-    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
+    const localComplete = (() => {
+      try {
+        return user?.id
+          ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true'
+          : false;
+      } catch {
+        return false;
+      }
+    })();
+    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true || localComplete;
     setOnboardingIncomplete(!onboardingComplete);
   }, [isLoaded, user]);
+
+  useLayoutEffect(() => {
+    if (!isLoaded) return;
+    const userId = user?.id ?? null;
+    setCurrentUserId(userId);
+    const storedRole = getStoredUserRole(userId);
+    hydrateRole((storedRole as UserRole) ?? null);
+  }, [hydrateRole, isLoaded, user?.id]);
 
   useLayoutEffect(() => {
     if (!onboardingIncomplete) return;
@@ -123,14 +155,16 @@ const RootLayout = () => {
     <div className="flex min-h-[100vh] flex-col">
       <Header navLocked={navLocked} onLogoClick={handleLogoClick} />
       <main className="min-h-0 flex-1 py-12">
-        <Outlet
-          context={{
-            setNavLocked,
-            onboardingIncomplete,
-            openOnboardingModal: () => setShowOnboardingModal(true),
-            setLogoClickHandler,
-          }}
-        />
+        <div key={location.key} className="page-transition">
+          <Outlet
+            context={{
+              setNavLocked,
+              onboardingIncomplete,
+              openOnboardingModal: () => setShowOnboardingModal(true),
+              setLogoClickHandler,
+            }}
+          />
+        </div>
       </main>
       <Footer />
 

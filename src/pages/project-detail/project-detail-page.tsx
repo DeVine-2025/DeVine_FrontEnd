@@ -5,7 +5,9 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getProjectDetail } from '@apis/project-detail';
-import { applyProject } from '@apis/apply';
+import { getMyRecruitingProjects } from '@apis/projects';
+import { getMemberProfileByNickname } from '@apis/members';
+import { applyProject, getMyApplyStatus } from '@apis/apply';
 import type { ProjectItem, Position, TechStack } from '@t/project/api';
 import {
   PROJECT_LIST,
@@ -15,7 +17,10 @@ import {
 } from 'src/mocks/project.mock';
 import { badgeToneToClass, type BadgeTone } from 'src/shared/types/badgeTone';
 import BookmarkButton from '@components/common/BookmarkButton';
+import LoadingSpinner from '@components/common/LoadingSpinner';
+import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
+import PersonIcon from '@assets/icons/person.svg?react';
 
 type ProjectDetailInfo = {
   id: string;
@@ -27,7 +32,10 @@ type ProjectDetailInfo = {
   mode?: string;
   dueLabel?: string;
   summary?: string;
-  creatorName?: string;
+  creatorName?: string | null;
+  creatorId?: number;
+  isOwner?: boolean;
+  creatorImage?: string | null;
   imageUrls?: string[];
   roles?: ProjectRoleInfo[];
   bookmarked?: boolean;
@@ -93,6 +101,8 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
     'recruitments' in project && Array.isArray(project.recruitments)
       ? (project.recruitments as RecruitmentLike[])
       : project.positions ?? [];
+  const isOwner =
+    'isOwner' in project ? Boolean((project as ProjectItem & { isOwner?: boolean }).isOwner) : undefined;
 
   return {
     id: String(project.projectId),
@@ -100,13 +110,16 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
     deadlineLabel: project.categoryName,
     title: project.title,
     location: project.location,
-    period: `${project.durationMonths}개월`,
+    period: project.durationRangeName ?? undefined,
     mode: project.modeName,
     dueLabel: project.recruitmentDeadline,
     bookmarked: project.bookmarked,
     bookmarkId: project.bookmarkId,
     summary,
     creatorName: project.creatorName,
+    creatorId: project.creatorId,
+    isOwner,
+    creatorImage: (project as ProjectItem & { creatorImage?: string | null }).creatorImage ?? null,
     imageUrls,
     roles: recruitments.map((recruitment) => {
       const positionKey = recruitment.position as Position;
@@ -122,7 +135,7 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
         total: recruitment.count ?? 0,
         techStacks: Array.isArray(recruitment.techStacks)
           ? recruitment.techStacks
-              .map((stack) => stack.techStackName)
+              .map((stack) => stack.techStackName ?? (stack as TechStack & { techStack?: string }).techStack)
               .filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
           : [],
       };
@@ -167,7 +180,7 @@ const ProjectDetailPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { theme } = useThemeStore();
-  const { isLoaded, isSignedIn } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
   const { getToken } = useAuth();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -176,6 +189,8 @@ const ProjectDetailPage = () => {
   const [hasApplied, setHasApplied] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [apiProject, setApiProject] = useState<ProjectDetailInfo | null>(null);
+  const [isOwnerByList, setIsOwnerByList] = useState(false);
+  const [creatorProfileImage, setCreatorProfileImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [imageLightboxIndex, setImageLightboxIndex] = useState<number | null>(null);
   const [bookmarkState, setBookmarkState] = useState<{
@@ -190,8 +205,15 @@ const ProjectDetailPage = () => {
   const handleBookmarkChange = useCallback(
     async (next: boolean) => {
       if (!projectId) return;
+      if (isLoaded && !isSignedIn) {
+        setIsLoginModalOpen(true);
+        return;
+      }
       const token = await getToken();
-      if (!token) return;
+      if (!token) {
+        setIsLoginModalOpen(true);
+        return;
+      }
       const targetId = Number(projectId);
       if (Number.isNaN(targetId)) return;
       const prevBookmarked = bookmarkState.bookmarked;
@@ -234,7 +256,7 @@ const ProjectDetailPage = () => {
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
-    [projectId, bookmarkState.bookmarked, bookmarkState.bookmarkId, getToken],
+    [projectId, bookmarkState.bookmarked, bookmarkState.bookmarkId, getToken, isLoaded, isSignedIn],
   );
 
   useEffect(() => {
@@ -271,6 +293,18 @@ const ProjectDetailPage = () => {
           } catch (e) {
             console.error('[북마크] 목록 기반 보정 실패', e);
           }
+        }
+
+        if (token) {
+          try {
+            const applyStatus = await getMyApplyStatus(numericId, token);
+            if (isActive) setHasApplied(applyStatus.exists);
+          } catch (e) {
+            console.error('[지원 상태] 조회 실패', e);
+            if (isActive) setHasApplied(false);
+          }
+        } else if (isActive) {
+          setHasApplied(false);
         }
 
         setApiProject(mapped);
@@ -311,6 +345,57 @@ const ProjectDetailPage = () => {
 
   const project =
     apiProject ?? sessionProject ?? (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
+  const currentMemberId = useMemo(() => {
+    const unsafe = user?.unsafeMetadata as { memberId?: number } | undefined;
+    const publicMeta = user?.publicMetadata as { memberId?: number } | undefined;
+    return unsafe?.memberId ?? publicMeta?.memberId ?? null;
+  }, [user?.publicMetadata, user?.unsafeMetadata]);
+  const isOwner =
+    Boolean(project?.isOwner) ||
+    (project?.creatorId != null && currentMemberId != null && project.creatorId === currentMemberId) ||
+    isOwnerByList;
+  const creatorImage = project?.creatorImage ?? creatorProfileImage;
+
+  useEffect(() => {
+    if (!project || project.creatorImage) {
+      setCreatorProfileImage(null);
+      return;
+    }
+    if (!project.creatorName) return;
+    const controller = new AbortController();
+    getMemberProfileByNickname(project.creatorName, controller.signal)
+      .then((profile) => {
+        setCreatorProfileImage(profile?.image ?? null);
+      })
+      .catch(() => {
+        setCreatorProfileImage(null);
+      });
+    return () => controller.abort();
+  }, [project, project?.creatorImage, project?.creatorName]);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !projectId) {
+      setIsOwnerByList(false);
+      return;
+    }
+    const controller = new AbortController();
+    getToken()
+      .then((token) => {
+        if (!token) return null;
+        return getMyRecruitingProjects(token, controller.signal);
+      })
+      .then((projects) => {
+        if (!projects) return;
+        const numericId = Number(projectId);
+        if (!Number.isFinite(numericId)) return;
+        const hit = projects.some((p) => p.projectId === numericId);
+        setIsOwnerByList(hit);
+      })
+      .catch(() => {
+        // ignore lookup errors
+      });
+    return () => controller.abort();
+  }, [getToken, isLoaded, isSignedIn, projectId]);
   const roleOptions = useMemo(() => {
     if (project?.roles && project.roles.length > 0) {
       return project.roles.map((role) => ({ key: role.key, label: role.label }));
@@ -353,7 +438,11 @@ const ProjectDetailPage = () => {
     return <div>프로젝트 정보를 찾을 수 없습니다.</div>;
   }
   if (!project) {
-    return <div>프로젝트 정보를 불러오는 중입니다.</div>;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   const handleApply = async () => {
@@ -369,7 +458,7 @@ const ProjectDetailPage = () => {
         setIsLoginModalOpen(true);
         return;
       }
-      await applyProject(Number(projectId), token);
+      await applyProject(Number(projectId), selectedRole, token);
       setHasApplied(true);
       setIsApplyModalOpen(false);
     } catch (error) {
@@ -409,14 +498,22 @@ const ProjectDetailPage = () => {
           <div className="flex min-w-0 flex-col gap-6">
               {(project.imageUrls?.length ?? 0) > 0 && (
                 <div
-                  className={`grid grid-cols-1 gap-4 ${project.imageUrls!.length >= 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}
+                  className={`-mt-10 grid grid-cols-1 gap-4 ${
+                    project.imageUrls!.length === 1
+                      ? 'place-items-center'
+                      : project.imageUrls!.length >= 3
+                        ? 'lg:grid-cols-3'
+                        : 'lg:grid-cols-2'
+                  }`}
                 >
                   {project.imageUrls!.map((imageUrl, index) => (
                     <button
                       type="button"
                       key={`project-image-${index}`}
                       onClick={() => setImageLightboxIndex(index)}
-                      className="group relative aspect-[4/3] w-full min-h-[140px] max-h-[220px] overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-card-section-bg text-left shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--ui-400)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] hover:border-[var(--ui-300)] hover:shadow-lg"
+                      className={`group relative aspect-[4/3] w-full min-h-[140px] max-h-[220px] overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-card-section-bg text-left shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--ui-400)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] hover:border-[var(--ui-300)] hover:shadow-lg ${
+                        project.imageUrls!.length === 1 ? 'max-w-[600px] max-h-[250px]' : ''
+                      }`}
                     >
                       <img
                         src={imageUrl}
@@ -431,18 +528,7 @@ const ProjectDetailPage = () => {
 
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap gap-2">
-                  {project.categoryLabel && (
-                    <span className="inline-flex rounded-lg bg-badge-bg-gray px-3 py-1 font-medium text-badge-text-gray text-base">
-                      {project.categoryLabel}
-                    </span>
-                  )}
-                  {project.deadlineLabel && (
-                    <span className="inline-flex rounded-lg bg-badge-bg-gray px-3 py-1 font-medium text-badge-text-gray text-base">
-                      {project.deadlineLabel}
-                    </span>
-                  )}
-                </div>
+                {/* 카테고리 배지 숨김 */}
                 <div className="flex items-start gap-3">
                   <h1 className="max-w-[800px] text-[24px] font-semibold text-card-title lg:text-[28px]">
                     {project.title}
@@ -457,7 +543,18 @@ const ProjectDetailPage = () => {
                   />
                 </div>
                 <div className="flex items-center gap-3 text-card-muted">
-                  <div className="h-12 w-12 rounded-full bg-card-section-bg" />
+                  {creatorImage ? (
+                    <img
+                      src={creatorImage}
+                      alt={project.creatorName ?? '프로필 이미지'}
+                      className="h-12 w-12 rounded-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-card-section-bg">
+                      <ProfilePlaceholderIcon className="h-12 w-12 text-card-muted" aria-hidden />
+                    </div>
+                  )}
                   <span className="text-xl font-semibold text-[var(--ui-1000)]">
                     {project.creatorName ?? '닉네임'}
                   </span>
@@ -498,10 +595,16 @@ const ProjectDetailPage = () => {
               (project.imageUrls?.length ?? 0) > 0 ? 'mt-[20rem] lg:mt-[30rem]' : 'mt-20 lg:mt-24'
             }`}
           >
-            {!hasApplied && (
+            {(isOwner || !hasApplied) && (
               <button
                 type="button"
                 onClick={() => {
+                  if (isOwner) {
+                    navigate('/project/create', {
+                      state: { projectId: Number(project.id), mode: 'edit' },
+                    });
+                    return;
+                  }
                   if (isLoaded && !isSignedIn) {
                     setIsLoginModalOpen(true);
                     return;
@@ -511,17 +614,9 @@ const ProjectDetailPage = () => {
                 }}
                 className="h-[36px] w-[200px] rounded-[10px] bg-[#4E49FF] px-4 text-[14px] font-medium text-white hover:opacity-80"
               >
-                지원하기
+                {isOwner ? '수정하기' : '지원하기'}
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => navigate(`/recommend/developer?projectId=${projectId}`)}
-              className="inline-flex items-center gap-1.5 whitespace-nowrap text-[14px] font-medium text-[var(--ui-600)] transition-colors hover:text-[var(--color-primary)]"
-            >
-              <span>해당 프로젝트 추천개발자 보러가기</span>
-              <ChevronRightIcon className="h-6 w-6 shrink-0 opacity-70 [&_path]:[stroke-width:6]" aria-hidden />
-            </button>
           </div>
         </div>
 
@@ -578,8 +673,20 @@ const ProjectDetailPage = () => {
                   <div key={role.key} className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
                       <RoleBadge label={role.label} tone={role.tone} />
-                      <span className="text-card-muted text-sm">
-                        {role.current}/{role.total}명
+                      <span className="flex items-center gap-2 text-[14px] font-semibold">
+                        <PersonIcon
+                          className="h-6 w-6"
+                          style={{ color: isDark ? '#D4DAE7' : '#41444D' }}
+                          aria-hidden
+                        />
+                        <span className="flex items-center">
+                          <span style={{ color: isDark ? '#D4DAE7' : '#41444D' }}>
+                            {role.current}
+                          </span>
+                          <span style={{ color: isDark ? '#7F8596' : '#939AAE' }}>
+                            /{role.total}명
+                          </span>
+                        </span>
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -838,7 +945,7 @@ const ProjectDetailPage = () => {
                 className="text-[13px]"
                 style={{ color: isDark ? '#9EA6BA' : 'var(--ui-400)' }}
               >
-                지원하려면 먼저 로그인해 주세요.
+                해당 기능을 이용하려면 먼저 로그인해 주세요.
               </p>
             </div>
 

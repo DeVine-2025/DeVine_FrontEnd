@@ -55,6 +55,7 @@ export type RecommendProjectPreviewItem = {
   mode: string;
   modeName: string;
   durationMonths: number;
+  durationRangeName?: string;
   location: string;
   recruitmentDeadline: string;
   daysUntilDeadline: number;
@@ -66,6 +67,9 @@ export type RecommendProjectPreviewItem = {
   domainScore?: number;
   techStackCountScore?: number;
   totalScore?: number;
+  techstackScorePercent?: number | null;
+  similarityScorePercent?: number | null;
+  domainMatch?: boolean | null;
   bookmarked?: boolean;
   bookmarkId?: number;
 };

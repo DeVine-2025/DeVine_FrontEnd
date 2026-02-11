@@ -99,3 +99,55 @@ export async function createProject(
 
   return { projectId: json.result?.projectId ?? json.projectId };
 }
+
+export type MyRecruitingProjectItem = {
+  projectId: number;
+  title: string;
+};
+
+type MyRecruitingContentItem = {
+  projectId?: number;
+  title?: string;
+};
+
+type MyRecruitingResponse = {
+  result?: {
+    projects?: {
+      content?: MyRecruitingContentItem[];
+    };
+  };
+  projects?: {
+    content?: MyRecruitingContentItem[];
+  };
+};
+
+export async function getMyRecruitingProjects(
+  token: string,
+  signal?: AbortSignal,
+): Promise<MyRecruitingProjectItem[]> {
+  const res = await fetch(`${BASE_URL}/api/v1/projects/my/recruiting`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    signal,
+  });
+
+  const json = (await res.json().catch(() => null)) as MyRecruitingResponse | null;
+  if (!res.ok) {
+    const message = json && 'message' in (json as Record<string, unknown>) ? (json as any).message : null;
+    throw new Error(typeof message === 'string' ? message : `요청 실패 (${res.status})`);
+  }
+
+  const content =
+    json?.result?.projects?.content ??
+    json?.projects?.content ??
+    [];
+
+  return content
+    .map((item) => ({
+      projectId: item.projectId ?? 0,
+      title: typeof item.title === 'string' ? item.title : '',
+    }))
+    .filter((item) => Number.isFinite(item.projectId) && item.projectId > 0);
+}

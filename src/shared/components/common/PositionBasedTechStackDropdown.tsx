@@ -125,7 +125,15 @@ export default function PositionBasedTechStackDropdown({
 
       {/* 전체 선택 */}
       <div className="absolute right-[16px] top-[16px] flex items-center gap-[4px]">
-        <button type="button" onClick={toggleAll} className="inline-flex items-center gap-[4px] text-ui-500">
+        <button
+          type="button"
+          onClick={toggleAll}
+          className={`inline-flex items-center gap-[4px] transition-colors duration-150 ${
+            allSelected
+              ? 'text-[#4E49FF] [&_path]:!stroke-[#4E49FF]'
+              : 'text-[var(--ui-500)] hover:text-[#4E49FF] hover:[&_path]:!stroke-[#4E49FF]'
+          }`}
+        >
           <span aria-hidden className="inline-flex h-[20px] w-[20px] items-center justify-center">
             <SelectAllIcon aria-hidden className="h-[10px] w-[19px]" />
           </span>

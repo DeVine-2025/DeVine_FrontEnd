@@ -1,5 +1,6 @@
 import { getPresignedUrl, confirmImage } from '@apis/images';
 import { createProject } from '@apis/projects';
+import AddImageLightIcon from '@assets/icons/create-project/addimage-light.svg?react';
 import PlusIcon from '@assets/icons/create-project/plus.svg?react';
 import TablerIconBold from '@assets/icons/create-project/tabler-icon-bold.svg?react';
 import TablerIconBoldHover from '@assets/icons/create-project/tabler-icon-bold-hover.svg?react';
@@ -39,6 +40,7 @@ import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useProjectCreateStore } from '@store/projectCreate';
+import { useThemeStore } from '@store/theme';
 import type { ChangeEvent, ComponentType, SVGProps } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -126,6 +128,9 @@ function ImageSlot({
   onRemove?: () => void;
   loading?: boolean;
 }) {
+  const { theme } = useThemeStore();
+  const AddImageIcon = theme === 'light' ? AddImageLightIcon : PlusIcon;
+
   return (
     <label
       htmlFor={loading ? undefined : inputId}
@@ -165,7 +170,7 @@ function ImageSlot({
             {label}
           </p>
           <div className="-translate-x-1/2 absolute top-[75px] left-1/2 flex h-[44px] w-[44px] flex-row items-center justify-center overflow-hidden rounded-full">
-            <PlusIcon aria-hidden className="h-[28px] w-[28px]" />
+            <AddImageIcon aria-hidden className="h-[40px] w-[40px]" />
           </div>
         </>
       )}

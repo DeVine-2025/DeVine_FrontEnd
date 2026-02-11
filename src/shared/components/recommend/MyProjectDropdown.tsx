@@ -1,3 +1,4 @@
+import LoadingSpinner from '@components/common/LoadingSpinner';
 import { useEffect, useMemo, useRef } from 'react';
 
 type MyProjectDropdownProps = {
@@ -52,7 +53,6 @@ export default function MyProjectDropdown({
     return [...PLACEHOLDER_OPTIONS];
   }, [options, value]);
 
-  const realOptions = useMemo(() => displayOptions, [displayOptions]);
   const selected = useMemo(() => new Set(value), [value]);
 
   useEffect(() => {
@@ -91,13 +91,13 @@ export default function MyProjectDropdown({
       ref={ref}
       className="animate-dropdown-slide-up absolute left-0 top-[calc(100%+12px)] z-50 w-[440px] overflow-hidden rounded-[12px] border border-[var(--ui-100)] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)]"
     >
-      <div className="px-[16px] pb-[8px] pt-[16px]">
+      <div className="flex items-center justify-between px-[16px] pb-[8px] pt-[16px]">
         <p className="Label1 font-medium text-[var(--ui-600)]">내 프로젝트</p>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-8 text-[var(--ui-500)]">
-          프로젝트 목록을 불러오는 중...
+        <div className="flex items-center justify-center py-8">
+          <LoadingSpinner size="lg" />
         </div>
       ) : options && options.length === 0 && (!value || value.length === 0) ? (
         <div className="py-8 text-center text-[var(--ui-500)]">등록한 프로젝트가 없습니다.</div>

@@ -21,6 +21,9 @@ export { default as ProjectDetailPage } from './project-detail/project-detail-pa
 export { default as RecommendDeveloperPage } from './recommend/developer/recommend-developer-page';
 export { default as RecommendProjectPage } from './recommend/project/recommend-project-page';
 export { default as RecommendPage } from './recommend/recommend-page';
+export { default as ReportDetailPage } from './report/report-detail-page';
+export { default as ReportResultPage } from './report/report-result-page';
+export { default as ReportLoadingPage } from './report/report-loading-page';
 export { default as ReportCreatePage } from './report/report-create-page';
 export { default as ReportMainPage } from './report/report-main-page';
 export { default as ReportPage } from './report/report-page';
@@ -28,3 +31,4 @@ export { default as DeveloperSearchPage } from './search/developer/developer-sea
 export { default as ProjectSearchPage } from './search/project/project-search-page';
 export { default as SearchPage } from './search/search-page';
 export { default as SignupPage } from './signup/signup-page';
+export { default as TermsPage } from './terms/terms-page';

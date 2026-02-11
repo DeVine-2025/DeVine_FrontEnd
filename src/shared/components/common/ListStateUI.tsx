@@ -1,3 +1,5 @@
+import LoadingSpinner from '@components/common/LoadingSpinner';
+
 type Props = {
   type: 'loading' | 'error' | 'empty';
   onRetry?: () => void;
@@ -5,7 +7,11 @@ type Props = {
 
 export default function ProjectListState({ type, onRetry }: Props) {
   if (type === 'loading') {
-    return <p className="py-20 text-center text-card-muted">프로젝트를 불러오는 중이에요…</p>;
+    return (
+      <div className="flex justify-center py-20">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   if (type === 'error') {

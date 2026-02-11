@@ -25,12 +25,16 @@ import {
   RecommendDeveloperPage,
   RecommendPage,
   RecommendProjectPage,
+  ReportDetailPage,
+  ReportResultPage,
+  ReportLoadingPage,
   ReportCreatePage,
   ReportMainPage,
   ReportPage,
   SearchPage,
   SignupPage,
   SsoCallbackPage,
+  TermsPage,
 } from '@pages';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
@@ -42,6 +46,7 @@ export const router = createBrowserRouter([
       { path: 'signup', element: <SignupPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'sso-callback', element: <SsoCallbackPage /> },
+      { path: 'terms/:type', element: <TermsPage /> },
       { path: 'project/:projectId', element: <ProjectDetailPage /> },
       {
         path: 'search',
@@ -64,6 +69,28 @@ export const router = createBrowserRouter([
       },
 
       {
+        path: 'my-project',
+        element: <MyProjectPage />,
+        children: [
+          { index: true, element: <Navigate to="pm" replace /> },
+          { path: 'pm', element: <MyPMPage /> },
+          { path: 'dev', element: <MyDeveloperPage /> },
+        ],
+      },
+
+      {
+        path: 'report',
+        element: <ReportMainPage />,
+        children: [
+          { index: true, element: <ReportPage /> },
+          { path: 'create', element: <ReportCreatePage /> },
+          { path: 'loading', element: <ReportLoadingPage /> },
+          { path: 'result', element: <ReportResultPage /> },
+          { path: 'detail/:reportId', element: <ReportDetailPage /> },
+        ],
+      },
+
+      {
         element: <ProtectedRoute />,
         children: [
           {
@@ -75,25 +102,6 @@ export const router = createBrowserRouter([
               { path: 'completed', element: <CompletedPage /> },
               { path: 'proposed', element: <ProposedPage /> },
               { path: 'pm', element: <PmPage /> },
-            ],
-          },
-
-          {
-            path: 'report',
-            element: <ReportMainPage />,
-            children: [
-              { index: true, element: <ReportPage /> },
-              { path: 'create', element: <ReportCreatePage /> },
-            ],
-          },
-
-          {
-            path: 'my-project',
-            element: <MyProjectPage />,
-            children: [
-              { index: true, element: <Navigate to="pm" replace /> },
-              { path: 'pm', element: <MyPMPage /> },
-              { path: 'dev', element: <MyDeveloperPage /> },
             ],
           },
 

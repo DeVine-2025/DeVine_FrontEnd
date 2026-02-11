@@ -6,8 +6,30 @@ type RecommendDeveloperPreviewItem = {
   image: string | null;
   body: string;
   techstacks: string[];
+  domains?: string[];
+  mainType?: string;
   bookmarked?: boolean;
   bookmarkId?: number;
+};
+
+type RecommendDeveloperPreviewRaw = {
+  memberId?: number;
+  nickname?: string;
+  image?: string | null;
+  body?: string;
+  techstacks?: Array<string | { name?: string; techstack?: string; techStackName?: string }>;
+  domains?: string[];
+  mainType?: string;
+  bookmarked?: boolean;
+  bookmarkId?: number;
+  member?: {
+    id?: number;
+    memberId?: number;
+    nickname?: string;
+    imageUrl?: string | null;
+    body?: string | null;
+    mainType?: string;
+  };
 };
 
 type RecommendDeveloperPreviewResponse = {
@@ -17,8 +39,38 @@ type RecommendDeveloperPreviewResponse = {
 
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
 
-export async function getRecommendDevelopersPreview(limit: number, token: string) {
-  const res = await fetch(`${BASE_URL}/api/v1/members/recommend/preview?limit=${limit}`, {
+type MemberProfileResponse = {
+  result?: {
+    nickname?: string;
+    image?: string | null;
+    body?: string | null;
+    techstacks?: string[];
+    techGenres?: string[];
+  };
+};
+
+export async function getMemberProfileByNickname(nickname: string, signal?: AbortSignal) {
+  const safeNickname = encodeURIComponent(nickname);
+  const res = await fetch(`${BASE_URL}/api/v1/members/${safeNickname}`, {
+    method: 'GET',
+    signal,
+  });
+
+  const data = (await res.json().catch(() => null)) as MemberProfileResponse | null;
+  if (!res.ok) {
+    throw new Error(`member profile failed: ${res.status}`);
+  }
+
+  return data?.result ?? null;
+}
+
+export async function getRecommendDevelopersPreview(
+  limit: number,
+  token: string,
+  projectId?: number,
+) {
+  const qs = buildQuery({ limit, projectId });
+  const res = await fetch(`${BASE_URL}/api/v1/members/recommend/preview${qs}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -29,11 +81,30 @@ export async function getRecommendDevelopersPreview(limit: number, token: string
     throw new Error(`recommend developers failed: ${res.status}`);
   }
 
-  const data = (await res.json()) as RecommendDeveloperPreviewResponse;
-  return data.result ?? [];
+  const data = (await res.json()) as RecommendDeveloperPreviewResponse | null;
+  const list = (data?.result ?? []) as RecommendDeveloperPreviewRaw[];
+  return list.map((item) => {
+    const member = item.member;
+    const techstacks = (item.techstacks ?? [])
+      .map((v) => {
+        if (typeof v === 'string') return v;
+        return (v as { name?: string; techstack?: string; techStackName?: string })?.name ?? (v as { techstack?: string })?.techstack ?? (v as { techStackName?: string })?.techStackName ?? '';
+      })
+      .filter((v) => String(v).trim().length > 0);
+    return {
+      memberId: item.memberId ?? member?.memberId ?? member?.id,
+      nickname: item.nickname ?? member?.nickname ?? '',
+      image: item.image ?? member?.imageUrl ?? null,
+      body: item.body ?? member?.body ?? '',
+      techstacks,
+      domains: item.domains ?? [],
+      mainType: item.mainType ?? member?.mainType,
+      bookmarked: item.bookmarked,
+      bookmarkId: item.bookmarkId,
+    } as RecommendDeveloperPreviewItem;
+  });
 }
 
-/** GET /api/v1/members/me/projects - 내가 만든(게시한) 프로젝트 목록 */
 export type MyProjectDto = {
   id: number;
   name: string;
@@ -45,14 +116,13 @@ export type MyProjectDto = {
 type MyProjectsResponse = {
   isSuccess?: boolean;
   message?: string;
-  // 백엔드 구현에 따라 result가 배열이거나, 내부 키가 다를 수 있어 유연하게 처리
   result?: unknown;
   data?: unknown;
   projects?: unknown;
 };
 
 export async function getMyProjects(token: string, signal?: AbortSignal): Promise<MyProjectDto[]> {
-  const res = await fetch(`${BASE_URL}/api/v1/members/me/projects`, {
+  const res = await fetch(`/api/v1/members/me/projects`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -86,12 +156,10 @@ export async function getMyProjects(token: string, signal?: AbortSignal): Promis
     return null;
   };
 
-  // 흔한 응답 형태들을 순서대로 시도
   const roots: unknown[] = [
     json?.result,
     json?.data,
     json?.projects,
-    // result 안에 한 번 더 감싸진 형태도 방어
     (json?.result as any)?.result,
     (json?.result as any)?.data,
   ];
@@ -136,6 +204,8 @@ function extractMemberId(dto: Record<string, unknown>): number | undefined {
     'user_id',
     'memberNo',
     'userNo',
+    'no',
+    'num',
     'developerId',
     'accountId',
   ];
@@ -149,6 +219,36 @@ function extractMemberId(dto: Record<string, unknown>): number | undefined {
     if (obj && typeof obj === 'object') {
       const fromNest = extractMemberId(obj);
       if (fromNest != null) return fromNest;
+    }
+  }
+  return undefined;
+}
+
+function pickString(dto: Record<string, unknown>, ...keys: string[]): string {
+  for (const key of keys) {
+    const v = dto[key];
+    if (typeof v === 'string' && v.trim().length > 0) return v.trim();
+  }
+  for (const nest of ['member', 'user', 'profile', 'developer', 'account']) {
+    const obj = dto[nest] as Record<string, unknown> | undefined;
+    if (obj && typeof obj === 'object') {
+      for (const key of keys) {
+        const v = obj[key];
+        if (typeof v === 'string' && v.trim().length > 0) return v.trim();
+      }
+    }
+  }
+  return '';
+}
+
+function pickImageUrl(dto: Record<string, unknown>): string | undefined {
+  const v = dto.image ?? dto.imageUrl ?? dto.profileImageUrl ?? dto.avatarUrl ?? dto.profileImage;
+  if (typeof v === 'string' && v.trim().length > 0) return v.trim();
+  for (const nest of ['member', 'user', 'profile', 'developer', 'account']) {
+    const obj = dto[nest] as Record<string, unknown> | undefined;
+    if (obj && typeof obj === 'object') {
+      const w = obj.image ?? obj.imageUrl ?? obj.profileImageUrl ?? obj.avatarUrl;
+      if (typeof w === 'string' && w.trim().length > 0) return w.trim();
     }
   }
   return undefined;
@@ -183,23 +283,103 @@ export type RecommendDeveloperListItem = {
 };
 
 function mapRecommendMemberToListItem(dto: RecommendMemberDto, index: number): RecommendDeveloperListItem {
+  const raw = dto as Record<string, unknown>;
   const memberId =
     (typeof dto.memberId === 'number' && dto.memberId > 0 ? dto.memberId : undefined) ??
     (typeof dto.id === 'number' && dto.id > 0 ? dto.id : undefined) ??
-    extractMemberId(dto as Record<string, unknown>);
-  if (memberId == null && import.meta.env?.DEV) {
-    console.warn('[추천 개발자] memberId 없음 – 북마크 불가', Object.keys(dto), dto);
-  }
+    extractMemberId(raw);
+  const nickname = pickString(raw, 'nickname', 'nickName', 'name', 'userName', 'username', 'displayName');
+  const introduction = pickString(raw, 'body', 'introduction', 'intro', 'bio', 'description');
+  const profileImageUrl = pickImageUrl(raw);
+  const techStack = (() => {
+    const raw = dto as Record<string, unknown>;
+    let arr: unknown[] = [];
+    if (Array.isArray(raw.techstacks) && raw.techstacks.length > 0) arr = raw.techstacks;
+    else if (Array.isArray(raw.techStacks) && raw.techStacks.length > 0) arr = raw.techStacks;
+    else if (Array.isArray(raw.matchedTechstacks) && raw.matchedTechstacks.length > 0) arr = raw.matchedTechstacks;
+    else if (Array.isArray(raw.techstackNames) && raw.techstackNames.length > 0) arr = raw.techstackNames;
+    else if (Array.isArray(raw.techStackNames) && raw.techStackNames.length > 0) arr = raw.techStackNames;
+    else if (Array.isArray(raw.skills) && raw.skills.length > 0) arr = raw.skills;
+    else {
+      for (const nest of ['member', 'user', 'profile', 'developer']) {
+        const obj = raw[nest] as Record<string, unknown> | undefined;
+        if (!obj || typeof obj !== 'object') continue;
+        if (Array.isArray(obj.techstacks)) {
+          arr = obj.techstacks;
+          break;
+        }
+        if (Array.isArray(obj.techStacks)) {
+          arr = obj.techStacks;
+          break;
+        }
+        if (Array.isArray(obj.techstackNames)) {
+          arr = obj.techstackNames;
+          break;
+        }
+        if (Array.isArray(obj.skills)) {
+          arr = obj.skills;
+          break;
+        }
+      }
+    }
+    return arr
+      .map((item, i) => {
+        let name: string;
+        if (typeof item === 'string') {
+          name = item.trim();
+        } else if (item != null && typeof item === 'object') {
+          const o = item as Record<string, unknown>;
+          const n =
+            o.name ?? o.techstack ?? o.techstackName ?? o.techStackName ?? o.skillName ?? o.label ?? o.displayName;
+          name = typeof n === 'string' ? n.trim() : String(item ?? '').trim();
+        } else {
+          name = String(item ?? '').trim();
+        }
+        return { id: `t-${index}-${i}`, name };
+      })
+      .filter((t) => t.name.length > 0);
+  })();
   return {
-    id: `member-${memberId ?? index}-${dto.nickname ?? ''}`,
+    id: `member-${memberId ?? index}-${nickname || index}`,
     memberId: memberId ?? undefined,
-    nickname: dto.nickname ?? '',
-    profileImageUrl: dto.image || undefined,
-    introduction: dto.body ?? '',
-    techStack: (dto.techstacks ?? []).map((name, i) => ({ id: `t-${index}-${i}`, name })),
+    nickname: nickname || '(이름 없음)',
+    profileImageUrl: profileImageUrl ?? undefined,
+    introduction,
+    techStack,
     role: '개발자',
     roleTone: 'blue',
-    domains: [],
+    domains: (() => {
+      const raw = dto as Record<string, unknown>;
+      let arr: unknown[] = [];
+      if (Array.isArray(raw.domains)) arr = raw.domains;
+      else if (Array.isArray(raw.interestDomains)) arr = raw.interestDomains;
+      else if (Array.isArray(raw.domainList)) arr = raw.domainList;
+      else {
+        for (const nest of ['member', 'user', 'profile', 'developer']) {
+          const obj = raw[nest] as Record<string, unknown> | undefined;
+          if (!obj || typeof obj !== 'object') continue;
+          if (Array.isArray(obj.domains)) {
+            arr = obj.domains;
+            break;
+          }
+          if (Array.isArray(obj.interestDomains)) {
+            arr = obj.interestDomains;
+            break;
+          }
+        }
+      }
+      return arr.map((item) => {
+        const label =
+          typeof item === 'string'
+            ? item.trim()
+            : item != null && typeof item === 'object' && 'label' in item && typeof (item as { label: unknown }).label === 'string'
+              ? (item as { label: string }).label.trim()
+              : item != null && typeof item === 'object' && 'name' in item && typeof (item as { name: unknown }).name === 'string'
+                ? (item as { name: string }).name.trim()
+                : '';
+        return { label };
+      }).filter((d) => d.label.length > 0);
+    })(),
     bookmarked: dto.bookmarked,
     bookmarkId: dto.bookmarkId,
   };

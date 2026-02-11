@@ -1,6 +1,8 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
+import LoginRequiredCard from '@components/common/LoginRequiredCard';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
@@ -10,7 +12,8 @@ import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock
 import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
 import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-detail';
-import { getMyProjects, getRecommendMembers } from '@apis/members';
+import { getRecommendDevelopersPreview } from '@apis/members';
+import { getMyRecruitingProjects } from '@apis/projects';
 import { getRecommendProjectsPreview, type RecommendProjectPreviewItem } from '@apis/mainrecommendproject';
 import { getDueLabel, mapPositionsToRoles } from 'src/shared/mappers/project';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
@@ -29,10 +32,10 @@ type MainRecommendProject = {
   dueLabel?: string;
   bookmarked?: boolean;
   bookmarkId?: number;
-  techSuitability?: number;
-  domainSuitability?: number;
-  growthPotential?: number;
-  overallScore?: number;
+  techstackScorePercent?: number | null;
+  similarityScorePercent?: number | null;
+  domainMatch?: boolean | null;
+  totalScore?: number | null;
 };
 
 type MainRecommendDeveloper = {
@@ -75,7 +78,7 @@ const mapWeeklyProject = (project: WeeklyBestProject): HighlightProject => ({
   categoryLabel: project.projectFieldName,
   deadlineLabel: project.categoryName,
   location: project.location,
-  period: `${project.durationMonths}개월`,
+  period: project.durationRangeName ?? undefined,
   mode: project.modeName,
   thumbnailUrl: project.thumbnailUrl ?? undefined,
   roles: mapWeeklyRoles(project.positions),
@@ -87,16 +90,17 @@ const MainPage = () => {
   const userRole = useAuthStore((state) => state.role);
   const isLoggedIn = Boolean(isSignedIn);
   const isPm = userRole === 'pm';
+  const isDev = userRole === 'dev';
+  const isDevOrUnknown = isDev || userRole == null;
   const [weeklyProjects, setWeeklyProjects] = useState<HighlightProject[]>([]);
   const fallbackRoles = useMemo(() => PROJECT_ROLES.map((role) => ({ ...role })), []);
   const [recommendedDevelopers, setRecommendedDevelopers] = useState<MainRecommendDeveloper[]>(
     PROFILE_CARD_LIST.slice(0, 3).map((d) => ({ ...d, bookmarkId: undefined })),
   );
-  const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>(
-    PROJECT_LIST.slice(0, 3),
-  );
+  const [isDeveloperPreviewEmpty, setIsDeveloperPreviewEmpty] = useState(false);
+  const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>([]);
   const [projectBookmarkMap, setProjectBookmarkMap] = useState<Record<number, number>>({});
-  const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<number, number>>({});
+  const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<string | number, number>>({});
 
   // 새로고침에도 북마크 반영: 내 북마크 목록을 하이드레이션
   useEffect(() => {
@@ -108,10 +112,13 @@ const MainPage = () => {
         const bookmarks = await getBookmarks(token);
         if (cancelled) return;
         const nextProjects: Record<number, number> = {};
-        const nextDevelopers: Record<number, number> = {};
+        const nextDevelopers: Record<string | number, number> = {};
         for (const b of bookmarks) {
-          if (b.targetType === 'PROJECT') nextProjects[b.targetId] = b.bookmarkId;
-          if (b.targetType === 'DEVELOPER') nextDevelopers[b.targetId] = b.bookmarkId;
+          if (b.targetType === 'PROJECT' && b.targetId != null) nextProjects[b.targetId] = b.bookmarkId;
+          if (b.targetType === 'DEVELOPER') {
+            const key = b.targetNickname ?? b.targetId;
+            if (key !== undefined && key !== null) nextDevelopers[key] = b.bookmarkId;
+          }
         }
         setProjectBookmarkMap(nextProjects);
         setDeveloperBookmarkMap(nextDevelopers);
@@ -176,28 +183,28 @@ const MainPage = () => {
   );
 
   const handleDeveloperBookmarkChange = useCallback(
-    async (memberId: number | undefined, next: boolean) => {
-      if (memberId == null) {
-        alert('개발자 북마크는 현재 지원되지 않습니다.');
-        return;
-      }
+    async (memberId: number | undefined, nickname: string, next: boolean) => {
+      const mapKey = memberId ?? nickname;
       const token = await requireToken();
       if (!token) return;
-      const prevId = developerBookmarkMap[memberId];
+      const prevId = developerBookmarkMap[mapKey];
       if (next) {
-        setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: -1 }));
+        setDeveloperBookmarkMap((prev) => ({ ...prev, [mapKey]: -1 }));
       } else {
         if (prevId == null || prevId <= 0) return;
         setDeveloperBookmarkMap((prev) => {
           const n = { ...prev };
-          delete n[memberId];
+          delete n[mapKey];
           return n;
         });
       }
       try {
         if (next) {
-          const { bookmarkId } = await createBookmark({ targetType: 'DEVELOPER', targetId: memberId }, token);
-          setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: bookmarkId }));
+          const { bookmarkId } = await createBookmark(
+            { targetType: 'DEVELOPER', targetNickname: nickname },
+            token,
+          );
+          setDeveloperBookmarkMap((prev) => ({ ...prev, [mapKey]: bookmarkId }));
         } else {
           await deleteBookmark(prevId, token);
         }
@@ -206,11 +213,11 @@ const MainPage = () => {
         if (next) {
           setDeveloperBookmarkMap((prev) => {
             const n = { ...prev };
-            delete n[memberId];
+            delete n[mapKey];
             return n;
           });
         } else {
-          setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: prevId }));
+          setDeveloperBookmarkMap((prev) => ({ ...prev, [mapKey]: prevId }));
         }
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
@@ -247,31 +254,42 @@ const MainPage = () => {
       try {
         const token = await getToken();
         if (!token || !isActive) return;
-        const myProjects = await getMyProjects(token);
-        if (!isActive) return;
-        if (myProjects.length === 0) {
-          setRecommendedDevelopers(PROFILE_CARD_LIST.slice(0, 3).map((d) => ({ ...d, bookmarkId: undefined })));
+        const myProjects = await getMyRecruitingProjects(token);
+        const targetProjectId = myProjects[0]?.projectId;
+        if (!targetProjectId) {
+          setIsDeveloperPreviewEmpty(true);
+          setRecommendedDevelopers([]);
           return;
         }
-        const projectId = myProjects[0].id;
-        const result = await getRecommendMembers(token, { projectId, page: 1, size: 3 });
+        const result = await getRecommendDevelopersPreview(3, token, targetProjectId);
         if (!isActive) return;
-        const mapped = result.list.map((d) => ({
-          id: d.id,
-          memberId: d.memberId,
-          role: d.role,
-          roleTone: d.roleTone,
-          nickname: d.nickname,
-          profileImageUrl: d.profileImageUrl ?? '',
-          introduction: d.introduction ?? '',
-          badges: [],
-          techStack: d.techStack,
-          bookmarked: d.bookmarked,
-          bookmarkId: d.bookmarkId,
-        }));
+        if (result.length === 0) {
+          setIsDeveloperPreviewEmpty(true);
+          setRecommendedDevelopers([]);
+          return;
+        }
+        setIsDeveloperPreviewEmpty(false);
+        const mapped = result.map((d, index) => {
+          const roleTone: MainRecommendDeveloper['roleTone'] =
+            d.mainType === 'PM' ? 'blue' : 'green';
+          return {
+            id: `member-preview-${index}-${d.nickname}`,
+            memberId: d.memberId,
+            role: d.mainType === 'PM' ? 'PM' : '개발자',
+            roleTone,
+            nickname: d.nickname,
+            profileImageUrl: d.image ?? '',
+            introduction: d.body ?? '',
+            badges: (d.domains ?? []).map((domain) => ({ label: domain, tone: roleTone })),
+            techStack: (d.techstacks ?? []).map((name, i) => ({ id: `t-${index}-${i}`, name })),
+            bookmarked: d.bookmarked,
+            bookmarkId: d.bookmarkId,
+          };
+        });
         setRecommendedDevelopers(mapped);
       } catch {
         if (isActive) {
+          setIsDeveloperPreviewEmpty(false);
           setRecommendedDevelopers(PROFILE_CARD_LIST.slice(0, 3));
         }
       }
@@ -284,7 +302,7 @@ const MainPage = () => {
   }, [getToken, isLoggedIn, isPm]);
 
   useEffect(() => {
-    if (!isLoggedIn || isPm) return;
+    if (!isLoggedIn || !isDevOrUnknown) return;
     let isActive = true;
 
     const fetchRecommendedProjects = async () => {
@@ -300,22 +318,20 @@ const MainPage = () => {
           title: item.title,
           thumbnailUrl: item.thumbnailUrl ?? '',
           location: item.location,
-          period: `${item.durationMonths}개월`,
+          period: item.durationRangeName ?? undefined,
           mode: item.modeName,
           dueLabel: getDueLabel(item.daysUntilDeadline) ?? '추후 결정 예정',
           bookmarked: item.bookmarked,
           bookmarkId: item.bookmarkId,
           roles: mapPositionsToRoles(item.positions as never),
-          techSuitability: item.techScore,
-          domainSuitability: item.domainScore,
-          growthPotential: item.techStackCountScore,
-          overallScore: item.totalScore,
+          techstackScorePercent: item.techstackScorePercent ?? item.techScore ?? null,
+          similarityScorePercent: item.similarityScorePercent ?? item.techStackCountScore ?? null,
+          domainMatch: item.domainMatch ?? null,
+          totalScore: item.totalScore ?? null,
         }));
         setRecommendedProjects(mapped);
       } catch {
-        if (isActive) {
-          setRecommendedProjects(PROJECT_LIST.slice(0, 3));
-        }
+        if (isActive) setRecommendedProjects([]);
       }
     };
 
@@ -323,7 +339,13 @@ const MainPage = () => {
     return () => {
       isActive = false;
     };
-  }, [getToken, isLoggedIn, isPm]);
+  }, [getToken, isLoggedIn, isDevOrUnknown]);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setRecommendedProjects(PROJECT_LIST.slice(0, 3));
+    }
+  }, [isLoggedIn]);
 
   const highlightProjects: HighlightProject[] = useMemo(() => {
     if (weeklyProjects.length > 0) {
@@ -343,6 +365,14 @@ const MainPage = () => {
     }));
   }, [weeklyProjects, fallbackRoles]);
   const recommendedProfiles = recommendedDevelopers;
+  const recommendTitle = isLoggedIn
+    ? isPm
+      ? '나에게 딱 맞는 추천 개발자'
+      : '나에게 딱 맞는 추천 프로젝트'
+    : '나에게 딱 맞는 추천 프로젝트/개발자';
+  const loginCtaLabel = !isLoggedIn
+    ? '나에게 딱 맞는 추천 프로젝트/개발자'
+    : null;  
   const handleProjectClick = (
     project: RecommendedProject | ProjectListItem | HighlightProject | MainRecommendProject,
   ) => {
@@ -371,7 +401,7 @@ const MainPage = () => {
         <h2 className="Heading2 pt-5 font-semibold text-card-title">
           이번주 모두가 주목하는 프로젝트
         </h2>
-        <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {highlightProjects.map((project) => (
             <MainProjectCard
               key={project.id}
@@ -394,17 +424,35 @@ const MainPage = () => {
       </section>
 
       <section className="flex flex-col gap-6">
-        <h2 className="Heading2 font-semibold text-card-title">
-          나에게 딱 맞는 추천 프로젝트/개발자
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="Heading2 font-semibold text-card-title">
+            {recommendTitle}
+          </h2>
+          {isPm && (
+            <button
+              type="button"
+              onClick={() => navigate('/recommend/developer')}
+              className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-[var(--ui-500)] transition-colors hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)]"
+              aria-label="추천 개발자 페이지로 이동"
+            >
+              <span className="Caption1 font-medium">더 많은 추천 개발자 보러가기</span>
+              <ChevronRightIcon aria-hidden className="h-5 w-5 shrink-0" />
+            </button>
+          )}
+        </div>
         <div className="relative">
           <div
             className={`flex flex-col gap-6 ${
               isLoggedIn ? '' : 'pointer-events-none select-none blur-sm'
             }`}
           >
-            {isPm
-              ? recommendedProfiles.map((profile) => (
+            {isPm ? (
+              isDeveloperPreviewEmpty ? (
+                <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
+                  나에게 딱 맞는 추천 개발자가 아직 없어요.
+                </div>
+              ) : (
+                recommendedProfiles.map((profile) => (
                   <RecommendDeveloperCard
                     key={profile.id}
                     role={profile.role}
@@ -415,15 +463,22 @@ const MainPage = () => {
                     domains={profile.badges?.map((badge) => ({ label: badge.label }))}
                     techStack={profile.techStack}
                     bookmarked={
-                      profile.memberId != null
-                        ? developerBookmarkMap[profile.memberId] != null
-                        : (profile.bookmarked ?? false)
+                      developerBookmarkMap[profile.memberId ?? profile.nickname] != null ||
+                      (profile.bookmarked ?? false)
                     }
-                    onBookmarkChange={(next) => handleDeveloperBookmarkChange(profile.memberId, next)}
+                    bookmarkId={
+                      (() => {
+                        const id = developerBookmarkMap[profile.memberId ?? profile.nickname];
+                        return id != null && id > 0 ? id : undefined;
+                      })()
+                    }
+                    onBookmarkChange={(next) => handleDeveloperBookmarkChange(profile.memberId, profile.nickname, next)}
                     matchedReason="의 Java/Springboot 요구사항과 일치합니다."
                   />
                 ))
-              : recommendedProjects.map((project) => (
+              )
+            ) : (
+              recommendedProjects.map((project) => (
                   (() => {
                     const targetId = Number(project.id);
                     const hasNumericId = Number.isFinite(targetId) && targetId > 0;
@@ -442,10 +497,10 @@ const MainPage = () => {
                     roles={[...PROJECT_ROLES]}
                     dueLabel={project.dueLabel}
                     bookmarked={isBookmarked}
-                    techSuitability={project.techSuitability}
-                    domainSuitability={project.domainSuitability}
-                    growthPotential={project.growthPotential}
-                    overallScore={project.overallScore}
+                    techstackScorePercent={project.techstackScorePercent}
+                    similarityScorePercent={project.similarityScorePercent}
+                    domainMatch={project.domainMatch}
+                    totalScore={project.totalScore}
                     onBookmarkChange={(next) =>
                       hasNumericId ? handleProjectBookmarkChange(targetId, next) : undefined
                     }
@@ -453,27 +508,13 @@ const MainPage = () => {
                   />
                     );
                   })()
-                ))}
+                ))
+            )}
           </div>
 
           {!isLoggedIn && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-[210px] w-[400px] flex-col items-start gap-7 rounded-2xl border border-card-border bg-card-bg p-11 text-left shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
-                <div className="flex flex-col gap-2">
-                  <span className="font-semibold text-[21px] text-card-title">
-                    로그인이 필요해요
-                  </span>
-                  <span className="text-[15px] text-card-muted">
-                    로그인하면 추천 프로젝트를 확인할 수 있어요
-                  </span>
-                </div>
-                <Link
-                  to="/login"
-                  className="inline-flex h-[52px] w-full items-center justify-center rounded-2xl bg-[#4E49FF] font-semibold text-[18px] text-white"
-                >
-                  로그인하기
-                </Link>
-              </div>
+              <LoginRequiredCard description={loginCtaLabel ?? '나에게 딱 맞는 추천 프로젝트/개발자를 보려면 로그인해 주세요.'} />
             </div>
           )}
         </div>

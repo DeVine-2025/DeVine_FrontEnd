@@ -1,4 +1,7 @@
+import { useNavigate } from 'react-router-dom';
+
 const Footer = () => {
+  const navigate = useNavigate();
   return (
     <footer className="bg-[var(--ui-bg)] w-screen py-[2rem] relative left-1/2 -translate-x-1/2">
       <div className="flex-col-center gap-[0.5rem] max-w-[144rem] mx-auto px-[6rem]">
@@ -6,6 +9,7 @@ const Footer = () => {
         <div className="flex-items-center gap-[2.4rem] mb-[0.8rem]">
           <button
             type="button"
+            onClick={() => navigate('/terms/service')}
             className="Label1 text-[var(--ui-600)] hover:text-[var(--ui-800)] transition-colors"
           >
             이용약관
@@ -13,6 +17,7 @@ const Footer = () => {
           <div className="h-[1.2rem] w-[1px] bg-[var(--ui-600)] opacity-30" />
           <button
             type="button"
+            onClick={() => navigate('/terms/privacy')}
             className="Label1 text-[var(--ui-600)] hover:text-[var(--ui-800)] transition-colors"
           >
             개인정보처리방침
