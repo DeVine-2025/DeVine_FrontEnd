@@ -39,6 +39,7 @@ import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { LinkCardExtension } from '@pages/project-create/LinkCardNode';
 import { useProjectCreateStore } from '@store/projectCreate';
 import { useThemeStore } from '@store/theme';
 import type { ChangeEvent, ComponentType, SVGProps } from 'react';
@@ -325,6 +326,7 @@ const ProjectCreatePage = () => {
   const [editorImageUploading, setEditorImageUploading] = useState(false);
   const editorImageInputRef = useRef<HTMLInputElement | null>(null);
   const [, setEditorSelectionKey] = useState(0);
+  const linkCardOpen = false; // 링크 카드는 본문 노드로만 사용 (미사용 변수 제거 시 에러 방지)
 
   const minDeadline = useMemo(() => {
     const t = new Date();
@@ -441,10 +443,12 @@ const ProjectCreatePage = () => {
         openOnClick: false,
         autolink: false,
         linkOnPaste: true,
+        HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' },
       }),
       Image.configure({
         inline: false,
       }),
+      LinkCardExtension,
     ],
     content: projectContent || '',
     onUpdate: ({ editor }) => {
@@ -519,15 +523,22 @@ const ProjectCreatePage = () => {
 
   const onToolbarLink = () => {
     if (!editor) return;
-    const prev = editor.getAttributes('link')?.href as string | undefined;
-    const url = window.prompt('링크 URL을 입력해주세요', prev ?? '');
-    if (url === null) return;
-    const next = url.trim();
-    if (!next) {
-      editor.chain().focus().unsetLink().run();
-      return;
+    const { from, to } = editor.state.selection;
+    const hasSelection = to > from;
+    if (hasSelection) {
+      const prev = editor.getAttributes('link')?.href as string | undefined;
+      const url = window.prompt('링크 URL을 입력해주세요', prev ?? '');
+      if (url === null) return;
+      const next = url.trim();
+      if (!next) {
+        editor.chain().focus().extendMarkRange('link').unsetLink().run();
+        return;
+      }
+      const href = /^https?:\/\//i.test(next) ? next : `https://${next}`;
+      editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
+    } else {
+      editor.chain().focus().insertContent({ type: 'linkCard' }).run();
     }
-    editor.chain().focus().extendMarkRange('link').setLink({ href: next }).run();
   };
 
   const handleSubmit = async () => {
