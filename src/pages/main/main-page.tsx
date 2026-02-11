@@ -95,6 +95,7 @@ const MainPage = () => {
   const [recommendedDevelopers, setRecommendedDevelopers] = useState<MainRecommendDeveloper[]>(
     PROFILE_CARD_LIST.slice(0, 3).map((d) => ({ ...d, bookmarkId: undefined })),
   );
+  const [isDeveloperPreviewEmpty, setIsDeveloperPreviewEmpty] = useState(false);
   const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>([]);
   const [projectBookmarkMap, setProjectBookmarkMap] = useState<Record<number, number>>({});
   const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<number, number>>({});
@@ -250,6 +251,12 @@ const MainPage = () => {
         if (!token || !isActive) return;
         const result = await getRecommendDevelopersPreview(3, token);
         if (!isActive) return;
+        if (result.length === 0) {
+          setIsDeveloperPreviewEmpty(true);
+          setRecommendedDevelopers([]);
+          return;
+        }
+        setIsDeveloperPreviewEmpty(false);
         const mapped = result.map((d, index) => ({
           id: `member-preview-${index}-${d.nickname}`,
           memberId: d.memberId,
@@ -266,6 +273,7 @@ const MainPage = () => {
         setRecommendedDevelopers(mapped);
       } catch {
         if (isActive) {
+          setIsDeveloperPreviewEmpty(false);
           setRecommendedDevelopers(PROFILE_CARD_LIST.slice(0, 3));
         }
       }
@@ -409,8 +417,13 @@ const MainPage = () => {
               isLoggedIn ? '' : 'pointer-events-none select-none blur-sm'
             }`}
           >
-            {isPm
-              ? recommendedProfiles.map((profile) => (
+            {isPm ? (
+              isDeveloperPreviewEmpty ? (
+                <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
+                  나에게 딱 맞는 추천 개발자가 아직 없어요.
+                </div>
+              ) : (
+                recommendedProfiles.map((profile) => (
                   <RecommendDeveloperCard
                     key={profile.id}
                     role={profile.role}
@@ -429,7 +442,9 @@ const MainPage = () => {
                     matchedReason="의 Java/Springboot 요구사항과 일치합니다."
                   />
                 ))
-              : recommendedProjects.map((project) => (
+              )
+            ) : (
+              recommendedProjects.map((project) => (
                   (() => {
                     const targetId = Number(project.id);
                     const hasNumericId = Number.isFinite(targetId) && targetId > 0;
@@ -459,7 +474,8 @@ const MainPage = () => {
                   />
                     );
                   })()
-                ))}
+                ))
+            )}
           </div>
 
           {!isLoggedIn && (

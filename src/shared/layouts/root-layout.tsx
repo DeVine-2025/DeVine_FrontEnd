@@ -44,11 +44,23 @@ const RootLayout = () => {
   }, [location.key]);
 
   useLayoutEffect(() => {
+    if (!isLoaded) return;
     const shouldShowModal = sessionStorage.getItem('show_onboarding_modal') === 'true';
     if (!shouldShowModal) return;
     sessionStorage.removeItem('show_onboarding_modal');
+    const localComplete = (() => {
+      try {
+        return user?.id
+          ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true'
+          : false;
+      } catch {
+        return false;
+      }
+    })();
+    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true || localComplete;
+    if (onboardingComplete) return;
     setShowOnboardingModal(true);
-  }, []);
+  }, [isLoaded, user]);
 
   useLayoutEffect(() => {
     if (!isLoaded) return;
@@ -57,7 +69,16 @@ const RootLayout = () => {
       return;
     }
 
-    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
+    const localComplete = (() => {
+      try {
+        return user?.id
+          ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true'
+          : false;
+      } catch {
+        return false;
+      }
+    })();
+    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true || localComplete;
     setOnboardingIncomplete(!onboardingComplete);
   }, [isLoaded, user]);
 
