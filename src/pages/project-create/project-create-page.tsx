@@ -40,6 +40,7 @@ import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { LinkCardExtension } from '@pages/project-create/LinkCardNode';
 import { useProjectCreateStore, type SlotImage } from '@store/projectCreate';
 import { useThemeStore } from '@store/theme';
 import type { ChangeEvent, ComponentType, SVGProps } from 'react';
@@ -348,6 +349,7 @@ const ProjectCreatePage = () => {
   const [editorImageUploading, setEditorImageUploading] = useState(false);
   const editorImageInputRef = useRef<HTMLInputElement | null>(null);
   const [, setEditorSelectionKey] = useState(0);
+  const linkCardOpen = false; // 링크 카드는 본문 노드로만 사용 (미사용 변수 제거 시 에러 방지)
 
   // 수정 모드 진입 시 기존 초안 정리 (API 데이터로 덮어쓸 예정)
   useEffect(() => {
@@ -469,10 +471,12 @@ const ProjectCreatePage = () => {
         openOnClick: false,
         autolink: false,
         linkOnPaste: true,
+        HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' },
       }),
       Image.configure({
         inline: false,
       }),
+      LinkCardExtension,
     ],
     content: projectContent || '',
     onUpdate: ({ editor }) => {
@@ -623,15 +627,22 @@ const ProjectCreatePage = () => {
 
   const onToolbarLink = () => {
     if (!editor) return;
-    const prev = editor.getAttributes('link')?.href as string | undefined;
-    const url = window.prompt('링크 URL을 입력해주세요', prev ?? '');
-    if (url === null) return;
-    const next = url.trim();
-    if (!next) {
-      editor.chain().focus().unsetLink().run();
-      return;
+    const { from, to } = editor.state.selection;
+    const hasSelection = to > from;
+    if (hasSelection) {
+      const prev = editor.getAttributes('link')?.href as string | undefined;
+      const url = window.prompt('링크 URL을 입력해주세요', prev ?? '');
+      if (url === null) return;
+      const next = url.trim();
+      if (!next) {
+        editor.chain().focus().extendMarkRange('link').unsetLink().run();
+        return;
+      }
+      const href = /^https?:\/\//i.test(next) ? next : `https://${next}`;
+      editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
+    } else {
+      editor.chain().focus().insertContent({ type: 'linkCard' }).run();
     }
-    editor.chain().focus().extendMarkRange('link').setLink({ href: next }).run();
   };
 
   const handleSubmit = async () => {
@@ -718,16 +729,17 @@ const ProjectCreatePage = () => {
         ? await updateProject(editProjectId, body, token)
         : await createProject(body, token);
 
-      // 추천 개발자 페이지의 "내 프로젝트 선택" 필터가 즉시 프로젝트를 보여줄 수 있도록 로컬 캐시 저장
+      // 추천 개발자 페이지의 "내 프로젝트 선택" 필터가 즉시 반영되도록 로컬 캐시에 최신 순으로 저장
       // (백엔드 /members/me/projects가 지연되거나 빈 값으로 내려오는 경우 대비)
       try {
         const cacheKey = 'devine_my_projects_cache_v1';
         const raw = localStorage.getItem(cacheKey);
         const parsed = raw ? (JSON.parse(raw) as unknown) : [];
         const prev = Array.isArray(parsed) ? parsed : [];
+        const rest = prev.filter((p: any) => Number(p?.id) !== result.projectId);
         const next = [
-          ...prev.filter((p: any) => Number(p?.id) !== result.projectId),
           { id: result.projectId, name: body.title.trim() },
+          ...rest,
         ].filter((p: any) => Number.isFinite(Number(p?.id)) && String(p?.name ?? '').trim().length > 0);
         localStorage.setItem(cacheKey, JSON.stringify(next));
       } catch {
