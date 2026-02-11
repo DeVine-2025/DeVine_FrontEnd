@@ -149,7 +149,6 @@ export default function ProjectSearchPage() {
       const token = await getToken();
       if (!token) return;
 
-      // ✅ 이전 값을 안전하게 저장(린트 deps 필요 없음)
       let prevOverride: (typeof bookmarkOverrides)[number] | undefined;
 
       // 1) 낙관적 UI 업데이트 + prevOverride 확보

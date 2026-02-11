@@ -1,12 +1,59 @@
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
+import { getDevelopers } from '@apis/developer';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
+import Pagination from '@components/common/Pagination';
 import ProfileCard from '@components/common/ProfileCard';
 import { useFilterStore } from '@store/filter';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { BadgeTone } from '@t/badgeTone';
+import type { DeveloperSearchContentDto } from '@t/profileCard.types';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEVELOPER_FILTERS, PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
+
+const ROLE_PRIORITY = ['FRONTEND', 'BACKEND', 'FULLSTACK', 'INFRA', 'DATA', 'MOBILE'] as const;
+
+const pickRole = (roles: string[]) => {
+  for (const r of ROLE_PRIORITY) {
+    if (roles.includes(r)) return r;
+  }
+  return roles[0] ?? 'DEVELOPER';
+};
+
+const ROLE_LABEL: Record<string, string> = {
+  FRONTEND: '프론트엔드',
+  BACKEND: '백엔드',
+  FULLSTACK: '풀스택',
+  INFRA: '인프라',
+  DATA: '데이터',
+  MOBILE: '모바일',
+  DEVELOPER: '개발자',
+};
+
+const DOMAIN_LABEL_TO_CODE = {
+  헬스케어: 'HEALTHCARE',
+  핀테크: 'FINTECH',
+  이커머스: 'ECOMMERCE',
+  교육: 'EDUCATION',
+  '소셜/커뮤니티': 'SOCIAL',
+  엔터테인먼트: 'ENTERTAINMENT',
+  'AI/데이터': 'AI_DATA',
+  기타: 'ETC',
+} as const;
+
+const DOMAIN_CODE_TO_LABEL: Record<string, string> = {
+  HEALTHCARE: '헬스케어',
+  FINTECH: '핀테크',
+  ECOMMERCE: '이커머스',
+  EDUCATION: '교육',
+  SOCIAL: '소셜/커뮤니티',
+  ENTERTAINMENT: '엔터테인먼트',
+  AI_DATA: 'AI/데이터',
+  ETC: '기타',
+};
+
+type MemberSearchCategory = (typeof DOMAIN_LABEL_TO_CODE)[keyof typeof DOMAIN_LABEL_TO_CODE];
 
 const DeveloperSearchPage = () => {
   const navigate = useNavigate();
@@ -15,11 +62,67 @@ const DeveloperSearchPage = () => {
   const { interestDomains, myProjects, techStacks } = developerSearch;
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
+  const [searchContent, setSearchContent] = useState<DeveloperSearchContentDto[]>([]);
   const [bookmarkMap, setBookmarkMap] = useState<Record<string | number, number>>({});
+
+  const [page, setPage] = useState(1);
+  const size = 10;
+  const [totalPages, setTotalPages] = useState(0);
 
   const setInterestDomains = (v: string[]) => setDeveloperSearch({ interestDomains: v });
   const setMyProjects = (v: string[]) => setDeveloperSearch({ myProjects: v });
   const setTechStacks = (v: string[]) => setDeveloperSearch({ techStacks: v });
+
+  const listTopRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setPage(1);
+  }, [interestDomains, myProjects, techStacks]);
+
+  useEffect(() => {
+    if (page <= 0) return;
+
+    requestAnimationFrame(() => {
+      listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [page]);
+
+  const categories = useMemo<MemberSearchCategory[]>(() => {
+    return interestDomains
+      .map((label) => DOMAIN_LABEL_TO_CODE[label as keyof typeof DOMAIN_LABEL_TO_CODE])
+      .filter(Boolean);
+  }, [interestDomains]);
+
+  const params = useMemo(
+    () => ({
+      page,
+      size,
+      categories,
+      techstackNames: techStacks,
+    }),
+    [page, categories, techStacks],
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+
+        const pageData = await getDevelopers(params, token, controller.signal);
+
+        setSearchContent(pageData.content ?? []);
+        setTotalPages(pageData.totalPages ?? 0);
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
+        console.error('[개발자 검색] 실패', e);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [getToken, params]);
 
   // 새로고침 시에도 북마크 상태 유지: 내 북마크 목록 하이드레이션
   useEffect(() => {
@@ -48,6 +151,44 @@ const DeveloperSearchPage = () => {
   }, [getToken]);
 
   const profiles = useMemo(() => PROFILE_CARD_LIST, []);
+
+  const FALLBACK_PROFILE_IMAGE = '/images/profile-default.png';
+
+  const searchedProfiles = useMemo(() => {
+    return searchContent.map((x, index) => {
+      const roleNames = (x.techstacks ?? []).filter((t) => t.genre == null).map((t) => t.name);
+      const roleKey = pickRole(roleNames);
+
+      const pureTechStacks = (x.techstacks ?? [])
+        .filter((t) => t.genre != null)
+        .map((t) => ({
+          id: String(t.techstackId),
+          name: t.name,
+          icon: undefined,
+        }));
+
+      return {
+        id: `search-${x.member.nickname}-${index}`,
+        memberId: undefined,
+        nickname: x.member.nickname,
+        profileImageUrl: x.member.imageUrl ?? FALLBACK_PROFILE_IMAGE,
+        introduction: x.member.body ?? undefined,
+
+        techStack: pureTechStacks,
+
+        role: ROLE_LABEL[roleKey] ?? '개발자',
+        roleTone: 'blue' as const,
+
+        badges: (x.domains ?? []).map((d, i) => ({
+          id: `d-${index}-${i}`,
+          label: DOMAIN_CODE_TO_LABEL[d] ?? d,
+          tone: 'gray' as BadgeTone,
+        })),
+
+        bookmarked: false,
+      };
+    });
+  }, [searchContent]);
 
   const handleBookmarkChange = useCallback(
     async (memberId: number | undefined, nickname: string, next: boolean) => {
@@ -120,15 +261,20 @@ const DeveloperSearchPage = () => {
             {...profile}
             size="sm"
             bookmarked={
-              bookmarkMap[profile.memberId ?? profile.nickname] != null || (profile.bookmarked ?? false)
+              bookmarkMap[profile.memberId ?? profile.nickname] != null ||
+              (profile.bookmarked ?? false)
             }
-            onBookmarkChange={(next) => handleBookmarkChange(profile.memberId, profile.nickname, next)}
+            onBookmarkChange={(next) =>
+              handleBookmarkChange(profile.memberId, profile.nickname, next)
+            }
           />
         ))}
       </div>
 
       {/* 구분선 */}
       <div className="h-px w-full bg-card-border" />
+
+      <div ref={listTopRef} />
 
       {/* 필터 */}
       <DeveloperFilterBar
@@ -148,18 +294,23 @@ const DeveloperSearchPage = () => {
 
       {/* 개발자 리스트 */}
       <div className="flex flex-col gap-4">
-        {profiles.map((profile) => (
+        {searchedProfiles.map((profile) => (
           <ProfileCard
             key={profile.id}
             {...profile}
             size="lg"
             bookmarked={
-              bookmarkMap[profile.memberId ?? profile.nickname] != null || (profile.bookmarked ?? false)
+              bookmarkMap[profile.memberId ?? profile.nickname] != null ||
+              (profile.bookmarked ?? false)
             }
-            onBookmarkChange={(next) => handleBookmarkChange(profile.memberId, profile.nickname, next)}
+            onBookmarkChange={(next) =>
+              handleBookmarkChange(profile.memberId, profile.nickname, next)
+            }
           />
         ))}
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
     </section>
   );
 };
