@@ -11,6 +11,25 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEVELOPER_FILTERS, PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 
+const ROLE_PRIORITY = ['FRONTEND', 'BACKEND', 'FULLSTACK', 'INFRA', 'DATA', 'MOBILE'] as const;
+
+const pickRole = (roles: string[]) => {
+  for (const r of ROLE_PRIORITY) {
+    if (roles.includes(r)) return r;
+  }
+  return roles[0] ?? 'DEVELOPER';
+};
+
+const ROLE_LABEL: Record<string, string> = {
+  FRONTEND: '프론트엔드',
+  BACKEND: '백엔드',
+  FULLSTACK: '풀스택',
+  INFRA: '인프라',
+  DATA: '데이터',
+  MOBILE: '모바일',
+  DEVELOPER: '개발자',
+};
+
 const DeveloperSearchPage = () => {
   const navigate = useNavigate();
   const { getToken } = useAuth();
@@ -85,26 +104,40 @@ const DeveloperSearchPage = () => {
   const searchedProfiles = useMemo(() => {
     return searchContent
       .filter((x) => x.member?.mainType === 'DEVELOPER')
-      .map((x, index) => ({
-        id: `search-${x.member.nickname}-${index}`,
-        memberId: undefined, // id 임시
-        nickname: x.member.nickname,
-        profileImageUrl: x.member.imageUrl ?? FALLBACK_PROFILE_IMAGE,
-        introduction: x.member.body ?? undefined,
-        techStack: (x.techstacks ?? []).map((t) => ({
-          id: String(t.techstackId),
-          name: t.name,
-          icon: undefined,
-        })),
-        role: '개발자',
-        roleTone: 'blue' as const,
-        badges: (x.domains ?? []).map((d, i) => ({
-          id: `d-${index}-${i}`,
-          label: d,
-          tone: 'gray' as BadgeTone,
-        })),
-        bookmarked: false,
-      }));
+      .map((x, index) => {
+        const roleNames = (x.techstacks ?? []).filter((t) => t.genre == null).map((t) => t.name);
+
+        const roleKey = pickRole(roleNames);
+
+        const pureTechStacks = (x.techstacks ?? [])
+          .filter((t) => t.genre != null)
+          .map((t) => ({
+            id: String(t.techstackId),
+            name: t.name,
+            icon: undefined,
+          }));
+
+        return {
+          id: `search-${x.member.nickname}-${index}`,
+          memberId: undefined, // 지금은 임시
+          nickname: x.member.nickname,
+          profileImageUrl: x.member.imageUrl ?? FALLBACK_PROFILE_IMAGE,
+          introduction: x.member.body ?? undefined,
+
+          techStack: pureTechStacks,
+
+          role: ROLE_LABEL[roleKey] ?? '개발자',
+          roleTone: 'blue' as const,
+
+          badges: (x.domains ?? []).map((d, i) => ({
+            id: `d-${index}-${i}`,
+            label: d,
+            tone: 'gray' as BadgeTone,
+          })),
+
+          bookmarked: false,
+        };
+      });
   }, [searchContent]);
 
   console.log(searchedProfiles);
