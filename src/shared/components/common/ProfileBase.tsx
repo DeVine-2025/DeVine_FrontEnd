@@ -110,15 +110,30 @@ export function TechChips({ techStack, max }: { techStack?: TechStackItem[]; max
 
   return (
     <div className="flex flex-wrap items-center gap-4">
-      {shown.map((s) => (
-        <div
-          key={s.id}
-          className="flex items-center gap-2 rounded-3xl border border-card-border bg-surface-tab px-4 py-1"
-        >
-          {s.icon}
-          <span className="font-medium text-card-text text-lg">{s.name}</span>
-        </div>
-      ))}
+      {shown.map((s, index) => {
+        const anyS = s as any;
+
+        const label =
+          typeof anyS.name === 'string'
+            ? anyS.name
+            : typeof anyS.name?.name === 'string'
+              ? anyS.name.name
+              : '';
+
+        if (!label) return null;
+
+        const key = String(anyS.id ?? anyS.name?.techstackId ?? index);
+
+        return (
+          <div
+            key={key}
+            className="flex items-center gap-2 rounded-3xl border border-card-border bg-surface-tab px-4 py-1"
+          >
+            {anyS.icon}
+            <span className="font-medium text-card-text text-lg">{label}</span>
+          </div>
+        );
+      })}
 
       {rest > 0 && <span className="font-semibold text-card-muted text-lg">+{rest}</span>}
     </div>

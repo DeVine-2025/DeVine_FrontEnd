@@ -32,7 +32,7 @@ export default function ProfileCardLg(props: ProfileCardProps) {
       )}
     >
       {header ? <div className="">{header}</div> : null}
-      <div className="flex items-center gap-7">
+      <div className="flex items-stretch gap-7">
         <img
           src={profileImageUrl}
           alt={profileImageAlt ?? nickname}
@@ -43,11 +43,11 @@ export default function ProfileCardLg(props: ProfileCardProps) {
           loading="lazy"
         />
 
-        <div className="flex min-w-0 flex-1 flex-col gap-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-5">
           {role && roleTone && (
             <span
               className={cn(
-                'inline-flex w-fit items-center whitespace-nowrap rounded-lg px-3 py-1 font-semibold text-base',
+                'inline-flex w-fit items-center whitespace-nowrap rounded-lg px-3 py-1 font-semibold text-lg',
                 badgeToneToClass[roleTone],
               )}
             >
@@ -62,11 +62,11 @@ export default function ProfileCardLg(props: ProfileCardProps) {
           <Intro introduction={introduction} />
         </div>
 
-        <div className="flex h-full w-[240px] items-center">
+        <div className="flex h-full w-[240px] self-center">
           <TechChips techStack={techStack} max={5} />
         </div>
 
-        <div className="ml-auto flex h-full items-center pr-5">
+        <div className="ml-auto flex h-full self-center pr-5">
           {action ?? (
             <BookmarkButton
               bookmarked={bookmarked}

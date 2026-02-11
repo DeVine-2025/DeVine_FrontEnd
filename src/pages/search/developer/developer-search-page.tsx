@@ -1,9 +1,12 @@
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
+import { getDevelopers } from '@apis/developer';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
 import ProfileCard from '@components/common/ProfileCard';
 import { useFilterStore } from '@store/filter';
+import type { BadgeTone } from '@t/badgeTone';
+import type { DeveloperSearchContentDto } from '@t/profileCard.types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEVELOPER_FILTERS, PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
@@ -16,10 +19,38 @@ const DeveloperSearchPage = () => {
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
   const [bookmarkMap, setBookmarkMap] = useState<Record<number, number>>({});
+  const [searchContent, setSearchContent] = useState<DeveloperSearchContentDto[]>([]);
 
   const setInterestDomains = (v: string[]) => setDeveloperSearch({ interestDomains: v });
   const setMyProjects = (v: string[]) => setDeveloperSearch({ myProjects: v });
   const setTechStacks = (v: string[]) => setDeveloperSearch({ techStacks: v });
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+
+        const pageData = await getDevelopers(
+          {
+            page: 1,
+            size: 10,
+          },
+          token,
+          controller.signal,
+        );
+
+        setSearchContent(pageData.content ?? []);
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
+        console.error('[개발자 검색] 실패', e);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [getToken]);
 
   // 새로고침 시에도 북마크 상태 유지: 내 북마크 목록 하이드레이션
   useEffect(() => {
@@ -47,6 +78,35 @@ const DeveloperSearchPage = () => {
   }, [getToken]);
 
   const profiles = useMemo(() => PROFILE_CARD_LIST, []);
+
+  const FALLBACK_PROFILE_IMAGE = '/images/profile-default.png';
+
+  const searchedProfiles = useMemo(() => {
+    return searchContent
+      .filter((x) => x.member?.mainType === 'DEVELOPER')
+      .map((x, index) => ({
+        id: `search-${x.member.nickname}-${index}`,
+        memberId: undefined, // id 임시
+        nickname: x.member.nickname,
+        profileImageUrl: x.member.imageUrl ?? FALLBACK_PROFILE_IMAGE,
+        introduction: x.member.body ?? undefined,
+        techStack: (x.techstacks ?? []).map((t) => ({
+          id: String(t.techstackId),
+          name: t.name,
+          icon: undefined,
+        })),
+        role: '개발자',
+        roleTone: 'blue' as const,
+        badges: (x.domains ?? []).map((d, i) => ({
+          id: `d-${index}-${i}`,
+          label: d,
+          tone: 'gray' as BadgeTone,
+        })),
+        bookmarked: false,
+      }));
+  }, [searchContent]);
+
+  console.log(searchedProfiles);
 
   const handleBookmarkChange = useCallback(
     async (memberId: number | undefined, next: boolean) => {
@@ -150,7 +210,7 @@ const DeveloperSearchPage = () => {
 
       {/* 개발자 리스트 */}
       <div className="flex flex-col gap-4">
-        {profiles.map((profile) => (
+        {searchedProfiles.map((profile) => (
           <ProfileCard
             key={profile.id}
             {...profile}

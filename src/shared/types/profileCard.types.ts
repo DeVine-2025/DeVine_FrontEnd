@@ -28,3 +28,64 @@ export type ProfileCardProps = {
   header?: React.ReactNode;
   className?: string;
 };
+
+// Developer type
+export type MemberSearchCategory =
+  | 'HEALTHCARE'
+  | 'FINTECH'
+  | 'ECOMMERCE'
+  | 'EDUCATION'
+  | 'SOCIAL'
+  | 'ENTERTAINMENT'
+  | 'AI_DATA'
+  | 'ETC';
+
+export type GetDevelopersParams = {
+  categories?: MemberSearchCategory[];
+  techNames?: string[];
+  page?: number;
+  size?: number;
+};
+
+export type MemberMainType = 'PM' | 'DEVELOPER';
+
+export type MemberSummaryDto = {
+  nickname: string;
+  address: string | null;
+  disclosure: boolean;
+  mainType: MemberMainType;
+  imageUrl: string | null;
+  body: string | null;
+  used: string;
+  createdAt: string;
+};
+
+export type TechstackDto = {
+  techstackId: number;
+  name: string;
+  genre: string | null;
+  source: string;
+};
+
+export type DeveloperSearchContentDto = {
+  member: MemberSummaryDto;
+  domains: string[];
+  techstacks: TechstackDto[];
+};
+
+export type DeveloperSearchPage = {
+  content: DeveloperSearchContentDto[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+};
+
+export type DeveloperSearchResponse = {
+  isSuccess: boolean;
+  code?: string;
+  message?: string;
+  result?: DeveloperSearchPage;
+};
