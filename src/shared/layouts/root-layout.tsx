@@ -182,7 +182,9 @@ const RootLayout = () => {
                 type="button"
                 onClick={() => {
                   setShowOnboardingModal(false);
-                  navigate('/signup');
+                  if (location.pathname !== '/signup') {
+                    navigate('/signup');
+                  }
                 }}
                 className="h-[48px] w-full rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
               >
