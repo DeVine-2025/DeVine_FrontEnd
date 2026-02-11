@@ -52,6 +52,31 @@ export async function getWeeklyBestProjects() {
   return data.result?.projects ?? [];
 }
 
+export type ProjectStatus = 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED';
+
+/** PATCH /api/v1/projects/{projectId}/status - 프로젝트 상태 변경 */
+export async function updateProjectStatus(
+  projectId: number,
+  status: ProjectStatus,
+  token: string,
+) {
+  const res = await fetch(`${BASE_URL}/api/v1/projects/${projectId}/status`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => null);
+    throw new Error(error?.message ?? `update project status failed: ${res.status}`);
+  }
+
+  return res.json().catch(() => null);
+}
+
 export async function getProjectDetail(projectId: number, token?: string | null) {
   const res = await fetch(`${BASE_URL}/api/v1/projects/${projectId}`, {
     method: 'GET',

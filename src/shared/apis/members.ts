@@ -46,6 +46,13 @@ type MemberProfileResponse = {
     body?: string | null;
     techstacks?: string[];
     techGenres?: string[];
+    member?: {
+      nickname?: string;
+      imageUrl?: string | null;
+      body?: string | null;
+    };
+    domains?: string[];
+    contacts?: Array<{ type?: string; value?: string; link?: string }>;
   };
 };
 
@@ -61,7 +68,16 @@ export async function getMemberProfileByNickname(nickname: string, signal?: Abor
     throw new Error(`member profile failed: ${res.status}`);
   }
 
-  return data?.result ?? null;
+  if (!data?.result) return null;
+  const result = data.result;
+  const member = result.member;
+  return {
+    nickname: result.nickname ?? member?.nickname,
+    image: result.image ?? member?.imageUrl ?? null,
+    body: result.body ?? member?.body ?? null,
+    techstacks: result.techstacks ?? [],
+    techGenres: result.techGenres ?? [],
+  };
 }
 
 export async function getRecommendDevelopersPreview(

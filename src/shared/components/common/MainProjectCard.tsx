@@ -14,7 +14,7 @@ export default function MainProjectCard(props: ProjectCardProps) {
         <article
           {...CardActionProps}
           className={cn(
-            'w-[280px] shrink-0 overflow-hidden rounded-3xl border-0 bg-[var(--ui-bg)] shadow-none outline-none ring-0',
+            'w-full min-w-0 overflow-hidden rounded-3xl border-0 bg-[var(--ui-bg)] shadow-none outline-none ring-0',
             props.onClick && 'cursor-pointer',
             props.className,
           )}
