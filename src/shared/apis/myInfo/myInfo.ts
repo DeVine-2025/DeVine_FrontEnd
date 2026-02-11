@@ -20,6 +20,10 @@ export interface MyProfile {
   }[];
 }
 
+export interface GitRepoRequest{
+  page: number;
+  size: number;
+}
 
 export interface GitRepo {
   gitRepoId: number;
@@ -28,6 +32,15 @@ export interface GitRepo {
   description: string;
 }
 
+export interface MyInfoResponse {
+
+}
+
 
 export interface MyProfileResponse extends ApiResponse<MyProfile> {}
-export interface MyReposResponse extends ApiResponse<{ repos: GitRepo[] }> {}
+export interface MyReposResponse extends ApiResponse<{ 
+  repos: GitRepo[];
+  page: number;
+  totalPages: number;
+  last: boolean;
+}> {}

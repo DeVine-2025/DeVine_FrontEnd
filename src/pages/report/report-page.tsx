@@ -51,6 +51,7 @@ const ReportPage = () => {
               <ReportCard
                 key={report.reportId}
                 reportId={report.reportId}
+                gitRepoId={report.gitRepoId}
                 type="main"
                 label={report.reportType}
                 title={report.repoName}

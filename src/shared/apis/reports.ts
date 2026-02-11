@@ -5,6 +5,8 @@ type CreateReportResponse = {
   };
 };
 
+import { Report } from '@apis/report/report';
+
 type ReportData = Record<string, unknown>;
 
 type ReportResponse = {
@@ -48,7 +50,7 @@ export async function createReport(gitRepoId: number, token?: string) {
   return data?.result ?? null;
 }
 
-export async function getReportMain(gitRepoId: number, token?: string) {
+export async function getReportMain(gitRepoId: number, token?: string): Promise<Report | null> {
   const res = await fetch(`https://api.devine.kr/api/v1/reports/${gitRepoId}/main`, {
     method: 'GET',
     headers: {
@@ -61,10 +63,10 @@ export async function getReportMain(gitRepoId: number, token?: string) {
   }
 
   const data = (await res.json().catch(() => null)) as ReportResponse | null;
-  return data?.result ?? null;
+  return (data?.result as unknown as Report) ?? null;
 }
 
-export async function getReportDetail(gitRepoId: number, token?: string) {
+export async function getReportDetail(gitRepoId: number, token?: string): Promise<Report | null> {
   const res = await fetch(`https://api.devine.kr/api/v1/reports/${gitRepoId}/detail`, {
     method: 'GET',
     headers: {
@@ -77,5 +79,5 @@ export async function getReportDetail(gitRepoId: number, token?: string) {
   }
 
   const data = (await res.json().catch(() => null)) as ReportResponse | null;
-  return data?.result ?? null;
+  return (data?.result as unknown as Report) ?? null;
 }

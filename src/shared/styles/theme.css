@@ -34,6 +34,13 @@
     --color-badge-text-orange: var(--badge-text-orange);
     --color-badge-bg-orange: var(--badge-bg-orange);
 
+    --color-positive-bg: var(--positive-bg);
+    --color-positive-text: var(--positive-text);
+
+    --color-negative-bg: var(--negative-bg);
+    --color-negative-text: var(--negative-text);
+
+
     /* UI Dark */
     --ui-bg: #191B1E;
     --ui-50: #212328;
@@ -63,6 +70,12 @@
 
     --badge-text-orange: #D98363;
     --badge-bg-orange: #463229;
+
+    --positive-bg: #143026;
+    --positive-text: #4ADE80;
+
+    --negative-bg: #3C1A1A;
+    --negative-text: #FCA5A5;
 
     --font-weight-regular: 400;
     --font-weight-medium: 500;
@@ -103,6 +116,12 @@
 
     --badge-text-orange: #D98363;
     --badge-bg-orange: #FFF4F0;
+
+    --positive-bg: #E6F9F0;
+    --positive-text: #22C55E;
+
+    --negative-bg: #FFF1F0;
+    --negative-text: #F87171;
 }
 
 @layer utilities {
