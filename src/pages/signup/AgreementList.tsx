@@ -54,6 +54,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
     domainLabels: [],
   });
   const [isWaitModalOpen, setIsWaitModalOpen] = useState(false);
+  const [isStayModalOpen, setIsStayModalOpen] = useState(false);
   const [step, setStep] = useState<
     'agreements' | 'basicProfile' | 'profilePage' | 'additionalProfile' | 'signupComplete' | 'githubRepos'
   >('agreements');
@@ -125,7 +126,7 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                 void confirmOnboardingOnce().then(() => navigate('/'));
                 return;
               }
-              openOnboardingModal();
+              setIsStayModalOpen(true);
             }}
             className="flex items-center gap-[0.4rem] cursor-pointer"
             aria-label="메인으로 이동"
@@ -341,6 +342,26 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           </button>
         </div>
       </div>
+      )}
+
+      {isStayModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">
+          <div className="w-full max-w-[360px] rounded-[24px] bg-[var(--ui-bg)] px-8 pb-8 pt-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
+            <h2 className="text-[18px] font-semibold text-[var(--ui-900)]">
+              회원정보 입력이 필요해요
+            </h2>
+            <p className="mt-2 text-[13px] text-[var(--ui-400)]">
+              계속 사용하려면 회원가입 정보를 입력해 주세요.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsStayModalOpen(false)}
+              className="mt-6 h-[48px] w-full rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
+            >
+              회원가입 계속하기
+            </button>
+          </div>
+        </div>
       )}
 
       {isWaitModalOpen && (
