@@ -18,6 +18,8 @@ export interface MyProfile {
     value: string;
     link: string;
   }[];
+  techstacks?: string[];
+  techStacks?: string[];
 }
 
 export interface GitRepoRequest{

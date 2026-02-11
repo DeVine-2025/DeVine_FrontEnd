@@ -4,10 +4,9 @@ import {useQuery} from '@tanstack/react-query';
 
 const MyInfoProfile = () => {
   const {data} = useQuery(myInfoQueries.profile());
-  console.log(data);
   return (
     <div>
-      <ProfileDetail type={'내 정보'}/>
+      <ProfileDetail type={'내 정보'} profile={data?.result} />
     </div>
   );
 };

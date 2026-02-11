@@ -12,10 +12,13 @@ import CustomGithubCalendar from '@components/profileDetail/CustomGithubCalendar
 import MyPMBottomSection, { type ProjectTab } from '@components/myProject/MyBottomSection';
 
 import {useNavigate} from 'react-router-dom';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+
+import type { MyProfile } from '@apis/myInfo/myInfo';
 
 type ProfileDetailProps = {
   type: '내 정보' | '개발자 상세';
+  profile?: MyProfile;
 }
 
 const gitDummy = [
@@ -25,24 +28,40 @@ const gitDummy = [
   // ... 활동이 없는 날은 생략 가능
 ];
 
-const ProfileDetail = ({type}: ProfileDetailProps) => {
+const ProfileDetail = ({type, profile}: ProfileDetailProps) => {
   const [projectTab, setProjectTab] = useState<ProjectTab>('ongoing');
 
   const navigate = useNavigate();
-
-
+  const member = profile?.member;
+  const role = member?.mainType === 'PM' ? 'PM' : '개발자';
+  const roleTone = member?.mainType === 'PM' ? 'blue' : 'green';
+  const nickname = member?.nickname || member?.name || '닉네임';
+  const domains = profile?.domains ?? [];
+  const techStack = profile?.techstacks ?? profile?.techStacks ?? [];
+  const contacts = profile?.contacts ?? [];
+  const introduction = member?.body || '소개가 들어가는 자리 입니다.';
+  const imageUrl = member?.imageUrl ?? null;
+  const hasImage = Boolean(imageUrl);
+  const domainBadges = useMemo(
+    () => (domains.length > 0 ? domains : ['도메인 미등록']),
+    [domains]
+  );
   return (
     <section className="mx-auto w-full max-w-[1180px] flex justify-between">
       <div className="max-w-[718px] flex-col gap-14">
         {/*Section 1*/}
         <div className="flex gap-[2.4rem]">
-          <ImagePreview isExist={false} />
+          <ImagePreview isExist={hasImage} imageUrl={imageUrl} />
           <div className="w-full flex flex-col gap-[0.8rem]">
-            <RoleChips roleTone={'green'} role={'백엔드'} />
-            <p className="text-4xl font-bold text-ui-1000 mb-[0.8rem]">닉네임</p>
+            <RoleChips roleTone={roleTone} role={role} />
+            <p className="text-4xl font-bold text-ui-1000 mb-[0.8rem]">{nickname}</p>
             <p className="flex items-center gap-[0.4rem] text-xl font-medium text-ui-400"><HeartIcon />관심 도메인</p>
             <div className="flex-col gap-[1.4rem]">
-              <DomainBadges label={'플랫폼'} />
+              <div className="flex flex-wrap gap-[0.8rem]">
+                {domainBadges.map((domain) => (
+                  <DomainBadges key={domain} label={domain} />
+                ))}
+              </div>
               <NormalButton label={'프로필 수정'} onClick={() => navigate('/profile-edit')}/>
             </div>
           </div>
@@ -51,10 +70,10 @@ const ProfileDetail = ({type}: ProfileDetailProps) => {
         {/* Section 2 : 자기소개 */}
         <div className="flex justify-between w-full pr-[10.4rem]">
           <p className="Label1 text-ui-500 font-medium">
-            소개가 들어가는 자리 입니다.
+            {introduction}
           </p>
           <div>
-            <ContactCard />
+            <ContactCard contacts={contacts} />
           </div>
         </div>
         <hr className="border-ui-200" />
@@ -62,11 +81,11 @@ const ProfileDetail = ({type}: ProfileDetailProps) => {
         {/* Section 3 : 보유 스택 목록 */}
         <div className="flex-col gap-[2.4rem]">
           <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem]">보유 스택
-            <button type="button" className="border border-2 border-ui-200 bg-ui-50 rounded-full">
+            <button type="button" className="border-2 border-ui-200 bg-ui-50 rounded-full">
               <QuestionIcon className="text-ui-200 w-5 h-5" />
             </button>
           </p>
-          <TechStackChips techStack={['typescript', 'typescript', 'typescript', 'springboot']} />
+          <TechStackChips techStack={techStack} />
         </div>
 
         {/* Section 4 : 깃허브 기록 */}
