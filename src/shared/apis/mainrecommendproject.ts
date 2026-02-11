@@ -100,7 +100,11 @@ export async function getRecommendProjectsPreview(limit: number, token: string) 
   const data = await res.json().catch(() => null);
   if (import.meta.env.DEV) {
     console.log('[recommend-projects] raw response:', JSON.stringify(data, null, 2));
-    console.log('[recommend-projects] result type:', typeof data?.result, Array.isArray(data?.result) ? '(array)' : '');
+    console.log(
+      '[recommend-projects] result type:',
+      typeof data?.result,
+      Array.isArray(data?.result) ? '(array)' : '',
+    );
     console.log('[recommend-projects] result value:', data?.result);
   }
 
