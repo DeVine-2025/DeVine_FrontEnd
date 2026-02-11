@@ -1,27 +1,33 @@
 import { create } from 'zustand';
+import { getCurrentUserId, getStoredUserRole, getUserRoleKey } from '@utils/storage';
 
 export type UserRole = 'pm' | 'dev' | null;
 
 type AuthState = {
   role: UserRole;
   setRole: (role: UserRole) => void;
+  hydrateRole: (role: UserRole) => void;
   clearRole: () => void;
 };
 
-const USER_ROLE_KEY = 'userRole';
-
 export const useAuthStore = create<AuthState>((set) => ({
-  role: (localStorage.getItem(USER_ROLE_KEY) as UserRole) ?? null,
+  role: (getStoredUserRole(getCurrentUserId()) as UserRole) ?? null,
   setRole: (role) => {
+    const userId = getCurrentUserId();
+    const key = getUserRoleKey(userId);
     if (role) {
-      localStorage.setItem(USER_ROLE_KEY, role);
+      localStorage.setItem(key, role);
     } else {
-      localStorage.removeItem(USER_ROLE_KEY);
+      localStorage.removeItem(key);
+      localStorage.removeItem(getUserRoleKey());
     }
     set({ role });
   },
+  hydrateRole: (role) => set({ role }),
   clearRole: () => {
-    localStorage.removeItem(USER_ROLE_KEY);
+    const userId = getCurrentUserId();
+    localStorage.removeItem(getUserRoleKey(userId));
+    localStorage.removeItem(getUserRoleKey());
     set({ role: null });
   },
 }));

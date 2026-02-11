@@ -18,9 +18,16 @@ import ModeDarkHoverIcon from '@assets/icons/mode-dark-hover.svg?react';
 import ModeLightIcon from '@assets/icons/mode-light.svg?react';
 import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
 import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
-import { SignedIn, SignedOut, UserButton, useAuth as useClerkAuth } from '@clerk/clerk-react';
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  useAuth as useClerkAuth,
+  useUser,
+} from '@clerk/clerk-react';
 import NotificationModal from '@components/common/NotificationModal';
 import { useThemeStore } from '@store/theme';
+import { getProfileImageKey, getStoredProfileImageUrl } from '@utils/storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/shared/auth/useAuth';
@@ -32,7 +39,7 @@ type HeaderProps = {
 
 const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const { theme, toggleTheme } = useThemeStore();
-  const { isAuthed, user, setDevAuthed } = useAuth();
+  const { isAuthed, user: devUser, setDevAuthed } = useAuth();
   const { getToken } = useClerkAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -41,6 +48,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const { user: clerkUser } = useUser();
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
 
   const fetchUnreadCount = useCallback(() => {
@@ -61,7 +69,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   useEffect(() => {
     const syncProfileImage = () => {
       try {
-        const stored = localStorage.getItem('profile_image_url');
+        const stored = getStoredProfileImageUrl(clerkUser?.id ?? null);
         setProfileImageUrl(stored && stored.trim().length > 0 ? stored : null);
       } catch {
         setProfileImageUrl(null);
@@ -71,7 +79,9 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
     syncProfileImage();
 
     const handleStorage = (event: StorageEvent) => {
-      if (event.key === 'profile_image_url') {
+      const userKey = getProfileImageKey(clerkUser?.id ?? null);
+      const legacyKey = getProfileImageKey();
+      if (event.key === userKey || event.key === legacyKey) {
         syncProfileImage();
       }
     };
@@ -84,7 +94,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('profile-image-updated', handleProfileUpdate as EventListener);
     };
-  }, []);
+  }, [clerkUser?.id]);
 
   useEffect(() => {
     fetchUnreadCount();

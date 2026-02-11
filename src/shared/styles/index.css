@@ -25,6 +25,7 @@
         flex-direction: column;
         scroll-behavior: smooth;
         background-color: #191B1E;
+        overflow-x: hidden;
     }
 
     #root {

@@ -5,6 +5,8 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getProjectDetail } from '@apis/project-detail';
+import { getMyRecruitingProjects } from '@apis/projects';
+import { getMemberProfileByNickname } from '@apis/members';
 import { applyProject, getMyApplyStatus } from '@apis/apply';
 import type { ProjectItem, Position, TechStack } from '@t/project/api';
 import {
@@ -15,6 +17,7 @@ import {
 } from 'src/mocks/project.mock';
 import { badgeToneToClass, type BadgeTone } from 'src/shared/types/badgeTone';
 import BookmarkButton from '@components/common/BookmarkButton';
+import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import PersonIcon from '@assets/icons/person.svg?react';
 
@@ -29,6 +32,9 @@ type ProjectDetailInfo = {
   dueLabel?: string;
   summary?: string;
   creatorName?: string | null;
+  creatorId?: number;
+  isOwner?: boolean;
+  creatorImage?: string | null;
   imageUrls?: string[];
   roles?: ProjectRoleInfo[];
   bookmarked?: boolean;
@@ -94,6 +100,8 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
     'recruitments' in project && Array.isArray(project.recruitments)
       ? (project.recruitments as RecruitmentLike[])
       : project.positions ?? [];
+  const isOwner =
+    'isOwner' in project ? Boolean((project as ProjectItem & { isOwner?: boolean }).isOwner) : undefined;
 
   return {
     id: String(project.projectId),
@@ -108,6 +116,9 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
     bookmarkId: project.bookmarkId,
     summary,
     creatorName: project.creatorName,
+    creatorId: project.creatorId,
+    isOwner,
+    creatorImage: (project as ProjectItem & { creatorImage?: string | null }).creatorImage ?? null,
     imageUrls,
     roles: recruitments.map((recruitment) => {
       const positionKey = recruitment.position as Position;
@@ -168,7 +179,7 @@ const ProjectDetailPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { theme } = useThemeStore();
-  const { isLoaded, isSignedIn } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
   const { getToken } = useAuth();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -177,6 +188,8 @@ const ProjectDetailPage = () => {
   const [hasApplied, setHasApplied] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [apiProject, setApiProject] = useState<ProjectDetailInfo | null>(null);
+  const [isOwnerByList, setIsOwnerByList] = useState(false);
+  const [creatorProfileImage, setCreatorProfileImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [imageLightboxIndex, setImageLightboxIndex] = useState<number | null>(null);
   const [bookmarkState, setBookmarkState] = useState<{
@@ -191,8 +204,15 @@ const ProjectDetailPage = () => {
   const handleBookmarkChange = useCallback(
     async (next: boolean) => {
       if (!projectId) return;
+      if (isLoaded && !isSignedIn) {
+        setIsLoginModalOpen(true);
+        return;
+      }
       const token = await getToken();
-      if (!token) return;
+      if (!token) {
+        setIsLoginModalOpen(true);
+        return;
+      }
       const targetId = Number(projectId);
       if (Number.isNaN(targetId)) return;
       const prevBookmarked = bookmarkState.bookmarked;
@@ -235,7 +255,7 @@ const ProjectDetailPage = () => {
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
-    [projectId, bookmarkState.bookmarked, bookmarkState.bookmarkId, getToken],
+    [projectId, bookmarkState.bookmarked, bookmarkState.bookmarkId, getToken, isLoaded, isSignedIn],
   );
 
   useEffect(() => {
@@ -324,6 +344,57 @@ const ProjectDetailPage = () => {
 
   const project =
     apiProject ?? sessionProject ?? (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
+  const currentMemberId = useMemo(() => {
+    const unsafe = user?.unsafeMetadata as { memberId?: number } | undefined;
+    const publicMeta = user?.publicMetadata as { memberId?: number } | undefined;
+    return unsafe?.memberId ?? publicMeta?.memberId ?? null;
+  }, [user?.publicMetadata, user?.unsafeMetadata]);
+  const isOwner =
+    Boolean(project?.isOwner) ||
+    (project?.creatorId != null && currentMemberId != null && project.creatorId === currentMemberId) ||
+    isOwnerByList;
+  const creatorImage = project?.creatorImage ?? creatorProfileImage;
+
+  useEffect(() => {
+    if (!project || project.creatorImage) {
+      setCreatorProfileImage(null);
+      return;
+    }
+    if (!project.creatorName) return;
+    const controller = new AbortController();
+    getMemberProfileByNickname(project.creatorName, controller.signal)
+      .then((profile) => {
+        setCreatorProfileImage(profile?.image ?? null);
+      })
+      .catch(() => {
+        setCreatorProfileImage(null);
+      });
+    return () => controller.abort();
+  }, [project, project?.creatorImage, project?.creatorName]);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !projectId) {
+      setIsOwnerByList(false);
+      return;
+    }
+    const controller = new AbortController();
+    getToken()
+      .then((token) => {
+        if (!token) return null;
+        return getMyRecruitingProjects(token, controller.signal);
+      })
+      .then((projects) => {
+        if (!projects) return;
+        const numericId = Number(projectId);
+        if (!Number.isFinite(numericId)) return;
+        const hit = projects.some((p) => p.projectId === numericId);
+        setIsOwnerByList(hit);
+      })
+      .catch(() => {
+        // ignore lookup errors
+      });
+    return () => controller.abort();
+  }, [getToken, isLoaded, isSignedIn, projectId]);
   const roleOptions = useMemo(() => {
     if (project?.roles && project.roles.length > 0) {
       return project.roles.map((role) => ({ key: role.key, label: role.label }));
@@ -467,7 +538,18 @@ const ProjectDetailPage = () => {
                   />
                 </div>
                 <div className="flex items-center gap-3 text-card-muted">
-                  <div className="h-12 w-12 rounded-full bg-card-section-bg" />
+                  {creatorImage ? (
+                    <img
+                      src={creatorImage}
+                      alt={project.creatorName ?? '프로필 이미지'}
+                      className="h-12 w-12 rounded-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-card-section-bg">
+                      <ProfilePlaceholderIcon className="h-12 w-12 text-card-muted" aria-hidden />
+                    </div>
+                  )}
                   <span className="text-xl font-semibold text-[var(--ui-1000)]">
                     {project.creatorName ?? '닉네임'}
                   </span>
@@ -508,10 +590,16 @@ const ProjectDetailPage = () => {
               (project.imageUrls?.length ?? 0) > 0 ? 'mt-[20rem] lg:mt-[30rem]' : 'mt-20 lg:mt-24'
             }`}
           >
-            {!hasApplied && (
+            {(isOwner || !hasApplied) && (
               <button
                 type="button"
                 onClick={() => {
+                  if (isOwner) {
+                    navigate('/project/create', {
+                      state: { projectId: Number(project.id), mode: 'edit' },
+                    });
+                    return;
+                  }
                   if (isLoaded && !isSignedIn) {
                     setIsLoginModalOpen(true);
                     return;
@@ -521,7 +609,7 @@ const ProjectDetailPage = () => {
                 }}
                 className="h-[36px] w-[200px] rounded-[10px] bg-[#4E49FF] px-4 text-[14px] font-medium text-white hover:opacity-80"
               >
-                지원하기
+                {isOwner ? '수정하기' : '지원하기'}
               </button>
             )}
           </div>
@@ -852,7 +940,7 @@ const ProjectDetailPage = () => {
                 className="text-[13px]"
                 style={{ color: isDark ? '#9EA6BA' : 'var(--ui-400)' }}
               >
-                지원하려면 먼저 로그인해 주세요.
+                해당 기능을 이용하려면 먼저 로그인해 주세요.
               </p>
             </div>
 

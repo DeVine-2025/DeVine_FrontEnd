@@ -17,6 +17,31 @@ type RecommendDeveloperPreviewResponse = {
 
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
 
+type MemberProfileResponse = {
+  result?: {
+    nickname?: string;
+    image?: string | null;
+    body?: string | null;
+    techstacks?: string[];
+    techGenres?: string[];
+  };
+};
+
+export async function getMemberProfileByNickname(nickname: string, signal?: AbortSignal) {
+  const safeNickname = encodeURIComponent(nickname);
+  const res = await fetch(`${BASE_URL}/api/v1/members/${safeNickname}`, {
+    method: 'GET',
+    signal,
+  });
+
+  const data = (await res.json().catch(() => null)) as MemberProfileResponse | null;
+  if (!res.ok) {
+    throw new Error(`member profile failed: ${res.status}`);
+  }
+
+  return data?.result ?? null;
+}
+
 export async function getRecommendDevelopersPreview(limit: number, token: string) {
   const res = await fetch(`${BASE_URL}/api/v1/members/recommend/preview?limit=${limit}`, {
     method: 'GET',
