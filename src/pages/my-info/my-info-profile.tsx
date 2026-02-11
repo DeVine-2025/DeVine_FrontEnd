@@ -2,6 +2,7 @@ import ProfileDetail from '../../shared/templates/profileDetail';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
+import { projectQueries } from '@apis/project/project-queries';
 
 const MyInfoProfile = () => {
   const [year, setYear] = useState(new Date().getFullYear());
@@ -15,7 +16,10 @@ const MyInfoProfile = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery(myInfoQueries.reposInfinite());
+  const {data:projectInprogress} = useQuery(projectQueries.getMYProjectInprogress());
+  const {data:projectCompleted} = useQuery(projectQueries.getMYProjectCompleted());
 
+  console.log(projectInprogress, projectCompleted)
 
   const techStackNames = useMemo(() => {
     if (!techStack?.result?.techstacks) return [];
@@ -32,7 +36,7 @@ const MyInfoProfile = () => {
   };
 
 
-  console.log(gitRepos?.pages);
+
 
   return (
     <div>
