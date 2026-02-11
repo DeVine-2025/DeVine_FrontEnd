@@ -1,5 +1,5 @@
 import { useParams, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, QueryFunction } from '@tanstack/react-query';
 import { reportQueries } from '@apis/report/report-queries';
 import { useAuth } from '@clerk/clerk-react';
 
@@ -17,37 +17,35 @@ const ReportDetailPage = () => {
   const gitRepoId = Number(reportId);
   const title = type === 'MAIN' ? '메인' : '상세';
 
-  const { data: report, isLoading, isError } = useQuery<Report>({
+  /** 🔥 queryFn 반환 타입 명시 */
+  const fetchReport: QueryFunction<Report> = async () => {
+    const token = await getToken();
+    if (!token) throw new Error('No token');
+
+    if (type === 'MAIN') {
+      return await reportQueries.main({ gitRepoId, token }).queryFn();
+    }
+
+    return await reportQueries.detail({ gitRepoId, token }).queryFn();
+  };
+
+  const { data: report, isLoading, isError } = useQuery<Report, Error>({
     queryKey: ['report-detail', gitRepoId, type],
-    queryFn: async () => {
-      const token = await getToken();
-      if (!token) throw new Error('No token');
-
-      let res;
-
-      if (type === 'MAIN') {
-        res = await reportQueries.main({ gitRepoId, token }).queryFn();
-      } else {
-        res = await reportQueries.detail({ gitRepoId, token }).queryFn();
-      }
-
-      if (!res) throw new Error('Report not found'); // 🔥 중요
-
-      return res;
-    },
+    queryFn: fetchReport,
     enabled: !!gitRepoId && !!type,
   });
 
+  if (isLoading) return null;
+  if (isError || !report) return null;
 
   return (
     <div className="w-full max-w-[900px] mx-auto flex flex-col gap-10">
       {/* 제목 */}
       <section className="w-full flex flex-col gap-3">
         <p className="text-ui-1000 text-4xl font-bold text-center">
-          {report?.reportType === 'MAIN'
-            ? report?.content?.projectInfo.projectName
-            : report?.content?.reportTitle}{' '}
-
+          {report.reportType === 'MAIN'
+            ? report.content.projectInfo.projectName
+            : report.content.reportTitle}{' '}
           {title} 리포트
         </p>
 
@@ -57,10 +55,10 @@ const ReportDetailPage = () => {
       </section>
 
       {/* MAIN / DETAIL 분기 */}
-      {report?.reportType === 'MAIN' ? (
-        <MainDetail data={report?.content} />
+      {report.reportType === 'MAIN' ? (
+        <MainDetail data={report.content} />
       ) : (
-        <ReportDetail data={report?.content} />
+        <ReportDetail data={report.content} />
       )}
     </div>
   );
