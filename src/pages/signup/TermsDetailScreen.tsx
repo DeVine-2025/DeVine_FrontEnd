@@ -2,7 +2,8 @@ import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
 import LogoDark from '@assets/icons/logo-dark.svg?react';
 import LogoLight from '@assets/icons/logo-light.svg?react';
 import { useThemeStore } from '@store/theme';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
+import { getProfileImageKey, getUserRoleKey } from '@utils/storage';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -124,6 +125,7 @@ const parseTermsContent = (content: string): ReactNode[] => {
 const TermsDetailScreen = ({ open, title, content, onClose }: TermsDetailScreenProps) => {
   const { theme } = useThemeStore();
   const { signOut } = useAuth();
+  const { user } = useUser();
   const navigate = useNavigate();
   const backgroundStyle =
     theme === 'dark'
@@ -150,7 +152,10 @@ const TermsDetailScreen = ({ open, title, content, onClose }: TermsDetailScreenP
             type="button"
             onClick={() => {
               sessionStorage.setItem('show_onboarding_modal', 'true');
-              localStorage.removeItem('userRole');
+              localStorage.removeItem(getUserRoleKey(user?.id ?? null));
+              localStorage.removeItem(getUserRoleKey());
+              localStorage.removeItem(getProfileImageKey(user?.id ?? null));
+              localStorage.removeItem(getProfileImageKey());
               sessionStorage.removeItem('login_provider');
               sessionStorage.removeItem('allow_main_once');
               void signOut().finally(() => navigate('/'));

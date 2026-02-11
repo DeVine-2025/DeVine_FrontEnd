@@ -5,8 +5,10 @@ import LogoDark from '@assets/icons/logo-dark.svg?react';
 import LogoLight from '@assets/icons/logo-light.svg?react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
+import { useUser } from '@clerk/clerk-react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useThemeStore } from '@store/theme';
+import { getProfileImageKey } from '@utils/storage';
 import BasicProfileSection from './BasicProfileSection';
 import AdditionalProfileSection from './AdditionalProfileSection';
 import GithubRepoSelectionSection from './GithubRepoSelectionSection';
@@ -35,6 +37,7 @@ type AgreementListProps = {
 const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps) => {
   const { theme } = useThemeStore();
   const navigate = useNavigate();
+  const { user } = useUser();
   const { openOnboardingModal } = useOutletContext<RootLayoutOutletContext>();
   const onboardingConfirmedRef = useRef(false);
   const logoSubmitHandlerRef = useRef<null | (() => void)>(null);
@@ -125,11 +128,12 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
           <BasicProfileSection
             onNext={(data) => {
               setBasicProfile(data);
+              const profileImageKey = getProfileImageKey(user?.id ?? null);
               if (data.imageUrl) {
-                localStorage.setItem('profile_image_url', data.imageUrl);
+                localStorage.setItem(profileImageKey, data.imageUrl);
                 window.dispatchEvent(new Event('profile-image-updated'));
               } else {
-                localStorage.removeItem('profile_image_url');
+                localStorage.removeItem(profileImageKey);
                 window.dispatchEvent(new Event('profile-image-updated'));
               }
               setStep('profilePage');

@@ -3,6 +3,8 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import Footer from '@layouts/footer';
 import Header from '@layouts/header';
+import { useAuthStore, type UserRole } from '@store/auth';
+import { getStoredUserRole, setCurrentUserId } from '@utils/storage';
 
 export type RootLayoutOutletContext = {
   setNavLocked: (value: boolean) => void;
@@ -15,6 +17,7 @@ const RootLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isLoaded, user } = useUser();
+  const hydrateRole = useAuthStore((state) => state.hydrateRole);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [navLocked, setNavLocked] = useState(false);
   const [onboardingIncomplete, setOnboardingIncomplete] = useState(false);
@@ -57,6 +60,14 @@ const RootLayout = () => {
     const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
     setOnboardingIncomplete(!onboardingComplete);
   }, [isLoaded, user]);
+
+  useLayoutEffect(() => {
+    if (!isLoaded) return;
+    const userId = user?.id ?? null;
+    setCurrentUserId(userId);
+    const storedRole = getStoredUserRole(userId);
+    hydrateRole((storedRole as UserRole) ?? null);
+  }, [hydrateRole, isLoaded, user?.id]);
 
   useLayoutEffect(() => {
     if (!onboardingIncomplete) return;
