@@ -1,6 +1,6 @@
 import ProfileDetail from '../../shared/templates/profileDetail';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
 const MyInfoProfile = () => {
@@ -8,6 +8,14 @@ const MyInfoProfile = () => {
   const { data } = useQuery(myInfoQueries.profile());
   const { data: techStack } = useQuery(myInfoQueries.getMyTechStacks());
   const { data: contributions } = useQuery(myInfoQueries.getMyContributions(year));
+  const {
+    data: gitRepos,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery(myInfoQueries.reposInfinite());
+
 
   const techStackNames = useMemo(() => {
     if (!techStack?.result?.techstacks) return [];
@@ -23,15 +31,22 @@ const MyInfoProfile = () => {
     setYear(newYear);
   };
 
+
+  console.log(gitRepos?.pages);
+
   return (
     <div>
-      <ProfileDetail 
-        type={'내 정보'} 
-        profile={data?.result} 
+      <ProfileDetail
+        type={'내 정보'}
+        profile={data?.result}
         techStack={techStackNames}
         contributions={contributionsData}
+        gitRepos={gitRepos}
         year={year}
         onYearChange={handleYearChange}
+        fetchNextPage={fetchNextPage}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
       />
     </div>
   );

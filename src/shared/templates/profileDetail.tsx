@@ -12,28 +12,38 @@ import CustomGithubCalendar from '@components/profileDetail/CustomGithubCalendar
 import MyPMBottomSection, { type ProjectTab } from '@components/myProject/MyBottomSection';
 
 import { useNavigate } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 
-import type { Contribution, MyProfile } from '@apis/myInfo/myInfo';
+import type { Contribution, MyProfile, MyReposResponse } from '@apis/myInfo/myInfo';
+import { InfiniteData } from '@tanstack/react-query';
 
 type ProfileDetailProps = {
   type: '내 정보' | '개발자 상세',
   profile?: MyProfile,
   techStack?: string[],
   contributions?: Contribution[],
-  year?: number
-  onYearChange?: (year: number) => void
+  year?: number,
+  onYearChange?: (year: number) => void,
+  gitRepos?: InfiniteData<MyReposResponse> | undefined,
+  fetchNextPage?: () => void,
+  hasNextPage?: boolean,
+  isFetchingNextPage?: boolean
 }
 
-const gitDummy = [
-  { date: '2026-01-05', count: 12 },
-  { date: '2026-01-06', count: 5 },
-  { date: '2026-02-14', count: 8 }
-  // ... 활동이 없는 날은 생략 가능
-];
-
-const ProfileDetail = ({ type, profile, techStack, contributions, year, onYearChange }: ProfileDetailProps) => {
+const ProfileDetail = ({
+  type,
+  profile,
+  techStack,
+  contributions,
+  year,
+  onYearChange,
+  gitRepos,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage
+}: ProfileDetailProps) => {
   const [projectTab, setProjectTab] = useState<ProjectTab>('ongoing');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const member = profile?.member;
@@ -49,6 +59,26 @@ const ProfileDetail = ({ type, profile, techStack, contributions, year, onYearCh
     () => (domains.length > 0 ? domains : ['도메인 미등록']),
     [domains]
   );
+
+  // 가로 스크롤 무한 로딩 처리
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainer;
+      const isNearEnd = scrollLeft + clientWidth >= scrollWidth - 100;
+
+      if (isNearEnd && hasNextPage && !isFetchingNextPage && fetchNextPage) {
+        fetchNextPage();
+      }
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  console.log(gitRepos?.pages)
   return (
     <section className="mx-auto w-full max-w-[1180px] flex justify-between">
       <div className="max-w-[718px] flex-col gap-14">
@@ -95,15 +125,22 @@ const ProfileDetail = ({ type, profile, techStack, contributions, year, onYearCh
         <div>
           <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem] mb-[2.4rem]">깃허브 기록</p>
           <div className="flex-col gap-[1.5rem]">
-            <CustomGithubCalendar 
-              data={contributions} 
+            <CustomGithubCalendar
+              data={contributions}
               year={year}
               onYearChange={onYearChange}
             />
-            <div className="flex gap-[1.8rem]">
-              <ReportCardSmall title={'레포1'} description={'레포 1입니다.'} />
-              <ReportCardSmall title={'레포2'} description={'레포 2입니다.'} />
-              <ReportCardSmall title={'레포3'} description={'레포 3입니다.'} />
+            <div ref={scrollContainerRef} className="flex gap-[1.8rem] overflow-x-auto">
+              {gitRepos?.pages?.map((page) => (
+                page.result?.content?.map((content) => (
+                  <ReportCardSmall key={content?.gitRepoId} title={content?.name} description={content?.description} />
+                ))
+              ))}
+              {isFetchingNextPage && (
+                <div className="min-w-64 flex items-center justify-center">
+                  <p className="text-ui-400">로딩 중...</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
