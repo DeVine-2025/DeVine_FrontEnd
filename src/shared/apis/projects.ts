@@ -102,16 +102,22 @@ export async function createProject(
 
 export type MyRecruitingProjectItem = {
   projectId: number;
+  title: string;
+};
+
+type MyRecruitingContentItem = {
+  projectId?: number;
+  title?: string;
 };
 
 type MyRecruitingResponse = {
   result?: {
     projects?: {
-      content?: Array<{ projectId?: number }>;
+      content?: MyRecruitingContentItem[];
     };
   };
   projects?: {
-    content?: Array<{ projectId?: number }>;
+    content?: MyRecruitingContentItem[];
   };
 };
 
@@ -139,6 +145,9 @@ export async function getMyRecruitingProjects(
     [];
 
   return content
-    .map((item) => ({ projectId: item.projectId ?? 0 }))
+    .map((item) => ({
+      projectId: item.projectId ?? 0,
+      title: typeof item.title === 'string' ? item.title : '',
+    }))
     .filter((item) => Number.isFinite(item.projectId) && item.projectId > 0);
 }

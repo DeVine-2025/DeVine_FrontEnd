@@ -17,6 +17,7 @@ import {
 } from 'src/mocks/project.mock';
 import { badgeToneToClass, type BadgeTone } from 'src/shared/types/badgeTone';
 import BookmarkButton from '@components/common/BookmarkButton';
+import LoadingSpinner from '@components/common/LoadingSpinner';
 import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import PersonIcon from '@assets/icons/person.svg?react';
@@ -437,7 +438,11 @@ const ProjectDetailPage = () => {
     return <div>프로젝트 정보를 찾을 수 없습니다.</div>;
   }
   if (!project) {
-    return <div>프로젝트 정보를 불러오는 중입니다.</div>;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
   }
 
   const handleApply = async () => {

@@ -1,15 +1,12 @@
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
+import LoadingSpinner from '@components/common/LoadingSpinner';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
-import {
-  getMyProjects,
-  getRecommendMembers,
-  type GetRecommendMembersParams,
-  type RecommendDeveloperListItem,
-} from '@apis/members';
+import { getRecommendMembers, type GetRecommendMembersParams, type RecommendDeveloperListItem } from '@apis/members';
+import { getMyRecruitingProjects } from '@apis/projects';
 
 /** 추천 개발자 페이지: 내 프로젝트 선택만 노출 (포지션/기술스택, 관심 도메인 제외) */
 const RECOMMEND_DEVELOPER_FILTERS = ['내 프로젝트 선택'] as const;
@@ -54,8 +51,6 @@ function buildApiParams(
 
   if (projectIds.length === 0) return null;
 
-  // 서버 스펙 상 projectId가 필수로 보이므로 첫 번째를 projectId로 넣고,
-  // "전체" 선택(복수 프로젝트) 시에는 projectIds도 같이 전달 (서버가 지원하면 합집합 추천 가능)
   return { projectId: projectIds[0], projectIds, page, size: 10 };
 }
 
@@ -76,13 +71,12 @@ const RecommendDeveloperPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [bookmarkMap, setBookmarkMap] = useState<Record<number, number>>({});
+  const [bookmarkMap, setBookmarkMap] = useState<Record<string | number, number>>({});
   const bookmarkMapRef = useRef(bookmarkMap);
   bookmarkMapRef.current = bookmarkMap;
   const listRef = useRef<RecommendDeveloperListItem[]>([]);
   listRef.current = list;
 
-  // API가 일시적으로 비어 내려와도, 사용자가 등록한 프로젝트가 "필터에서 안 보이는" 문제를 막기 위해 캐시를 먼저 로드
   useEffect(() => {
     const cached = readMyProjectsCache();
     if (cached.length === 0) return;
@@ -90,7 +84,6 @@ const RecommendDeveloperPage = () => {
     setMyProjectOptions(cached);
   }, []);
 
-  // 북마크 목록 로드 후 list에 한 번만 병합
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -99,18 +92,18 @@ const RecommendDeveloperPage = () => {
       try {
         const bookmarks = await getBookmarks(token);
         if (cancelled) return;
-        const next: Record<number, number> = {};
+        const next: Record<string | number, number> = {};
         for (const b of bookmarks) {
           if (b.targetType !== 'DEVELOPER') continue;
-          next[b.targetId] = b.bookmarkId;
+          const key = b.targetNickname ?? b.targetId;
+          if (key !== undefined && key !== null) next[key] = b.bookmarkId;
         }
         bookmarkMapRef.current = next;
         setBookmarkMap(next);
         setList((prev) =>
           prev.map((d) => {
-            const memberId = d.memberId;
-            if (memberId == null) return d;
-            const hit = next[memberId];
+            const key = d.memberId ?? d.nickname;
+            const hit = next[key];
             if (hit === undefined || hit === null) return d;
             return { ...d, bookmarked: true, bookmarkId: hit > 0 ? hit : undefined };
           }),
@@ -142,7 +135,6 @@ const RecommendDeveloperPage = () => {
     [setRecommendDeveloper],
   );
 
-  // 내 프로젝트 옵션 로드 (드롭다운 실제 데이터). 한 번이라도 로드된 목록은 유지(체크 해제해도 목록은 계속 표시).
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -150,17 +142,16 @@ const RecommendDeveloperPage = () => {
       if (!token) return;
       setMyProjectOptionsLoading(true);
       try {
-        const projects = await getMyProjects(token);
+        const projects = await getMyRecruitingProjects(token);
         if (cancelled) return;
-        // 서버가 중복 프로젝트를 내려줄 수 있어 id 기준 dedupe + 이름 중복 시 라벨 구분
-        const uniqById = Array.from(new Map(projects.map((p) => [p.id, p])).values());
+        const uniqById = Array.from(new Map(projects.map((p) => [p.projectId, p])).values());
         const seenCounts: Record<string, number> = {};
-        const next = uniqById.map((p) => {
-          const base = p.name ?? '';
+        const next: MyProjectOption[] = uniqById.map((p) => {
+          const base = (p.title ?? '').trim() || `프로젝트 ${p.projectId}`;
           seenCounts[base] = (seenCounts[base] ?? 0) + 1;
           const n = seenCounts[base];
-          const label = n > 1 ? `${base}(${n})` : base;
-          return { id: p.id, name: label };
+          const label = n > 1 ? `${base} (${n})` : base;
+          return { id: p.projectId, name: label };
         });
         if (next.length > 0) {
           lastLoadedProjectOptionsRef.current = next;
@@ -182,20 +173,19 @@ const RecommendDeveloperPage = () => {
     };
   }, [getToken]);
 
-  // 옵션 로드 시 전체 선택
+  // 디폴트: 가장 최근에 만든 프로젝트 1개 선택 (API 목록 순서 = 최신 순 가정)
   useEffect(() => {
     if (myProjectOptionsLoading) return;
     if (myProjectOptions.length === 0) return;
     if (myProjects.length > 0) return;
-    setRecommendDeveloper({ myProjects: myProjectOptions.map((p) => p.name) });
+    const mostRecentName = myProjectOptions[0].name;
+    setRecommendDeveloper({ myProjects: [mostRecentName] });
     setPage(1);
   }, [myProjectOptionsLoading, myProjectOptions, myProjects.length, setRecommendDeveloper]);
 
-  // 선택 변경 시 목록 갱신
   useEffect(() => {
     if (myProjectOptionsLoading) return;
     if (myProjectOptions.length === 0) return;
-    // 선택이 바뀌면 첫 페이지부터 다시 조회
     setPage(1);
     fetchList(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -223,9 +213,8 @@ const RecommendDeveloperPage = () => {
         const map = bookmarkMapRef.current;
         setList(
           result.list.map((d) => {
-            const memberId = d.memberId;
-            if (memberId == null) return d;
-            const hit = map[memberId];
+            const key = d.memberId ?? d.nickname;
+            const hit = map[key];
             if (hit === undefined || hit === null) return d;
             return { ...d, bookmarked: true, bookmarkId: hit > 0 ? hit : undefined };
           }),
@@ -261,16 +250,11 @@ const RecommendDeveloperPage = () => {
     async (dev: RecommendDeveloperListItem, next: boolean) => {
       const token = await getToken();
       if (!token) return;
-      const memberId = dev.memberId;
-      if (memberId == null || typeof memberId !== 'number' || memberId <= 0) {
-        alert('개발자 북마크는 현재 지원되지 않습니다. (회원 정보에 ID가 없습니다)');
-        return;
-      }
-      const prevBookmarkId = bookmarkMapRef.current[memberId];
+      const mapKey: string | number = dev.memberId ?? dev.nickname;
+      const prevBookmarkId = bookmarkMapRef.current[mapKey];
 
-      // 낙관적 UI: 먼저 UI 반영 (placeholder -1 사용, 0은 effect에서 falsy로 롤백되므로)
       if (next) {
-        setBookmarkMap((prev) => ({ ...prev, [memberId]: -1 }));
+        setBookmarkMap((prev) => ({ ...prev, [mapKey]: -1 }));
         setList((prev) =>
           prev.map((d) =>
             d.id === dev.id ? { ...d, bookmarked: true, bookmarkId: undefined } : d,
@@ -280,7 +264,7 @@ const RecommendDeveloperPage = () => {
         if (dev.bookmarkId == null) return;
         setBookmarkMap((prev) => {
           const nextMap = { ...prev };
-          delete nextMap[memberId];
+          delete nextMap[mapKey];
           return nextMap;
         });
         setList((prev) =>
@@ -293,10 +277,10 @@ const RecommendDeveloperPage = () => {
       try {
         if (next) {
           const { bookmarkId } = await createBookmark(
-            { targetType: 'DEVELOPER', targetId: memberId },
+            { targetType: 'DEVELOPER', targetNickname: dev.nickname },
             token,
           );
-          setBookmarkMap((prev) => ({ ...prev, [memberId]: bookmarkId }));
+          setBookmarkMap((prev) => ({ ...prev, [mapKey]: bookmarkId }));
           setList((prev) =>
             prev.map((d) =>
               d.id === dev.id ? { ...d, bookmarked: true, bookmarkId } : d,
@@ -308,11 +292,10 @@ const RecommendDeveloperPage = () => {
         }
       } catch (e) {
         console.error('[북마크]', e);
-        // 실패 시 롤백
         if (next) {
           setBookmarkMap((prev) => {
             const nextMap = { ...prev };
-            delete nextMap[memberId];
+            delete nextMap[mapKey];
             return nextMap;
           });
           setList((prev) =>
@@ -321,7 +304,7 @@ const RecommendDeveloperPage = () => {
             ),
           );
         } else {
-          setBookmarkMap((prev) => ({ ...prev, [memberId]: dev.bookmarkId! }));
+          setBookmarkMap((prev) => ({ ...prev, [mapKey]: dev.bookmarkId! }));
           setList((prev) =>
             prev.map((d) =>
               d.id === dev.id ? { ...d, bookmarked: true, bookmarkId: dev.bookmarkId } : d,
@@ -366,7 +349,9 @@ const RecommendDeveloperPage = () => {
       />
 
       {myProjectOptionsLoading && (
-        <p className="text-[var(--ui-500)]">내 프로젝트를 불러오는 중...</p>
+        <div className="flex justify-center py-8">
+          <LoadingSpinner size="lg" />
+        </div>
       )}
 
       {error && (
@@ -376,7 +361,9 @@ const RecommendDeveloperPage = () => {
       )}
 
       {loading && myProjects.length > 0 && (
-        <p className="text-[var(--ui-500)]">추천 개발자를 불러오는 중...</p>
+        <div className="flex justify-center py-8">
+          <LoadingSpinner size="lg" />
+        </div>
       )}
 
       {!loading && myProjects.length > 0 && list.length === 0 && (
@@ -406,6 +393,8 @@ const RecommendDeveloperPage = () => {
                 introduction={dev.introduction}
                 domains={dev.domains}
                 techStack={dev.techStack}
+                matchedProjectName={myProjects.length > 0 ? myProjects.join(', ') : '선택한 프로젝트'}
+                matchedReason="프로젝트의 요구사항과 일치합니다."
                 bookmarked={dev.bookmarked ?? false}
                 memberId={dev.memberId ?? undefined}
                 bookmarkId={dev.bookmarkId}

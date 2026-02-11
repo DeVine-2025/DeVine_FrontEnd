@@ -41,7 +41,9 @@ function useBookmarkHydration(getToken: () => Promise<string | null>, enabled: b
         const next: Record<number, { bookmarked: boolean; bookmarkId?: number }> = {};
         for (const b of bookmarks) {
           if (b.targetType !== 'PROJECT') continue;
-          next[b.targetId] = { bookmarked: true, bookmarkId: b.bookmarkId };
+          const id = b.targetId;
+          if (id === undefined || id === null) continue;
+          next[id] = { bookmarked: true, bookmarkId: b.bookmarkId };
         }
         setBookmarkOverrides(next);
       } catch (e) {

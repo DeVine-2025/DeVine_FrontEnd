@@ -15,7 +15,7 @@ const DeveloperSearchPage = () => {
   const { interestDomains, myProjects, techStacks } = developerSearch;
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
-  const [bookmarkMap, setBookmarkMap] = useState<Record<number, number>>({});
+  const [bookmarkMap, setBookmarkMap] = useState<Record<string | number, number>>({});
 
   const setInterestDomains = (v: string[]) => setDeveloperSearch({ interestDomains: v });
   const setMyProjects = (v: string[]) => setDeveloperSearch({ myProjects: v });
@@ -30,10 +30,11 @@ const DeveloperSearchPage = () => {
       try {
         const bookmarks = await getBookmarks(token);
         if (cancelled) return;
-        const next: Record<number, number> = {};
+        const next: Record<string | number, number> = {};
         for (const b of bookmarks) {
           if (b.targetType !== 'DEVELOPER') continue;
-          next[b.targetId] = b.bookmarkId;
+          const key = b.targetNickname ?? b.targetId;
+          if (key !== undefined && key !== null) next[key] = b.bookmarkId;
         }
         setBookmarkMap(next);
       } catch (e) {
@@ -49,35 +50,32 @@ const DeveloperSearchPage = () => {
   const profiles = useMemo(() => PROFILE_CARD_LIST, []);
 
   const handleBookmarkChange = useCallback(
-    async (memberId: number | undefined, next: boolean) => {
-      if (memberId == null) {
-        alert('개발자 북마크는 현재 지원되지 않습니다.');
-        return;
-      }
+    async (memberId: number | undefined, nickname: string, next: boolean) => {
+      const mapKey = memberId ?? nickname;
       const token = await getToken();
       if (!token) {
         alert('로그인이 필요합니다.');
         navigate('/login');
         return;
       }
-      const prevId = bookmarkMap[memberId];
+      const prevId = bookmarkMap[mapKey];
       if (next) {
-        setBookmarkMap((prev) => ({ ...prev, [memberId]: -1 }));
+        setBookmarkMap((prev) => ({ ...prev, [mapKey]: -1 }));
       } else {
         if (prevId == null || prevId <= 0) return;
         setBookmarkMap((prev) => {
           const n = { ...prev };
-          delete n[memberId];
+          delete n[mapKey];
           return n;
         });
       }
       try {
         if (next) {
           const { bookmarkId } = await createBookmark(
-            { targetType: 'DEVELOPER', targetId: memberId },
+            { targetType: 'DEVELOPER', targetNickname: nickname },
             token,
           );
-          setBookmarkMap((prev) => ({ ...prev, [memberId]: bookmarkId }));
+          setBookmarkMap((prev) => ({ ...prev, [mapKey]: bookmarkId }));
         } else {
           await deleteBookmark(prevId, token);
         }
@@ -86,11 +84,11 @@ const DeveloperSearchPage = () => {
         if (next) {
           setBookmarkMap((prev) => {
             const n = { ...prev };
-            delete n[memberId];
+            delete n[mapKey];
             return n;
           });
         } else {
-          setBookmarkMap((prev) => ({ ...prev, [memberId]: prevId }));
+          setBookmarkMap((prev) => ({ ...prev, [mapKey]: prevId }));
         }
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
@@ -122,9 +120,9 @@ const DeveloperSearchPage = () => {
             {...profile}
             size="sm"
             bookmarked={
-              profile.memberId != null ? bookmarkMap[profile.memberId] != null : profile.bookmarked
+              bookmarkMap[profile.memberId ?? profile.nickname] != null || (profile.bookmarked ?? false)
             }
-            onBookmarkChange={(next) => handleBookmarkChange(profile.memberId, next)}
+            onBookmarkChange={(next) => handleBookmarkChange(profile.memberId, profile.nickname, next)}
           />
         ))}
       </div>
@@ -156,9 +154,9 @@ const DeveloperSearchPage = () => {
             {...profile}
             size="lg"
             bookmarked={
-              profile.memberId != null ? bookmarkMap[profile.memberId] != null : profile.bookmarked
+              bookmarkMap[profile.memberId ?? profile.nickname] != null || (profile.bookmarked ?? false)
             }
-            onBookmarkChange={(next) => handleBookmarkChange(profile.memberId, next)}
+            onBookmarkChange={(next) => handleBookmarkChange(profile.memberId, profile.nickname, next)}
           />
         ))}
       </div>

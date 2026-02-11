@@ -21,25 +21,25 @@ function RecommendProjectCard({
   bookmarkId,
   onBookmarkChangeById,
   onClick,
-  techSuitability,
-  domainSuitability,
-  growthPotential,
-  overallScore,
+  techstackScorePercent,
+  similarityScorePercent,
+  domainMatch,
+  totalScore,
 }: RecommendProjectCardProps) {
   const handleBookmark = onBookmarkChangeById && projectId != null
     ? (next: boolean) => onBookmarkChangeById(projectId, next, bookmarkId)
     : onBookmarkChange;
   const hasSuitability =
-    techSuitability != null ||
-    domainSuitability != null ||
-    growthPotential != null ||
-    overallScore != null;
+    techstackScorePercent != null ||
+    similarityScorePercent != null ||
+    domainMatch != null ||
+    totalScore != null;
 
   const suitabilityParts: string[] = [];
-  if (techSuitability != null) suitabilityParts.push(`기술 적합도 : ${techSuitability}/5`);
-  if (domainSuitability != null) suitabilityParts.push(`도메인 적합도 : ${domainSuitability}/5`);
-  if (growthPotential != null) suitabilityParts.push(`성장 가능성 : ${growthPotential}/5`);
-  if (overallScore != null) suitabilityParts.push(`종합 점수: ${overallScore}`);
+  if (techstackScorePercent != null) suitabilityParts.push(`기술스택 일치 ${techstackScorePercent}%`);
+  if (domainMatch != null) suitabilityParts.push(domainMatch ? '도메인 일치' : '도메인 불일치');
+  if (similarityScorePercent != null) suitabilityParts.push(`리포트 유사도 ${similarityScorePercent}%`);
+  if (totalScore != null) suitabilityParts.push(`종합 ${totalScore}`);
   const suitabilityText = suitabilityParts.join(', ');
 
   // Recommend 전용 타입과 공용 배지 톤 매핑을 느슨하게 연결
@@ -110,7 +110,7 @@ function RecommendProjectCard({
           {roles?.slice(0, 3).map((r) => (
             <div
               key={r.key}
-              className="grid w-full grid-cols-[96px_56px_1px_1fr] items-center gap-x-[12px]"
+              className="grid w-full grid-cols-[96px_56px_1fr] items-center gap-x-[12px]"
             >
               <span
                 className={`Label2 inline-flex w-fit max-w-[96px] items-center justify-center justify-self-center truncate rounded-[8px] px-4 py-2 font-semibold ${
@@ -126,8 +126,6 @@ function RecommendProjectCard({
                 <span className="Caption2 font-semibold text-[var(--ui-500)]">/</span>
                 <span className="Caption2 font-semibold text-[var(--ui-400)]">{r.total}</span>
               </div>
-
-              <span className="h-[10px] w-px bg-[var(--ui-300)]" />
 
               <div className="flex items-center gap-[4px] overflow-hidden">
                 {r.techStack?.slice(0, 5).map((t) => (

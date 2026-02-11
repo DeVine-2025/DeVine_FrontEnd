@@ -5,7 +5,8 @@ export type BookmarkTargetType = 'PROJECT' | 'DEVELOPER';
 export type BookmarkItem = {
   bookmarkId: number;
   targetType: BookmarkTargetType;
-  targetId: number;
+  targetId?: number;
+  targetNickname?: string;
   createdAt: string;
 };
 
@@ -31,10 +32,9 @@ export async function getBookmarks(token: string): Promise<BookmarkItem[]> {
   return json?.result?.bookmarks ?? [];
 }
 
-export type CreateBookmarkBody = {
-  targetType: BookmarkTargetType;
-  targetId: number;
-};
+export type CreateBookmarkBody =
+  | { targetType: 'PROJECT'; targetId: number }
+  | { targetType: 'DEVELOPER'; targetNickname: string };
 
 type CreateBookmarkResponse = {
   isSuccess?: boolean;

@@ -36,10 +36,8 @@ const RecommendProjectPage = () => {
         domains,
         expectedPeriods,
         techStacks,
-        page,
-        size: 10,
       }),
-    [projectTypes, domains, expectedPeriods, techStacks, page],
+    [projectTypes, domains, expectedPeriods, techStacks],
   );
 
   // 북마크 목록 로드 후 list에 한 번만 병합
@@ -56,7 +54,7 @@ const RecommendProjectPage = () => {
 
         const next: Record<number, number> = {};
         for (const b of bookmarks) {
-          if (b.targetType !== 'PROJECT') continue;
+          if (b.targetType !== 'PROJECT' || b.targetId == null) continue;
           next[b.targetId] = b.bookmarkId;
         }
 
@@ -142,7 +140,6 @@ const RecommendProjectPage = () => {
       const targetId = Number(projectId);
       if (Number.isNaN(targetId)) return;
 
-      // 낙관적 UI: 먼저 UI 반영 (placeholder -1 사용, 0은 effect에서 falsy로 롤백되므로)
       const prevMap = bookmarkMapRef.current;
       const prevBookmarkId = prevMap[targetId];
       if (next) {
@@ -261,10 +258,10 @@ const RecommendProjectPage = () => {
               roles={[...PROJECT_ROLES]}
               dueLabel={p.dueLabel}
               bookmarked={p.bookmarked ?? false}
-              techSuitability={p.techSuitability}
-              domainSuitability={p.domainSuitability}
-              growthPotential={p.growthPotential}
-              overallScore={p.overallScore}
+              techstackScorePercent={p.techstackScorePercent}
+              similarityScorePercent={p.similarityScorePercent}
+              domainMatch={p.domainMatch}
+              totalScore={p.totalScore}
               projectId={p.id}
               bookmarkId={p.bookmarkId}
               onBookmarkChangeById={handleBookmarkChange}

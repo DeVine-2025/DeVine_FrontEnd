@@ -1,6 +1,7 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import LoginRequiredCard from '@components/common/LoginRequiredCard';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
@@ -12,6 +13,7 @@ import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/pro
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
 import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-detail';
 import { getRecommendDevelopersPreview } from '@apis/members';
+import { getMyRecruitingProjects } from '@apis/projects';
 import { getRecommendProjectsPreview, type RecommendProjectPreviewItem } from '@apis/mainrecommendproject';
 import { getDueLabel, mapPositionsToRoles } from 'src/shared/mappers/project';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
@@ -30,10 +32,10 @@ type MainRecommendProject = {
   dueLabel?: string;
   bookmarked?: boolean;
   bookmarkId?: number;
-  techSuitability?: number;
-  domainSuitability?: number;
-  growthPotential?: number;
-  overallScore?: number;
+  techstackScorePercent?: number | null;
+  similarityScorePercent?: number | null;
+  domainMatch?: boolean | null;
+  totalScore?: number | null;
 };
 
 type MainRecommendDeveloper = {
@@ -98,7 +100,7 @@ const MainPage = () => {
   const [isDeveloperPreviewEmpty, setIsDeveloperPreviewEmpty] = useState(false);
   const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>([]);
   const [projectBookmarkMap, setProjectBookmarkMap] = useState<Record<number, number>>({});
-  const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<number, number>>({});
+  const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<string | number, number>>({});
 
   // 새로고침에도 북마크 반영: 내 북마크 목록을 하이드레이션
   useEffect(() => {
@@ -110,10 +112,13 @@ const MainPage = () => {
         const bookmarks = await getBookmarks(token);
         if (cancelled) return;
         const nextProjects: Record<number, number> = {};
-        const nextDevelopers: Record<number, number> = {};
+        const nextDevelopers: Record<string | number, number> = {};
         for (const b of bookmarks) {
-          if (b.targetType === 'PROJECT') nextProjects[b.targetId] = b.bookmarkId;
-          if (b.targetType === 'DEVELOPER') nextDevelopers[b.targetId] = b.bookmarkId;
+          if (b.targetType === 'PROJECT' && b.targetId != null) nextProjects[b.targetId] = b.bookmarkId;
+          if (b.targetType === 'DEVELOPER') {
+            const key = b.targetNickname ?? b.targetId;
+            if (key !== undefined && key !== null) nextDevelopers[key] = b.bookmarkId;
+          }
         }
         setProjectBookmarkMap(nextProjects);
         setDeveloperBookmarkMap(nextDevelopers);
@@ -178,28 +183,28 @@ const MainPage = () => {
   );
 
   const handleDeveloperBookmarkChange = useCallback(
-    async (memberId: number | undefined, next: boolean) => {
-      if (memberId == null) {
-        alert('개발자 북마크는 현재 지원되지 않습니다.');
-        return;
-      }
+    async (memberId: number | undefined, nickname: string, next: boolean) => {
+      const mapKey = memberId ?? nickname;
       const token = await requireToken();
       if (!token) return;
-      const prevId = developerBookmarkMap[memberId];
+      const prevId = developerBookmarkMap[mapKey];
       if (next) {
-        setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: -1 }));
+        setDeveloperBookmarkMap((prev) => ({ ...prev, [mapKey]: -1 }));
       } else {
         if (prevId == null || prevId <= 0) return;
         setDeveloperBookmarkMap((prev) => {
           const n = { ...prev };
-          delete n[memberId];
+          delete n[mapKey];
           return n;
         });
       }
       try {
         if (next) {
-          const { bookmarkId } = await createBookmark({ targetType: 'DEVELOPER', targetId: memberId }, token);
-          setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: bookmarkId }));
+          const { bookmarkId } = await createBookmark(
+            { targetType: 'DEVELOPER', targetNickname: nickname },
+            token,
+          );
+          setDeveloperBookmarkMap((prev) => ({ ...prev, [mapKey]: bookmarkId }));
         } else {
           await deleteBookmark(prevId, token);
         }
@@ -208,11 +213,11 @@ const MainPage = () => {
         if (next) {
           setDeveloperBookmarkMap((prev) => {
             const n = { ...prev };
-            delete n[memberId];
+            delete n[mapKey];
             return n;
           });
         } else {
-          setDeveloperBookmarkMap((prev) => ({ ...prev, [memberId]: prevId }));
+          setDeveloperBookmarkMap((prev) => ({ ...prev, [mapKey]: prevId }));
         }
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
@@ -249,7 +254,14 @@ const MainPage = () => {
       try {
         const token = await getToken();
         if (!token || !isActive) return;
-        const result = await getRecommendDevelopersPreview(3, token);
+        const myProjects = await getMyRecruitingProjects(token);
+        const targetProjectId = myProjects[0]?.projectId;
+        if (!targetProjectId) {
+          setIsDeveloperPreviewEmpty(true);
+          setRecommendedDevelopers([]);
+          return;
+        }
+        const result = await getRecommendDevelopersPreview(3, token, targetProjectId);
         if (!isActive) return;
         if (result.length === 0) {
           setIsDeveloperPreviewEmpty(true);
@@ -257,19 +269,23 @@ const MainPage = () => {
           return;
         }
         setIsDeveloperPreviewEmpty(false);
-        const mapped = result.map((d, index) => ({
-          id: `member-preview-${index}-${d.nickname}`,
-          memberId: d.memberId,
-          role: '개발자',
-          roleTone: 'blue' as const,
-          nickname: d.nickname,
-          profileImageUrl: d.image ?? '',
-          introduction: d.body ?? '',
-          badges: [],
-          techStack: (d.techstacks ?? []).map((name, i) => ({ id: `t-${index}-${i}`, name })),
-          bookmarked: d.bookmarked,
-          bookmarkId: d.bookmarkId,
-        }));
+        const mapped = result.map((d, index) => {
+          const roleTone: MainRecommendDeveloper['roleTone'] =
+            d.mainType === 'PM' ? 'blue' : 'green';
+          return {
+            id: `member-preview-${index}-${d.nickname}`,
+            memberId: d.memberId,
+            role: d.mainType === 'PM' ? 'PM' : '개발자',
+            roleTone,
+            nickname: d.nickname,
+            profileImageUrl: d.image ?? '',
+            introduction: d.body ?? '',
+            badges: (d.domains ?? []).map((domain) => ({ label: domain, tone: roleTone })),
+            techStack: (d.techstacks ?? []).map((name, i) => ({ id: `t-${index}-${i}`, name })),
+            bookmarked: d.bookmarked,
+            bookmarkId: d.bookmarkId,
+          };
+        });
         setRecommendedDevelopers(mapped);
       } catch {
         if (isActive) {
@@ -308,10 +324,10 @@ const MainPage = () => {
           bookmarked: item.bookmarked,
           bookmarkId: item.bookmarkId,
           roles: mapPositionsToRoles(item.positions as never),
-          techSuitability: item.techScore,
-          domainSuitability: item.domainScore,
-          growthPotential: item.techStackCountScore,
-          overallScore: item.totalScore,
+          techstackScorePercent: item.techstackScorePercent ?? item.techScore ?? null,
+          similarityScorePercent: item.similarityScorePercent ?? item.techStackCountScore ?? null,
+          domainMatch: item.domainMatch ?? null,
+          totalScore: item.totalScore ?? null,
         }));
         setRecommendedProjects(mapped);
       } catch {
@@ -408,9 +424,22 @@ const MainPage = () => {
       </section>
 
       <section className="flex flex-col gap-6">
-        <h2 className="Heading2 font-semibold text-card-title">
-          {recommendTitle}
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="Heading2 font-semibold text-card-title">
+            {recommendTitle}
+          </h2>
+          {isPm && (
+            <button
+              type="button"
+              onClick={() => navigate('/recommend/developer')}
+              className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-[var(--ui-500)] transition-colors hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)]"
+              aria-label="추천 개발자 페이지로 이동"
+            >
+              <span className="Caption1 font-medium">더 많은 추천 개발자 보러가기</span>
+              <ChevronRightIcon aria-hidden className="h-5 w-5 shrink-0" />
+            </button>
+          )}
+        </div>
         <div className="relative">
           <div
             className={`flex flex-col gap-6 ${
@@ -434,11 +463,16 @@ const MainPage = () => {
                     domains={profile.badges?.map((badge) => ({ label: badge.label }))}
                     techStack={profile.techStack}
                     bookmarked={
-                      profile.memberId != null
-                        ? developerBookmarkMap[profile.memberId] != null
-                        : (profile.bookmarked ?? false)
+                      developerBookmarkMap[profile.memberId ?? profile.nickname] != null ||
+                      (profile.bookmarked ?? false)
                     }
-                    onBookmarkChange={(next) => handleDeveloperBookmarkChange(profile.memberId, next)}
+                    bookmarkId={
+                      (() => {
+                        const id = developerBookmarkMap[profile.memberId ?? profile.nickname];
+                        return id != null && id > 0 ? id : undefined;
+                      })()
+                    }
+                    onBookmarkChange={(next) => handleDeveloperBookmarkChange(profile.memberId, profile.nickname, next)}
                     matchedReason="의 Java/Springboot 요구사항과 일치합니다."
                   />
                 ))
@@ -463,10 +497,10 @@ const MainPage = () => {
                     roles={[...PROJECT_ROLES]}
                     dueLabel={project.dueLabel}
                     bookmarked={isBookmarked}
-                    techSuitability={project.techSuitability}
-                    domainSuitability={project.domainSuitability}
-                    growthPotential={project.growthPotential}
-                    overallScore={project.overallScore}
+                    techstackScorePercent={project.techstackScorePercent}
+                    similarityScorePercent={project.similarityScorePercent}
+                    domainMatch={project.domainMatch}
+                    totalScore={project.totalScore}
                     onBookmarkChange={(next) =>
                       hasNumericId ? handleProjectBookmarkChange(targetId, next) : undefined
                     }
