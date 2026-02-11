@@ -96,7 +96,6 @@ const NotificationModal = ({
   };
 
   if (!isOpen && !isClosing) return null;
-  // anchorRef 사용 시 위치 계산 후 렌더
   if (anchorRef && position === null) return null;
 
   const useAnchor = anchorRef?.current && position !== null;

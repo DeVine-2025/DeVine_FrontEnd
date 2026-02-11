@@ -85,9 +85,7 @@ function InputLike({ placeholder, value }: { placeholder: string; value?: string
     <input
       value={value ?? ''}
       placeholder={placeholder}
-      onChange={() => {
-        // (호환용)
-      }}
+      onChange={() => {}}
       className="Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:border-[#4E49FF] focus:outline-none"
     />
   );
@@ -112,8 +110,6 @@ function InputField({
     />
   );
 }
-
-// 프로젝트 내용 에디터
 
 function ImageSlot({
   label,
@@ -251,7 +247,6 @@ const durationRangeMap: Record<string, string> = {
   '3-6개월': 'THREE_TO_SIX',
   '6개월 이상': 'SIX_PLUS',
 };
-/** 도메인(한글) → POST /api/v1/projects category enum */
 const domainToCategory: Record<string, string> = {
   헬스케어: 'HEALTHCARE',
   핀테크: 'FINTECH',
@@ -262,7 +257,6 @@ const domainToCategory: Record<string, string> = {
   'AI/데이터': 'AI',
   기타: 'OTHER',
 };
-/** API enum → 폼 라벨 (역매핑) */
 const reverseProjectFieldMap: Record<string, string> = Object.fromEntries(
   Object.entries(projectFieldMap).map(([k, v]) => [v, k]),
 );
@@ -282,7 +276,6 @@ const reversePositionMap: Record<string, string> = Object.fromEntries(
 const normalizeTechKey = (k: string) =>
   k.trim().replace(/\s+/g, '').replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
 
-/** UI 키(Java, Springboot 등) → 백엔드 API가 기대하는 tech stack 문자열. 백엔드 TechName enum과 일치해야 함. */
 const UI_KEY_TO_BACKEND_TECHSTACK: Record<string, string> = {
   ...TECHSTACK_KEY_TO_NAME,
   SPRINGBOOT: 'SPRINGBOOT',
@@ -351,7 +344,6 @@ const ProjectCreatePage = () => {
   const [, setEditorSelectionKey] = useState(0);
   const linkCardOpen = false; // 링크 카드는 본문 노드로만 사용 (미사용 변수 제거 시 에러 방지)
 
-  // 수정 모드 진입 시 기존 초안 정리 (API 데이터로 덮어쓸 예정)
   useEffect(() => {
     if (isEditMode) clearDraft();
   }, [isEditMode]);
@@ -450,7 +442,6 @@ const ProjectCreatePage = () => {
     setRecruitments((prev) => prev.filter((r) => r.id !== id));
   };
 
-  // 포지션 변경 시 스택 정리
   useEffect(() => {
     if (!positionKey) {
       if (techStack.length) setTechStack([]);
@@ -497,14 +488,12 @@ const ProjectCreatePage = () => {
     },
   });
 
-  // 에디터 초안 복원 (신규 작성 시에만)
   useEffect(() => {
     if (!isEditMode && editor && projectContent && editor.isEmpty) {
       editor.commands.setContent(projectContent, { emitUpdate: false });
     }
   }, [editor, projectContent, isEditMode]);
 
-  // 수정 모드: 기존 프로젝트 데이터 불러오기
   useEffect(() => {
     if (!isEditMode || !editProjectId || editDataLoaded) return;
     let cancelled = false;
@@ -514,13 +503,11 @@ const ProjectCreatePage = () => {
         const project = await getProjectDetail(editProjectId, token);
         if (cancelled || !project) return;
 
-        // 폼 필드 채우기
         setProjectTitle(project.title ?? '');
         setProjectContent(project.content ?? '');
         setLocationText(project.location ?? '');
         setDeadlineText(project.recruitmentDeadline ?? '');
 
-        // 드롭다운 값 역매핑
         if (project.projectField) {
           setProjectType(reverseProjectFieldMap[project.projectField] ?? project.projectFieldName ?? null);
         }
@@ -534,7 +521,6 @@ const ProjectCreatePage = () => {
           setProgressPeriod(reverseDurationRangeMap[project.durationRange] ?? project.durationRangeName ?? null);
         }
 
-        // 모집 분야 복원
         const rawRecruitments = project.recruitments ?? project.positions ?? [];
         if (rawRecruitments.length > 0) {
           const restored: RecruitmentItem[] = rawRecruitments.map((r) => {
@@ -557,7 +543,6 @@ const ProjectCreatePage = () => {
           setRecruitments(restored);
         }
 
-        // 이미지 복원
         const imgUrls = project.imageUrls ?? project.images?.map((i) => i.imageUrl ?? i.url).filter(Boolean) ?? [];
         if (imgUrls.length > 0) {
           const slots: [SlotImage, SlotImage, SlotImage] = [null, null, null];
@@ -567,7 +552,6 @@ const ProjectCreatePage = () => {
           setSlotImages(slots);
         }
 
-        // 에디터에 기존 내용 반영
         if (editor && project.content) {
           editor.commands.setContent(project.content, { emitUpdate: false });
         }
@@ -580,7 +564,6 @@ const ProjectCreatePage = () => {
     return () => { cancelled = true; };
   }, [isEditMode, editProjectId, editDataLoaded, editor, getToken]);
 
-  // 커서/선택 변경 시 툴바 H1·H2·B 등 적용 상태 반영
   useEffect(() => {
     if (!editor) return;
     const onSelectionUpdate = () => setEditorSelectionKey((k) => k + 1);
@@ -729,8 +712,6 @@ const ProjectCreatePage = () => {
         ? await updateProject(editProjectId, body, token)
         : await createProject(body, token);
 
-      // 추천 개발자 페이지의 "내 프로젝트 선택" 필터가 즉시 반영되도록 로컬 캐시에 최신 순으로 저장
-      // (백엔드 /members/me/projects가 지연되거나 빈 값으로 내려오는 경우 대비)
       try {
         const cacheKey = 'devine_my_projects_cache_v1';
         const raw = localStorage.getItem(cacheKey);
@@ -742,9 +723,7 @@ const ProjectCreatePage = () => {
           ...rest,
         ].filter((p: any) => Number.isFinite(Number(p?.id)) && String(p?.name ?? '').trim().length > 0);
         localStorage.setItem(cacheKey, JSON.stringify(next));
-      } catch {
-        // ignore
-      }
+      } catch {}
 
       clearDraft();
       if (isEditMode) {
@@ -757,8 +736,6 @@ const ProjectCreatePage = () => {
         console.error('[project-create] submit failed', e);
       }
       const message = e instanceof Error ? e.message : '등록에 실패했습니다.';
-      // 백엔드가 "가입되지 않은 사용자" 등을 반환하면 → Clerk에는 있지만 백엔드 회원 DB에 없음.
-      // 해결: 회원가입 완료 시 백엔드 회원 등록 API를 호출하거나, 백엔드에서 Clerk JWT로 자동 회원 생성 필요.
       const needSignup =
         /가입|등록|미등록|사용자|member|unauthorized/i.test(message);
       const needPm = /PM|권한|프로젝트를 생성/i.test(message);
@@ -776,7 +753,6 @@ const ProjectCreatePage = () => {
 
   return (
     <div className="-mx-6 -my-8">
-      {/* 상단 */}
       <section className="bg-[var(--ui-bg)]">
         <div className="mx-auto w-full max-w-[1018px] px-6 py-[36px]">
           <h1 className="Title3 font-bold text-[var(--ui-900)]">
@@ -795,12 +771,10 @@ const ProjectCreatePage = () => {
         </div>
       </section>
 
-      {/* 본문 */}
       <section className="-translate-x-1/2 relative left-1/2 w-screen bg-[var(--ui-50)] py-[64px]">
         <div className="mx-auto w-full max-w-[1018px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-6 py-[40px]">
           <div className="mx-auto w-full max-w-[922px]">
             <div className="flex flex-col gap-[64px]">
-              {/* 프로젝트 정보 */}
               <section className="flex flex-col gap-[40px]">
                 <h2 className="Heading2 font-semibold text-[var(--ui-900)]">
                   1. 프로젝트 정보를 입력해주세요
@@ -1028,7 +1002,6 @@ const ProjectCreatePage = () => {
                 </div>
               </section>
 
-              {/* 프로젝트 내용 */}
               <section className="flex flex-col gap-[40px]">
                 <h2 className="Heading2 font-semibold text-[var(--ui-900)]">
                   2. 프로젝트 내용을 입력해주세요
