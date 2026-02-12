@@ -152,8 +152,8 @@ function RecommendDeveloperCard({
       </div>
 
       {/* 본문(좌) */}
-      <div className="absolute left-[104px] top-[24px] flex h-[142px] w-[394px] flex-col gap-[12px]">
-        <div className="flex w-[220px] flex-col gap-[8px]">
+      <div className="absolute left-[104px] top-[24px] flex w-[394px] flex-col gap-[22px]">
+        <div className="flex min-w-0 flex-col gap-[4px]">
           <span
             className={`Caption1 inline-flex h-[24px] w-fit items-center rounded-[8px] px-[6px] font-semibold ${badgeToneToClass[roleTone]}`}
           >
@@ -162,11 +162,11 @@ function RecommendDeveloperCard({
 
           <p className="Body1 h-[26px] font-semibold text-[var(--ui-1000)]">{nickname}</p>
 
-          <div className="flex flex-wrap gap-[8px]">
+          <div className="flex flex-nowrap gap-[8px]">
             {domains?.slice(0, 3).map((d) => (
               <span
                 key={d.label}
-                className="Caption1 flex h-[24px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] font-semibold text-[var(--ui-600)]"
+                className="Caption1 shrink-0 flex h-[24px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] font-semibold text-[var(--ui-600)]"
               >
                 {d.label}
               </span>
@@ -179,8 +179,8 @@ function RecommendDeveloperCard({
         </p>
       </div>
 
-      {/* 스택(우) */}
-      <div className="absolute left-[698px] top-[50px] flex h-[76px] w-[360px] flex-wrap items-center gap-[4px]">
+      {/* 스택(우) - 카드 세로 중앙 */}
+      <div className="absolute left-[698px] top-1/2 flex h-[76px] w-[360px] -translate-y-1/2 flex-wrap items-center gap-[4px]">
         {chips.map((t) => (
           <span key={t.id} className="inline-flex items-center">
             {(() => {
