@@ -10,6 +10,7 @@ import TabMenu from '@components/myInfo/TabMenu';
 import Switch from '@components/myInfo/Switch';
 import { myInfoQueries, updateMyProfile } from '@apis/myInfo/myInfo-queries';
 import type { UpdateProfileRequest } from '@apis/myInfo/myInfo';
+import { useAuthStore } from '@store/auth';
 
 interface SettingMenuProps {
   title: string;
@@ -43,12 +44,15 @@ const MyInfoSetting = () => {
   const tabs = ['PM', '개발자'];
   const { user, isLoaded } = useUser();
   const queryClient = useQueryClient();
+  const setRole = useAuthStore((state) => state.setRole);
 
   const { data: profileData } = useQuery(myInfoQueries.profile());
   const updateMutation = useMutation({
     mutationFn: updateMyProfile,
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['member'] });
+      // auth store + localStorage 동기화 → 메인 페이지에서 즉시 반영
+      setRole(variables.mainType === 'PM' ? 'pm' : 'dev');
     },
     onError: (_err, variables) => {
       setActiveTab(variables.mainType === 'PM' ? '개발자' : 'PM');
