@@ -8,7 +8,7 @@ type Props = {
 export default function ProjectListState({ type, onRetry }: Props) {
   if (type === 'loading') {
     return (
-      <div className="flex justify-center py-20">
+      <div className="flex justify-center pt-48 pb-20">
         <LoadingSpinner size="lg" />
       </div>
     );

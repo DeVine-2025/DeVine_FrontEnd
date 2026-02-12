@@ -205,21 +205,16 @@ export async function getUnreadNotificationCount(
   return json?.result?.count ?? 0;
 }
 
-/** SSE 확인용 콘솔 로그 (true면 항상 출력, false면 DEV에서만) */
-const SSE_CONSOLE_DEBUG =
-  import.meta.env.VITE_SSE_CONSOLE_DEBUG === 'true' || import.meta.env.DEV;
-
-function sseLog(...args: unknown[]) {
-  if (SSE_CONSOLE_DEBUG) {
-    console.log('[SSE]', ...args);
-  }
+/** SSE 디버그 로그. 필요 시 `console.log('[SSE]', ...args)` 로 복구 */
+function sseLog(..._args: unknown[]) {
+  // no-op
 }
 
 export type SseEventType = 'connect' | 'notification' | 'heartbeat' | 'shutdown';
 
 /** 알림 SSE 구독 옵션 */
 export type SubscribeNotificationStreamParams = {
-  /** 재연결 대기 시간(ms). 기본 2000 */
+  /** 재연결 대기 시간(ms). 서버가 스트림을 자주 끊으면 이 간격으로 재연결. 기본 5000 */
   reconnectDelayMs?: number;
   /** 최대 재연결 횟수. 0이면 무제한. 기본 0 */
   maxReconnectAttempts?: number;
@@ -247,7 +242,7 @@ export function subscribeNotificationStream(
   params?: SubscribeNotificationStreamParams,
   signal?: AbortSignal,
 ): () => void {
-  const reconnectDelayMs = params?.reconnectDelayMs ?? 2000;
+  const reconnectDelayMs = params?.reconnectDelayMs ?? 5000;
   const maxReconnectAttempts = params?.maxReconnectAttempts ?? 0;
   let lastEventId = '';
   let reconnectAttempts = 0;

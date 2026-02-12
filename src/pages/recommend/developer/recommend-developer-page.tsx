@@ -391,7 +391,7 @@ const RecommendDeveloperPage = () => {
       />
 
       {myProjectOptionsLoading && (
-        <div className="flex justify-center py-8">
+        <div className="flex justify-center pt-48 pb-8">
           <LoadingSpinner size="lg" />
         </div>
       )}
@@ -403,7 +403,7 @@ const RecommendDeveloperPage = () => {
       )}
 
       {loading && myProjects.length > 0 && (
-        <div className="flex justify-center py-8">
+        <div className="flex justify-center pt-48 pb-8">
           <LoadingSpinner size="lg" />
         </div>
       )}
