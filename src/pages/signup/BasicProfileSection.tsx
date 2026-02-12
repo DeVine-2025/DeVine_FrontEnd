@@ -23,13 +23,22 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
 
   const hasWhitespace = useMemo(() => /\s/.test(nickname), [nickname]);
   const trimmedNickname = useMemo(() => nickname.trim(), [nickname]);
+
+  // 자음/모음만 입력했는지 체크
+  const isOnlyConsonantOrVowel = useMemo(
+    () => /^[ㄱ-ㅎㅏ-ㅣ]+$/.test(trimmedNickname),
+    [trimmedNickname],
+  );
+
   const isLengthValid = useMemo(
     () => trimmedNickname.length >= 2 && trimmedNickname.length <= 20,
     [trimmedNickname],
   );
+
+  // 닉네임 유효성에 "자음/모음만" 조건 추가
   const isNicknameValid = useMemo(
-    () => isLengthValid && !hasWhitespace,
-    [isLengthValid, hasWhitespace],
+    () => isLengthValid && !hasWhitespace && !isOnlyConsonantOrVowel,
+    [isLengthValid, hasWhitespace, isOnlyConsonantOrVowel],
   );
 
   useEffect(() => {
@@ -38,7 +47,9 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
     setImageUrl(initialData.imageUrl ?? null);
     setPreviewUrl(initialData.imageUrl ?? null);
   }, [initialData?.imageUrl, initialData?.nickname]);
-  const canUseNickname = isNicknameValid && !isDuplicateNickname && !isCheckingNickname;
+
+  const canUseNickname =
+    isNicknameValid && !isDuplicateNickname && !isCheckingNickname && !nicknameCheckError;
 
   useEffect(() => {
     if (!isNicknameValid) {
@@ -53,10 +64,12 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
       try {
         setIsCheckingNickname(true);
         setNicknameCheckError(null);
+
         const token = await getToken();
         if (!token) {
           throw new Error('missing token');
         }
+
         const isDuplicate = await checkNicknameDuplicate(trimmedNickname, token);
         if (isActive) {
           setIsDuplicateNickname(isDuplicate);
@@ -64,7 +77,10 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
       } catch {
         if (isActive) {
           setIsDuplicateNickname(false);
-          setNicknameCheckError('닉네임 중복 확인에 실패했어요.');
+          // 요청하신 문구로 변경
+          setNicknameCheckError(
+            '자음/모음만 입력할 수 없습니다.\n 한글, 영문, 숫자를 포함해 닉네임을 입력해주세요.',
+          );
         }
       } finally {
         if (isActive) {
@@ -109,6 +125,7 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
         { imageType: 'PROFILE', fileName: file.name },
         token,
       );
+
       const uploadRes = await fetch(presigned.presignedUrl, {
         method: 'PUT',
         headers: {
@@ -116,9 +133,11 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
         },
         body: file,
       });
+
       if (!uploadRes.ok) {
         throw new Error(`upload failed: ${uploadRes.status}`);
       }
+
       const confirmed = await confirmImageUpload(presigned.imageId, presigned.imageUrl, token);
       setImageUrl(confirmed?.imageUrl ?? presigned.imageUrl ?? null);
     } catch {
@@ -128,6 +147,7 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
       setIsUploading(false);
     }
   };
+
   return (
     <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] px-10 pb-20 pt-10 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
       <div className="flex flex-col gap-8">
@@ -177,39 +197,51 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
               className={`h-[50px] w-full rounded-2xl border-2 bg-[var(--ui-50)] px-4 text-[14px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)] ${
                 canUseNickname
                   ? 'border-[#00BF40]'
-                  : hasWhitespace || isDuplicateNickname
+                  : hasWhitespace || isDuplicateNickname || isOnlyConsonantOrVowel
                     ? 'border-[#FF4242]'
                     : 'border-[var(--ui-100)]'
               }`}
               value={nickname}
               onChange={(event) => setNickname(event.target.value)}
             />
+
             {hasWhitespace && (
               <span className="Caption1 text-[#FF4242]">공백은 사용할 수 없어요.</span>
             )}
+
             {!hasWhitespace && !isLengthValid && (
-              <span className="Caption1 text-[#FF4242]">닉네임은 2자 이상 20자 이하로 입력해주세요.</span>
-            )}
-            {!hasWhitespace && isDuplicateNickname && (
               <span className="Caption1 text-[#FF4242]">
-                이미 누군가가 사용 중인 닉네임이에요
+                닉네임은 2자 이상 20자 이하로 입력해주세요.
               </span>
             )}
+
+            {/* 자음/모음만 입력 경고 (요청 문구) */}
+            {!hasWhitespace && isLengthValid && isOnlyConsonantOrVowel && (
+              <span className="Caption1 text-[#FF4242]">
+                자음/모음만 입력할 수 없습니다.
+                <br />
+                한글, 영문, 숫자를 포함해 닉네임을 입력해주세요.
+              </span>
+            )}
+
+            {!hasWhitespace && isDuplicateNickname && (
+              <span className="Caption1 text-[#FF4242]">이미 누군가가 사용 중인 닉네임이에요</span>
+            )}
+
             {!hasWhitespace && !isDuplicateNickname && isCheckingNickname && (
               <span className="Caption1 text-[var(--ui-400)]">닉네임 중복 확인 중...</span>
             )}
+
             {!hasWhitespace && nicknameCheckError && (
               <span className="Caption1 text-[#FF4242]">{nicknameCheckError}</span>
             )}
+
             {!hasWhitespace && canUseNickname && (
               <span className="Caption1 text-[#00BF40]">사용 가능한 닉네임이에요!</span>
             )}
-            {isUploading && (
-              <span className="Caption1 text-[var(--ui-400)]">이미지 업로드 중...</span>
-            )}
-            {uploadError && (
-              <span className="Caption1 text-[#FF4242]">{uploadError}</span>
-            )}
+
+            {isUploading && <span className="Caption1 text-[var(--ui-400)]">이미지 업로드 중...</span>}
+            {uploadError && <span className="Caption1 text-[#FF4242]">{uploadError}</span>}
           </div>
         </div>
       </div>
