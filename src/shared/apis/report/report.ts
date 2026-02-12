@@ -74,6 +74,7 @@ export interface ProjectSummary {
 
 export interface ReportPatchVisibilityRequest {
   reportId: number;
+  visibility: 'PUBLIC' | 'PRIVATE';
 }
 
 export interface ReportDetailContent {
