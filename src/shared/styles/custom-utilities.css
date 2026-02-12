@@ -89,7 +89,7 @@
 
     /* Card size presets */
     .card-size-sm {
-        @apply  w-[280px] h-[240px] p-8 flex flex-col gap-3;
+        @apply  w-[280px] h-[270px] p-8 flex flex-col gap-2;
     }
 
     .card-size-md {
@@ -105,7 +105,7 @@
     }
 
     .card-avatar-sm {
-        @apply w-[60px] h-[60px];
+        @apply w-[50px] h-[50px];
     }
 
     .card-avatar-md {

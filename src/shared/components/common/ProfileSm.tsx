@@ -19,7 +19,7 @@ export default function ProfileCardSm(props: ProfileCardProps) {
             }
           : undefined
       }
-      className={cn('rounded-2xl bg-filter-bg', 'card-size-sm', onClick && 'cursor-pointer')}
+      className={cn('rounded-2xl bg-ui-50', 'card-size-sm', onClick && 'cursor-pointer')}
     >
       <HeaderBlock
         {...props}
@@ -32,7 +32,7 @@ export default function ProfileCardSm(props: ProfileCardProps) {
         <BadgeList badges={props.badges} className="mt-6 gap-3" />
       </div>
 
-      <div className="mt-1">
+      <div className="mt-1 ml-2">
         <Intro introduction={props.introduction} />
       </div>
 

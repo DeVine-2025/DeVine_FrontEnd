@@ -42,6 +42,8 @@ type ApiResponse<T> = {
   result: T;
 };
 
+const EMPTY = { content: [], totalElements: 0 } as const;
+
 async function fetchPmDevelopers(args: { endpoint: string; token: string; signal?: AbortSignal }) {
   const { endpoint, token, signal } = args;
 
@@ -51,6 +53,7 @@ async function fetchPmDevelopers(args: { endpoint: string; token: string; signal
     headers: { Authorization: `Bearer ${token}` },
   });
 
+  if (res.status === 404 || res.status === 204) return EMPTY;
   if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
 
   const json = (await res.json()) as ApiResponse<{

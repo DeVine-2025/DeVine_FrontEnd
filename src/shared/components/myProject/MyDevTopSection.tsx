@@ -1,8 +1,8 @@
 import ProjectLg from '@components/common/ProjectLg';
 import Tabs from '@components/tab/CommonTabs';
-import { type DevTab, type MatchingProject, useDevProjects } from '@hooks/useDevProjects';
-import { useNavigate } from 'react-router-dom';
+import { type DevTab, useDevProjects } from '@hooks/useDevProjects';
 import type { ProjectCardProps } from '@t/project/ui';
+import { useNavigate } from 'react-router-dom';
 
 type Props = {
   devTab: DevTab;
@@ -13,9 +13,25 @@ function getEmptyMessage(tab: DevTab) {
   return tab === 'suggested' ? '받은 제안이 없어요.' : '지원 중인 프로젝트가 없어요.';
 }
 
-function toProjectLgProps(p: MatchingProject): ProjectCardProps {
+function toProjectLgProps(m: any): ProjectCardProps {
   return {
-    title: p.projectName ?? '',
+    title: m.projectName,
+
+    categoryLabel: m.categoryName,
+    deadlineLabel: undefined,
+
+    thumbnailUrl: m.thumbnailUrl ?? undefined,
+    thumbnailAlt: m.projectName,
+
+    location: m.location ?? undefined,
+    durationRangeName: m.durationRangeName ?? m.durationRangeName,
+    mode: m.modeName ?? undefined,
+
+    roles:
+      m.positions?.map((p: any) => ({
+        label: p.positionName ?? p.name,
+        count: p.recruitCount ?? p.count,
+      })) ?? [],
   };
 }
 
@@ -104,6 +120,8 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
           !isError &&
           (data?.content ?? []).map((m) => {
             const projectProps = toProjectLgProps(m);
+
+            console.log(projectProps);
 
             return (
               <ProjectLg

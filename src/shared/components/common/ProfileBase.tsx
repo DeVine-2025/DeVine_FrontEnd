@@ -1,5 +1,16 @@
 import BookmarkButton from '@components/common/BookmarkButton';
+import {
+  BACKEND_DATABASE,
+  BACKEND_FRAMEWORK,
+  BACKEND_LANGUAGE,
+  FRONTEND_LANGUAGE_FRAMEWORK,
+  FRONTEND_MOBILE,
+  INFRA_CLOUD,
+  INFRA_CONTAINER,
+  type TechStackChip,
+} from '@constants/position-tech-stack';
 import { cn } from '@libs/cn';
+import { useThemeStore } from '@store/theme';
 import { badgeToneToClass } from '../../types/badgeTone';
 import type { ProfileCardProps, TechStackItem } from '../../types/profileCard.types';
 
@@ -36,7 +47,7 @@ export function HeaderBlock({
   roleClass: string;
 }) {
   return (
-    <div className="relative flex items-start gap-6">
+    <div className="relative flex items-start gap-6 p-3">
       <img
         src={profileImageUrl}
         alt={profileImageAlt ?? nickname}
@@ -103,39 +114,82 @@ export function Intro({ introduction }: { introduction?: string }) {
 }
 
 export function TechChips({ techStack, max }: { techStack?: TechStackItem[]; max: number }) {
+  const { theme } = useThemeStore();
+
   if (!techStack?.length) return null;
+
+  const normalizeTechKey = (v: unknown): string => {
+    const s = typeof v === 'string' ? v : v != null ? String(v) : '';
+    return s
+      .trim()
+      .toLowerCase()
+      .replace(/\s/g, '')
+      .replace(/\./g, '')
+      .replace(/-/g, '')
+      .replace(/_/g, '');
+  };
+
+  const ALL_TECH_STACK_BADGES: Array<Extract<TechStackChip, { off: string; on: string }>> = [
+    ...FRONTEND_LANGUAGE_FRAMEWORK,
+    ...FRONTEND_MOBILE,
+    ...BACKEND_LANGUAGE,
+    ...BACKEND_FRAMEWORK,
+    ...BACKEND_DATABASE,
+    ...INFRA_CLOUD,
+    ...INFRA_CONTAINER,
+  ].filter(
+    (b): b is Extract<TechStackChip, { off: string; on: string }> => 'off' in b && 'on' in b,
+  );
+
+  const TECH_BADGE_BY_NAME = new Map(
+    ALL_TECH_STACK_BADGES.flatMap((b) => [
+      [normalizeTechKey(b.key), b],
+      [normalizeTechKey(b.label), b],
+    ]),
+  );
+
+  const findBadge = (name: unknown) => {
+    const normalized = normalizeTechKey(name);
+    return TECH_BADGE_BY_NAME.get(normalized) ?? null;
+  };
 
   const shown = techStack.slice(0, max);
   const rest = Math.max(techStack.length - max, 0);
 
   return (
-    <div className="flex flex-wrap items-center gap-4">
+    <div className="flex flex-wrap items-center gap-3">
       {shown.map((s, index) => {
-        const anyS = s as any;
+        const label = typeof s.name === 'string' ? s.name : '';
+        const key = String(s.id ?? index);
 
-        const label =
-          typeof anyS.name === 'string'
-            ? anyS.name
-            : typeof anyS.name?.name === 'string'
-              ? anyS.name.name
-              : '';
+        const badge = label ? findBadge(label) : null;
 
-        if (!label) return null;
+        if (badge) {
+          const offSrc = theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off;
 
-        const key = String(anyS.id ?? anyS.name?.techstackId ?? index);
+          return (
+            <span key={key} className="inline-flex items-center">
+              <img
+                src={offSrc}
+                alt={badge.label}
+                className="h-13 w-32 select-none"
+                draggable={false}
+              />
+            </span>
+          );
+        }
 
-        return (
-          <div
-            key={key}
-            className="flex items-center gap-2 rounded-3xl border border-card-border bg-surface-tab px-4 py-1"
-          >
-            {anyS.icon}
-            <span className="font-medium text-card-text text-lg">{label}</span>
-          </div>
-        );
+        if (s.icon) {
+          return (
+            <span key={key} className="inline-flex items-center">
+              <span className="h-9 w-9">{s.icon}</span>
+            </span>
+          );
+        }
+        return null;
       })}
 
-      {rest > 0 && <span className="font-semibold text-card-muted text-lg">+{rest}</span>}
+      {rest > 0 ? <span className="font-semibold text-card-muted text-lg">+{rest}</span> : null}
     </div>
   );
 }

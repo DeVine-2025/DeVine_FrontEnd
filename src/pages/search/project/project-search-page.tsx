@@ -8,8 +8,8 @@ import { useAuth } from '@clerk/clerk-react';
 import ProjectListState from '@components/common/ListStateUI';
 import Pagination from '@components/common/Pagination';
 import ProjectFiltersBar, {
-  type ProjectFilterKey,
   PROJECT_FILTERS,
+  type ProjectFilterKey,
 } from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
