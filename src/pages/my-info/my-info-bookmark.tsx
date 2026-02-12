@@ -1,15 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
-
+import { deleteBookmark, getBookmarks } from '@apis/bookmarks';
+import { getProjectDetail } from '@apis/project-detail';
 import BackIcon from '@assets/icons/back.svg?react';
+import { useAuth } from '@clerk/clerk-react';
 import LoadingSpinner from '@components/common/LoadingSpinner';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
-import { getBookmarks, deleteBookmark } from '@apis/bookmarks';
-import { getProjectDetail } from '@apis/project-detail';
 import { mapProjectItemToCard } from '@mappers/project';
 import type { ProjectItem } from '@t/project/api';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type TabKind = 'project' | 'developer';
 
@@ -56,19 +55,21 @@ const MyInfoBookmark = () => {
         })),
       );
 
-      const projectWithId = projectBookmarks.filter((b): b is typeof b & { targetId: number } => b.targetId != null);
+      const projectWithId = projectBookmarks.filter(
+        (b): b is typeof b & { targetId: number } => b.targetId != null,
+      );
       setProjects(
-        projectWithId.map((b) => ({ bookmarkId: b.bookmarkId, targetId: b.targetId, project: null })),
+        projectWithId.map((b) => ({
+          bookmarkId: b.bookmarkId,
+          targetId: b.targetId,
+          project: null,
+        })),
       );
 
       const details = await Promise.all(
-        projectWithId.map((b) =>
-          getProjectDetail(b.targetId, token).catch(() => null),
-        ),
+        projectWithId.map((b) => getProjectDetail(b.targetId, token).catch(() => null)),
       );
-      setProjects((prev) =>
-        prev.map((p, i) => ({ ...p, project: details[i] ?? null })),
-      );
+      setProjects((prev) => prev.map((p, i) => ({ ...p, project: details[i] ?? null })));
     } catch (e) {
       setError(e instanceof Error ? e.message : '북마크를 불러오지 못했습니다.');
     } finally {
@@ -90,7 +91,8 @@ const MyInfoBookmark = () => {
         await deleteBookmark(bookmarkId, token);
       } catch (e) {
         console.error(e);
-        if (removed) setProjects((prev) => [...prev, removed].sort((a, b) => a.bookmarkId - b.bookmarkId));
+        if (removed)
+          setProjects((prev) => [...prev, removed].sort((a, b) => a.bookmarkId - b.bookmarkId));
       }
     },
     [getToken, projects],
@@ -106,25 +108,22 @@ const MyInfoBookmark = () => {
         await deleteBookmark(bookmarkId, token);
       } catch (e) {
         console.error(e);
-        if (removed) setDevelopers((prev) => [...prev, removed].sort((a, b) => a.bookmarkId - b.bookmarkId));
+        if (removed)
+          setDevelopers((prev) => [...prev, removed].sort((a, b) => a.bookmarkId - b.bookmarkId));
       }
     },
     [getToken, developers],
   );
 
-  const baseTabClass =
-    'rounded-xl py-3 text-2xl text-center font-semibold transition-colors';
+  const baseTabClass = 'rounded-xl py-3 text-2xl text-center font-semibold transition-colors';
   const activeClass = 'bg-tab-bg-active text-tab-text-active';
   const inactiveClass = 'text-tab-text-inactive hover:text-tab-text-active';
 
   return (
     <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-[2rem]">
       <div className="flex flex-col gap-[2.4rem]">
-        <BackIcon
-          className="h-12 w-12 cursor-pointer text-ui-700"
-          onClick={() => navigate(-1)}
-        />
-        <p className="text-4xl font-bold text-ui-900">저장한 프로젝트/개발자</p>
+        <BackIcon className="h-12 w-12 cursor-pointer text-ui-700" onClick={() => navigate(-1)} />
+        <p className="font-bold text-4xl text-ui-900">저장한 프로젝트/개발자</p>
       </div>
 
       <div className="mb-5 w-[280px] rounded-2xl bg-surface-tab p-2">
@@ -151,9 +150,7 @@ const MyInfoBookmark = () => {
           <LoadingSpinner size="lg" />
         </div>
       )}
-      {error && (
-        <p className="text-red-500">{error}</p>
-      )}
+      {error && <p className="text-red-500">{error}</p>}
 
       {!loading && !error && activeTab === 'project' && (
         <div className="flex flex-col gap-[2rem]">
@@ -180,7 +177,7 @@ const MyInfoBookmark = () => {
                   title={card.title}
                   thumbnailUrl={card.thumbnailUrl}
                   location={card.location}
-                  period={card.period}
+                  period={card.durationRangeName}
                   mode={card.mode}
                   roles={card.roles.map((r) => ({
                     ...r,
