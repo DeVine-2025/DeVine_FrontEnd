@@ -210,7 +210,7 @@ const MyInfoBookmark = () => {
                 techStack={[]}
                 bookmarked
                 onBookmarkChange={() => handleRemoveDeveloperBookmark(bookmarkId)}
-                onClick={() => {}}
+                onClick={() => navigate(`/developer-detail/${targetNickname}`)}
               />
             ))
           )}
