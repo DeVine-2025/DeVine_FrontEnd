@@ -1,0 +1,9 @@
+@theme {
+    /* 프로필 카드 전용: 추천 이유 박스 배경 (다크) */
+    --color-card-profile-reason-bg: #201F2F;
+  }
+  
+  [data-theme="light"] {
+    /* 프로필 카드 전용: 추천 이유 박스 배경 (라이트) */
+    --color-card-profile-reason-bg: #EFEFFF;
+  }

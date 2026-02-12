@@ -62,4 +62,143 @@
         display: none;
     }
 
+    /* 전역 트렌디 스크롤바 (얇고 둥근 스타일) */
+    *::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    *::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 3px;
+    }
+
+    *::-webkit-scrollbar-thumb {
+        background: var(--ui-300);
+        border-radius: 3px;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+        background: var(--ui-400);
+    }
+
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--ui-300) transparent;
+    }
+
+    /* Card size presets */
+    .card-size-sm {
+        @apply  w-[280px] h-[240px] p-8 flex flex-col gap-3;
+    }
+
+    .card-size-md {
+        @apply max-w-[580px] h-[180px] p-10;
+    }
+
+    .card-size-lg {
+        @apply max-w-[1180px] h-[180px] p-10;
+    }
+
+    .card-size-lg--with-header {
+        @apply h-[230px];
+    }
+
+    .card-avatar-sm {
+        @apply w-[60px] h-[60px];
+    }
+
+    .card-avatar-md {
+        @apply w-[80px] h-[80px];
+    }
+
+    /* Project size presets */
+    .project-size-sm {
+        @apply w-[270px] h-[230px];
+    }
+
+    .project-size-md {
+        @apply w-[540px] h-[200px];
+    }
+
+    .project-size-lg {
+        @apply w-[1080px] h-[200px];
+    }
+
+    /* 애니메이션 */
+    @keyframes slide-in-right {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slide-out-right {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    .animate-slide-in-right {
+        animation: slide-in-right 0.5s ease-out;
+    }
+
+    .animate-slide-out-right {
+        animation: slide-out-right 1s ease-out;
+    }
+
+    @keyframes modal-pop-in {
+        from {
+            opacity: 0;
+            transform: scale(0.96) translateY(-8px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .animate-modal-pop-in {
+        animation: modal-pop-in 0.25s ease-out;
+    }
+
+    @keyframes dropdown-slide-up {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-dropdown-slide-up {
+        animation: dropdown-slide-up 0.18s ease-out;
+        will-change: transform, opacity;
+    }
+
+    @keyframes modal-pop-out {
+        from {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: scale(0.96) translateY(-8px);
+        }
+    }
+
+    .animate-modal-pop-out {
+        animation: modal-pop-out 0.2s ease-in;
+    }
 }

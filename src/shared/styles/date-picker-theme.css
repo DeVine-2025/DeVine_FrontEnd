@@ -1,0 +1,88 @@
+/* react-day-picker: 다크 테마 + 둥근 스타일 (DatePickerPopover 전용) */
+@import "react-day-picker/style.css";
+
+.date-picker-popover .rdp-root {
+  /* 배경/글자: 다크 톤 */
+  --rdp-accent-color: #4E49FF;
+  --rdp-accent-background-color: #4E49FF;
+  --rdp-today-color: #4E49FF;
+  --rdp-range_middle-background-color: rgba(78, 73, 255, 0.2);
+  --rdp-range_start-date-background-color: #4E49FF;
+  --rdp-range_end-date-background-color: #4E49FF;
+
+  /* 둥글둥글: 날짜 셀 */
+  --rdp-day_button-border-radius: 12px;
+  --rdp-day_button-height: 40px;
+  --rdp-day_button-width: 40px;
+  --rdp-day_height: 44px;
+  --rdp-day-width: 44px;
+
+  /* 네비 버튼 둥글게 */
+  --rdp-nav_button-height: 2rem;
+  --rdp-nav_button-width: 2rem;
+}
+
+.date-picker-popover .rdp-root {
+  background: var(--ui-50);
+  color: var(--ui-900);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid var(--ui-200);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.date-picker-popover .rdp-caption_label,
+.date-picker-popover .rdp-weekday {
+  color: var(--ui-700);
+}
+
+.date-picker-popover .rdp-day_button {
+  color: var(--ui-900);
+}
+
+.date-picker-popover .rdp-day_button:hover:not([disabled]):not(.rdp-selected) {
+  background: var(--ui-200);
+  color: var(--ui-1000);
+}
+
+.date-picker-popover .rdp-day_button.rdp-selected {
+  background: var(--rdp-accent-color) !important;
+  color: white !important;
+  border-color: var(--rdp-accent-color);
+}
+
+.date-picker-popover .rdp-day_button.rdp-today:not(.rdp-selected) {
+  color: var(--rdp-today-color);
+  font-weight: 600;
+}
+
+.date-picker-popover .rdp-day_button[aria-disabled="true"],
+.date-picker-popover .rdp-day_outside {
+  color: var(--ui-400);
+  opacity: 0.6;
+}
+
+.date-picker-popover .rdp-nav_button {
+  border-radius: 10px;
+  color: var(--ui-700);
+}
+
+.date-picker-popover .rdp-nav_button:hover {
+  background: var(--ui-200);
+  color: var(--ui-1000);
+}
+
+.date-picker-popover .rdp-dropdowns {
+  border-radius: 10px;
+}
+
+.date-picker-popover .rdp-select {
+  background: var(--ui-100);
+  color: var(--ui-900);
+  border: 1px solid var(--ui-200);
+  border-radius: 10px;
+}
+
+.date-picker-popover .rdp-footer {
+  border-radius: 0 0 12px 12px;
+}

@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ES2021",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "jsx": "react-jsx",
     "moduleResolution": "node",
@@ -11,6 +12,8 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,
+    "noEmit": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
     "baseUrl": "./",
     "paths": {
       "@styles/*": ["src/shared/styles/*"],
@@ -25,9 +28,11 @@
       "@assets/*": ["src/shared/assets/*"],
       "@components/*": ["src/shared/components/*"],
       "@store/*": ["src/shared/store/*"],
-      "@types/*": ["src/shared/types/*"],
+      "@t/*": ["src/shared/types/*"],
       "@contexts/*": ["src/shared/contexts/*"],
-      "@pages/*": ["src/pages/*"]
+      "@pages": ["src/pages"],
+      "@pages/*": ["src/pages/*"],
+      "@mappers/*": ["src/shared/mappers/*"]
     }
   },
   "include": ["src", "vite-env.d.ts"],
