@@ -4,7 +4,7 @@ import LockOpenIcon from '@assets/icons/lock-open.svg?react';
 import PlusIcon from '@assets/icons/plus.svg?react';
 import { cn } from '@libs/cn';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 type ReportCardProps = {
   type: 'create' | 'main';
@@ -27,14 +27,40 @@ const ReportCard = ({
   description,
   isPublic,
 }: ReportCardProps) => {
+  const navigate = useNavigate();
   const [isOn, setIsOn] = useState(isPublic);
   const { mutate } = usePatchReportVisibility();
 
   const to = type === 'create' ? '/report/create' : `/report/detail/${gitRepoId}?type=${label}`;
 
+  const handleCardClick = () => {
+    navigate(to);
+  };
+
+  const handleLockClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (reportId) {
+      const visibility = isOn ? 'PRIVATE' : 'PUBLIC';
+      mutate(
+        { reportId, visibility },
+        {
+          onSuccess: () => setIsOn((prev) => !prev),
+        },
+      );
+    }
+  };
+
   return (
-    <Link
-      to={to}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
       className="inline-flex h-[25rem] w-fit cursor-pointer rounded-3xl border border-[var(--ui-200)] p-[2.5rem] text-left"
     >
       <div className="w-[21rem]">
@@ -56,13 +82,10 @@ const ReportCard = ({
                 </p>
               </div>
 
-              {/* 내부 인터랙션은 이벤트 버블링 막기 */}
+              {/* 내부 인터랙션은 이벤트 버블링 막기 - 버튼 클릭 시 비공개 설정 */}
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOn((prev) => !prev);
-                }}
+                onClick={handleLockClick}
                 className={cn(
                   'relative h-[2.8rem] w-[5.6rem] rounded-[80px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-[0.8rem]',
                   isOn && 'bg-primary',
@@ -94,7 +117,7 @@ const ReportCard = ({
           </div>
         )}
       </div>
-    </Link>
+    </div>
   );
 };
 

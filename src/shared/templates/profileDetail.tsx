@@ -13,7 +13,6 @@ import MyPMBottomSection, { type ProjectTab } from '@components/myProject/MyBott
 
 import { useNavigate } from 'react-router-dom';
 import { useMemo, useState, useRef, useEffect } from 'react';
-import {cn} from '@libs/cn';
 
 import type { Contribution, MyProfile, MyReposResponse } from '@apis/myInfo/myInfo';
 import type { ReportCard } from '@apis/report/report';
