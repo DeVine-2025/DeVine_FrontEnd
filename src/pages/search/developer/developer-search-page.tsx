@@ -120,11 +120,8 @@ const DeveloperSearchPage = () => {
       try {
         const token = await getToken(); // null일 수 있음
         const pageData = await getDevelopers(params, token, controller.signal);
-        const filtered = (pageData.content ?? []).filter(
-          (item) => item.member?.mainType !== 'PM',
-        );
-        setSearchContent(filtered);
-        setTotalPages(pageData.totalPages ?? 0);
+        setSearchContent(pageData.content ?? []);
+        setTotalPages(Math.min(pageData.totalPages ?? 0, 10));
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') return;
         console.error('[개발자 검색] 실패', e);
