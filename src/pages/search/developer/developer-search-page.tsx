@@ -3,6 +3,7 @@ import { getDevelopers } from '@apis/developer';
 import { getMyRecruitingProjects } from '@apis/projects';
 import { getRecommendMembersPreview } from '@apis/recommendMembers';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
+import profileDefaultSvg from '@assets/icons/profile-default.svg';
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
 import Pagination from '@components/common/Pagination';
@@ -146,8 +147,6 @@ const DeveloperSearchPage = () => {
 
         const result = await getRecommendMembersPreview(projectId, 4, token, controller.signal);
 
-        const FALLBACK_PROFILE_IMAGE = '/images/profile-default.png';
-
         const mapped = result.map((x, index) => {
           const roleNames = (x.techstacks ?? []).filter((t) => t.genre == null).map((t) => t.name);
           const roleKey = pickRole(roleNames);
@@ -216,7 +215,7 @@ const DeveloperSearchPage = () => {
     };
   }, [getToken]);
 
-  const FALLBACK_PROFILE_IMAGE = '/images/profile-default.png';
+  const FALLBACK_PROFILE_IMAGE = profileDefaultSvg;
 
   const searchedProfiles = useMemo(() => {
     return searchContent.map((x, index) => {
