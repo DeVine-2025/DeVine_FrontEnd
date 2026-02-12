@@ -69,12 +69,12 @@ const DeveloperDetailPage = () => {
             나의 프로젝트를 제안해보세요!
           </p>
           <ContactCard />
-          <button
-            type="button"
-            className="flex items-center w-full justify-center gap-2 bg-ui-100 rounded-xl text-ui-500 py-[1.4rem] text-xl font-medium"
-          >
-            <TalkBalloonIcon /> 연락하기
-          </button>
+          {/*<button*/}
+          {/*  type="button"*/}
+          {/*  className="flex items-center w-full justify-center gap-2 bg-ui-100 rounded-xl text-ui-500 py-[1.4rem] text-xl font-medium"*/}
+          {/*>*/}
+          {/*  <TalkBalloonIcon /> 연락하기*/}
+          {/*</button>*/}
           <button
             type="button"
             className="bg-primary rounded-xl text-white text-xl font-medium w-full justify-center py-[1.4rem]"
