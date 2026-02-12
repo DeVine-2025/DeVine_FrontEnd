@@ -123,7 +123,10 @@ export default function DeveloperFilterBar({
                 onChange={setTechStacks}
                 onApply={() => onApply?.('포지션 / 기술스택')}
                 onReset={() => onReset?.('포지션 / 기술스택')}
-                onClose={close}
+                onClose={() => {
+                  onApply?.('포지션 / 기술스택');
+                  close();
+                }}
               />
             ) : label === '관심 도메인' ? (
               <DomainDropdown

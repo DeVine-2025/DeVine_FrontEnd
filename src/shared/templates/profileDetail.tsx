@@ -11,7 +11,6 @@ import DomainBadges from '@components/profileDetail/DomainBadges';
 import ImagePreview from '@components/profileDetail/ImagePreview';
 import NormalButton from '@components/profileDetail/NormalButton';
 import ReportCardSmall from '@components/profileDetail/ReportCardSmall';
-import RoleChips from '@components/profileDetail/RoleChips';
 import TechStackChips from '@components/profileDetail/TechStackChips';
 import { DOMAIN_REVERSE_MAP } from '@constants/domain';
 import type { InfiniteData } from '@tanstack/react-query';
@@ -54,8 +53,6 @@ const ProfileDetail = ({
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const member = profile?.member;
-  const role = member?.mainType === 'PM' ? 'PM' : '개발자';
-  const roleTone = member?.mainType === 'PM' ? 'blue' : 'green';
   const nickname = member?.nickname || member?.name || '닉네임';
   const domains = profile?.domains ?? [];
   const contacts = profile?.contacts ?? [];
@@ -154,7 +151,6 @@ const ProfileDetail = ({
         <div className="flex gap-[2.4rem]">
           <ImagePreview isExist={hasImage} imageUrl={imageUrl} />
           <div className="flex w-full flex-col gap-[0.8rem]">
-            <RoleChips roleTone={roleTone} role={role} />
             <p className="mb-[0.8rem] font-bold text-4xl text-ui-1000">{nickname}</p>
             {isDetail ? (
               <button
@@ -167,12 +163,7 @@ const ProfileDetail = ({
                 <HeartIcon className={isBookmarked ? 'text-primary' : 'text-ui-400'} />
                 관심 도메인
               </button>
-            ) : (
-              <p className="flex items-center gap-[0.4rem] font-medium text-ui-400 text-xl">
-                <HeartIcon className="text-ui-400" />
-                관심 도메인
-              </p>
-            )}
+            ) : null}
             <div className="flex-col gap-[1.4rem]">
               <div className="flex flex-wrap gap-[0.8rem]">
                 {domainBadges.map((domain) => (
@@ -257,7 +248,7 @@ const ProfileDetail = ({
                         label={
                           report.reportType === 'MAIN'
                             ? '메인'
-                            : report.reportType === 'DETAIL'
+                            : report.reportType === 'DETAIL' || report.reportType === 'SUB'
                               ? '상세'
                               : undefined
                         }
