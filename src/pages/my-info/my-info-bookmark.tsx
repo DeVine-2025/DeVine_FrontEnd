@@ -221,7 +221,7 @@ const MyInfoBookmark = () => {
       {!loading && !error && activeTab === 'project' && (
         <div className="flex flex-col gap-[2rem]">
           {projects.length === 0 ? (
-            <p className="text-ui-600">저장한 프로젝트가 없습니다.</p>
+            <p className="text-ui-600 text-[18px]">저장한 프로젝트가 없습니다.</p>
           ) : (
             projects.map(({ bookmarkId, targetId, project }) => {
               if (!project) {
@@ -266,7 +266,7 @@ const MyInfoBookmark = () => {
       {!loading && !error && activeTab === 'developer' && (
         <div className="flex flex-col gap-[2rem]">
           {developers.length === 0 ? (
-            <p className="text-ui-600">저장한 개발자가 없습니다.</p>
+            <p className="text-ui-600 text-[18px]">저장한 개발자가 없습니다.</p>
           ) : (
             developers.map(({ bookmarkId, targetId, targetNickname }) => {
               const nickname = targetNickname ?? (targetId != null ? `회원 #${targetId}` : '알 수 없음');
