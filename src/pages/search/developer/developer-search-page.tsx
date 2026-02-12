@@ -10,10 +10,14 @@ import ProfileCard from '@components/common/ProfileCard';
 import { useFilterStore } from '@store/filter';
 import type { BadgeTone } from '@t/badgeTone';
 import { DOMAIN_CODE_TO_LABEL, DOMAIN_LABEL_TO_CODE, ROLE_LABEL, ROLE_PRIORITY } from '@t/member';
-import type { DeveloperSearchContentDto, MemberSearchCategory } from '@t/profileCard.types';
+import type {
+  DeveloperSearchContentDto,
+  MemberSearchCategory,
+  ProfileCardProps,
+} from '@t/profileCard.types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DEVELOPER_FILTERS, PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
+import { DEVELOPER_FILTERS } from 'src/mocks/developer.mock';
 
 type RoleCode = (typeof ROLE_PRIORITY)[number];
 type RoleKey = RoleCode | 'DEVELOPER';
@@ -112,11 +116,8 @@ const DeveloperSearchPage = () => {
 
     (async () => {
       try {
-        const token = await getToken();
-        if (!token) return;
-
+        const token = await getToken(); // null일 수 있음
         const pageData = await getDevelopers(params, token, controller.signal);
-
         setSearchContent(pageData.content ?? []);
         setTotalPages(pageData.totalPages ?? 0);
       } catch (e) {
@@ -130,7 +131,7 @@ const DeveloperSearchPage = () => {
     return () => controller.abort();
   }, [getToken, params]);
 
-  const [profiles, setProfiles] = useState<typeof PROFILE_CARD_LIST>(PROFILE_CARD_LIST);
+  const [profiles, setProfiles] = useState<ProfileCardProps[]>([]);
 
   useEffect(() => {
     if (hasProjects !== true) return;
@@ -317,7 +318,7 @@ const DeveloperSearchPage = () => {
       </header>
 
       {/* 추천 개발자 카드 */}
-      {hasProjects === false ? (
+      {hasProjects !== true ? (
         <p className="py-10 text-center text-[15px] text-[var(--ui-500)]">
           프로젝트를 등록하면 추천 개발자를 볼 수 있어요
         </p>
@@ -328,13 +329,8 @@ const DeveloperSearchPage = () => {
               key={profile.id}
               {...profile}
               size="sm"
-              bookmarked={
-                bookmarkMap[profile.memberId ?? profile.nickname] != null ||
-                (profile.bookmarked ?? false)
-              }
-              onBookmarkChange={(next) =>
-                handleBookmarkChange(profile.memberId, profile.nickname, next)
-              }
+              bookmarked={bookmarkMap[profile.nickname] != null || (profile.bookmarked ?? false)}
+              onBookmarkChange={(next) => handleBookmarkChange(undefined, profile.nickname, next)}
             />
           ))}
         </div>
