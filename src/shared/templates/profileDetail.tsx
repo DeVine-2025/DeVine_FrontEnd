@@ -163,12 +163,7 @@ const ProfileDetail = ({
                 <HeartIcon className={isBookmarked ? 'text-primary' : 'text-ui-400'} />
                 관심 도메인
               </button>
-            ) : (
-              <p className="flex items-center gap-[0.4rem] font-medium text-ui-400 text-xl">
-                <HeartIcon className="text-ui-400" />
-                관심 도메인
-              </p>
-            )}
+            ) : null}
             <div className="flex-col gap-[1.4rem]">
               <div className="flex flex-wrap gap-[0.8rem]">
                 {domainBadges.map((domain) => (
