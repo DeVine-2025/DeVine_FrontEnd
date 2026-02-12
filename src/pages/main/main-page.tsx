@@ -513,6 +513,7 @@ const MainPage = () => {
                       handleDeveloperBookmarkChange(profile.memberId, profile.nickname, next)
                     }
                     matchedReason="의 Java/Springboot 요구사항과 일치합니다."
+                    onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
                   />
                 ))
               )
