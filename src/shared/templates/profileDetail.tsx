@@ -248,7 +248,7 @@ const ProfileDetail = ({
                         label={
                           report.reportType === 'MAIN'
                             ? '메인'
-                            : report.reportType === 'DETAIL'
+                            : report.reportType === 'DETAIL' || report.reportType === 'SUB'
                               ? '상세'
                               : undefined
                         }
