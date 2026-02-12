@@ -323,7 +323,7 @@ const DeveloperSearchPage = () => {
           프로젝트를 등록하면 추천 개발자를 볼 수 있어요
         </p>
       ) : (
-        <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
+        <div className="scrollbar-hide flex justify-start gap-6 overflow-x-auto">
           {profiles.map((profile) => (
             <ProfileCard
               key={profile.id}
