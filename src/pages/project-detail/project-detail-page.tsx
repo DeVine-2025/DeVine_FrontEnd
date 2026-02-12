@@ -63,7 +63,7 @@ const toProjectDetailInfo = (project: FallbackProject): ProjectDetailInfo => ({
   location: project.location,
   period: project.deadlineLabel,
   mode: project.mode,
-  dueLabel: 'dueLabel' in project ? project.dueLabel : undefined,
+  dueLabel: 'dueLabel' in project ? (project.dueLabel as string | undefined) : undefined,
 });
 
 const API_BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');

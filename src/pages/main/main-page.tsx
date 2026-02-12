@@ -18,7 +18,6 @@ import { useAuthStore } from '@store/auth';
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ProjectRole } from '@t/project/ui';
 import { getDueLabel, mapPositionsToRoles } from 'src/shared/mappers/project';
 
 type HighlightProject = ProjectCardProps & { id: number };
