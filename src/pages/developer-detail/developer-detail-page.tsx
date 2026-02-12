@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
 import ProfileDetail from '../../shared/templates/profileDetail';
@@ -29,8 +29,21 @@ const DeveloperDetailPage = () => {
     ...myInfoQueries.getMemberGitContributions(memberNick!, year),
     enabled,
   });
-  const { data: reportsRes } = useQuery({
-    ...reportQueries.getMemberReports({ nickname: memberNick! }),
+  const { data: mainReportsRes } = useQuery({
+    ...reportQueries.getMemberReports({ nickname: memberNick!, type: 'MAIN' }),
+    enabled,
+  });
+  const { data: detailReportsRes } = useQuery({
+    ...reportQueries.getMemberReports({ nickname: memberNick!, type: 'DETAIL' }),
+    enabled,
+  });
+  const {
+    data: gitRepos,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    ...myInfoQueries.memberReposInfinite(memberNick!),
     enabled,
   });
 
@@ -48,7 +61,11 @@ const DeveloperDetailPage = () => {
       : undefined;
     return Array.isArray(list) ? list : [];
   }, [contributionsRes]);
-  const reports = reportsRes?.result?.reports ?? [];
+  const reports = useMemo(() => {
+    const main = mainReportsRes?.result?.reports ?? [];
+    const detail = detailReportsRes?.result?.reports ?? [];
+    return [...main, ...detail];
+  }, [mainReportsRes, detailReportsRes]);
 
   const nickname = profile?.member?.nickname || profile?.member?.name || '닉네임';
 
@@ -62,7 +79,12 @@ const DeveloperDetailPage = () => {
           contributions={contributionsData}
           year={year}
           onYearChange={setYear}
+          gitRepos={gitRepos}
+          fetchNextPage={fetchNextPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
           reports={reports}
+          memberNick={memberNick}
         />
         <div className="sticky top-8 self-start flex-1/3 bg-ui-bg rounded-2xl border border-ui-200 flex flex-col gap-[1.2rem] p-[2.4rem] h-fit">
           <p className="text-ui-900 text-2xl font-semibold">

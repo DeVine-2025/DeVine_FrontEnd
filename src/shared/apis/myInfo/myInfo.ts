@@ -32,6 +32,7 @@ export interface GitRepo {
   name: string;
   gitUrl: string;
   description: string;
+  hasReport?: boolean;
 }
 
 export interface Contribution {

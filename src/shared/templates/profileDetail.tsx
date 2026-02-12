@@ -13,11 +13,13 @@ import MyPMBottomSection, { type ProjectTab } from '@components/myProject/MyBott
 
 import { useNavigate } from 'react-router-dom';
 import { useMemo, useState, useRef, useEffect } from 'react';
+import { useAuth } from '@clerk/clerk-react';
 
 import type { Contribution, MyProfile, MyReposResponse } from '@apis/myInfo/myInfo';
 import type { ReportCard } from '@apis/report/report';
 import { DOMAIN_REVERSE_MAP } from '@constants/domain';
 import { InfiniteData } from '@tanstack/react-query';
+import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 
 type ProfileDetailProps = {
   type: '내 정보' | '개발자 상세';
@@ -31,6 +33,7 @@ type ProfileDetailProps = {
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
   reports?: ReportCard[];
+  memberNick?: string;
 };
 
 const ProfileDetail = ({
@@ -45,12 +48,14 @@ const ProfileDetail = ({
   hasNextPage,
   isFetchingNextPage,
   reports = [],
+  memberNick,
 }: ProfileDetailProps) => {
   const [projectTab, setProjectTab] = useState<ProjectTab>('ongoing');
   const [isHover, setIsHover] = useState<boolean>(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
+  const { getToken } = useAuth();
   const member = profile?.member;
   const role = member?.mainType === 'PM' ? 'PM' : '개발자';
   const roleTone = member?.mainType === 'PM' ? 'blue' : 'green';
@@ -60,6 +65,10 @@ const ProfileDetail = ({
   const introduction = member?.body || '소개가 들어가는 자리 입니다.';
   const imageUrl = member?.imageUrl ?? null;
   const hasImage = Boolean(imageUrl);
+  const targetNickname = memberNick ?? member?.nickname ?? '';
+  const [bookmarkId, setBookmarkId] = useState<number | null>(null);
+  const isDetail = type === '개발자 상세';
+  const isBookmarked = isDetail && bookmarkId != null;
   const domainBadges = useMemo(
     () =>
       domains.length > 0
@@ -86,6 +95,63 @@ const ProfileDetail = ({
     return () => scrollContainer.removeEventListener('scroll', handleScroll);
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  useEffect(() => {
+    if (!isDetail) return;
+    if (!targetNickname) return;
+    let cancelled = false;
+    const loadBookmarks = async () => {
+      const token = await getToken();
+      if (!token || cancelled) return;
+      try {
+        const bookmarks = await getBookmarks(token);
+        if (cancelled) return;
+        const hit = bookmarks.find(
+          (b) => b.targetType === 'DEVELOPER' && b.targetNickname === targetNickname,
+        );
+        setBookmarkId(hit?.bookmarkId ?? null);
+      } catch (e) {
+        console.error('[북마크] 상세 로드 실패', e);
+      }
+    };
+    void loadBookmarks();
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken, isDetail, targetNickname]);
+
+  const handleBookmarkChange = async () => {
+    if (!isDetail) return;
+    if (!targetNickname) return;
+    const token = await getToken();
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+    const prevId = bookmarkId;
+    const next = !isBookmarked;
+    if (next) {
+      setBookmarkId(-1);
+    } else {
+      setBookmarkId(null);
+    }
+    try {
+      if (next) {
+        const { bookmarkId: nextId } = await createBookmark(
+          { targetType: 'DEVELOPER', targetNickname },
+          token,
+        );
+        setBookmarkId(nextId);
+      } else {
+        if (prevId == null || prevId <= 0) return;
+        await deleteBookmark(prevId, token);
+      }
+    } catch (e) {
+      setBookmarkId(prevId ?? null);
+      alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
+    }
+  };
+
   console.log(gitRepos?.pages)
   return (
     <section className="mx-auto w-full max-w-[1180px] flex justify-between">
@@ -96,7 +162,23 @@ const ProfileDetail = ({
           <div className="w-full flex flex-col gap-[0.8rem]">
             <RoleChips roleTone={roleTone} role={role} />
             <p className="text-4xl font-bold text-ui-1000 mb-[0.8rem]">{nickname}</p>
-            <p className="flex items-center gap-[0.4rem] text-xl font-medium text-ui-400"><HeartIcon />관심 도메인</p>
+            {isDetail ? (
+              <button
+                type="button"
+                onClick={handleBookmarkChange}
+                disabled={!targetNickname}
+                aria-pressed={isBookmarked}
+                className="flex items-center gap-[0.4rem] text-xl font-medium text-ui-400 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <HeartIcon className={isBookmarked ? 'text-primary' : 'text-ui-400'} />
+                관심 도메인
+              </button>
+            ) : (
+              <p className="flex items-center gap-[0.4rem] text-xl font-medium text-ui-400">
+                <HeartIcon className="text-ui-400" />
+                관심 도메인
+              </p>
+            )}
             <div className="flex-col gap-[1.4rem]">
               <div className="flex flex-wrap gap-[0.8rem]">
                 {domainBadges.map((domain) => (
@@ -136,8 +218,8 @@ const ProfileDetail = ({
         </div>
 
         {/* Section 4 : 깃허브 기록 */}
-        <div>
-          <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem] mb-[2.4rem]">깃허브 기록</p>
+        <div className="flex flex-col gap-[2.4rem]">
+          <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem]">깃허브 기록</p>
           <div className="flex-col gap-[1.5rem]">
             <CustomGithubCalendar
               data={contributions}
@@ -161,26 +243,44 @@ const ProfileDetail = ({
               )}
             </div>
           </div>
+
+          {/* 리포트 */}
+          {type === '개발자 상세' && (
+            <div className="flex flex-col gap-[1.5rem]">
+              <p className="text-ui-1000 text-3xl font-bold">리포트</p>
+              <div className="flex gap-[1.5rem] overflow-x-auto overflow-y-hidden flex-nowrap w-full [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-ui-200">
+                {reports.length > 0 ? (
+                  reports.map((report) => (
+                    <div key={report.reportId} className="flex-shrink-0 min-w-64 max-w-64">
+                      <ReportCardSmall
+                        label={
+                          report.reportType === 'MAIN'
+                            ? '메인'
+                            : report.reportType === 'DETAIL'
+                              ? '상세'
+                              : undefined
+                        }
+                        title={report.repoName}
+                        description={report.repoDescription}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex min-h-[120px] w-full items-center justify-center rounded-2xl border border-ui-200 bg-ui-50">
+                    <p className="text-ui-500">리포트 없음</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        {type === '개발자 상세' && reports.length > 0 && (
-          <div className="flex flex-col gap-[2.4rem]">
-            <p className="text-ui-1000 text-3xl font-bold">리포트</p>
-            <div className="flex gap-[1.5rem] overflow-x-auto overflow-y-hidden flex-nowrap w-full [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-ui-200">
-              {reports.map((report) => (
-                <div key={report.reportId} className="flex-shrink-0 min-w-64 max-w-64">
-                  <ReportCardSmall
-                    title={report.repoName}
-                    description={report.repoDescription}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         <div className="w-full">
-          <MyPMBottomSection projectTab={projectTab} onChangeProjectTab={setProjectTab} />
+          <MyPMBottomSection
+            projectTab={projectTab}
+            onChangeProjectTab={setProjectTab}
+            memberNick={memberNick}
+          />
         </div>
       </div>
 
