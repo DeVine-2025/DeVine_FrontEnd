@@ -1,13 +1,12 @@
 import BookmarkButton from '@components/common/BookmarkButton';
 import { cn } from '@libs/cn';
-import { badgeToneToClass } from '../../types/badgeTone';
 import type { ProfileCardProps } from '../../types/profileCard.types';
 import { BadgeList, Intro, TechChips } from './ProfileBase';
 
 export default function ProfileCardLg(props: ProfileCardProps) {
   const {
-    role,
-    roleTone,
+    role: _role,
+    roleTone: _roleTone,
     nickname,
     profileImageUrl,
     profileImageAlt,
@@ -59,17 +58,6 @@ export default function ProfileCardLg(props: ProfileCardProps) {
         />
 
         <div className="flex min-w-0 flex-1 flex-col gap-5">
-          {role && roleTone && (
-            <span
-              className={cn(
-                'inline-flex w-fit items-center whitespace-nowrap rounded-lg px-3 py-1 font-semibold text-lg',
-                badgeToneToClass[roleTone],
-              )}
-            >
-              {role}
-            </span>
-          )}
-
           <div className="truncate pl-1 font-semibold text-2xl text-card-title">{nickname}</div>
 
           <BadgeList badges={badges} className="gap-4" />
