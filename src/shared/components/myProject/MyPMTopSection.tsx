@@ -1,7 +1,9 @@
 import ProfileCard from '@components/common/ProfileCard';
 import Tabs from '@components/tab/CommonTabs';
 import { type DevTab, type MatchingDeveloper, usePmDevelopers } from '@hooks/usePmDevelopers';
+import { useRespondApplication } from '@hooks/useRespondApplication';
 import type { ProfileCardProps, TechStackItem } from '@t/profileCard.types';
+import { useState } from 'react';
 
 type Props = {
   devTab: DevTab;
@@ -60,10 +62,12 @@ const Action = ({
   visible,
   onAccept,
   onReject,
+  disabled,
 }: {
   visible: boolean;
   onAccept: () => void;
   onReject: () => void;
+  disabled?: boolean;
 }) => {
   if (!visible) return null;
 
@@ -71,7 +75,8 @@ const Action = ({
     <div className="flex gap-4">
       <button
         type="button"
-        className="cursor-pointer rounded-xl bg-[#4E49FF] px-4 py-3 font-medium text-[13px] text-my-tab-inactive"
+        disabled={disabled}
+        className="cursor-pointer rounded-xl bg-[#4E49FF] px-4 py-3 font-medium text-[13px] text-my-tab-inactive disabled:cursor-not-allowed disabled:opacity-50"
         onClick={onAccept}
       >
         수락하기
@@ -79,7 +84,8 @@ const Action = ({
 
       <button
         type="button"
-        className="cursor-pointer rounded-xl bg-surface-tab px-4 py-3 font-medium text-[13px] text-my-tab-text"
+        disabled={disabled}
+        className="cursor-pointer rounded-xl bg-surface-tab px-4 py-3 font-medium text-[13px] text-my-tab-text disabled:cursor-not-allowed disabled:opacity-50"
         onClick={onReject}
       >
         거절하기
@@ -90,6 +96,14 @@ const Action = ({
 
 const MyPMTopSection = ({ devTab, onChangeDevTab }: Props) => {
   const { data, isLoading, isError } = usePmDevelopers(devTab);
+  const respondMut = useRespondApplication();
+
+  const [localDecision, setLocalDecision] = useState<
+    Record<number, 'PENDING' | 'ACCEPT' | 'REJECT'>
+  >({});
+
+  const getDecision = (matchingId: number, serverDecision: 'PENDING' | 'ACCEPT' | 'REJECT') =>
+    localDecision[matchingId] ?? serverDecision;
 
   const suggestedQ = usePmDevelopers('suggested');
   const appliedQ = usePmDevelopers('applied');
@@ -99,12 +113,34 @@ const MyPMTopSection = ({ devTab, onChangeDevTab }: Props) => {
 
   const tabLabel = (text: string, count: number) => (
     <div className="flex items-center gap-3">
-      <span>{text}</span>
-      <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-white/20 px-2 text-sm">
+      <span className="text-2xl text-ui-300 dark:text-ui-100">{text}</span>
+      <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-[var(--ui-200)] px-2 font-medium text-[var(--ui-800)] text-sm dark:bg-[var(--ui-700)] dark:text-[var(--ui-100)]">
         {count}
       </span>
     </div>
   );
+
+  const renderDecisionBadge = (decision: 'PENDING' | 'ACCEPT' | 'REJECT') => {
+    if (decision === 'PENDING') {
+      return (
+        <div className="rounded-xl bg-gray-100 px-4 py-3 font-medium text-[12px] text-gray-500">
+          응답 대기 중
+        </div>
+      );
+    }
+    if (decision === 'ACCEPT') {
+      return (
+        <div className="rounded-xl bg-green-100 px-4 py-3 font-medium text-[12px] text-green-600">
+          수락 완료
+        </div>
+      );
+    }
+    return (
+      <div className="rounded-xl bg-red-100 px-4 py-3 font-medium text-[12px] text-red-600">
+        거절 완료
+      </div>
+    );
+  };
 
   return (
     <section>
@@ -136,30 +172,60 @@ const MyPMTopSection = ({ devTab, onChangeDevTab }: Props) => {
           (data?.content ?? []).map((d) => {
             const cardProps = toProfileCardProps(d);
 
+            const decision = getDecision(
+              d.matchingId,
+              d.decision as 'PENDING' | 'ACCEPT' | 'REJECT',
+            );
+
+            const isPending = decision === 'PENDING';
+
             return (
               <ProfileCard
                 key={d.matchingId}
                 {...cardProps}
                 header={<Header projectName={d.projectName} />}
                 action={
-                  devTab === 'suggested' ? (
-                    <Action
-                      visible
-                      onAccept={() => console.log('수락', d.matchingId)}
-                      onReject={() => console.log('거절', d.matchingId)}
-                    />
-                  ) : d.decision === 'PENDING' ? (
-                    <div className="rounded-xl bg-gray-100 px-4 py-3 font-medium text-[13px] text-gray-500">
-                      응답 대기 중
-                    </div>
-                  ) : d.decision === 'ACCEPT' ? (
-                    <div className="rounded-xl bg-green-100 px-4 py-3 font-medium text-[13px] text-green-600">
-                      수락됨
-                    </div>
+                  devTab === 'applied' ? (
+                    isPending ? (
+                      <Action
+                        visible
+                        disabled={respondMut.isPending}
+                        onAccept={() => {
+                          setLocalDecision((prev) => ({ ...prev, [d.matchingId]: 'ACCEPT' }));
+
+                          respondMut.mutate(
+                            { matchingId: d.matchingId, decision: 'ACCEPT' },
+                            {
+                              onError: () => {
+                                setLocalDecision((prev) => ({
+                                  ...prev,
+                                  [d.matchingId]: 'PENDING',
+                                }));
+                              },
+                            },
+                          );
+                        }}
+                        onReject={() => {
+                          setLocalDecision((prev) => ({ ...prev, [d.matchingId]: 'REJECT' }));
+
+                          respondMut.mutate(
+                            { matchingId: d.matchingId, decision: 'REJECT' },
+                            {
+                              onError: () => {
+                                setLocalDecision((prev) => ({
+                                  ...prev,
+                                  [d.matchingId]: 'PENDING',
+                                }));
+                              },
+                            },
+                          );
+                        }}
+                      />
+                    ) : (
+                      renderDecisionBadge(decision)
+                    )
                   ) : (
-                    <div className="rounded-xl bg-red-100 px-4 py-3 font-medium text-[13px] text-red-600">
-                      거절됨
-                    </div>
+                    renderDecisionBadge(d.decision as 'PENDING' | 'ACCEPT' | 'REJECT')
                   )
                 }
               />

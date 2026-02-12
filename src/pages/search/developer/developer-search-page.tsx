@@ -18,6 +18,7 @@ import type {
 } from '@t/profileCard.types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 const DEVELOPER_FILTERS = ['내 프로젝트 선택', '포지션 / 기술스택', '관심 도메인'] as const;
 
 type RoleCode = (typeof ROLE_PRIORITY)[number];
@@ -313,14 +314,16 @@ const DeveloperSearchPage = () => {
       <header className="flex items-center justify-between">
         <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 개발자</h2>
 
-        <button
-          type="button"
-          onClick={() => navigate('/recommend/developer')}
-          className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
-        >
-          더 많은 추천 개발자 보러가기
-          <ChevronRightIcon className="h-6 w-6 shrink-0" aria-hidden />
-        </button>
+        {hasProjects === true && (
+          <button
+            type="button"
+            onClick={() => navigate('/recommend/developer')}
+            className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
+          >
+            더 많은 추천 개발자 보러가기
+            <ChevronRightIcon className="h-6 w-6 shrink-0" aria-hidden />
+          </button>
+        )}
       </header>
 
       {/* 추천 개발자 카드 */}
