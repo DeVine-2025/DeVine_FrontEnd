@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
@@ -15,6 +15,7 @@ const DeveloperDetailPage = () => {
   const [year, setYear] = useState(new Date().getFullYear());
 
   const enabled = Boolean(memberNick);
+  const navigate = useNavigate();
 
   const { data: profileRes } = useQuery({
     ...myInfoQueries.memberProfile(memberNick!),
@@ -77,7 +78,12 @@ const DeveloperDetailPage = () => {
           {/*</button>*/}
           <button
             type="button"
-            className="bg-primary rounded-xl text-white text-xl font-medium w-full justify-center py-[1.4rem]"
+            onClick={() => {
+              navigate(`/developer-detail/${memberNick}/suggest`, {
+                state: { profileData: profileRes },
+              });
+            }}
+            className="cursor-pointer bg-primary rounded-xl text-white text-xl font-medium w-full justify-center py-[1.4rem]"
           >
             제안하기
           </button>

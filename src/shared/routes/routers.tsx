@@ -26,6 +26,7 @@ import {
   RecommendPage,
   RecommendProjectPage,
   DeveloperDetailPage,
+  DeveloperSuggestPage,
   ReportDetailPage,
   ReportResultPage,
   ReportLoadingPage,
@@ -110,6 +111,7 @@ export const router = createBrowserRouter([
           { path: 'project/create/complete', element: <ProjectCreateCompletePage /> },
 
           { path: 'developer-detail/:memberNick', element: <DeveloperDetailPage/>},
+          { path: 'developer-detail/:memberNick/suggest', element: <DeveloperSuggestPage/>},
           {
             path: 'my-info',
             element: <MyInfoPage />,
