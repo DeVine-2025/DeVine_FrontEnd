@@ -6,7 +6,6 @@ import { getMyRecruitingProjects } from '@apis/projects';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
-import { PROJECT_LIST, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 import {
   toProjectDetailInfo,
   toProjectDetailInfoFromApi,
@@ -181,10 +180,8 @@ export function useProjectDetail() {
     };
   }, [projectId]);
 
-  // ── Fallback / session project ──
-  const fallbackProject =
-    PROJECT_LIST.find((project) => project.id === projectId) ??
-    RECOMMENDED_PROJECTS.find((project) => project.id === projectId);
+  // ── Fallback / session project (mock 제거로 폴백 없음) ──
+  const fallbackProject = undefined;
 
   const sessionProject = useMemo(() => {
     if (!projectId) return undefined;
