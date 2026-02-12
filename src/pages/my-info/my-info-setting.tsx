@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import {cn} from '@libs/cn';
+import {useUser} from '@clerk/clerk-react';
 
 import GithubIcon from "@assets/icons/github.svg?react";
 import GoogleIcon from "@assets/icons/google.svg?react";
@@ -36,8 +37,18 @@ const MyInfoSetting = () => {
   const [isOnFirst, setIsOnFirst] = useState<boolean>(false);
   const [isOnSecond, setIsOnSecond] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('PM');
-  const tabs = ['PM', '개발자']
+  const tabs = ['PM', '개발자'];
+  const {user, isLoaded} = useUser();
 
+  const hasGoogle = user?.externalAccounts?.some(
+    acc => acc.provider === 'google'
+  );
+
+  const hasGithub = user?.externalAccounts?.some(
+    acc => acc.provider === 'github'
+  );
+
+  console.log(typeof hasGithub, hasGoogle)
   return (
     <div className="flex-col gap-[6rem] mt-[4rem]">
       <div className="flex justify-between items-center gap-[5rem]">
@@ -64,7 +75,7 @@ const MyInfoSetting = () => {
               <GithubIcon className="w-11 h-11" />
               <p className="text-ui-1000 text-2xl">GitHub</p>
             </div>
-            <Label content={"연동완료"} isConnect={true} />
+            <Label content={hasGithub ? "연동완료" : "연동하기"} isConnect={hasGithub} />
           </div>
           <div className="flex flex-1 items-center justify-between">
             <div className="flex items-center gap-[1.6rem]">
@@ -73,7 +84,7 @@ const MyInfoSetting = () => {
               </div>
               <p className="text-ui-1000 text-2xl">Google</p>
             </div>
-            <Label content={"연동완료"} isConnect={true} />
+            <Label content={hasGoogle ? "연동완료" : "연동하기"} isConnect={hasGoogle} />
           </div>
         </div>
       </div>
