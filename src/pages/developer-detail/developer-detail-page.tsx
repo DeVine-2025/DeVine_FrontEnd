@@ -29,8 +29,12 @@ const DeveloperDetailPage = () => {
     ...myInfoQueries.getMemberGitContributions(memberNick!, year),
     enabled,
   });
-  const { data: reportsRes } = useQuery({
-    ...reportQueries.getMemberReports({ nickname: memberNick! }),
+  const { data: mainReportsRes } = useQuery({
+    ...reportQueries.getMemberReports({ nickname: memberNick!, type: 'MAIN' }),
+    enabled,
+  });
+  const { data: detailReportsRes } = useQuery({
+    ...reportQueries.getMemberReports({ nickname: memberNick!, type: 'DETAIL' }),
     enabled,
   });
   const {
@@ -57,7 +61,11 @@ const DeveloperDetailPage = () => {
       : undefined;
     return Array.isArray(list) ? list : [];
   }, [contributionsRes]);
-  const reports = reportsRes?.result?.reports ?? [];
+  const reports = useMemo(() => {
+    const main = mainReportsRes?.result?.reports ?? [];
+    const detail = detailReportsRes?.result?.reports ?? [];
+    return [...main, ...detail];
+  }, [mainReportsRes, detailReportsRes]);
 
   const nickname = profile?.member?.nickname || profile?.member?.name || '닉네임';
 

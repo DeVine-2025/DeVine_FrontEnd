@@ -218,8 +218,8 @@ const ProfileDetail = ({
         </div>
 
         {/* Section 4 : 깃허브 기록 */}
-        <div>
-          <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem] mb-[2.4rem]">깃허브 기록</p>
+        <div className="flex flex-col gap-[2.4rem]">
+          <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem]">깃허브 기록</p>
           <div className="flex-col gap-[1.5rem]">
             <CustomGithubCalendar
               data={contributions}
@@ -243,23 +243,37 @@ const ProfileDetail = ({
               )}
             </div>
           </div>
-        </div>
 
-        {type === '개발자 상세' && reports.length > 0 && (
-          <div className="flex flex-col gap-[2.4rem]">
-            <p className="text-ui-1000 text-3xl font-bold">리포트</p>
-            <div className="flex gap-[1.5rem] overflow-x-auto overflow-y-hidden flex-nowrap w-full [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-ui-200">
-              {reports.map((report) => (
-                <div key={report.reportId} className="flex-shrink-0 min-w-64 max-w-64">
-                  <ReportCardSmall
-                    title={report.repoName}
-                    description={report.repoDescription}
-                  />
-                </div>
-              ))}
+          {/* 리포트 */}
+          {type === '개발자 상세' && (
+            <div className="flex flex-col gap-[1.5rem]">
+              <p className="text-ui-1000 text-3xl font-bold">리포트</p>
+              <div className="flex gap-[1.5rem] overflow-x-auto overflow-y-hidden flex-nowrap w-full [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-ui-200">
+                {reports.length > 0 ? (
+                  reports.map((report) => (
+                    <div key={report.reportId} className="flex-shrink-0 min-w-64 max-w-64">
+                      <ReportCardSmall
+                        label={
+                          report.reportType === 'MAIN'
+                            ? '메인'
+                            : report.reportType === 'DETAIL'
+                              ? '상세'
+                              : undefined
+                        }
+                        title={report.repoName}
+                        description={report.repoDescription}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex min-h-[120px] w-full items-center justify-center rounded-2xl border border-ui-200 bg-ui-50">
+                    <p className="text-ui-500">리포트 없음</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         <div className="w-full">
           <MyPMBottomSection
