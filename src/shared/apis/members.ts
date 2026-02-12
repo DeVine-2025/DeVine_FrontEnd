@@ -305,12 +305,41 @@ function pickString(dto: Record<string, unknown>, ...keys: string[]): string {
 }
 
 function pickImageUrl(dto: Record<string, unknown>): string | undefined {
-  const v = dto.image ?? dto.imageUrl ?? dto.profileImageUrl ?? dto.avatarUrl ?? dto.profileImage;
+  const v =
+    dto.image ??
+    dto.imageUrl ??
+    dto.profileImageUrl ??
+    dto.profileImage ??
+    dto.profileImgUrl ??
+    dto.avatarUrl ??
+    dto.avatar ??
+    dto.avatarImage;
   if (typeof v === 'string' && v.trim().length > 0) return v.trim();
   for (const nest of ['member', 'user', 'profile', 'developer', 'account']) {
     const obj = dto[nest] as Record<string, unknown> | undefined;
     if (obj && typeof obj === 'object') {
-      const w = obj.image ?? obj.imageUrl ?? obj.profileImageUrl ?? obj.avatarUrl;
+      const w =
+        obj.image ??
+        obj.imageUrl ??
+        obj.profileImageUrl ??
+        obj.profileImage ??
+        obj.profileImgUrl ??
+        obj.avatarUrl ??
+        obj.avatar ??
+        obj.avatarImage;
+      if (typeof w === 'string' && w.trim().length > 0) return w.trim();
+    }
+  }
+  return undefined;
+}
+
+function pickMainType(dto: Record<string, unknown>): string | undefined {
+  const v = dto.mainType ?? dto.memberType ?? dto.role ?? dto.memberRole;
+  if (typeof v === 'string' && v.trim().length > 0) return v.trim();
+  for (const nest of ['member', 'user', 'profile', 'developer', 'account']) {
+    const obj = dto[nest] as Record<string, unknown> | undefined;
+    if (obj && typeof obj === 'object') {
+      const w = obj.mainType ?? obj.memberType ?? obj.role ?? obj.memberRole;
       if (typeof w === 'string' && w.trim().length > 0) return w.trim();
     }
   }
@@ -350,6 +379,8 @@ function mapRecommendMemberToListItem(
   index: number,
 ): RecommendDeveloperListItem {
   const raw = dto as Record<string, unknown>;
+  const mainType = pickMainType(raw);
+  const isPm = mainType === 'PM';
   const memberId =
     (typeof dto.memberId === 'number' && dto.memberId > 0 ? dto.memberId : undefined) ??
     (typeof dto.id === 'number' && dto.id > 0 ? dto.id : undefined) ??
@@ -358,6 +389,10 @@ function mapRecommendMemberToListItem(
     raw,
     'nickname',
     'nickName',
+    'memberNickname',
+    'memberNick',
+    'member_nickname',
+    'nick',
     'name',
     'userName',
     'username',
@@ -429,8 +464,8 @@ function mapRecommendMemberToListItem(
     profileImageUrl: profileImageUrl ?? undefined,
     introduction,
     techStack,
-    role: '개발자',
-    roleTone: 'blue',
+    role: isPm ? 'PM' : '개발자',
+    roleTone: isPm ? 'blue' : 'green',
     domains: (() => {
       const raw = dto as Record<string, unknown>;
       let arr: unknown[] = [];
@@ -535,7 +570,12 @@ export async function getRecommendMembers(
 
   const page = json?.result;
   const content = page?.content ?? [];
-  const list = content.map(mapRecommendMemberToListItem);
+  const list = content
+    .filter((dto) => {
+      const mainType = pickMainType(dto as Record<string, unknown>);
+      return mainType !== 'PM';
+    })
+    .map(mapRecommendMemberToListItem);
 
   return {
     list,
