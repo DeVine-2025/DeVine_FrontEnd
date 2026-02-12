@@ -17,7 +17,7 @@ export type RecommendPreviewItem = {
   deadlineLabel: string;
   title: string;
   location: string;
-  period: string;
+  durationRangeName: string;
   mode: string;
   roles: ProjectRole[];
 };
@@ -40,7 +40,7 @@ export type ProjectCardProps = {
 
   title: string;
   location?: string;
-  period?: string;
+  durationRangeName?: string;
   mode?: string;
 
   roles?: ProjectRole[];

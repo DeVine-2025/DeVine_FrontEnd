@@ -3,6 +3,7 @@ import {
   getRecommendProjectsPreview,
   type RecommendProjectPreviewItem,
 } from '@apis/mainrecommendproject';
+import { getReports } from '@apis/report/report-queries';
 import { useAuth } from '@clerk/clerk-react';
 import ProjectListState from '@components/common/ListStateUI';
 import Pagination from '@components/common/Pagination';
@@ -17,7 +18,6 @@ import type { ProjectRole, RecommendPreviewItem } from '@t/project/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PROJECT_FILTERS, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
-import { getReports } from '@apis/report/report-queries';
 
 // 북마크 하이드레이션: 새로고침/재진입 시에도 북마크 상태 유지
 function useBookmarkHydration(getToken: () => Promise<string | null>, enabled: boolean) {
@@ -71,7 +71,7 @@ export default function ProjectSearchPage() {
       deadlineLabel?: string;
       title: string;
       location?: string;
-      period?: string;
+      durationRangeName?: string;
       mode?: string;
       dueLabel?: string;
       roles?: ProjectRole[];
@@ -133,7 +133,7 @@ export default function ProjectSearchPage() {
       deadlineLabel: project.deadlineLabel,
       title: project.title,
       location: project.location,
-      period: project.period,
+      durationRangeName: project.durationRangeName,
       mode: project.mode,
       roles: [...PROJECT_ROLES],
     })),
@@ -246,7 +246,7 @@ export default function ProjectSearchPage() {
           deadlineLabel: item.categoryName,
           title: item.title,
           location: item.location,
-          period: `${item.durationMonths}개월`,
+          durationRangeName: item.durationRangeName ?? `${item.durationMonths}개월`,
           mode: item.modeName,
           roles: mapPositionsToRoles(item.positions as never),
         }));
@@ -261,7 +261,7 @@ export default function ProjectSearchPage() {
               deadlineLabel: project.deadlineLabel,
               title: project.title,
               location: project.location,
-              period: project.period,
+              durationRangeName: project.durationRangeName,
               mode: project.mode,
               roles: [...PROJECT_ROLES],
             })),
@@ -296,7 +296,7 @@ export default function ProjectSearchPage() {
 
       {hasReport === false ? (
         <p className="py-10 text-center text-[15px] text-[var(--ui-500)]">
-          리포트를 생성하고 추천 프로젝트를 보세요
+          리포트를 생성하면 맞춤 추천 프로젝트를 확인할 수 있어요
         </p>
       ) : (
         <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
@@ -309,11 +309,13 @@ export default function ProjectSearchPage() {
                 deadlineLabel={p.deadlineLabel}
                 title={p.title}
                 location={p.location}
-                period={p.period}
+                durationRangeName={p.durationRangeName}
                 mode={p.mode}
                 roles={p.roles}
                 bookmarked={ov?.bookmarked ?? false}
-                onBookmarkChange={(next) => handleBookmarkChange(Number(p.id), next, ov?.bookmarkId)}
+                onBookmarkChange={(next) =>
+                  handleBookmarkChange(Number(p.id), next, ov?.bookmarkId)
+                }
                 onClick={() => handleProjectClick(p.id)}
               />
             );

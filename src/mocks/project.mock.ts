@@ -5,7 +5,7 @@ export type RecommendedProject = {
   deadlineLabel: string;
   title: string;
   location: string;
-  period: string;
+  durationRangeName: string;
   mode: string;
   bookmarked?: boolean;
 };
@@ -17,7 +17,7 @@ export const RECOMMENDED_PROJECTS: RecommendedProject[] = [
     deadlineLabel: '라이프스타일',
     title: '프로젝트 제목이 들어가는 자리입니다. 프로젝트 제목이 들어가는 자리입니다.',
     location: '서울 강남구',
-    period: '3개월',
+    durationRangeName: '3개월',
     mode: '온라인/오프라인',
     bookmarked: false,
   },
@@ -27,7 +27,7 @@ export const RECOMMENDED_PROJECTS: RecommendedProject[] = [
     deadlineLabel: '라이프스타일',
     title: '프로젝트 제목이 들어가는 자리입니다. 프로젝트 제목이 들어가는 자리입니다.',
     location: '서울 강남구',
-    period: '3개월',
+    durationRangeName: '3개월',
     mode: '온라인/오프라인',
     bookmarked: false,
   },
@@ -37,7 +37,7 @@ export const RECOMMENDED_PROJECTS: RecommendedProject[] = [
     deadlineLabel: '라이프스타일',
     title: '프로젝트 제목이 들어가는 자리입니다. 프로젝트 제목이 들어가는 자리입니다.',
     location: '서울 강남구',
-    period: '3개월',
+    durationRangeName: '3개월',
     mode: '온라인/오프라인',
     bookmarked: false,
   },
@@ -47,7 +47,7 @@ export const RECOMMENDED_PROJECTS: RecommendedProject[] = [
     deadlineLabel: '라이프스타일',
     title: '프로젝트 제목이 들어가는 자리입니다. 프로젝트 제목이 들어가는 자리입니다.',
     location: '서울 강남구',
-    period: '3개월',
+    durationRangeName: '3개월',
     mode: '온라인/오프라인',
     bookmarked: false,
   },
