@@ -676,7 +676,7 @@ const ProjectCreatePage = () => {
               : ['BACKEND'];
         return {
           position,
-          count: Number(r.countLabel) || 1,
+          count: parseInt(r.countLabel, 10) || 1,
           techStacks: techStacksSent,
         };
       });

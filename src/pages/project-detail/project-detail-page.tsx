@@ -217,7 +217,7 @@ const ProjectDetailPage = () => {
                       <path d="M12 20h9" />
                       <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
                     </svg>
-                    수정하기
+                    지원 파트 변경하기
                   </button>
                 )}
 
@@ -246,7 +246,7 @@ const ProjectDetailPage = () => {
                         <path d="M12 20h9" />
                         <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
                       </svg>
-                      수정하기
+                      프로젝트 수정
                     </button>
                     <StatusMenu
                       isDark={isDark}
