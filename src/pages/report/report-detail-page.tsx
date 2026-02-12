@@ -1,12 +1,10 @@
-import { useParams, useSearchParams } from 'react-router-dom';
-import { useQuery, QueryFunction } from '@tanstack/react-query';
+import type { Report } from '@apis/report/report';
 import { reportQueries } from '@apis/report/report-queries';
 import { useAuth } from '@clerk/clerk-react';
-
-import { Report } from '@apis/report/report';
-
-import ReportDetail from '@components/report/ReportDetail';
 import MainDetail from '@components/report/MainDetail';
+import ReportDetail from '@components/report/ReportDetail';
+import { useQuery } from '@tanstack/react-query';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 const ReportDetailPage = () => {
   const { getToken } = useAuth();
@@ -32,8 +30,11 @@ const ReportDetailPage = () => {
     return res;
   };
 
-
-  const { data: report, isLoading, isError } = useQuery<Report, Error>({
+  const {
+    data: report,
+    isLoading,
+    isError,
+  } = useQuery<Report, Error>({
     queryKey: ['report-detail', gitRepoId, type],
     queryFn: fetchReport,
     enabled: !!gitRepoId && !!type,
@@ -43,19 +44,17 @@ const ReportDetailPage = () => {
   if (isError || !report) return null;
 
   return (
-    <div className="w-full max-w-[900px] mx-auto flex flex-col gap-10">
+    <div className="mx-auto flex w-full max-w-[900px] flex-col gap-10">
       {/* 제목 */}
-      <section className="w-full flex flex-col gap-3">
-        <p className="text-ui-1000 text-4xl font-bold text-center">
+      <section className="flex w-full flex-col gap-3">
+        <p className="text-center font-bold text-4xl text-ui-1000">
           {report.reportType === 'MAIN'
             ? report.content.projectInfo.projectName
             : report.content.reportTitle}{' '}
           {title} 리포트
         </p>
 
-        <p className="text-ui-500 text-lg text-center">
-          프로젝트 분석 리포트 | {title} 리포트
-        </p>
+        <p className="text-center text-lg text-ui-500">프로젝트 분석 리포트 | {title} 리포트</p>
       </section>
 
       {/* MAIN / DETAIL 분기 */}

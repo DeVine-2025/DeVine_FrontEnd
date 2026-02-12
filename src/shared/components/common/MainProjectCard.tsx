@@ -3,7 +3,9 @@ import { cn } from '@libs/cn';
 import type { ProjectCardProps } from '@t/project/ui';
 
 export default function MainProjectCard(props: ProjectCardProps) {
-  const metaText = [props.location, props.period, props.mode].filter(Boolean).join(' · ');
+  const metaText = [props.location, props.durationRangeName, props.mode]
+    .filter(Boolean)
+    .join(' · ');
   const thumbnailAlt = props.thumbnailAlt ?? props.title;
   const hasThumbnail = Boolean(props.thumbnailUrl);
 
