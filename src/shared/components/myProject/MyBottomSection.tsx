@@ -10,14 +10,28 @@ export type ProjectTab = 'ongoing' | 'recruiting' | 'done';
 type Props = {
   projectTab: ProjectTab;
   onChangeProjectTab: (tab: ProjectTab) => void;
+  memberNick?: string;
 };
 
-const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
+const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) => {
   const navigate = useNavigate();
 
-  const { data: inProgressData } = useQuery(projectQueries.getMYProjectInprogress());
-  const { data: recruitingData } = useQuery(projectQueries.getMYProjectRecruiting());
-  const { data: completedData } = useQuery(projectQueries.getMYProjectCompleted());
+  const useMemberProjects = Boolean(memberNick);
+  const { data: inProgressData } = useQuery(
+    useMemberProjects
+      ? projectQueries.getMemberProjectInprogress(memberNick!)
+      : projectQueries.getMYProjectInprogress()
+  );
+  const { data: recruitingData } = useQuery(
+    useMemberProjects
+      ? projectQueries.getMemberProjectRecruiting(memberNick!)
+      : projectQueries.getMYProjectRecruiting()
+  );
+  const { data: completedData } = useQuery(
+    useMemberProjects
+      ? projectQueries.getMemberProjectCompleted(memberNick!)
+      : projectQueries.getMYProjectCompleted()
+  );
 
   const currentProjects = useMemo(() => {
     let data;
