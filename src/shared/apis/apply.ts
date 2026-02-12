@@ -11,6 +11,20 @@ type ApplyStatusResponse = {
   };
 };
 
+type ProposalResponse = {
+  isSuccess?: boolean;
+  result?: {
+    matchingId?: number;
+    projectId?: number;
+    projectName?: string;
+    memberNickname?: string;
+    status?: string;
+    matchingType?: string;
+    createdAt?: string;
+  };
+  message?: string;
+};
+
 export async function getMyApplyStatus(projectId: number, token: string) {
   const res = await fetch(`${BASE_URL}/api/v1/matching/projects/${projectId}/my-apply`, {
     method: 'GET',
@@ -68,4 +82,28 @@ export async function applyProject(projectId: number, part: string, token: strin
   }
 
   return res.json().catch(() => null);
+}
+
+export async function createMemberProposal(
+  nickname: string,
+  projectId: number,
+  content: string,
+  token: string,
+) {
+  const res = await fetch(`${BASE_URL}/api/v1/matching/proposals/members/${nickname}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ projectId, content }),
+  });
+
+  const json = (await res.json().catch(() => null)) as ProposalResponse | null;
+  if (!res.ok) {
+    const message = json?.message ?? `proposal failed: ${res.status}`;
+    throw new Error(message);
+  }
+
+  return json?.result;
 }
