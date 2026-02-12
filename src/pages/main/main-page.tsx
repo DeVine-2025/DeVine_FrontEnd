@@ -104,6 +104,7 @@ const MainPage = () => {
   );
   const [hasReport, setHasReport] = useState<boolean | null>(null);
   const [isDeveloperPreviewEmpty, setIsDeveloperPreviewEmpty] = useState(false);
+  const [matchedProjectName, setMatchedProjectName] = useState<string>('A 프로젝트');
   const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>([]);
   const [projectBookmarkMap, setProjectBookmarkMap] = useState<Record<number, number>>({});
   const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<string | number, number>>(
@@ -285,7 +286,11 @@ const MainPage = () => {
         const token = await getToken();
         if (!token || !isActive) return;
         const myProjects = await getMyRecruitingProjects(token);
-        const targetProjectId = myProjects[0]?.projectId;
+        const firstProject = myProjects[0];
+        const targetProjectId = firstProject?.projectId;
+        if (firstProject?.title) {
+          setMatchedProjectName(firstProject.title);
+        }
         if (!targetProjectId) {
           setIsDeveloperPreviewEmpty(true);
           setRecommendedDevelopers([]);
@@ -512,7 +517,9 @@ const MainPage = () => {
                     onBookmarkChange={(next) =>
                       handleDeveloperBookmarkChange(profile.memberId, profile.nickname, next)
                     }
-                    matchedReason="의 Java/Springboot 요구사항과 일치합니다."
+                    matchedProjectName={matchedProjectName}
+                    matchedReason="프로젝트의 요구사항과 일치합니다."
+                    onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
                   />
                 ))
               )

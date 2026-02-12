@@ -3,6 +3,7 @@ import { getDevelopers } from '@apis/developer';
 import { getMyRecruitingProjects } from '@apis/projects';
 import { getRecommendMembersPreview } from '@apis/recommendMembers';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
+import profileDefaultSvg from '@assets/icons/profile-default.svg';
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
 import Pagination from '@components/common/Pagination';
@@ -146,8 +147,6 @@ const DeveloperSearchPage = () => {
 
         const result = await getRecommendMembersPreview(projectId, 4, token, controller.signal);
 
-        const FALLBACK_PROFILE_IMAGE = '/images/profile-default.png';
-
         const mapped = result.map((x, index) => {
           const roleNames = (x.techstacks ?? []).filter((t) => t.genre == null).map((t) => t.name);
           const roleKey = pickRole(roleNames);
@@ -216,7 +215,7 @@ const DeveloperSearchPage = () => {
     };
   }, [getToken]);
 
-  const FALLBACK_PROFILE_IMAGE = '/images/profile-default.png';
+  const FALLBACK_PROFILE_IMAGE = profileDefaultSvg;
 
   const searchedProfiles = useMemo(() => {
     return searchContent.map((x, index) => {
@@ -323,7 +322,7 @@ const DeveloperSearchPage = () => {
           프로젝트를 등록하면 추천 개발자를 볼 수 있어요
         </p>
       ) : (
-        <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
+        <div className="scrollbar-hide flex justify-start gap-6 overflow-x-auto">
           {profiles.map((profile) => (
             <ProfileCard
               key={profile.id}
@@ -331,6 +330,7 @@ const DeveloperSearchPage = () => {
               size="sm"
               bookmarked={bookmarkMap[profile.nickname] != null || (profile.bookmarked ?? false)}
               onBookmarkChange={(next) => handleBookmarkChange(undefined, profile.nickname, next)}
+              onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
             />
           ))}
         </div>
@@ -371,6 +371,7 @@ const DeveloperSearchPage = () => {
             onBookmarkChange={(next) =>
               handleBookmarkChange(profile.memberId, profile.nickname, next)
             }
+            onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
           />
         ))}
       </div>
