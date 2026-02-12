@@ -413,10 +413,8 @@ const MainPage = () => {
       ? '나에게 딱 맞는 추천 개발자'
       : '나에게 딱 맞는 추천 프로젝트'
     : '나에게 딱 맞는 추천 프로젝트/개발자';
-  const loginCtaLabel = !isLoggedIn ? '나에게 딱 맞는 추천 프로젝트/개발자' : null;
-  const handleProjectClick = (
-    project: HighlightProject | MainRecommendProject,
-  ) => {
+  const loginCtaLabel = !isLoggedIn ? '로그인해야 추천 프로젝트를 확인할 수 있어요' : null;
+  const handleProjectClick = (project: HighlightProject | MainRecommendProject) => {
     try {
       const payload = {
         id: String(project.id),
@@ -464,7 +462,7 @@ const MainPage = () => {
         </div>
       </section>
 
-      <section className="flex flex-col gap-6">
+      <section className="mb-40 flex flex-col gap-20">
         <div className="flex items-center justify-between">
           <h2 className="Heading2 font-semibold text-card-title">{recommendTitle}</h2>
         </div>

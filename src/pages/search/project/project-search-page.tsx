@@ -282,7 +282,7 @@ export default function ProjectSearchPage() {
           <ProjectListState type="loading" />
         </div>
       ) : hasReports !== true ? (
-        <p className="py-20 text-center text-[15px] text-[var(--ui-500)]">
+        <p className="py-15 text-center text-[15px] text-[var(--ui-500)]">
           리포트를 작성하면 추천 프로젝트를 볼 수 있어요
         </p>
       ) : (

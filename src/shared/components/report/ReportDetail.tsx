@@ -27,7 +27,6 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
   const listGapStyle = 'flex-col gap-[0.2rem]';
   const listItemStyle =
     'flex items-start flex-col gap-[1rem] font-normal text-lg text-ui-1000 pb-2';
-  const bulletStyle = 'text-2xl leading-none';
 
   const scale = data.projectOverview.projectScale;
 
@@ -198,11 +197,13 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
               <div className="flex-col gap-[0.7rem] p-[3rem]">
                 <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
                 <p className="text-lg text-ui-400">{item.description.join(', ')}</p>
-                <div className="flex gap-2 mt-2">
-                  <p
-                  className="flex items-center justify-center w-fit text-primary font-bold bg-indigo-600/10 rounded border border-indigo-600/20 px-2 py-1">추천
-                  기술</p>
-                      <p className="text-ui-1000 text-sm font-medium flex items-center gap-3">{item.recommendKeyword.join(' , ')}</p>
+                <div className="mt-2 flex gap-2">
+                  <p className="flex w-fit items-center justify-center rounded border border-indigo-600/20 bg-indigo-600/10 px-2 py-1 font-bold text-primary">
+                    추천 기술
+                  </p>
+                  <p className="flex items-center gap-3 font-medium text-sm text-ui-1000">
+                    {item.recommendKeyword.join(' , ')}
+                  </p>
                 </div>
               </div>
             </ContentBox>

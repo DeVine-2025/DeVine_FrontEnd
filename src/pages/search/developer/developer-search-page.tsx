@@ -49,7 +49,14 @@ const DeveloperSearchPage = () => {
     const load = async () => {
       try {
         const token = await getToken();
-        if (!token || cancelled) return;
+
+        if (!token || cancelled) {
+          if (!cancelled) {
+            setHasProjects(false);
+            setProjectId(null);
+          }
+          return;
+        }
 
         const projects = await getMyRecruitingProjects(token);
         if (cancelled) return;
@@ -57,7 +64,7 @@ const DeveloperSearchPage = () => {
         const has = projects.length > 0;
         setHasProjects(has);
         setProjectId(has ? (projects[0]?.projectId ?? null) : null);
-      } catch (e) {
+      } catch {
         if (!cancelled) {
           setHasProjects(false);
           setProjectId(null);
@@ -66,7 +73,6 @@ const DeveloperSearchPage = () => {
     };
 
     void load();
-
     return () => {
       cancelled = true;
     };
@@ -327,9 +333,9 @@ const DeveloperSearchPage = () => {
 
       {/* 추천 개발자 카드 */}
       {hasProjects === null ? (
-        <p className="py-20 text-center text-[15px] text-[var(--ui-500)]">불러오는 중...</p>
+        <p className="py-15 text-center text-[15px] text-[var(--ui-500)]">불러오는 중...</p>
       ) : hasProjects !== true ? (
-        <p className="py-20 text-center text-[15px] text-[var(--ui-500)]">
+        <p className="py-15 text-center text-[15px] text-[var(--ui-500)]">
           프로젝트를 등록하면 추천 개발자를 볼 수 있어요
         </p>
       ) : (
