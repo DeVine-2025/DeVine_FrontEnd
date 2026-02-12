@@ -9,7 +9,7 @@ const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?
 
 export async function getDevelopers(
   params: GetDevelopersParams | string,
-  token: string,
+  token?: string | null,
   signal?: AbortSignal,
 ): Promise<DeveloperSearchPage> {
   const qs =
@@ -28,7 +28,7 @@ export async function getDevelopers(
   const res = await fetch(`${BASE_URL}/api/v1/members/search${queryString}`, {
     method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     signal,
   });

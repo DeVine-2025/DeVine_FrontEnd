@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReportRequiredCard from '@components/common/ReportRequiredCard';
 import { getReports } from '@apis/report/report-queries';
 import { useNavigate } from 'react-router-dom';
-import { PROJECT_FILTERS, PROJECT_ROLES } from 'src/mocks/recommendProject.mock';
+import { PROJECT_FILTERS } from '@components/common/ProjectFilterBar';
 
 const RecommendProjectPage = () => {
   const { getToken } = useAuth();
@@ -318,7 +318,7 @@ const RecommendProjectPage = () => {
               location={p.location}
               period={p.period}
               mode={p.mode}
-              roles={[...PROJECT_ROLES]}
+              roles={[]}
               dueLabel={p.dueLabel}
               bookmarked={p.bookmarked ?? false}
               techstackScorePercent={p.techstackScorePercent}

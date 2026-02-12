@@ -1,9 +1,9 @@
-import Tabs from '@components/tab/CommonTabs';
+import { projectQueries } from '@apis/project/project-queries';
 import MainProjectCard from '@components/common/MainProjectCard';
+import Tabs from '@components/tab/CommonTabs';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { projectQueries } from '@apis/project/project-queries';
 
 export type ProjectTab = 'ongoing' | 'done';
 
@@ -14,7 +14,7 @@ type Props = {
 
 const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
   const navigate = useNavigate();
-  
+
   const { data: inProgressData } = useQuery(projectQueries.getMYProjectInprogress());
   const { data: completedData } = useQuery(projectQueries.getMYProjectCompleted());
 
@@ -41,7 +41,7 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
         />
       </div>
 
-      <div className="mt-6 gap-[1.6rem] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-[1.6rem] sm:grid-cols-2 lg:grid-cols-3">
         {currentProjects.length > 0 ? (
           currentProjects.map((project: any) => (
             <MainProjectCard
@@ -50,7 +50,7 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
               deadlineLabel={project.category?.name}
               title={project.title}
               location={project.location}
-              period={project.durationRange}
+              durationRangeName={project.durationRange}
               mode={project.mode}
               thumbnailUrl={project.imageUrls?.[0]}
               onClick={() => handleProjectClick(project.projectId)}
@@ -58,8 +58,10 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
           ))
         ) : (
           <div className="col-span-full flex items-center justify-center py-12">
-            <p className="text-ui-400 text-lg">
-              {projectTab === 'ongoing' ? '진행 중인 프로젝트가 없습니다.' : '완료된 프로젝트가 없습니다.'}
+            <p className="text-lg text-ui-400">
+              {projectTab === 'ongoing'
+                ? '진행 중인 프로젝트가 없습니다.'
+                : '완료된 프로젝트가 없습니다.'}
             </p>
           </div>
         )}

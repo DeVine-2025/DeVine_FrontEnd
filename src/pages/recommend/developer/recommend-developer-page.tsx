@@ -3,7 +3,6 @@ import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/
 import LoadingSpinner from '@components/common/LoadingSpinner';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import ReportRequiredCard from '@components/common/ReportRequiredCard';
-import { getReports } from '@apis/report/report-queries';
 import { useAuthStore } from '@store/auth';
 import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -63,24 +62,6 @@ const RecommendDeveloperPage = () => {
     setRecommendDeveloper,
   } = useFilterStore();
   const { myProjects, interestDomains, techStacks } = recommendDeveloper;
-
-  const [hasReport, setHasReport] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    getReports()
-      .then((res) => {
-        if (cancelled) return;
-        const reports = res?.result?.reports ?? [];
-        setHasReport(reports.length > 0);
-      })
-      .catch(() => {
-        if (!cancelled) setHasReport(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
   const [myProjectOptions, setMyProjectOptions] = useState<MyProjectOption[]>([]);
@@ -349,7 +330,8 @@ const RecommendDeveloperPage = () => {
     [handleBookmarkChange],
   );
 
-  if (hasReport === false) {
+  const hasNoProjects = !myProjectOptionsLoading && myProjectOptions.length === 0;
+  if (hasNoProjects) {
     return (
       <div className="relative min-h-[calc(100vh-6rem)] w-full">
         <div className="pointer-events-none flex min-h-full select-none flex-col gap-6 blur-sm">
@@ -375,12 +357,12 @@ const RecommendDeveloperPage = () => {
           <div className="flex flex-col gap-6" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-            <ReportRequiredCard
-              title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
-              description="나에게 맞는 추천 개발자를 받아 보세요"
-              linkLabel="프로젝트 등록하러 가기"
-              linkTo="/project/create"
-            />
+          <ReportRequiredCard
+            title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
+            description="나에게 맞는 추천 개발자를 받아 보세요"
+            linkLabel="프로젝트 등록하러 가기"
+            linkTo="/project/create"
+          />
         </div>
       </div>
     );
