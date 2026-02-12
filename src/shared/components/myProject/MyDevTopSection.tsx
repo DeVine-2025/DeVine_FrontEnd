@@ -2,7 +2,7 @@ import ProjectLg from '@components/common/ProjectLg';
 import Tabs from '@components/tab/CommonTabs';
 import { type DevTab, type MatchingProject, useDevProjects } from '@hooks/useDevProjects';
 import { useNavigate } from 'react-router-dom';
-import { PROJECT_ROLES, type ProjectListItem } from 'src/mocks/project.mock';
+import type { ProjectCardProps } from '@t/project/ui';
 
 type Props = {
   devTab: DevTab;
@@ -13,11 +13,10 @@ function getEmptyMessage(tab: DevTab) {
   return tab === 'suggested' ? '받은 제안이 없어요.' : '지원 중인 프로젝트가 없어요.';
 }
 
-function toProjectLgProps(p: MatchingProject): ProjectListItem {
+function toProjectLgProps(p: MatchingProject): ProjectCardProps {
   return {
-    id: p.projectId,
-    title: p.projectName,
-  } as unknown as ProjectListItem;
+    title: p.projectName ?? '',
+  };
 }
 
 const ProposalAction = ({ onAccept, onReject }: { onAccept: () => void; onReject: () => void }) => (
@@ -110,7 +109,7 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
               <ProjectLg
                 key={m.matchingId}
                 {...projectProps}
-                roles={[...PROJECT_ROLES]}
+                roles={[]}
                 showBookmark={false}
                 showDue={false}
                 action={

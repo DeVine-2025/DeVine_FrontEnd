@@ -18,9 +18,6 @@ import { useAuthStore } from '@store/auth';
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
-import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
-import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 import { getDueLabel, mapPositionsToRoles } from 'src/shared/mappers/project';
 
 type HighlightProject = ProjectCardProps & { id: number };
@@ -98,11 +95,10 @@ const MainPage = () => {
   const isDev = userRole === 'dev';
   const isDevOrUnknown = isDev || userRole == null;
   const [weeklyProjects, setWeeklyProjects] = useState<HighlightProject[]>([]);
-  const fallbackRoles = useMemo(() => PROJECT_ROLES.map((role) => ({ ...role })), []);
-  const [recommendedDevelopers, setRecommendedDevelopers] = useState<MainRecommendDeveloper[]>(
-    PROFILE_CARD_LIST.slice(0, 3).map((d) => ({ ...d, bookmarkId: undefined })),
-  );
+  const fallbackRoles = useMemo<ProjectRole[]>(() => [], []);
+  const [recommendedDevelopers, setRecommendedDevelopers] = useState<MainRecommendDeveloper[]>([]);
   const [hasReport, setHasReport] = useState<boolean | null>(null);
+  const [hasProjects, setHasProjects] = useState<boolean | null>(null);
   const [isDeveloperPreviewEmpty, setIsDeveloperPreviewEmpty] = useState(false);
   const [matchedProjectName, setMatchedProjectName] = useState<string>('A 프로젝트');
   const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>([]);
@@ -162,6 +158,29 @@ const MainPage = () => {
       cancelled = true;
     };
   }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (!isLoggedIn || !isPm) {
+      setHasProjects(null);
+      return;
+    }
+    let cancelled = false;
+    getToken()
+      .then((token) => {
+        if (!token || cancelled) return;
+        return getMyRecruitingProjects(token);
+      })
+      .then((projects) => {
+        if (cancelled || projects == null) return;
+        setHasProjects(projects.length > 0);
+      })
+      .catch(() => {
+        if (!cancelled) setHasProjects(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn, isPm, getToken]);
 
   const requireToken = useCallback(async () => {
     const token = await getToken();
@@ -278,7 +297,7 @@ const MainPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!isLoggedIn || !isPm || hasReport !== true) return;
+    if (!isLoggedIn || !isPm || hasProjects !== true) return;
     let isActive = true;
 
     const fetchRecommendedDevelopers = async () => {
@@ -325,7 +344,7 @@ const MainPage = () => {
       } catch {
         if (isActive) {
           setIsDeveloperPreviewEmpty(false);
-          setRecommendedDevelopers(PROFILE_CARD_LIST.slice(0, 3));
+          setRecommendedDevelopers([]);
         }
       }
     };
@@ -334,7 +353,7 @@ const MainPage = () => {
     return () => {
       isActive = false;
     };
-  }, [getToken, isLoggedIn, isPm, hasReport]);
+  }, [getToken, isLoggedIn, isPm, hasProjects]);
 
   useEffect(() => {
     if (!isLoggedIn || !isDevOrUnknown || hasReport !== true) return;
@@ -378,7 +397,7 @@ const MainPage = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      setRecommendedProjects(PROJECT_LIST.slice(0, 3));
+      setRecommendedProjects([]);
     }
   }, [isLoggedIn]);
 
@@ -386,19 +405,8 @@ const MainPage = () => {
     if (weeklyProjects.length > 0) {
       return weeklyProjects;
     }
-    return RECOMMENDED_PROJECTS.slice(0, 4).map((project, index) => ({
-      id: Number.parseInt(project.id.replace(/\D/g, ''), 10) || index,
-      title: project.title,
-      categoryLabel: project.categoryLabel,
-      deadlineLabel: project.deadlineLabel,
-      location: project.location,
-      period: project.durationRangeName,
-      mode: project.mode,
-      bookmarked: project.bookmarked,
-      roles: fallbackRoles,
-      thumbnailUrl: undefined,
-    }));
-  }, [weeklyProjects, fallbackRoles]);
+    return [];
+  }, [weeklyProjects]);
   const recommendedProfiles = recommendedDevelopers;
   const recommendTitle = isLoggedIn
     ? isPm
@@ -407,7 +415,7 @@ const MainPage = () => {
     : '나에게 딱 맞는 추천 프로젝트/개발자';
   const loginCtaLabel = !isLoggedIn ? '나에게 딱 맞는 추천 프로젝트/개발자' : null;
   const handleProjectClick = (
-    project: RecommendedProject | ProjectListItem | HighlightProject | MainRecommendProject,
+    project: HighlightProject | MainRecommendProject,
   ) => {
     try {
       const payload = {
@@ -477,18 +485,23 @@ const MainPage = () => {
               isLoggedIn ? '' : 'pointer-events-none select-none blur-sm'
             }`}
           >
-            {isLoggedIn && hasReport === false ? (
+            {isLoggedIn && isPm && hasProjects === false ? (
               <div className="flex items-center justify-center py-6">
-                {isPm ? (
-                  <ReportRequiredCard
-                    title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
-                    description="나에게 맞는 추천 개발자를 받아 보세요"
-                    linkLabel="프로젝트 등록하러 가기"
-                    linkTo="/project/create"
-                  />
-                ) : (
-                  <ReportRequiredCard description="나에게 맞는 추천 프로젝트를 받아 보세요" />
-                )}
+                <ReportRequiredCard
+                  title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
+                  description="나에게 맞는 추천 개발자를 받아 보세요"
+                  linkLabel="프로젝트 등록하러 가기"
+                  linkTo="/project/create"
+                />
+              </div>
+            ) : isLoggedIn && !isPm && hasReport === false ? (
+              <div className="flex items-center justify-center py-6">
+                <ReportRequiredCard
+                  title="리포트를 등록하면 맞춤 추천을 받을 수 있어요"
+                  description="나에게 맞는 추천 프로젝트를 받아 보세요"
+                  linkLabel="리포트 등록하러 가기"
+                  linkTo="/report/create"
+                />
               </div>
             ) : isPm ? (
               isDeveloperPreviewEmpty ? (
@@ -544,7 +557,7 @@ const MainPage = () => {
                       location={project.location}
                       period={project.period}
                       mode={project.mode}
-                      roles={[...PROJECT_ROLES]}
+                      roles={[]}
                       dueLabel={project.dueLabel}
                       bookmarked={isBookmarked}
                       techstackScorePercent={project.techstackScorePercent}

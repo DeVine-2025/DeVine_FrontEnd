@@ -18,7 +18,7 @@ import type {
 } from '@t/profileCard.types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DEVELOPER_FILTERS } from 'src/mocks/developer.mock';
+const DEVELOPER_FILTERS = ['내 프로젝트 선택', '포지션 / 기술스택', '관심 도메인'] as const;
 
 type RoleCode = (typeof ROLE_PRIORITY)[number];
 type RoleKey = RoleCode | 'DEVELOPER';

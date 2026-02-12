@@ -3,12 +3,14 @@ import {
   getRecommendProjectsPreview,
   type RecommendProjectPreviewItem,
 } from '@apis/mainrecommendproject';
-import { getReports } from '@apis/report/report-queries';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import ProjectListState from '@components/common/ListStateUI';
 import Pagination from '@components/common/Pagination';
-import ProjectFiltersBar, { type ProjectFilterKey } from '@components/common/ProjectFilterBar';
+import ProjectFiltersBar, {
+  type ProjectFilterKey,
+  PROJECT_FILTERS,
+} from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
 import { useProjectFilter } from '@hooks/useProjectFilters';
@@ -18,7 +20,6 @@ import { buildParams } from '@mappers/projectFilters';
 import type { ProjectRole, RecommendPreviewItem } from '@t/project/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PROJECT_FILTERS, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
 
 // 북마크 하이드레이션: 새로고침/재진입 시에도 북마크 상태 유지
 function useBookmarkHydration(getToken: () => Promise<string | null>, enabled: boolean) {
@@ -72,7 +73,7 @@ export default function ProjectSearchPage() {
       deadlineLabel?: string;
       title: string;
       location?: string;
-      durationRangeName?: string;
+      period?: string;
       mode?: string;
       dueLabel?: string;
       roles?: ProjectRole[];
@@ -104,41 +105,10 @@ export default function ProjectSearchPage() {
     resetFilter,
   } = useProjectFilter();
 
-  // 리포트 유무 확인
-  const [hasReport, setHasReport] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    getReports()
-      .then((res) => {
-        if (cancelled) return;
-        const reports = res?.result?.reports ?? [];
-        setHasReport(reports.length > 0);
-      })
-      .catch(() => {
-        if (!cancelled) setHasReport(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   // 북마크
   const { bookmarkOverrides, setBookmarkOverrides } = useBookmarkHydration(getToken, true);
 
-  // 추천 프리뷰
-  const [recommendedPreview, setRecommendedPreview] = useState<RecommendPreviewItem[]>(() =>
-    RECOMMENDED_PROJECTS.map((project) => ({
-      id: project.id,
-      categoryLabel: project.categoryLabel,
-      deadlineLabel: project.deadlineLabel,
-      title: project.title,
-      location: project.location,
-      durationRangeName: project.durationRangeName,
-      mode: project.mode,
-      roles: [...PROJECT_ROLES],
-    })),
-  );
+  const [recommendedPreview, setRecommendedPreview] = useState<RecommendPreviewItem[]>([]);
 
   const size = 10;
 
@@ -255,18 +225,7 @@ export default function ProjectSearchPage() {
         setRecommendedPreview(mapped);
       } catch {
         if (isActive) {
-          setRecommendedPreview(
-            RECOMMENDED_PROJECTS.map((project) => ({
-              id: project.id,
-              categoryLabel: project.categoryLabel,
-              deadlineLabel: project.deadlineLabel,
-              title: project.title,
-              location: project.location,
-              durationRangeName: project.durationRangeName,
-              mode: project.mode,
-              roles: [...PROJECT_ROLES],
-            })),
-          );
+          setRecommendedPreview([]);
         }
       }
     };
@@ -293,6 +252,7 @@ export default function ProjectSearchPage() {
       {/* 추천 프로젝트 */}
       <header className="flex items-center justify-between">
         <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 프로젝트</h2>
+
         <button
           type="button"
           onClick={() => navigate('/recommend')}
@@ -303,34 +263,26 @@ export default function ProjectSearchPage() {
         </button>
       </header>
 
-      {hasReport === false ? (
-        <p className="py-10 text-center text-[15px] text-[var(--ui-500)]">
-          리포트를 생성하면 맞춤 추천 프로젝트를 확인할 수 있어요
-        </p>
-      ) : (
-        <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
-          {recommendedPreview.map((p) => {
-            const ov = bookmarkOverrides[Number(p.id)];
-            return (
-              <ProjectSm
-                key={p.id}
-                categoryLabel={p.categoryLabel}
-                deadlineLabel={p.deadlineLabel}
-                title={p.title}
-                location={p.location}
-                durationRangeName={p.durationRangeName}
-                mode={p.mode}
-                roles={p.roles}
-                bookmarked={ov?.bookmarked ?? false}
-                onBookmarkChange={(next) =>
-                  handleBookmarkChange(Number(p.id), next, ov?.bookmarkId)
-                }
-                onClick={() => handleProjectClick(p.id)}
-              />
-            );
-          })}
-        </div>
-      )}
+      <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
+        {recommendedPreview.map((p) => {
+          const ov = bookmarkOverrides[Number(p.id)];
+          return (
+            <ProjectSm
+              key={p.id}
+              categoryLabel={p.categoryLabel}
+              deadlineLabel={p.deadlineLabel}
+              title={p.title}
+              location={p.location}
+              durationRangeName={p.durationRangeName}
+              mode={p.mode}
+              roles={p.roles}
+              bookmarked={ov?.bookmarked ?? false}
+              onBookmarkChange={(next) => handleBookmarkChange(Number(p.id), next, ov?.bookmarkId)}
+              onClick={() => handleProjectClick(p.id)}
+            />
+          );
+        })}
+      </div>
 
       <div className="h-px w-full bg-card-border" />
 

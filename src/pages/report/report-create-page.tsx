@@ -29,6 +29,10 @@ const ReportCreatePage = () => {
   };
 
   const handleCreateRepo = () => {
+    if (!isLoading && repo.length === 0) {
+      navigate('/my-info/setting');
+      return;
+    }
     if (!selectedId) return;
 
     navigate('/report/loading', {
@@ -71,12 +75,22 @@ const ReportCreatePage = () => {
               />
             ))}
 
+          {!isLoading && repo.length === 0 && (
+            <div className="flex h-full min-h-[200px] flex-col items-center justify-center gap-[1.2rem] rounded-2xl bg-[var(--ui-50)] py-[3rem]">
+              <p className="text-center text-2xl text-[var(--ui-600)]">
+                연동된 레포지토리가 없습니다.
+              </p>
+              <p className="text-center text-xl text-[var(--ui-500)]">
+                아래 버튼을 누르면 깃허브 연동 페이지로 이동합니다.
+              </p>
+            </div>
+          )}
+
           {/* 최초 로딩 */}
           {isLoading && (
             <div className="flex h-full items-center justify-center gap-3">
               <LoadingSpinner size="lg" />
             </div>
-
           )}
 
           {/* 다음 페이지 로딩 */}
@@ -93,7 +107,7 @@ const ReportCreatePage = () => {
             disabled={isLoading}
             className="w-full cursor-pointer rounded-2xl bg-primary py-[1.6rem] text-2xl text-white"
           >
-            생성하기
+            {!isLoading && repo.length === 0 ? '깃허브 연동하러 가기' : '생성하기'}
           </button>
           <button
             type="button"

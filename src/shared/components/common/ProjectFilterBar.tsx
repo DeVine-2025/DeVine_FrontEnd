@@ -7,6 +7,13 @@ import ProjectTypeDropdown from '@components/recommend/ProjectTypeDropdown';
 
 export type ProjectFilterKey = '프로젝트 유형' | '도메인' | '예상 기간' | '포지션 / 기술스택';
 
+export const PROJECT_FILTERS: ProjectFilterKey[] = [
+  '프로젝트 유형',
+  '도메인',
+  '예상 기간',
+  '포지션 / 기술스택',
+];
+
 /** 필터별 전체 선택 시 버튼에 표시할 문구 */
 const FILTER_ALL_LABELS: Record<ProjectFilterKey, string> = {
   '프로젝트 유형': '프로젝트 전체',

@@ -17,6 +17,10 @@ export default defineConfig(({ mode }) => {
           target: apiBase,
           changeOrigin: true,
         },
+        '/sse': {
+          target: apiBase,
+          changeOrigin: true,
+        },
       },
     },
   };

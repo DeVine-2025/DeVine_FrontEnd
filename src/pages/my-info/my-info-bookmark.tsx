@@ -1,14 +1,26 @@
 import { deleteBookmark, getBookmarks } from '@apis/bookmarks';
+import { getMemberProfileByNickname } from '@apis/members';
 import { getProjectDetail } from '@apis/project-detail';
 import BackIcon from '@assets/icons/back.svg?react';
-import { useAuth } from '@clerk/clerk-react';
+import profileDefaultIconUrl from '@assets/icons/profile-default.svg?url';
 import LoadingSpinner from '@components/common/LoadingSpinner';
-import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
-import RecommendProjectCard from '@components/common/RecommendProjectCard';
+import ProfileCard from '@components/common/ProfileCard';
+import ProjectLg from '@components/common/ProjectLg';
+import { useAuth } from '@clerk/clerk-react';
 import { mapProjectItemToCard } from '@mappers/project';
 import type { ProjectItem } from '@t/project/api';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+const API_BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
+
+function resolveThumbnailUrl(url: string | undefined): string | undefined {
+  if (!url?.trim()) return undefined;
+  const u = url.trim();
+  if (u.startsWith('http://') || u.startsWith('https://') || u.startsWith('//')) return u;
+  if (u.startsWith('/') && API_BASE) return `${API_BASE.replace(/\/$/, '')}${u}`;
+  return u;
+}
 
 type TabKind = 'project' | 'developer';
 
@@ -24,12 +36,18 @@ type BookmarkedDeveloper = {
   targetNickname?: string;
 };
 
+type DeveloperProfile = {
+  imageUrl: string | null;
+  body?: string | null;
+};
+
 const MyInfoBookmark = () => {
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const [activeTab, setActiveTab] = useState<TabKind>('project');
   const [projects, setProjects] = useState<BookmarkedProject[]>([]);
   const [developers, setDevelopers] = useState<BookmarkedDeveloper[]>([]);
+  const [developerProfiles, setDeveloperProfiles] = useState<Record<string, DeveloperProfile>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,6 +98,37 @@ const MyInfoBookmark = () => {
   useEffect(() => {
     loadBookmarks();
   }, [loadBookmarks]);
+
+  useEffect(() => {
+    const nicknames = developers
+      .map((d) => d.targetNickname)
+      .filter((n): n is string => Boolean(n?.trim()));
+    if (nicknames.length === 0) {
+      setDeveloperProfiles({});
+      return;
+    }
+    let cancelled = false;
+    Promise.allSettled(
+      nicknames.map((nickname) => getMemberProfileByNickname(nickname)),
+    ).then((results) => {
+      if (cancelled) return;
+      const next: Record<string, DeveloperProfile> = {};
+      results.forEach((result, i) => {
+        const nickname = nicknames[i];
+        if (!nickname) return;
+        if (result.status === 'fulfilled' && result.value) {
+          next[nickname] = {
+            imageUrl: result.value.image ?? null,
+            body: result.value.body ?? null,
+          };
+        }
+      });
+      setDeveloperProfiles(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [developers]);
 
   const handleRemoveProjectBookmark = useCallback(
     async (bookmarkId: number) => {
@@ -169,23 +218,26 @@ const MyInfoBookmark = () => {
                 );
               }
               const card = mapProjectItemToCard(project);
+              const firstImage =
+                card.thumbnailUrl ??
+                project.imageUrls?.[0] ??
+                project.images?.[0]?.imageUrl ??
+                project.images?.[0]?.url;
+              const thumbnailUrl = resolveThumbnailUrl(firstImage);
               return (
-                <RecommendProjectCard
+                <ProjectLg
                   key={bookmarkId}
                   categoryLabel={card.categoryLabel}
                   deadlineLabel={card.deadlineLabel}
                   title={card.title}
-                  thumbnailUrl={card.thumbnailUrl}
+                  thumbnailUrl={thumbnailUrl}
                   location={card.location}
-                  period={card.durationRangeName}
+                  durationRangeName={card.durationRangeName}
                   mode={card.mode}
-                  roles={card.roles.map((r) => ({
-                    ...r,
-                    techStack: [],
-                  }))}
+                  roles={card.roles}
                   dueLabel={card.dueLabel}
                   bookmarked
-                  onBookmarkChange={() => handleRemoveProjectBookmark(bookmarkId)}
+                  onBookmarkChange={(next) => !next && handleRemoveProjectBookmark(bookmarkId)}
                   onClick={() => navigate(`/project/${targetId}`)}
                 />
               );
@@ -199,20 +251,27 @@ const MyInfoBookmark = () => {
           {developers.length === 0 ? (
             <p className="text-ui-600">저장한 개발자가 없습니다.</p>
           ) : (
-            developers.map(({ bookmarkId, targetId, targetNickname }) => (
-              <RecommendDeveloperCard
-                key={bookmarkId}
-                role="개발자"
-                roleTone="blue"
-                nickname={targetNickname ?? (targetId != null ? `회원 #${targetId}` : '알 수 없음')}
-                introduction="저장한 개발자입니다."
-                domains={[]}
-                techStack={[]}
-                bookmarked
-                onBookmarkChange={() => handleRemoveDeveloperBookmark(bookmarkId)}
-                onClick={() => navigate(`/developer-detail/${targetNickname}`)}
-              />
-            ))
+            developers.map(({ bookmarkId, targetId, targetNickname }) => {
+              const nickname = targetNickname ?? (targetId != null ? `회원 #${targetId}` : '알 수 없음');
+              const profile = targetNickname ? developerProfiles[targetNickname] : undefined;
+              const profileImageUrl =
+                resolveThumbnailUrl(profile?.imageUrl ?? undefined) ?? profileDefaultIconUrl;
+              return (
+                <ProfileCard
+                  key={bookmarkId}
+                  role="개발자"
+                  roleTone="blue"
+                  nickname={nickname}
+                  profileImageUrl={profileImageUrl}
+                  introduction={profile?.body ?? '저장한 개발자입니다.'}
+                  badges={[]}
+                  techStack={[]}
+                  size="lg"
+                  bookmarked
+                  onBookmarkChange={(next) => !next && handleRemoveDeveloperBookmark(bookmarkId)}
+                />
+              );
+            })
           )}
         </div>
       )}

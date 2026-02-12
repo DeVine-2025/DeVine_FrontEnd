@@ -1,6 +1,17 @@
 import type { Position, ProjectItem, TechStack } from '@t/project/api';
 import type { BadgeTone } from 'src/shared/types/badgeTone';
-import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
+
+/** toProjectDetailInfo 등에서 쓰는 폴백용 최소 형태 (mock 제거 후 로컬 정의) */
+export type FallbackProjectShape = {
+  id: string;
+  categoryLabel?: string;
+  deadlineLabel?: string;
+  title: string;
+  location?: string;
+  period?: string;
+  mode?: string;
+  dueLabel?: string;
+};
 
 // ── Types ──
 
@@ -66,9 +77,7 @@ export const positionLabelByKey: Partial<Record<Position, string>> = {
 
 // ── Mappers ──
 
-export const toProjectDetailInfo = (
-  project: RecommendedProject | ProjectListItem,
-): ProjectDetailInfo => ({
+export const toProjectDetailInfo = (project: FallbackProjectShape): ProjectDetailInfo => ({
   id: project.id,
   categoryLabel: project.categoryLabel,
   deadlineLabel: project.deadlineLabel,

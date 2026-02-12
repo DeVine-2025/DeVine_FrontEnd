@@ -205,75 +205,204 @@ export async function getUnreadNotificationCount(
   return json?.result?.count ?? 0;
 }
 
+/** SSE 디버그 로그. 필요 시 `console.log('[SSE]', ...args)` 로 복구 */
+function sseLog(..._args: unknown[]) {
+  // no-op
+}
+
+export type SseEventType = 'connect' | 'notification' | 'heartbeat' | 'shutdown';
+
 /** 알림 SSE 구독 옵션 */
 export type SubscribeNotificationStreamParams = {
-  timeout?: number;
+  /** 재연결 대기 시간(ms). 서버가 스트림을 자주 끊으면 이 간격으로 재연결. 기본 5000 */
+  reconnectDelayMs?: number;
+  /** 최대 재연결 횟수. 0이면 무제한. 기본 0 */
+  maxReconnectAttempts?: number;
 };
 
 /** 알림 SSE 이벤트 수신 시 콜백 */
 export type NotificationStreamCallbacks = {
+  /** notification 이벤트 시 호출 (기존 onMessage 호환) */
   onMessage?: (data: unknown) => void;
   onError?: (err: Error) => void;
+  onConnect?: (data: unknown) => void;
+  onNotification?: (data: unknown) => void;
+  onHeartbeat?: (data: unknown) => void;
+  onShutdown?: (data: unknown) => void;
 };
 
 /**
- * GET /api/v1/notifications/stream (text/event-stream)
- * 인증 필요. 알림 실시간 구독.
+ * GET /sse/v1/subscribe (text/event-stream)
+ * 이벤트: connect, notification, heartbeat, shutdown
+ * 재연결 시 Last-Event-ID 헤더로 놓친 이벤트 수신
  */
 export function subscribeNotificationStream(
   token: string,
   callbacks: NotificationStreamCallbacks,
   params?: SubscribeNotificationStreamParams,
   signal?: AbortSignal,
-): void {
-  const qs = buildQuery({ timeout: params?.timeout ?? 0 });
-  const url = `${BASE_URL}/api/v1/notifications/stream${qs}`;
+): () => void {
+  const reconnectDelayMs = params?.reconnectDelayMs ?? 5000;
+  const maxReconnectAttempts = params?.maxReconnectAttempts ?? 0;
+  let lastEventId = '';
+  let reconnectAttempts = 0;
+  let aborted = false;
 
-  fetch(url, {
-    method: 'GET',
-    headers: {
+  signal?.addEventListener('abort', () => {
+    aborted = true;
+    if (reconnectTimer != null) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+    sseLog('abort (구독 해제)');
+  });
+
+  let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const url = `${BASE_URL}/sse/v1/subscribe`;
+  sseLog('구독 시작', url);
+
+  function connect(): void {
+    if (aborted) return;
+    const headers: Record<string, string> = {
       Accept: 'text/event-stream',
       Authorization: `Bearer ${token}`,
-    },
-    signal,
-  })
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(res.status === 401 ? '인증이 필요합니다.' : `요청 실패 (${res.status})`);
-      }
-      const reader = res.body?.getReader();
-      if (!reader) {
-        callbacks.onError?.(new Error('스트림을 읽을 수 없습니다.'));
-        return;
-      }
-      const decoder = new TextDecoder();
-      let buffer = '';
-      const read = (): Promise<void> =>
-        reader.read().then(({ done, value }) => {
-          if (done) return;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() ?? '';
-          let dataLine: string | null = null;
-          for (const line of lines) {
-            if (line.startsWith('data:')) {
-              dataLine = line.slice(5).trim();
-            } else if (dataLine !== null && line === '') {
-              try {
-                const data = dataLine === '' ? null : JSON.parse(dataLine);
-                callbacks.onMessage?.(data);
-              } catch {
-                callbacks.onMessage?.(dataLine);
-              }
-              dataLine = null;
+    };
+    if (lastEventId) {
+      headers['Last-Event-ID'] = lastEventId;
+      sseLog('재연결 시도', { lastEventId, attempt: reconnectAttempts });
+    } else {
+      sseLog('연결 요청', url);
+    }
+
+    fetch(url, {
+      method: 'GET',
+      headers,
+      signal,
+    })
+      .then((res) => {
+        if (!res.ok) {
+          if (res.status === 401) sseLog('401 인증 필요 → 로그인 필요');
+          if (res.status === 404) sseLog('404 Not Found → 재연결 중단 (엔드포인트 없음)');
+          const err = new Error(res.status === 401 ? '인증이 필요합니다.' : `요청 실패 (${res.status})`) as Error & { status?: number };
+          err.status = res.status;
+          throw err;
+        }
+        const reader = res.body?.getReader();
+        if (!reader) {
+          callbacks.onError?.(new Error('스트림을 읽을 수 없습니다.'));
+          return;
+        }
+        reconnectAttempts = 0;
+        sseLog('연결 성공 (200 text/event-stream)');
+
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let currentEvent = '';
+        let currentId = '';
+        let currentData = '';
+
+        const flushEvent = () => {
+          if (!currentEvent) return;
+          let data: unknown = null;
+          if (currentData) {
+            try {
+              data = JSON.parse(currentData);
+            } catch {
+              data = currentData;
             }
           }
-          return read();
-        });
-      return read();
-    })
-    .catch((err) => {
-      if (err?.name === 'AbortError') return;
-      callbacks.onError?.(err instanceof Error ? err : new Error(String(err)));
-    });
+          if (currentId) lastEventId = currentId;
+
+          if (currentEvent === 'connect') {
+            sseLog('수신 connect', { id: currentId, data });
+            callbacks.onConnect?.(data);
+          } else if (currentEvent === 'notification') {
+            sseLog('수신 notification (unread +1)', { id: currentId, data });
+            callbacks.onNotification?.(data);
+            callbacks.onMessage?.(data);
+          } else if (currentEvent === 'heartbeat') {
+            sseLog('수신 heartbeat', { id: currentId });
+            callbacks.onHeartbeat?.(data);
+          } else if (currentEvent === 'shutdown') {
+            sseLog('수신 shutdown', { id: currentId, data });
+            callbacks.onShutdown?.(data);
+          } else {
+            sseLog('수신 기타', { event: currentEvent, id: currentId, data });
+          }
+
+          currentEvent = '';
+          currentId = '';
+          currentData = '';
+        };
+
+        const read = (): Promise<void> =>
+          reader.read().then(({ done, value }) => {
+            if (done) {
+              flushEvent();
+              sseLog('스트림 종료 → 재연결 예정', { lastEventId });
+              scheduleReconnect();
+              return;
+            }
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() ?? '';
+
+            for (const line of lines) {
+              if (line.startsWith('event:')) {
+                flushEvent();
+                currentEvent = line.slice(6).trim();
+              } else if (line.startsWith('id:')) {
+                currentId = line.slice(3).trim();
+              } else if (line.startsWith('data:')) {
+                currentData = line.slice(5).trim();
+              } else if (line === '') {
+                flushEvent();
+              }
+            }
+            return read();
+          });
+        return read();
+      })
+      .catch((err) => {
+        if (aborted || err?.name === 'AbortError') {
+          sseLog('연결 중단 (Abort)');
+          return;
+        }
+        const status = (err as Error & { status?: number }).status;
+        const isFatal = status === 404 || status === 401;
+        if (isFatal) {
+          sseLog('에러 (재연결 안 함)', status, err);
+        } else {
+          sseLog('에러 → 재연결 예정', err);
+          scheduleReconnect();
+        }
+        callbacks.onError?.(err instanceof Error ? err : new Error(String(err)));
+      });
+  }
+
+  function scheduleReconnect() {
+    if (aborted) return;
+    if (maxReconnectAttempts > 0 && reconnectAttempts >= maxReconnectAttempts) {
+      sseLog('최대 재연결 횟수 도달 → 중단', { maxReconnectAttempts });
+      return;
+    }
+    sseLog('재연결 스케줄', { delayMs: reconnectDelayMs, attempt: reconnectAttempts });
+    reconnectAttempts += 1;
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+      connect();
+    }, reconnectDelayMs);
+  }
+
+  connect();
+
+  return () => {
+    aborted = true;
+    if (reconnectTimer != null) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+    sseLog('구독 해제됨');
+  };
 }
