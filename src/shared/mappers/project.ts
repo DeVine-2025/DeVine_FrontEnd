@@ -24,7 +24,7 @@ export type ProjectCardModel = {
   categoryLabel: string;
   deadlineLabel: string;
   location: string;
-  period: string;
+  durationRangeName?: string;
   mode: string;
   thumbnailUrl?: string;
   dueLabel?: string;
@@ -61,7 +61,7 @@ export function mapProjectItemToCard(p: ProjectItem): ProjectCardModel {
     deadlineLabel: p.categoryName,
     title: p.title,
     location: p.location,
-    period: `${p.durationMonths}개월`,
+    durationRangeName: p.durationRangeName,
     mode: p.modeName,
     thumbnailUrl: p.thumbnailUrl ?? p.imageUrls?.[0] ?? undefined,
     dueLabel: getDueLabel(p.daysUntilDeadline),

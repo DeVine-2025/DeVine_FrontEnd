@@ -1,9 +1,9 @@
-import ProfileDetail from '../../shared/templates/profileDetail';
 import type { Contribution } from '@apis/myInfo/myInfo';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import { projectQueries } from '@apis/project/project-queries';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { projectQueries } from '@apis/project/project-queries';
+import ProfileDetail from '../../shared/templates/profileDetail';
 
 const MyInfoProfile = () => {
   const [year, setYear] = useState(new Date().getFullYear());
@@ -20,8 +20,6 @@ const MyInfoProfile = () => {
   const { data: projectInprogress } = useQuery(projectQueries.getMYProjectInprogress());
   const { data: projectCompleted } = useQuery(projectQueries.getMYProjectCompleted());
 
-  console.log(projectInprogress, projectCompleted)
-
   const techStackNames = useMemo(() => {
     if (!techStack?.result?.techstacks) return [];
     return techStack.result.techstacks.map((item: { name: string }) => item.name);
@@ -30,18 +28,16 @@ const MyInfoProfile = () => {
   const contributionsData = useMemo((): Contribution[] => {
     const result = contributions?.result;
     if (Array.isArray(result)) return result as Contribution[];
-    const list = result && typeof result === 'object' && 'contributionList' in result
-      ? (result as { contributionList: Contribution[] }).contributionList
-      : undefined;
+    const list =
+      result && typeof result === 'object' && 'contributionList' in result
+        ? (result as { contributionList: Contribution[] }).contributionList
+        : undefined;
     return Array.isArray(list) ? list : [];
   }, [contributions]);
 
   const handleYearChange = (newYear: number) => {
     setYear(newYear);
   };
-
-
-
 
   return (
     <div>

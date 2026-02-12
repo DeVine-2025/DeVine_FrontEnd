@@ -16,7 +16,7 @@ const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?
 
 export async function getProjects(
   params: GetProjectsParams | string,
-  token: string,
+  token?: string,
   signal?: AbortSignal,
 ) {
   const qs =
@@ -37,7 +37,8 @@ export async function getProjects(
   const res = await fetch(`${BASE_URL}/api/v1/projects${queryString}`, {
     method: 'GET',
     headers: {
-      Authorization: `Bearer ${token}`,
+      accept: '*/*',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     signal,
   });
@@ -162,14 +163,12 @@ export async function getMyRecruitingProjects(
 
   const json = (await res.json().catch(() => null)) as MyRecruitingResponse | null;
   if (!res.ok) {
-    const message = json && 'message' in (json as Record<string, unknown>) ? (json as any).message : null;
+    const message =
+      json && 'message' in (json as Record<string, unknown>) ? (json as any).message : null;
     throw new Error(typeof message === 'string' ? message : `요청 실패 (${res.status})`);
   }
 
-  const content =
-    json?.result?.projects?.content ??
-    json?.projects?.content ??
-    [];
+  const content = json?.result?.projects?.content ?? json?.projects?.content ?? [];
 
   return content
     .map((item) => ({

@@ -1,5 +1,5 @@
-import BookmarkButton from '@components/common/BookmarkButton';
 import PersonIcon from '@assets/icons/person.svg?react';
+import BookmarkButton from '@components/common/BookmarkButton';
 import { badgeToneToClass } from '@t/badgeTone';
 import type { ProjectCardBaseProps } from '@t/project/ui';
 import type { KeyboardEvent } from 'react';
@@ -12,7 +12,7 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
     thumbnailAlt,
     title,
     location,
-    period,
+    durationRangeName,
     mode,
     roles,
     dueLabel,
@@ -59,7 +59,7 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
     </h3>
   );
 
-  const metaText = [location, period, mode].filter(Boolean).join(' | ');
+  const metaText = [location, durationRangeName, mode].filter(Boolean).join(' | ');
 
   const Meta = metaText ? (
     <div className="truncate pl-1 text-badge-text-gray text-lg">{metaText}</div>

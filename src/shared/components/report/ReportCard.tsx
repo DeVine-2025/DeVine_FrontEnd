@@ -1,10 +1,10 @@
+import { usePatchReportVisibility } from '@apis/report/report-mutation';
 import LockCloseIcon from '@assets/icons/lock-close.svg?react';
 import LockOpenIcon from '@assets/icons/lock-open.svg?react';
 import PlusIcon from '@assets/icons/plus.svg?react';
 import { cn } from '@libs/cn';
 import { useState } from 'react';
-import {useNavigate} from 'react-router-dom';
-import { usePatchReportVisibility } from '@apis/report/report-mutation';
+import { Link } from 'react-router-dom';
 
 type ReportCardProps = {
   type: 'create' | 'main';
@@ -18,30 +18,30 @@ type ReportCardProps = {
   onClickShowDetails?: () => void;
   onClickLock?: () => void;
 };
-const ReportCard = ({ type, label,gitRepoId,reportId, title, description, isPublic }: ReportCardProps) => {
+const ReportCard = ({
+  type,
+  label,
+  gitRepoId,
+  reportId,
+  title,
+  description,
+  isPublic,
+}: ReportCardProps) => {
   const [isOn, setIsOn] = useState(isPublic);
-  const navigate = useNavigate();
-  const {mutate} = usePatchReportVisibility();
+  const { mutate } = usePatchReportVisibility();
 
-  console.log(isOn)
-  const handleCardClick = () => {
-    if (type === 'create') {
-      navigate('/report/create');
-    } else if (type === 'main') {
-      navigate(`/report/detail/${gitRepoId}?type=${label}`)
-    }
-  };
+  const to = type === 'create' ? '/report/create' : `/report/detail/${gitRepoId}?type=${label}`;
 
   return (
-    <div
-      onClick={handleCardClick}
-      className="inline-flex w-fit h-[25rem] cursor-pointer rounded-3xl border border-[var(--ui-200)] p-[3.2rem] text-left"
+    <Link
+      to={to}
+      className="inline-flex h-[25rem] w-fit cursor-pointer rounded-3xl border border-[var(--ui-200)] p-[2.5rem] text-left"
     >
       <div className="w-[21rem]">
         {type === 'create' && (
           <div className="flex h-full w-full items-center justify-center p-6">
             <div className="flex-col-center gap-[3.3rem]">
-              <PlusIcon className="text-ui-200 h-[6rem] w-[6rem]" />
+              <PlusIcon className="h-[6rem] w-[6rem] text-ui-200" />
               <p className="text-3xl text-[var(--ui-400)]">리포트 생성하기</p>
             </div>
           </div>
@@ -49,10 +49,10 @@ const ReportCard = ({ type, label,gitRepoId,reportId, title, description, isPubl
 
         {type === 'main' && (
           <div>
-            <div className="flex justify-between w-full">
+            <div className="flex w-full justify-between">
               <div className="flex-col-center rounded-lg bg-[var(--badge-bg-primary)] px-[0.8rem] py-[0.4rem]">
                 <p className="Label1 text-[var(--badge-text-primary)]">
-                  {label === "MAIN" ? '메인' : '상세'}
+                  {label === 'MAIN' ? '메인' : '상세'}
                 </p>
               </div>
 
@@ -90,13 +90,11 @@ const ReportCard = ({ type, label,gitRepoId,reportId, title, description, isPubl
             <p className="Heading1 mt-[2rem] line-clamp-2 font-semibold text-[var(--ui-1000)]">
               {title}
             </p>
-            <p className="Body1 mt-[1.6rem] line-clamp-2 text-[var(--ui-400)]">
-              {description}
-            </p>
+            <p className="Body1 mt-[1.6rem] line-clamp-2 text-[var(--ui-400)]">{description}</p>
           </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 };
 

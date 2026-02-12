@@ -58,25 +58,33 @@ export const PERIOD_TO_DURATION: Record<string, DurationRange | undefined> = {
   '6개월 이상': 'SIX_PLUS',
 };
 
+const ALL_LABELS = new Set(['ALL', '전체']);
+
+function cleanLabels(values: readonly string[] | undefined) {
+  if (!values || values.length === 0) return [];
+  return Array.from(new Set(values.map((v) => v.trim()).filter((v) => v && !ALL_LABELS.has(v))));
+}
+
 export function buildParams(input: AppliedFilters & { page?: number; size?: number }) {
-  const projectFields = input.projectTypes
+  const projectFields = cleanLabels(input.projectTypes)
     .map((label) => PROJECT_TYPE_TO_FIELD[label])
     .filter(Boolean) as ProjectField[];
 
-  const categories = input.domains
+  const categories = cleanLabels(input.domains)
     .map((label) => DOMAIN_LABEL_TO_CATEGORY[label])
     .filter(Boolean) as Category[];
 
-  const techstackNames = input.techStacks
+  const techstackNames = cleanLabels(input.techStacks)
     .map((key) => TECHSTACK_KEY_TO_NAME[key])
     .filter(Boolean) as string[];
 
-  const durationRanges = input.expectedPeriods
+  const durationRanges = cleanLabels(input.expectedPeriods)
     .map((label) => PERIOD_TO_DURATION[label])
     .filter(Boolean) as DurationRange[];
 
   const qs = new URLSearchParams();
 
+  // 배열이 비어 있으면 append 안 하니까 “필터 없음(=전체)”로 자연스럽게 동작
   projectFields.forEach((f) => qs.append('projectFields', f));
   categories.forEach((c) => qs.append('categories', c));
   techstackNames.forEach((t) => qs.append('techstackNames', t));
