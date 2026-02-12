@@ -13,6 +13,7 @@ import ProjectFiltersBar, {
 } from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
+import { useMyReportsExist } from '@hooks/useMyReportsExist';
 import { useProjectFilter } from '@hooks/useProjectFilters';
 import { useProjects } from '@hooks/useProjects';
 import { mapPositionsToRoles, mapProjectItemToCard, type ProjectCardModel } from '@mappers/project';
@@ -114,6 +115,13 @@ export default function ProjectSearchPage() {
 
   const size = 10;
 
+  const { data: hasReports, isLoading: isReportsLoading } = useMyReportsExist();
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    setPage((prev) => (prev === 1 ? prev : 1));
+  }, [projectTypes, domains, expectedPeriods, techStacks]);
+
   const params = useMemo(
     () =>
       buildParams({
@@ -205,8 +213,18 @@ export default function ProjectSearchPage() {
   );
 
   // 추천 프리뷰 fetch
+  // 추천 프리뷰 fetch (✅ 리포트 있을 때만)
   useEffect(() => {
     let isActive = true;
+
+    // 1) 리포트 로딩 중이면 대기 (추천 호출 X)
+    if (isReportsLoading) return;
+
+    // 2) 리포트 없으면 추천 프리뷰 비우고 종료 (추천 호출 X)
+    if (hasReports !== true) {
+      setRecommendedPreview([]);
+      return;
+    }
 
     const fetchRecommendPreview = async () => {
       try {
@@ -229,17 +247,16 @@ export default function ProjectSearchPage() {
 
         setRecommendedPreview(mapped);
       } catch {
-        if (isActive) {
-          setRecommendedPreview([]);
-        }
+        if (isActive) setRecommendedPreview([]);
       }
     };
 
     void fetchRecommendPreview();
+
     return () => {
       isActive = false;
     };
-  }, [getToken]);
+  }, [getToken, hasReports, isReportsLoading]);
 
   const ALL_FILTER_KEYS = [
     '프로젝트 유형',
@@ -258,36 +275,50 @@ export default function ProjectSearchPage() {
       <header className="flex items-center justify-between">
         <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 프로젝트</h2>
 
-        <button
-          type="button"
-          onClick={() => navigate('/recommend')}
-          className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
-        >
-          더 많은 추천 프로젝트 보러가기
-          <ChevronRightIcon className="h-6 w-6 shrink-0" aria-hidden />
-        </button>
+        {hasReports === true && !isReportsLoading && (
+          <button
+            type="button"
+            onClick={() => navigate('/recommend')}
+            className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
+          >
+            더 많은 추천 프로젝트 보러가기
+            <ChevronRightIcon className="h-6 w-6 shrink-0" aria-hidden />
+          </button>
+        )}
       </header>
 
-      <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
-        {recommendedPreview.map((p) => {
-          const ov = bookmarkOverrides[Number(p.id)];
-          return (
-            <ProjectSm
-              key={p.id}
-              categoryLabel={p.categoryLabel}
-              deadlineLabel={p.deadlineLabel}
-              title={p.title}
-              location={p.location}
-              durationRangeName={p.durationRangeName}
-              mode={p.mode}
-              roles={p.roles}
-              bookmarked={ov?.bookmarked ?? false}
-              onBookmarkChange={(next) => handleBookmarkChange(Number(p.id), next, ov?.bookmarkId)}
-              onClick={() => handleProjectClick(p.id)}
-            />
-          );
-        })}
-      </div>
+      {isReportsLoading ? (
+        <div className="py-10">
+          <ProjectListState type="loading" />
+        </div>
+      ) : hasReports !== true ? (
+        <p className="py-15 text-center text-[15px] text-[var(--ui-500)]">
+          리포트를 작성하면 추천 프로젝트를 볼 수 있어요
+        </p>
+      ) : (
+        <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
+          {recommendedPreview.map((p) => {
+            const ov = bookmarkOverrides[Number(p.id)];
+            return (
+              <ProjectSm
+                key={p.id}
+                categoryLabel={p.categoryLabel}
+                deadlineLabel={p.deadlineLabel}
+                title={p.title}
+                location={p.location}
+                durationRangeName={p.durationRangeName}
+                mode={p.mode}
+                roles={p.roles}
+                bookmarked={ov?.bookmarked ?? false}
+                onBookmarkChange={(next) =>
+                  handleBookmarkChange(Number(p.id), next, ov?.bookmarkId)
+                }
+                onClick={() => handleProjectClick(p.id)}
+              />
+            );
+          })}
+        </div>
+      )}
 
       <div className="h-px w-full bg-card-border" />
 

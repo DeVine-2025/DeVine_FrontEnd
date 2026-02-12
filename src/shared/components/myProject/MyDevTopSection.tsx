@@ -108,7 +108,7 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
       <div className="mt-6 flex flex-col gap-4">
         {isLoading && <div className="py-30 text-center text-3xl text-card-muted">로딩중...</div>}
         {isError && (
-          <div className="py-30 text-center text-3xl text-card-muted">불러오기에 실패했어요.</div>
+          <div className="py-30 text-center text-3xl text-card-muted">받은 제안이 없어요.</div>
         )}
         {empty && (
           <div className="py-30 text-center text-3xl text-card-muted">

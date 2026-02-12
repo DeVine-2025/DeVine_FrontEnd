@@ -15,7 +15,7 @@ const MainDetail = ({ data }: MainDetailProps) => {
   const subtTitleStyle = 'text-slate-500 text-lg font-semibold pl-3 min-w-[160px]';
   const contentStyle = 'flex gap-20 items-center pr-8 py-[1.6rem]';
   const sectionTitleStyle = 'pl-2 text-ui-1000 text-3xl font-bold';
-  const projectScaleStyle = 'flex gap-[0.4rem] items-center';
+  const projectScaleStyle = 'flex gap-[0.4rem] text-ui-1000 items-center';
   const titleContentGapStyle = 'flex-col gap-[2.4rem]';
 
   const scale = data?.projectInfo?.scale?.split(' | ');
