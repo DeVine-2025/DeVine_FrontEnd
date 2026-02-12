@@ -3,8 +3,24 @@ import type { ProfileCardProps } from '../../types/profileCard.types';
 import { BadgeList, HeaderBlock, Intro, TechChips } from './ProfileBase';
 
 export default function ProfileCardSm(props: ProfileCardProps) {
+  const { onClick } = props;
   return (
-    <article className={cn('rounded-2xl bg-filter-bg', 'card-size-sm')}>
+    <article
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+      className={cn('rounded-2xl bg-filter-bg', 'card-size-sm', onClick && 'cursor-pointer')}
+    >
       <HeaderBlock
         {...props}
         avatarClass="card-avatar-sm"

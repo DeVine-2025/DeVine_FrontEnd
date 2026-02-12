@@ -331,6 +331,7 @@ const DeveloperSearchPage = () => {
               size="sm"
               bookmarked={bookmarkMap[profile.nickname] != null || (profile.bookmarked ?? false)}
               onBookmarkChange={(next) => handleBookmarkChange(undefined, profile.nickname, next)}
+              onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
             />
           ))}
         </div>
@@ -371,6 +372,7 @@ const DeveloperSearchPage = () => {
             onBookmarkChange={(next) =>
               handleBookmarkChange(profile.memberId, profile.nickname, next)
             }
+            onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
           />
         ))}
       </div>

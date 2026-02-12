@@ -18,11 +18,25 @@ export default function ProfileCardMd(props: ProfileCardProps) {
     introduction,
     techStack,
     className,
+    onClick,
   } = props;
 
   return (
     <article
-      className={cn('rounded-2xl border border-card-border bg-card-bg', 'card-size-md', className)}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+      className={cn('rounded-2xl border border-card-border bg-card-bg', 'card-size-md', onClick && 'cursor-pointer', className)}
     >
       <div className="flex h-full items-start gap-6">
         <img
