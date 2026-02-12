@@ -120,9 +120,7 @@ const DeveloperSearchPage = () => {
       try {
         const token = await getToken(); // null일 수 있음
         const pageData = await getDevelopers(params, token, controller.signal);
-        const filtered = (pageData.content ?? []).filter(
-          (item) => item.member?.mainType !== 'PM',
-        );
+        const filtered = (pageData.content ?? []).filter((item) => item.member?.mainType !== 'PM');
         setSearchContent(filtered);
         setTotalPages(pageData.totalPages ?? 0);
       } catch (e) {
@@ -173,7 +171,7 @@ const DeveloperSearchPage = () => {
 
             techStack: pureTechStacks,
 
-            role: isPm ? 'PM' : ROLE_LABEL[roleKey] ?? '개발자',
+            role: isPm ? 'PM' : (ROLE_LABEL[roleKey] ?? '개발자'),
             roleTone,
 
             badges: (x.domains ?? []).map((d) => ({
@@ -247,7 +245,7 @@ const DeveloperSearchPage = () => {
 
         techStack: pureTechStacks,
 
-        role: isPm ? 'PM' : ROLE_LABEL[roleKey] ?? '개발자',
+        role: isPm ? 'PM' : (ROLE_LABEL[roleKey] ?? '개발자'),
         roleTone,
 
         badges: (x.domains ?? []).map((d, i) => ({
@@ -328,7 +326,7 @@ const DeveloperSearchPage = () => {
 
       {/* 추천 개발자 카드 */}
       {hasProjects !== true ? (
-        <p className="py-10 text-center text-[15px] text-[var(--ui-500)]">
+        <p className="py-20 text-center text-[15px] text-[var(--ui-500)]">
           프로젝트를 등록하면 추천 개발자를 볼 수 있어요
         </p>
       ) : (

@@ -5,13 +5,16 @@ type CreateReportResponse = {
   };
 };
 
-import { Report } from '@apis/report/report';
+import type { Report } from '@apis/report/report';
+import type { MyReportItem, ReportResponse, ReportType } from '@t/report';
 
-type ReportData = Record<string, unknown>;
-
-type ReportResponse = {
-  isSuccess?: boolean;
-  result?: ReportData;
+type GetMyReportsMeResponse = {
+  isSuccess: boolean;
+  code: string;
+  message: string;
+  result?: {
+    reports?: MyReportItem[];
+  };
 };
 
 export async function createReportSync(gitRepoId: number, token?: string) {
@@ -80,4 +83,20 @@ export async function getReportDetail(gitRepoId: number, token?: string): Promis
 
   const data = (await res.json().catch(() => null)) as ReportResponse | null;
   return (data?.result as unknown as Report) ?? null;
+}
+
+export async function getMyReportsMe(token?: string, type?: ReportType): Promise<MyReportItem[]> {
+  const query = type ? `?type=${type}` : '';
+
+  const res = await fetch(`https://api.devine.kr/api/v1/reports/me${query}`, {
+    method: 'GET',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!res.ok) throw new Error(`get my reports failed: ${res.status}`);
+
+  const data = (await res.json().catch(() => null)) as GetMyReportsMeResponse | null;
+  return data?.result?.reports ?? [];
 }
