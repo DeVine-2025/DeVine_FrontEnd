@@ -467,17 +467,6 @@ const MainPage = () => {
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h2 className="Heading2 font-semibold text-card-title">{recommendTitle}</h2>
-          {isPm && (
-            <button
-              type="button"
-              onClick={() => navigate('/recommend/developer')}
-              className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-[var(--ui-500)] transition-colors hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)]"
-              aria-label="추천 개발자 페이지로 이동"
-            >
-              <span className="Caption1 font-medium">더 많은 추천 개발자 보러가기</span>
-              <ChevronRightIcon aria-hidden className="h-5 w-5 shrink-0" />
-            </button>
-          )}
         </div>
         <div className="relative">
           <div
