@@ -45,23 +45,28 @@ const DeveloperSearchPage = () => {
 
   useEffect(() => {
     let cancelled = false;
+
     const load = async () => {
-      const token = await getToken();
-      if (!token || cancelled) return;
       try {
+        const token = await getToken();
+        if (!token || cancelled) return;
+
         const projects = await getMyRecruitingProjects(token);
         if (cancelled) return;
 
-        setHasProjects(projects.length > 0);
-        setProjectId(projects[0]?.projectId ?? null);
-      } catch {
+        const has = projects.length > 0;
+        setHasProjects(has);
+        setProjectId(has ? (projects[0]?.projectId ?? null) : null);
+      } catch (e) {
         if (!cancelled) {
           setHasProjects(false);
           setProjectId(null);
         }
       }
     };
+
     void load();
+
     return () => {
       cancelled = true;
     };
@@ -138,7 +143,7 @@ const DeveloperSearchPage = () => {
 
   useEffect(() => {
     if (hasProjects !== true) return;
-    if (!projectId) return;
+    if (projectId == null) return;
 
     const controller = new AbortController();
 
@@ -166,19 +171,14 @@ const DeveloperSearchPage = () => {
             id: `preview-${x.member.nickname}-${index}`,
             nickname: x.member.nickname,
             profileImageUrl: x.member.imageUrl ?? FALLBACK_PROFILE_IMAGE,
-
             introduction: x.member.body ?? '',
-
             techStack: pureTechStacks,
-
             role: isPm ? 'PM' : (ROLE_LABEL[roleKey] ?? '개발자'),
             roleTone,
-
             badges: (x.domains ?? []).map((d) => ({
               label: isMemberSearchCategory(d) ? DOMAIN_CODE_TO_LABEL[d] : d,
               tone: 'gray' as BadgeTone,
             })),
-
             bookmarked: false,
           };
         });
@@ -187,6 +187,7 @@ const DeveloperSearchPage = () => {
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') return;
         console.error('[추천 개발자 프리뷰] 실패', e);
+        setProfiles([]); // ✅ 실패 시 비워주기(선택)
       }
     })();
 
@@ -325,7 +326,9 @@ const DeveloperSearchPage = () => {
       </header>
 
       {/* 추천 개발자 카드 */}
-      {hasProjects !== true ? (
+      {hasProjects === null ? (
+        <p className="py-20 text-center text-[15px] text-[var(--ui-500)]">불러오는 중...</p>
+      ) : hasProjects !== true ? (
         <p className="py-20 text-center text-[15px] text-[var(--ui-500)]">
           프로젝트를 등록하면 추천 개발자를 볼 수 있어요
         </p>
