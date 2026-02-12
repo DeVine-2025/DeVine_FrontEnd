@@ -6,6 +6,7 @@ import ReportRequiredCard from '@components/common/ReportRequiredCard';
 import { useAuthStore } from '@store/auth';
 import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getRecommendMembers, type GetRecommendMembersParams, type RecommendDeveloperListItem } from '@apis/members';
 import { getMyRecruitingProjects } from '@apis/projects';
@@ -54,6 +55,7 @@ function buildApiParams(
 }
 
 const RecommendDeveloperPage = () => {
+  const navigate = useNavigate();
   const { getToken } = useAuth();
   const userRole = useAuthStore((state) => state.role);
   const isPm = userRole === 'pm';
@@ -442,7 +444,7 @@ const RecommendDeveloperPage = () => {
                 bookmarkId={dev.bookmarkId}
                 listItemId={dev.id}
                 onBookmarkChangeById={handleBookmarkChangeById}
-                onClick={() => console.log('click developer', dev.id)}
+                onClick={() => navigate(`/developer-detail/${dev.nickname}`)}
               />
             ))}
           </div>

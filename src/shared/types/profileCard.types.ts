@@ -27,6 +27,7 @@ export type ProfileCardProps = {
   action?: React.ReactNode;
   header?: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 };
 
 // Developer type

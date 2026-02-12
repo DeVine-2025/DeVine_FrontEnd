@@ -20,14 +20,29 @@ export default function ProfileCardLg(props: ProfileCardProps) {
     action,
     className,
     header,
+    onClick,
   } = props;
 
   return (
     <article
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
       className={cn(
         'rounded-2xl border border-card-border bg-card-bg',
         'card-size-lg',
         header && 'card-size-lg--with-header',
+        onClick && 'cursor-pointer',
         className,
       )}
     >
