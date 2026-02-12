@@ -104,7 +104,7 @@ const ProfileDetail = ({
                   <DomainBadges key={domain} label={domain} />
                 ))}
               </div>
-              <NormalButton label={'프로필 수정'} onClick={() => navigate('/profile-edit')} />
+              {type === "내 정보" && <NormalButton label={'프로필 수정'} onClick={() => navigate('/profile-edit')} />}
             </div>
           </div>
         </div>
