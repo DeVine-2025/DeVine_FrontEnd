@@ -9,6 +9,7 @@ import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/
 import Pagination from '@components/common/Pagination';
 import ProfileCard from '@components/common/ProfileCard';
 import { useFilterStore } from '@store/filter';
+import { normalizeTechstackKey, TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
 import type { BadgeTone } from '@t/badgeTone';
 import { DOMAIN_CODE_TO_LABEL, DOMAIN_LABEL_TO_CODE, ROLE_LABEL, ROLE_PRIORITY } from '@t/member';
 import type {
@@ -103,14 +104,20 @@ const DeveloperSearchPage = () => {
       .filter(Boolean);
   }, [interestDomains]);
 
+  const normalizedTechNames = useMemo(() => {
+    return techStacks
+      .map((key) => TECHSTACK_KEY_TO_NAME[normalizeTechstackKey(key)])
+      .filter(Boolean) as string[];
+  }, [techStacks]);
+
   const params = useMemo(
     () => ({
       page,
       size,
       categories,
-      techNames: techStacks,
+      techNames: normalizedTechNames,
     }),
-    [page, categories, techStacks],
+    [page, categories, normalizedTechNames, size],
   );
 
   useEffect(() => {
