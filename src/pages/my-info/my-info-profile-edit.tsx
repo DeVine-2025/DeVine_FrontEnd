@@ -399,7 +399,7 @@ const MyInfoProfileEdit = () => {
 
     const updateData: UpdateProfileRequest = {
       nickname,
-      imageUrl,
+      ...(imageUrl && { imageUrl }),
       address,
       body: introduction,
       domains: englishDomains,
