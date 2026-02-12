@@ -273,6 +273,10 @@ const MyInfoBookmark = () => {
               const profile = targetNickname ? developerProfiles[targetNickname] : undefined;
               const profileImageUrl =
                 resolveThumbnailUrl(profile?.imageUrl ?? undefined) ?? profileDefaultIconUrl;
+              const handleDeveloperClick = () => {
+                if (!targetNickname) return;
+                navigate(`/developer-detail/${targetNickname}`);
+              };
               return (
                 <RecommendDeveloperCard
                   key={bookmarkId}
@@ -291,6 +295,7 @@ const MyInfoBookmark = () => {
                   showMatchedReason={false}
                   bookmarked
                   onBookmarkChange={(next) => !next && handleRemoveDeveloperBookmark(bookmarkId)}
+                  onClick={handleDeveloperClick}
                 />
               );
             })
