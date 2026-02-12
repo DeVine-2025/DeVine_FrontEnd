@@ -73,7 +73,7 @@ export default function ProfileCardLg(props: ProfileCardProps) {
               onBookmarkChange={(next) => onBookmarkChange?.(next, id)}
               stopPropagation={false}
               className="inline-flex"
-              iconClassName="h-[32px] w-[32px]"
+              iconClassName="h-[30px] w-[30px]"
               colorIconClassName="h-[44px] w-[44px]"
             />
           )}

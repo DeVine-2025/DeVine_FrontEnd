@@ -1,5 +1,7 @@
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getDevelopers } from '@apis/developer';
+import { getMyRecruitingProjects } from '@apis/projects';
+import { getRecommendMembersPreview } from '@apis/recommendMembers';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
@@ -12,7 +14,6 @@ import type { DeveloperSearchContentDto, MemberSearchCategory } from '@t/profile
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEVELOPER_FILTERS, PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
-import { getMyRecruitingProjects } from '@apis/projects';
 
 type RoleCode = (typeof ROLE_PRIORITY)[number];
 type RoleKey = RoleCode | 'DEVELOPER';
@@ -34,6 +35,7 @@ const DeveloperSearchPage = () => {
 
   // 프로젝트 등록 유무 확인
   const [hasProjects, setHasProjects] = useState<boolean | null>(null);
+  const [projectId, setProjectId] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,9 +44,15 @@ const DeveloperSearchPage = () => {
       if (!token || cancelled) return;
       try {
         const projects = await getMyRecruitingProjects(token);
-        if (!cancelled) setHasProjects(projects.length > 0);
+        if (cancelled) return;
+
+        setHasProjects(projects.length > 0);
+        setProjectId(projects[0]?.projectId ?? null);
       } catch {
-        if (!cancelled) setHasProjects(false);
+        if (!cancelled) {
+          setHasProjects(false);
+          setProjectId(null);
+        }
       }
     };
     void load();
@@ -114,11 +122,72 @@ const DeveloperSearchPage = () => {
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') return;
         console.error('[개발자 검색] 실패', e);
+        setSearchContent([]);
+        setTotalPages(0);
       }
     })();
 
     return () => controller.abort();
   }, [getToken, params]);
+
+  const [profiles, setProfiles] = useState<typeof PROFILE_CARD_LIST>(PROFILE_CARD_LIST);
+
+  useEffect(() => {
+    if (hasProjects !== true) return;
+    if (!projectId) return;
+
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+
+        const result = await getRecommendMembersPreview(projectId, 4, token, controller.signal);
+
+        const FALLBACK_PROFILE_IMAGE = '/images/profile-default.png';
+
+        const mapped = result.map((x, index) => {
+          const roleNames = (x.techstacks ?? []).filter((t) => t.genre == null).map((t) => t.name);
+          const roleKey = pickRole(roleNames);
+
+          const pureTechStacks = (x.techstacks ?? [])
+            .filter((t) => t.genre != null)
+            .map((t) => ({
+              id: String(t.techstackId),
+              name: t.name,
+            }));
+
+          return {
+            id: `preview-${x.member.nickname}-${index}`,
+            nickname: x.member.nickname,
+            profileImageUrl: x.member.imageUrl ?? FALLBACK_PROFILE_IMAGE,
+
+            introduction: x.member.body ?? '',
+
+            techStack: pureTechStacks,
+
+            role: ROLE_LABEL[roleKey] ?? '개발자',
+            roleTone: 'blue' as const,
+
+            badges: (x.domains ?? []).map((d) => ({
+              label: isMemberSearchCategory(d) ? DOMAIN_CODE_TO_LABEL[d] : d,
+              tone: 'gray' as BadgeTone,
+            })),
+
+            bookmarked: false,
+          };
+        });
+
+        setProfiles(mapped);
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
+        console.error('[추천 개발자 프리뷰] 실패', e);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [getToken, hasProjects, projectId]);
 
   // 새로고침 시에도 북마크 상태 유지: 내 북마크 목록 하이드레이션
   useEffect(() => {
@@ -145,8 +214,6 @@ const DeveloperSearchPage = () => {
       cancelled = true;
     };
   }, [getToken]);
-
-  const profiles = useMemo(() => PROFILE_CARD_LIST, []);
 
   const FALLBACK_PROFILE_IMAGE = '/images/profile-default.png';
 
@@ -241,7 +308,7 @@ const DeveloperSearchPage = () => {
 
         <button
           type="button"
-          onClick={() => navigate('/recommend')}
+          onClick={() => navigate('/recommend/developer')}
           className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
         >
           더 많은 추천 개발자 보러가기
@@ -252,7 +319,7 @@ const DeveloperSearchPage = () => {
       {/* 추천 개발자 카드 */}
       {hasProjects === false ? (
         <p className="py-10 text-center text-[15px] text-[var(--ui-500)]">
-          프로젝트를 등록하고 추천 개발자를 보세요
+          프로젝트를 등록하면 추천 개발자를 볼 수 있어요
         </p>
       ) : (
         <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">

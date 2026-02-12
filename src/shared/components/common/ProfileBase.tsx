@@ -65,7 +65,7 @@ export function HeaderBlock({
         onBookmarkChange={(next) => onBookmarkChange?.(next, id)}
         stopPropagation={false}
         className="-right-1 absolute top-0"
-        iconClassName="h-[32px] w-[32px]"
+        iconClassName="h-[30px] w-[30px]"
         colorIconClassName="h-[44px] w-[44px]"
       />
     </div>
