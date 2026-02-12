@@ -198,6 +198,12 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
               <div className="flex-col gap-[0.7rem] p-[3rem]">
                 <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
                 <p className="text-lg text-ui-400">{item.description.join(', ')}</p>
+                <div className="flex gap-2 mt-2">
+                  <p
+                  className="flex items-center justify-center w-fit text-primary font-bold bg-indigo-600/10 rounded border border-indigo-600/20 px-2 py-1">추천
+                  기술</p>
+                      <p className="text-ui-1000 text-sm font-medium flex items-center gap-3">{item.recommendKeyword.join(' , ')}</p>
+                </div>
               </div>
             </ContentBox>
           ))}
