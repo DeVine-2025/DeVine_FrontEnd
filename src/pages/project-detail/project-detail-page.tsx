@@ -1,26 +1,26 @@
-import { useNavigate, useParams } from 'react-router-dom';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useThemeStore } from '@store/theme';
-import { useAuth, useUser } from '@clerk/clerk-react';
-import { getTechBadgeByName } from '@constants/position-tech-stack';
-import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
-import { getProjectDetail, updateProjectStatus, type ProjectStatus } from '@apis/project-detail';
-import { getMyRecruitingProjects } from '@apis/projects';
-import { getMemberProfileByNickname } from '@apis/members';
 import { applyProject, getMyApplyStatus, updateMyApply } from '@apis/apply';
-import type { ProjectItem, Position, TechStack } from '@t/project/api';
-import {
-  PROJECT_LIST,
-  RECOMMENDED_PROJECTS,
-  type ProjectListItem,
-  type RecommendedProject,
-} from 'src/mocks/project.mock';
-import { badgeToneToClass, type BadgeTone } from 'src/shared/types/badgeTone';
-import BookmarkButton from '@components/common/BookmarkButton';
-import LoadingSpinner from '@components/common/LoadingSpinner';
-import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
+import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
+import { getMemberProfileByNickname } from '@apis/members';
+import { getProjectDetail, type ProjectStatus, updateProjectStatus } from '@apis/project-detail';
+import { getMyRecruitingProjects } from '@apis/projects';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import PersonIcon from '@assets/icons/person.svg?react';
+import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
+import { useAuth, useUser } from '@clerk/clerk-react';
+import BookmarkButton from '@components/common/BookmarkButton';
+import LoadingSpinner from '@components/common/LoadingSpinner';
+import { getTechBadgeByName } from '@constants/position-tech-stack';
+import { useThemeStore } from '@store/theme';
+import type { Position, ProjectItem, TechStack } from '@t/project/api';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  PROJECT_LIST,
+  type ProjectListItem,
+  RECOMMENDED_PROJECTS,
+  type RecommendedProject,
+} from 'src/mocks/project.mock';
+import { type BadgeTone, badgeToneToClass } from 'src/shared/types/badgeTone';
 
 type ProjectDetailInfo = {
   id: string;
@@ -66,7 +66,7 @@ const toProjectDetailInfo = (project: RecommendedProject | ProjectListItem): Pro
   deadlineLabel: project.deadlineLabel,
   title: project.title,
   location: project.location,
-  period: project.period,
+  period: project.deadlineLabel,
   mode: project.mode,
   dueLabel: 'dueLabel' in project ? project.dueLabel : undefined,
 });
@@ -101,12 +101,21 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
   const recruitments =
     'recruitments' in project && Array.isArray(project.recruitments)
       ? (project.recruitments as RecruitmentLike[])
-      : project.positions ?? [];
+      : (project.positions ?? []);
   const isOwner =
-    'isOwner' in project ? Boolean((project as ProjectItem & { isOwner?: boolean }).isOwner) : undefined;
+    'isOwner' in project
+      ? Boolean((project as ProjectItem & { isOwner?: boolean }).isOwner)
+      : undefined;
 
   // eslint-disable-next-line no-console
-  console.log('[프로젝트 상세] API raw creatorImage:', project.creatorImage, '| creatorNickname:', project.creatorNickname, '| creatorName:', project.creatorName);
+  console.log(
+    '[프로젝트 상세] API raw creatorImage:',
+    project.creatorImage,
+    '| creatorNickname:',
+    project.creatorNickname,
+    '| creatorName:',
+    project.creatorName,
+  );
 
   return {
     id: String(project.projectId),
@@ -140,7 +149,10 @@ const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => 
         total: recruitment.count ?? 0,
         techStacks: Array.isArray(recruitment.techStacks)
           ? recruitment.techStacks
-              .map((stack) => stack.techStackName ?? (stack as TechStack & { techStack?: string }).techStack)
+              .map(
+                (stack) =>
+                  stack.techStackName ?? (stack as TechStack & { techStack?: string }).techStack,
+              )
               .filter((name): name is string => typeof name === 'string' && name.trim().length > 0)
           : [],
       };
@@ -244,14 +256,9 @@ const ProjectDetailPage = () => {
       }
       try {
         if (next) {
-          const { bookmarkId } = await createBookmark(
-            { targetType: 'PROJECT', targetId },
-            token,
-          );
+          const { bookmarkId } = await createBookmark({ targetType: 'PROJECT', targetId }, token);
           setBookmarkState({ bookmarked: true, bookmarkId });
-          setApiProject((prev) =>
-            prev ? { ...prev, bookmarked: true, bookmarkId } : null,
-          );
+          setApiProject((prev) => (prev ? { ...prev, bookmarked: true, bookmarkId } : null));
         } else {
           if (prevBookmarkId == null) return;
           await deleteBookmark(prevBookmarkId, token);
@@ -260,9 +267,7 @@ const ProjectDetailPage = () => {
         console.error('[북마크]', e);
         setBookmarkState({ bookmarked: prevBookmarked, bookmarkId: prevBookmarkId });
         setApiProject((prev) =>
-          prev
-            ? { ...prev, bookmarked: prevBookmarked, bookmarkId: prevBookmarkId }
-            : null,
+          prev ? { ...prev, bookmarked: prevBookmarked, bookmarkId: prevBookmarkId } : null,
         );
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
@@ -368,7 +373,9 @@ const ProjectDetailPage = () => {
   }, [projectId]);
 
   const project =
-    apiProject ?? sessionProject ?? (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
+    apiProject ??
+    sessionProject ??
+    (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
   const currentMemberId = useMemo(() => {
     const unsafe = user?.unsafeMetadata as { memberId?: number } | undefined;
     const publicMeta = user?.publicMetadata as { memberId?: number } | undefined;
@@ -376,12 +383,21 @@ const ProjectDetailPage = () => {
   }, [user?.publicMetadata, user?.unsafeMetadata]);
   const isOwner =
     Boolean(project?.isOwner) ||
-    (project?.creatorId != null && currentMemberId != null && project.creatorId === currentMemberId) ||
+    (project?.creatorId != null &&
+      currentMemberId != null &&
+      project.creatorId === currentMemberId) ||
     isOwnerByList;
   const creatorImage = project?.creatorImage ?? creatorProfileImage;
 
   // eslint-disable-next-line no-console
-  console.log('[프로젝트 상세] 렌더링 creatorImage:', creatorImage, '| project.creatorImage:', project?.creatorImage, '| creatorProfileImage:', creatorProfileImage);
+  console.log(
+    '[프로젝트 상세] 렌더링 creatorImage:',
+    creatorImage,
+    '| project.creatorImage:',
+    project?.creatorImage,
+    '| creatorProfileImage:',
+    creatorProfileImage,
+  );
 
   useEffect(() => {
     if (!project || project.creatorImage) {
@@ -454,23 +470,15 @@ const ProjectDetailPage = () => {
       return (
         <span
           key={key}
-          className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-sm text-[var(--ui-800)]"
+          className="inline-flex items-center rounded-full border border-[var(--ui-200)] bg-[var(--ui-100)] px-3 py-1 text-[var(--ui-800)] text-sm"
         >
           {tech}
         </span>
       );
     }
 
-    const src = isDark ? badge.offDark ?? badge.off : badge.off;
-    return (
-      <img
-        key={key}
-        src={src}
-        alt={`${tech} 배지`}
-        className="h-12 w-auto"
-        loading="lazy"
-      />
-    );
+    const src = isDark ? (badge.offDark ?? badge.off) : badge.off;
+    return <img key={key} src={src} alt={`${tech} 배지`} className="h-12 w-auto" loading="lazy" />;
   };
 
   if (!projectId || (!project && !isLoading)) {
@@ -577,41 +585,45 @@ const ProjectDetailPage = () => {
       <section className="flex flex-col gap-8 rounded-3xl bg-card-bg p-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
           <div className="flex min-w-0 flex-col gap-6">
-              {(project.imageUrls?.length ?? 0) > 0 && (
-                <div
-                  className={`-mt-10 grid grid-cols-1 gap-4 ${
-                    project.imageUrls!.length === 1
-                      ? 'place-items-center'
-                      : project.imageUrls!.length >= 3
-                        ? 'lg:grid-cols-3'
-                        : 'lg:grid-cols-2'
-                  }`}
-                >
-                  {project.imageUrls!.map((imageUrl, index) => (
-                    <button
-                      type="button"
-                      key={`project-image-${index}`}
-                      onClick={() => setImageLightboxIndex(index)}
-                      className={`group relative aspect-[4/3] w-full min-h-[140px] max-h-[220px] overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-card-section-bg text-left shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--ui-400)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] hover:border-[var(--ui-300)] hover:shadow-lg ${
-                        project.imageUrls!.length === 1 ? 'max-w-[600px] max-h-[250px]' : ''
-                      }`}
-                    >
-                      <img
-                        src={imageUrl}
-                        alt={project.imageUrls!.length === 1 ? `${project.title} 대표 이미지` : `${project.title} 이미지 ${index + 1}`}
-                        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
+            {(project.imageUrls?.length ?? 0) > 0 && (
+              <div
+                className={`-mt-10 grid grid-cols-1 gap-4 ${
+                  project.imageUrls!.length === 1
+                    ? 'place-items-center'
+                    : project.imageUrls!.length >= 3
+                      ? 'lg:grid-cols-3'
+                      : 'lg:grid-cols-2'
+                }`}
+              >
+                {project.imageUrls!.map((imageUrl, index) => (
+                  <button
+                    type="button"
+                    key={`project-image-${index}`}
+                    onClick={() => setImageLightboxIndex(index)}
+                    className={`group relative aspect-[4/3] max-h-[220px] min-h-[140px] w-full overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-card-section-bg text-left shadow-md transition-all duration-200 hover:border-[var(--ui-300)] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--ui-400)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] ${
+                      project.imageUrls!.length === 1 ? 'max-h-[250px] max-w-[600px]' : ''
+                    }`}
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={
+                        project.imageUrls!.length === 1
+                          ? `${project.title} 대표 이미지`
+                          : `${project.title} 이미지 ${index + 1}`
+                      }
+                      className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3">
                 {/* 카테고리 배지 숨김 */}
                 <div className="flex items-start gap-3">
-                  <h1 className="max-w-[800px] text-[24px] font-semibold text-card-title lg:text-[28px]">
+                  <h1 className="max-w-[800px] font-semibold text-[24px] text-card-title lg:text-[28px]">
                     {project.title}
                   </h1>
                   <BookmarkButton
@@ -636,7 +648,7 @@ const ProjectDetailPage = () => {
                       <ProfilePlaceholderIcon className="h-12 w-12 text-card-muted" aria-hidden />
                     </div>
                   )}
-                  <span className="text-xl font-semibold text-[var(--ui-1000)]">
+                  <span className="font-semibold text-[var(--ui-1000)] text-xl">
                     {project.creatorName ?? '닉네임'}
                   </span>
                 </div>
@@ -648,7 +660,7 @@ const ProjectDetailPage = () => {
                       setIsApplyModalOpen(true);
                       setIsRoleMenuOpen(false);
                     }}
-                    className="mt-2 inline-flex h-[36px] w-full items-center justify-center gap-2 rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-100)] text-[14px] font-medium text-[var(--ui-500)]"
+                    className="mt-2 inline-flex h-[36px] w-full items-center justify-center gap-2 rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-100)] font-medium text-[14px] text-[var(--ui-500)]"
                   >
                     <svg
                       className="h-4 w-4"
@@ -675,7 +687,7 @@ const ProjectDetailPage = () => {
                           state: { projectId: Number(project.id), mode: 'edit' },
                         })
                       }
-                      className="inline-flex h-[36px] flex-[3] items-center justify-center gap-2 rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-100)] text-[14px] font-medium text-[var(--ui-500)]"
+                      className="inline-flex h-[36px] flex-[3] items-center justify-center gap-2 rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-100)] font-medium text-[14px] text-[var(--ui-500)]"
                     >
                       <svg
                         className="h-4 w-4"
@@ -697,7 +709,7 @@ const ProjectDetailPage = () => {
                         type="button"
                         onClick={() => setIsStatusMenuOpen((prev) => !prev)}
                         disabled={isStatusUpdating}
-                        className={`inline-flex h-[36px] w-full items-center justify-center gap-2 rounded-[10px] text-[14px] font-medium text-white ${
+                        className={`inline-flex h-[36px] w-full items-center justify-center gap-2 rounded-[10px] font-medium text-[14px] text-white ${
                           projectStatus === 'COMPLETED'
                             ? 'bg-[var(--ui-400)]'
                             : projectStatus === 'IN_PROGRESS'
@@ -785,7 +797,7 @@ const ProjectDetailPage = () => {
                   setIsApplyModalOpen(true);
                   setIsRoleMenuOpen(false);
                 }}
-                className="h-[36px] w-[200px] rounded-[10px] bg-[#4E49FF] px-4 text-[14px] font-medium text-white hover:opacity-80"
+                className="h-[36px] w-[200px] rounded-[10px] bg-[#4E49FF] px-4 font-medium text-[14px] text-white hover:opacity-80"
               >
                 지원하기
               </button>
@@ -798,37 +810,37 @@ const ProjectDetailPage = () => {
             <div className="grid gap-x-12 gap-y-8 text-card-muted lg:grid-cols-2">
               <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
                 <span className="text-[15px]">프로젝트 유형</span>
-                <span className="text-[15px] font-semibold text-card-title">
+                <span className="font-semibold text-[15px] text-card-title">
                   {project.categoryLabel ?? '모바일/앱'}
                 </span>
               </div>
               <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
                 <span className="text-[15px]">도메인</span>
-                <span className="text-[15px] font-semibold text-card-title">
+                <span className="font-semibold text-[15px] text-card-title">
                   {project.deadlineLabel ?? '추후 결정 예정'}
                 </span>
               </div>
               <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
                 <span className="text-[15px]">진행 장소</span>
-                <span className="text-[15px] font-semibold text-card-title">
+                <span className="font-semibold text-[15px] text-card-title">
                   {project.location ?? '추후 결정 예정'}
                 </span>
               </div>
               <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
                 <span className="text-[15px]">진행 방식</span>
-                <span className="text-[15px] font-semibold text-card-title">
+                <span className="font-semibold text-[15px] text-card-title">
                   {project.mode ?? '온라인/오프라인'}
                 </span>
               </div>
               <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
                 <span className="text-[15px]">진행 기간</span>
-                <span className="text-[15px] font-semibold text-card-title">
+                <span className="font-semibold text-[15px] text-card-title">
                   {project.period ?? '추후 결정 예정'}
                 </span>
               </div>
               <div className="grid grid-cols-[96px_1fr] items-center gap-x-10">
                 <span className="text-[15px]">모집 마감일</span>
-                <span className="text-[15px] font-semibold text-card-title">
+                <span className="font-semibold text-[15px] text-card-title">
                   {project.dueLabel ?? '추후 결정 예정'}
                 </span>
               </div>
@@ -836,7 +848,7 @@ const ProjectDetailPage = () => {
 
             <section className="mt-4 flex flex-col gap-4">
               <h2
-                className="text-[15px] font-medium"
+                className="font-medium text-[15px]"
                 style={{ color: isDark ? '#7F8596' : '#939AAE' }}
               >
                 모집 분야
@@ -846,7 +858,7 @@ const ProjectDetailPage = () => {
                   <div key={role.key} className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
                       <RoleBadge label={role.label} tone={role.tone} />
-                      <span className="flex items-center gap-2 text-[14px] font-semibold">
+                      <span className="flex items-center gap-2 font-semibold text-[14px]">
                         <PersonIcon
                           className="h-6 w-6"
                           style={{ color: isDark ? '#D4DAE7' : '#41444D' }}
@@ -864,17 +876,15 @@ const ProjectDetailPage = () => {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {Array.isArray(role.techStacks) && role.techStacks.length > 0 ? (
-                        role.techStacks.map((tech) =>
-                          renderTechBadge(tech, `${role.key}-${tech}`),
-                        )
+                        role.techStacks.map((tech) => renderTechBadge(tech, `${role.key}-${tech}`))
                       ) : (
-                        <span className="text-sm text-card-muted">기술 스택 정보 없음</span>
+                        <span className="text-card-muted text-sm">기술 스택 정보 없음</span>
                       )}
                     </div>
                   </div>
                 ))
               ) : (
-                <span className="text-sm text-card-muted">모집 정보가 없습니다.</span>
+                <span className="text-card-muted text-sm">모집 정보가 없습니다.</span>
               )}
             </section>
           </div>
@@ -884,13 +894,13 @@ const ProjectDetailPage = () => {
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
         <div className="flex min-w-0 flex-col gap-6">
-          <div className="text-2xl font-semibold text-card-title">프로젝트 소개</div>
+          <div className="font-semibold text-2xl text-card-title">프로젝트 소개</div>
           <div className="flex items-center">
             <span className="h-[2px] w-35 bg-[var(--color-card-title)]" />
             <span className="h-[1.5px] flex-1 bg-[var(--color-card-border)]" />
           </div>
           <div
-            className="max-w-[880px] text-xl leading-relaxed text-white/85 [&_h1]:my-2 [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:my-2 [&_h2]:text-xl [&_h2]:font-bold [&_p]:my-2 [&_p]:text-xl [&_em]:italic [&_s]:line-through [&_a]:text-badge-text-primary [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+            className="max-w-[880px] text-white/85 text-xl leading-relaxed [&_a]:text-badge-text-primary [&_a]:underline [&_em]:italic [&_h1]:my-2 [&_h1]:font-bold [&_h1]:text-2xl [&_h2]:my-2 [&_h2]:font-bold [&_h2]:text-xl [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_p]:text-xl [&_s]:line-through [&_ul]:list-disc [&_ul]:pl-5"
             dangerouslySetInnerHTML={{
               __html: project.summary?.trim() || '<p>프로젝트 소개 정보가 없습니다.</p>',
             }}
@@ -909,10 +919,18 @@ const ProjectDetailPage = () => {
           <button
             type="button"
             onClick={() => setImageLightboxIndex(null)}
-            className="absolute right-4 top-4 z-10 flex items-center justify-center rounded-none border-none bg-transparent p-0 text-white/80 shadow-none outline-none ring-0 transition-colors hover:text-white focus:outline-none focus:ring-0"
+            className="absolute top-4 right-4 z-10 flex items-center justify-center rounded-none border-none bg-transparent p-0 text-white/80 shadow-none outline-none ring-0 transition-colors hover:text-white focus:outline-none focus:ring-0"
             aria-label="닫기"
           >
-            <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="h-8 w-8"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
@@ -932,10 +950,18 @@ const ProjectDetailPage = () => {
                     return i;
                   });
                 }}
-                className="absolute left-4 top-1/2 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full text-white/90 transition-all hover:bg-white/10 hover:text-white focus:outline-none active:scale-95"
+                className="-translate-y-1/2 absolute top-1/2 left-4 z-10 flex h-14 w-14 items-center justify-center rounded-full text-white/90 transition-all hover:bg-white/10 hover:text-white focus:outline-none active:scale-95"
                 aria-label="이전 이미지"
               >
-                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="h-8 w-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
               </button>
@@ -952,10 +978,18 @@ const ProjectDetailPage = () => {
                     return i;
                   });
                 }}
-                className="absolute right-4 top-1/2 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full text-white/90 transition-all hover:bg-white/10 hover:text-white focus:outline-none active:scale-95"
+                className="-translate-y-1/2 absolute top-1/2 right-4 z-10 flex h-14 w-14 items-center justify-center rounded-full text-white/90 transition-all hover:bg-white/10 hover:text-white focus:outline-none active:scale-95"
                 aria-label="다음 이미지"
               >
-                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="h-8 w-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M9 18l6-6-6-6" />
                 </svg>
               </button>
@@ -972,7 +1006,7 @@ const ProjectDetailPage = () => {
             <img
               src={project.imageUrls[imageLightboxIndex]}
               alt={`${project.title} 이미지 ${imageLightboxIndex + 1}`}
-              className="max-h-[90vh] max-w-full object-contain rounded-lg"
+              className="max-h-[90vh] max-w-full rounded-lg object-contain"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
@@ -982,30 +1016,27 @@ const ProjectDetailPage = () => {
       {isApplyModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">
           <div
-            className="relative w-full max-w-[360px] rounded-[24px] px-8 pb-8 pt-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
+            className="relative w-full max-w-[360px] rounded-[24px] px-8 pt-10 pb-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
             style={{ backgroundColor: isDark ? '#212328' : '#FFFFFF' }}
           >
             <button
               type="button"
               onClick={() => setIsApplyModalOpen(false)}
-              className="absolute right-6 top-6 text-[var(--ui-400)]"
+              className="absolute top-6 right-6 text-[var(--ui-400)]"
               aria-label="닫기"
             >
               ✕
             </button>
             <div className="flex flex-col gap-2">
               <h2
-                className="text-[18px] font-semibold leading-[24px]"
+                className="font-semibold text-[18px] leading-[24px]"
                 style={{ color: isDark ? '#F8F9FB' : 'var(--ui-900)' }}
               >
                 [{project.title}]
                 <br />
                 {hasApplied ? '지원 역할을 변경하시겠어요?' : '에 지원하시겠어요?'}
               </h2>
-              <p
-                className="text-[13px]"
-                style={{ color: isDark ? '#9EA6BA' : 'var(--ui-400)' }}
-              >
+              <p className="text-[13px]" style={{ color: isDark ? '#9EA6BA' : 'var(--ui-400)' }}>
                 {hasApplied
                   ? '변경할 포지션을 선택해 주세요.'
                   : '지원 후 PM이 수락 시 팀원으로 합류하게 됩니다.'}
@@ -1026,7 +1057,9 @@ const ProjectDetailPage = () => {
                 >
                   <span
                     className={selectedRole ? '' : 'text-[var(--ui-400)]'}
-                    style={{ color: selectedRole ? (isDark ? '#F8F9FB' : 'var(--ui-900)') : undefined }}
+                    style={{
+                      color: selectedRole ? (isDark ? '#F8F9FB' : 'var(--ui-900)') : undefined,
+                    }}
                   >
                     {selectedRoleLabel}
                   </span>
@@ -1075,15 +1108,19 @@ const ProjectDetailPage = () => {
                 type="button"
                 disabled={!selectedRole}
                 onClick={handleApply}
-                className={`h-[48px] w-full rounded-[12px] text-[16px] font-semibold ${
+                className={`h-[48px] w-full rounded-[12px] font-semibold text-[16px] ${
                   selectedRole && !isApplying
                     ? 'bg-[#4E49FF] text-white'
                     : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
                 }`}
               >
                 {isApplying
-                  ? (hasApplied ? '수정 중...' : '지원 중...')
-                  : (hasApplied ? '수정하기' : '지원하기')}
+                  ? hasApplied
+                    ? '수정 중...'
+                    : '지원 중...'
+                  : hasApplied
+                    ? '수정하기'
+                    : '지원하기'}
               </button>
               <button
                 type="button"
@@ -1100,28 +1137,25 @@ const ProjectDetailPage = () => {
       {isLoginModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">
           <div
-            className="relative w-full max-w-[360px] rounded-[24px] px-8 pb-8 pt-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
+            className="relative w-full max-w-[360px] rounded-[24px] px-8 pt-10 pb-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
             style={{ backgroundColor: isDark ? '#212328' : '#FFFFFF' }}
           >
             <button
               type="button"
               onClick={() => setIsLoginModalOpen(false)}
-              className="absolute right-6 top-6 text-[var(--ui-400)]"
+              className="absolute top-6 right-6 text-[var(--ui-400)]"
               aria-label="닫기"
             >
               ✕
             </button>
             <div className="flex flex-col gap-2">
               <h2
-                className="text-[18px] font-semibold leading-[24px]"
+                className="font-semibold text-[18px] leading-[24px]"
                 style={{ color: isDark ? '#F8F9FB' : 'var(--ui-900)' }}
               >
                 로그인 후 이용할 수 있어요
               </h2>
-              <p
-                className="text-[13px]"
-                style={{ color: isDark ? '#9EA6BA' : 'var(--ui-400)' }}
-              >
+              <p className="text-[13px]" style={{ color: isDark ? '#9EA6BA' : 'var(--ui-400)' }}>
                 해당 기능을 이용하려면 먼저 로그인해 주세요.
               </p>
             </div>
@@ -1130,7 +1164,7 @@ const ProjectDetailPage = () => {
               <button
                 type="button"
                 onClick={() => navigate('/login')}
-                className="h-[48px] w-full rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
+                className="h-[48px] w-full rounded-[12px] bg-[#4E49FF] font-semibold text-[16px] text-white"
               >
                 로그인 하러가기
               </button>

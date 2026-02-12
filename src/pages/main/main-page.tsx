@@ -1,24 +1,27 @@
-import { useAuth } from '@clerk/clerk-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
+import {
+  getRecommendProjectsPreview,
+  type RecommendProjectPreviewItem,
+} from '@apis/mainrecommendproject';
+import { getRecommendDevelopersPreview } from '@apis/members';
+import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-detail';
+import { getMyRecruitingProjects } from '@apis/projects';
+import { getReports } from '@apis/report/report-queries';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
+import { useAuth } from '@clerk/clerk-react';
 import LoginRequiredCard from '@components/common/LoginRequiredCard';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import ReportRequiredCard from '@components/common/ReportRequiredCard';
 import { useAuthStore } from '@store/auth';
+import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PROFILE_CARD_LIST } from 'src/mocks/developer.mock';
 import type { ProjectListItem, RecommendedProject } from 'src/mocks/project.mock';
 import { PROJECT_LIST, PROJECT_ROLES, RECOMMENDED_PROJECTS } from 'src/mocks/project.mock';
-import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
-import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-detail';
-import { getRecommendDevelopersPreview } from '@apis/members';
-import { getMyRecruitingProjects } from '@apis/projects';
-import { getRecommendProjectsPreview, type RecommendProjectPreviewItem } from '@apis/mainrecommendproject';
-import { getReports } from '@apis/report/report-queries';
 import { getDueLabel, mapPositionsToRoles } from 'src/shared/mappers/project';
-import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 
 type HighlightProject = ProjectCardProps & { id: number };
 
@@ -80,7 +83,7 @@ const mapWeeklyProject = (project: WeeklyBestProject): HighlightProject => ({
   categoryLabel: project.projectFieldName,
   deadlineLabel: project.categoryName,
   location: project.location,
-  period: project.durationRangeName ?? undefined,
+  durationRangeName: project.durationRangeName ?? undefined,
   mode: project.modeName,
   thumbnailUrl: project.thumbnailUrl ?? undefined,
   roles: mapWeeklyRoles(project.positions),
@@ -103,7 +106,9 @@ const MainPage = () => {
   const [isDeveloperPreviewEmpty, setIsDeveloperPreviewEmpty] = useState(false);
   const [recommendedProjects, setRecommendedProjects] = useState<MainRecommendProject[]>([]);
   const [projectBookmarkMap, setProjectBookmarkMap] = useState<Record<number, number>>({});
-  const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<string | number, number>>({});
+  const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<string | number, number>>(
+    {},
+  );
 
   // 새로고침에도 북마크 반영: 내 북마크 목록을 하이드레이션
   useEffect(() => {
@@ -117,7 +122,8 @@ const MainPage = () => {
         const nextProjects: Record<number, number> = {};
         const nextDevelopers: Record<string | number, number> = {};
         for (const b of bookmarks) {
-          if (b.targetType === 'PROJECT' && b.targetId != null) nextProjects[b.targetId] = b.bookmarkId;
+          if (b.targetType === 'PROJECT' && b.targetId != null)
+            nextProjects[b.targetId] = b.bookmarkId;
           if (b.targetType === 'DEVELOPER') {
             const key = b.targetNickname ?? b.targetId;
             if (key !== undefined && key !== null) nextDevelopers[key] = b.bookmarkId;
@@ -381,7 +387,7 @@ const MainPage = () => {
       categoryLabel: project.categoryLabel,
       deadlineLabel: project.deadlineLabel,
       location: project.location,
-      period: project.period,
+      period: project.durationRangeName,
       mode: project.mode,
       bookmarked: project.bookmarked,
       roles: fallbackRoles,
@@ -394,9 +400,7 @@ const MainPage = () => {
       ? '나에게 딱 맞는 추천 개발자'
       : '나에게 딱 맞는 추천 프로젝트'
     : '나에게 딱 맞는 추천 프로젝트/개발자';
-  const loginCtaLabel = !isLoggedIn
-    ? '나에게 딱 맞는 추천 프로젝트/개발자'
-    : null;  
+  const loginCtaLabel = !isLoggedIn ? '나에게 딱 맞는 추천 프로젝트/개발자' : null;
   const handleProjectClick = (
     project: RecommendedProject | ProjectListItem | HighlightProject | MainRecommendProject,
   ) => {
@@ -407,7 +411,7 @@ const MainPage = () => {
         deadlineLabel: 'deadlineLabel' in project ? project.deadlineLabel : undefined,
         title: project.title,
         location: project.location,
-        period: project.period,
+        durationRangeName: project.deadlineLabel,
         mode: project.mode,
         dueLabel: 'dueLabel' in project ? project.dueLabel : undefined,
         roles: 'roles' in project ? project.roles : undefined,
@@ -433,7 +437,7 @@ const MainPage = () => {
               deadlineLabel={project.deadlineLabel}
               title={project.title}
               location={project.location}
-              period={project.period}
+              durationRangeName={project.durationRangeName}
               mode={project.mode}
               roles={project.roles}
               bookmarked={
@@ -449,9 +453,7 @@ const MainPage = () => {
 
       <section className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-          <h2 className="Heading2 font-semibold text-card-title">
-            {recommendTitle}
-          </h2>
+          <h2 className="Heading2 font-semibold text-card-title">{recommendTitle}</h2>
           {isPm && (
             <button
               type="button"
@@ -480,9 +482,7 @@ const MainPage = () => {
                     linkTo="/project/create"
                   />
                 ) : (
-                  <ReportRequiredCard
-                    description="나에게 맞는 추천 프로젝트를 받아 보세요"
-                  />
+                  <ReportRequiredCard description="나에게 맞는 추천 프로젝트를 받아 보세요" />
                 )}
               </div>
             ) : isPm ? (
@@ -505,13 +505,13 @@ const MainPage = () => {
                       developerBookmarkMap[profile.memberId ?? profile.nickname] != null ||
                       (profile.bookmarked ?? false)
                     }
-                    bookmarkId={
-                      (() => {
-                        const id = developerBookmarkMap[profile.memberId ?? profile.nickname];
-                        return id != null && id > 0 ? id : undefined;
-                      })()
+                    bookmarkId={(() => {
+                      const id = developerBookmarkMap[profile.memberId ?? profile.nickname];
+                      return id != null && id > 0 ? id : undefined;
+                    })()}
+                    onBookmarkChange={(next) =>
+                      handleDeveloperBookmarkChange(profile.memberId, profile.nickname, next)
                     }
-                    onBookmarkChange={(next) => handleDeveloperBookmarkChange(profile.memberId, profile.nickname, next)}
                     matchedReason="의 Java/Springboot 요구사항과 일치합니다."
                   />
                 ))
@@ -521,43 +521,47 @@ const MainPage = () => {
                 나에게 딱 맞는 추천 프로젝트가 아직 없어요.
               </div>
             ) : (
-              recommendedProjects.map((project) => (
-                  (() => {
-                    const targetId = Number(project.id);
-                    const hasNumericId = Number.isFinite(targetId) && targetId > 0;
-                    const isBookmarked = hasNumericId
-                      ? projectBookmarkMap[targetId] != null
-                      : (project.bookmarked ?? false);
-                    return (
-                  <RecommendProjectCard
-                    key={project.id}
-                    categoryLabel={project.categoryLabel}
-                    deadlineLabel={project.deadlineLabel}
-                    title={project.title}
-                    location={project.location}
-                    period={project.period}
-                    mode={project.mode}
-                    roles={[...PROJECT_ROLES]}
-                    dueLabel={project.dueLabel}
-                    bookmarked={isBookmarked}
-                    techstackScorePercent={project.techstackScorePercent}
-                    similarityScorePercent={project.similarityScorePercent}
-                    domainMatch={project.domainMatch}
-                    totalScore={project.totalScore}
-                    onBookmarkChange={(next) =>
-                      hasNumericId ? handleProjectBookmarkChange(targetId, next) : undefined
-                    }
-                    onClick={() => handleProjectClick(project)}
-                  />
-                    );
-                  })()
-                ))
+              recommendedProjects.map((project) =>
+                (() => {
+                  const targetId = Number(project.id);
+                  const hasNumericId = Number.isFinite(targetId) && targetId > 0;
+                  const isBookmarked = hasNumericId
+                    ? projectBookmarkMap[targetId] != null
+                    : (project.bookmarked ?? false);
+                  return (
+                    <RecommendProjectCard
+                      key={project.id}
+                      categoryLabel={project.categoryLabel}
+                      deadlineLabel={project.deadlineLabel}
+                      title={project.title}
+                      location={project.location}
+                      period={project.period}
+                      mode={project.mode}
+                      roles={[...PROJECT_ROLES]}
+                      dueLabel={project.dueLabel}
+                      bookmarked={isBookmarked}
+                      techstackScorePercent={project.techstackScorePercent}
+                      similarityScorePercent={project.similarityScorePercent}
+                      domainMatch={project.domainMatch}
+                      totalScore={project.totalScore}
+                      onBookmarkChange={(next) =>
+                        hasNumericId ? handleProjectBookmarkChange(targetId, next) : undefined
+                      }
+                      onClick={() => handleProjectClick(project)}
+                    />
+                  );
+                })(),
+              )
             )}
           </div>
 
           {!isLoggedIn && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <LoginRequiredCard description={loginCtaLabel ?? '나에게 딱 맞는 추천 프로젝트/개발자를 보려면 로그인해 주세요.'} />
+              <LoginRequiredCard
+                description={
+                  loginCtaLabel ?? '나에게 딱 맞는 추천 프로젝트/개발자를 보려면 로그인해 주세요.'
+                }
+              />
             </div>
           )}
         </div>

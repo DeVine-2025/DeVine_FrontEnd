@@ -4,6 +4,7 @@ import {
   type RecommendProjectPreviewItem,
 } from '@apis/mainrecommendproject';
 import { getReports } from '@apis/report/report-queries';
+import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import ProjectListState from '@components/common/ListStateUI';
 import Pagination from '@components/common/Pagination';
@@ -292,6 +293,14 @@ export default function ProjectSearchPage() {
       {/* 추천 프로젝트 */}
       <header className="flex items-center justify-between">
         <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 프로젝트</h2>
+        <button
+          type="button"
+          onClick={() => navigate('/recommend')}
+          className="inline-flex cursor-pointer items-center gap-2 font-medium text-card-muted text-xl hover:opacity-80"
+        >
+          더 많은 추천 프로젝트 보러가기
+          <ChevronRightIcon className="h-6 w-6 shrink-0" aria-hidden />
+        </button>
       </header>
 
       {hasReport === false ? (

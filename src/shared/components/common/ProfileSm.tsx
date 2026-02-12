@@ -16,11 +16,11 @@ export default function ProfileCardSm(props: ProfileCardProps) {
         <BadgeList badges={props.badges} className="mt-6 gap-3" />
       </div>
 
-      <div className="mt-2">
+      <div className="mt-1">
         <Intro introduction={props.introduction} />
       </div>
 
-      <div className="mt-2">
+      <div className="mt-1">
         <TechChips techStack={props.techStack} max={4} />
       </div>
     </article>

@@ -1,8 +1,8 @@
-import Loading from '@components/common/Loading';
-import { useAuth } from '@clerk/clerk-react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { useCreateReportMutation } from '@apis/report/report-mutation';
+import { useAuth } from '@clerk/clerk-react';
+import Loading from '@components/common/Loading';
 import { useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const ReportLoadingPage = () => {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ const ReportLoadingPage = () => {
   const { getToken } = useAuth();
   const { mutate } = useCreateReportMutation();
 
-  // ⭐ 추가: effect 중복 실행 방지
+  // 추가: effect 중복 실행 방지
   const hasRequested = useRef(false);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ const ReportLoadingPage = () => {
           onError: (error) => {
             console.error(error);
           },
-        }
+        },
       );
     };
 
@@ -51,14 +51,14 @@ const ReportLoadingPage = () => {
   }, []);
 
   return (
-    <div className="flex flex-col w-full items-center justify-center pt-50">
+    <div className="flex w-full flex-col items-center justify-center pt-50">
       <Loading className="w-[300px]" />
-      <p className="text-3xl font-bold text-ui-900">리포트를 생성하는 중이에요</p>
-      <div className="flex-col gap-[1.6rem] items-center mt-[3rem]">
-        <p className="text-badge-text-primary w-fit text-sm font-bold px-[0.8rem] py-[0.4rem] bg-badge-bg-primary rounded-lg">
+      <p className="font-bold text-3xl text-ui-900">리포트를 생성하는 중이에요</p>
+      <div className="mt-[3rem] flex-col items-center gap-[1.6rem]">
+        <p className="w-fit rounded-lg bg-badge-bg-primary px-[0.8rem] py-[0.4rem] font-bold text-badge-text-primary text-sm">
           Tip
         </p>
-        <p className=" text-ui-600 text-xl font-medium text-center">
+        <p className="text-center font-medium text-ui-600 text-xl">
           나와 맞는 프로젝트와 개발자를
           <br />
           추천 프로젝트/개발자 탭에서 확인해보세요.
