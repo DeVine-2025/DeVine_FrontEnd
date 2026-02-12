@@ -119,7 +119,10 @@ const DeveloperSearchPage = () => {
       try {
         const token = await getToken(); // null일 수 있음
         const pageData = await getDevelopers(params, token, controller.signal);
-        setSearchContent(pageData.content ?? []);
+        const filtered = (pageData.content ?? []).filter(
+          (item) => item.member?.mainType !== 'PM',
+        );
+        setSearchContent(filtered);
         setTotalPages(pageData.totalPages ?? 0);
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') return;
@@ -148,6 +151,8 @@ const DeveloperSearchPage = () => {
         const result = await getRecommendMembersPreview(projectId, 4, token, controller.signal);
 
         const mapped = result.map((x, index) => {
+          const isPm = x.member?.mainType === 'PM';
+          const roleTone: BadgeTone = isPm ? 'blue' : 'green';
           const roleNames = (x.techstacks ?? []).filter((t) => t.genre == null).map((t) => t.name);
           const roleKey = pickRole(roleNames);
 
@@ -167,8 +172,8 @@ const DeveloperSearchPage = () => {
 
             techStack: pureTechStacks,
 
-            role: ROLE_LABEL[roleKey] ?? '개발자',
-            roleTone: 'blue' as const,
+            role: isPm ? 'PM' : ROLE_LABEL[roleKey] ?? '개발자',
+            roleTone,
 
             badges: (x.domains ?? []).map((d) => ({
               label: isMemberSearchCategory(d) ? DOMAIN_CODE_TO_LABEL[d] : d,
@@ -219,6 +224,8 @@ const DeveloperSearchPage = () => {
 
   const searchedProfiles = useMemo(() => {
     return searchContent.map((x, index) => {
+      const isPm = x.member?.mainType === 'PM';
+      const roleTone: BadgeTone = isPm ? 'blue' : 'green';
       const roleNames = (x.techstacks ?? []).filter((t) => t.genre == null).map((t) => t.name);
       const roleKey = pickRole(roleNames);
 
@@ -239,8 +246,8 @@ const DeveloperSearchPage = () => {
 
         techStack: pureTechStacks,
 
-        role: ROLE_LABEL[roleKey] ?? '개발자',
-        roleTone: 'blue' as const,
+        role: isPm ? 'PM' : ROLE_LABEL[roleKey] ?? '개발자',
+        roleTone,
 
         badges: (x.domains ?? []).map((d, i) => ({
           id: `d-${index}-${i}`,
