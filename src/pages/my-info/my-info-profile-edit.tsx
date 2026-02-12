@@ -100,8 +100,8 @@ const MyInfoProfileEdit = () => {
       const githubContact = profile.contacts?.find(c => c.type === 'GITHUB');
       const linkedInContact = profile.contacts?.find(c => c.type === 'LINKEDIN');
       const emailValue = emailContact?.value || '';
-      const githubLinkValue = githubContact?.link || '';
-      const linkedInLinkValue = linkedInContact?.link || '';
+      const githubLinkValue = githubContact?.link || githubContact?.value ||'';
+      const linkedInLinkValue = linkedInContact?.link || linkedInContact?.value ||'';
 
       // 현재 상태 설정
       setNickname(nicknameValue);

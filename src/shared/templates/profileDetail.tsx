@@ -13,6 +13,7 @@ import MyPMBottomSection, { type ProjectTab } from '@components/myProject/MyBott
 
 import { useNavigate } from 'react-router-dom';
 import { useMemo, useState, useRef, useEffect } from 'react';
+import {cn} from '@libs/cn';
 
 import type { Contribution, MyProfile, MyReposResponse } from '@apis/myInfo/myInfo';
 import type { ReportCard } from '@apis/report/report';
@@ -47,6 +48,7 @@ const ProfileDetail = ({
   reports = [],
 }: ProfileDetailProps) => {
   const [projectTab, setProjectTab] = useState<ProjectTab>('ongoing');
+  const [isHover, setIsHover] = useState<boolean>(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
@@ -109,22 +111,28 @@ const ProfileDetail = ({
 
         {/* Section 2 : 자기소개 */}
         <div className="flex justify-between w-full pr-[10.4rem]">
-          <p className="Label1 text-ui-500 font-medium">
+          <p className="Label1 text-ui-500 font-medium min-h-[7rem]">
             {introduction}
           </p>
-          <div>
+          {type === "내 정보" && <div>
             <ContactCard contacts={contacts} />
-          </div>
+          </div>}
         </div>
         <hr className="border-ui-200" />
 
         {/* Section 3 : 보유 스택 목록 */}
         <div className="flex-col gap-[2.4rem]">
-          <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem]">보유 스택
-            <button type="button" className="border-2 border-ui-200 bg-ui-50 rounded-full cursor-pointer">
-              <QuestionIcon className="text-ui-200 w-5 h-5" />
-            </button>
-          </p>
+          <div className="relative">
+            <p className="text-ui-800 text-3xl font-bold flex items-center gap-[0.8rem] relative">보유 스택
+              <button type="button" onMouseOver={() => setIsHover(true)} onMouseLeave={() => setIsHover(false)}
+                      className="border-2 border-ui-200 bg-ui-50 rounded-full cursor-pointer">
+                <QuestionIcon className="text-ui-200 w-5 h-5" />
+              </button>
+            </p>
+            {isHover && <p
+              className="absolute z-90 left-30  text-ui-600 text-xl p-[1rem] font-medium  bg-ui-bg rounded-xl shadow-[0px_2px_8px_-4px_rgba(0,0,0,0.20)] inline-flex justify-center items-center gap-2">리포트에
+              포함된 기술 스택은 하이라이트되어 표시돼요.</p>}
+          </div>
           <TechStackChips techStack={techStack} />
         </div>
 

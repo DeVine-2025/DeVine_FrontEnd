@@ -53,6 +53,7 @@ export interface NextStep {
   title: string;
   number: number;
   description: string[];
+  recommendKeyword: string[];
 }
 
 export interface ProjectOverview {

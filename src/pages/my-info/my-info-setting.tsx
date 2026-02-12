@@ -1,11 +1,15 @@
-import {useState} from 'react';
-import {cn} from '@libs/cn';
+import { useState, useEffect } from 'react';
+import { cn } from '@libs/cn';
+import { useUser } from '@clerk/clerk-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import GithubIcon from "@assets/icons/github.svg?react";
 import GoogleIcon from "@assets/icons/google.svg?react";
 
 import TabMenu from '@components/myInfo/TabMenu';
 import Switch from '@components/myInfo/Switch';
+import { myInfoQueries, updateMyProfile } from '@apis/myInfo/myInfo-queries';
+import type { UpdateProfileRequest } from '@apis/myInfo/myInfo';
 
 interface SettingMenuProps {
   title: string;
@@ -36,13 +40,63 @@ const MyInfoSetting = () => {
   const [isOnFirst, setIsOnFirst] = useState<boolean>(false);
   const [isOnSecond, setIsOnSecond] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('PM');
-  const tabs = ['PM', '개발자']
+  const tabs = ['PM', '개발자'];
+  const { user, isLoaded } = useUser();
+  const queryClient = useQueryClient();
 
+  const { data: profileData } = useQuery(myInfoQueries.profile());
+  const updateMutation = useMutation({
+    mutationFn: updateMyProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['member'] });
+    },
+    onError: (_err, variables) => {
+      setActiveTab(variables.mainType === 'PM' ? '개발자' : 'PM');
+      alert('메인 권한 변경에 실패했습니다.');
+    },
+  });
+
+  useEffect(() => {
+    const mainType = profileData?.result?.member?.mainType;
+    if (mainType === 'PM' || mainType === 'DEVELOPER') {
+      setActiveTab(mainType === 'PM' ? 'PM' : '개발자');
+    }
+  }, [profileData]);
+
+  const handleMainTypeChange = (tab: string) => {
+    if (tab === activeTab) return;
+    const profile = profileData?.result;
+    if (!profile) return;
+
+    const newMainType = tab === 'PM' ? 'PM' : 'DEVELOPER';
+    const payload: UpdateProfileRequest = {
+      nickname: profile.member?.nickname ?? '',
+      address: profile.member?.address ?? '',
+      body: profile.member?.body ?? '',
+      domains: profile.domains ?? [],
+      contacts: profile.contacts ?? [],
+      mainType: newMainType,
+      disclosure: profile.member?.disclosure ?? true,
+      ...(profile.member?.imageUrl && { imageUrl: profile.member.imageUrl }),
+    };
+    setActiveTab(tab);
+    updateMutation.mutate(payload);
+  };
+
+  const hasGoogle = user?.externalAccounts?.some(
+    acc => acc.provider === 'google'
+  );
+
+  const hasGithub = user?.externalAccounts?.some(
+    acc => acc.provider === 'github'
+  );
+
+  console.log(typeof hasGithub, hasGoogle)
   return (
     <div className="flex-col gap-[6rem] mt-[4rem]">
       <div className="flex justify-between items-center gap-[5rem]">
         <SettingMenu title={"메인 권한 설정"} description={"선택한 권한에 맞춰 가장 필요한 정보를 메인 화면에 먼저 확인할 수 있습니다."} />
-        <TabMenu  activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
+        <TabMenu activeTab={activeTab} setActiveTab={handleMainTypeChange} tabs={tabs} />
       </div>
 
       <div className="flex justify-between items-center">
@@ -64,7 +118,7 @@ const MyInfoSetting = () => {
               <GithubIcon className="w-11 h-11" />
               <p className="text-ui-1000 text-2xl">GitHub</p>
             </div>
-            <Label content={"연동완료"} isConnect={true} />
+            <Label content={hasGithub ? "연동완료" : "연동하기"} isConnect={!!hasGithub} />
           </div>
           <div className="flex flex-1 items-center justify-between">
             <div className="flex items-center gap-[1.6rem]">
@@ -73,7 +127,7 @@ const MyInfoSetting = () => {
               </div>
               <p className="text-ui-1000 text-2xl">Google</p>
             </div>
-            <Label content={"연동완료"} isConnect={true} />
+            <Label content={hasGoogle ? "연동완료" : "연동하기"} isConnect={!!hasGoogle} />
           </div>
         </div>
       </div>
