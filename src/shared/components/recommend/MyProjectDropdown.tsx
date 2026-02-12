@@ -80,10 +80,11 @@ export default function MyProjectDropdown({
   if (!open) return null;
 
   const toggle = (opt: string) => {
-    const next = new Set(selected);
-    if (next.has(opt)) next.delete(opt);
-    else next.add(opt);
-    onChange(Array.from(next));
+    if (selected.has(opt)) {
+      onChange([]);
+      return;
+    }
+    onChange([opt]);
   };
 
   return (

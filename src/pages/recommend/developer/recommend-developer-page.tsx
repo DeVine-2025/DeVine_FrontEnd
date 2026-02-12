@@ -3,6 +3,7 @@ import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/
 import LoadingSpinner from '@components/common/LoadingSpinner';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import ReportRequiredCard from '@components/common/ReportRequiredCard';
+import { getReports } from '@apis/report/report-queries';
 import { useAuthStore } from '@store/auth';
 import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -55,8 +56,8 @@ function buildApiParams(
 }
 
 const RecommendDeveloperPage = () => {
-  const navigate = useNavigate();
   const { getToken } = useAuth();
+  const navigate = useNavigate();
   const userRole = useAuthStore((state) => state.role);
   const isPm = userRole === 'pm';
   const {
@@ -65,10 +66,29 @@ const RecommendDeveloperPage = () => {
   } = useFilterStore();
   const { myProjects, interestDomains, techStacks } = recommendDeveloper;
 
+  const [hasReport, setHasReport] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getReports()
+      .then((res) => {
+        if (cancelled) return;
+        const reports = res?.result?.reports ?? [];
+        setHasReport(reports.length > 0);
+      })
+      .catch(() => {
+        if (!cancelled) setHasReport(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
   const [myProjectOptions, setMyProjectOptions] = useState<MyProjectOption[]>([]);
   const lastLoadedProjectOptionsRef = useRef<MyProjectOption[]>([]);
   const [myProjectOptionsLoading, setMyProjectOptionsLoading] = useState(false);
+  const [autoSelectProject, setAutoSelectProject] = useState(true);
   const [list, setList] = useState<RecommendDeveloperListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -123,9 +143,9 @@ const RecommendDeveloperPage = () => {
 
   const setMyProjects = useCallback(
     (v: string[] | ((prev: string[]) => string[])) => {
-      setRecommendDeveloper({
-        myProjects: typeof v === 'function' ? v(myProjects) : v,
-      });
+      const next = typeof v === 'function' ? v(myProjects) : v;
+      if (next.length > 0) setAutoSelectProject(true);
+      setRecommendDeveloper({ myProjects: next });
     },
     [myProjects, setRecommendDeveloper],
   );
@@ -181,13 +201,14 @@ const RecommendDeveloperPage = () => {
   }, [getToken]);
 
   useEffect(() => {
+    if (!autoSelectProject) return;
     if (myProjectOptionsLoading) return;
     if (myProjectOptions.length === 0) return;
     if (myProjects.length > 0) return;
     const mostRecentName = myProjectOptions[0].name;
     setRecommendDeveloper({ myProjects: [mostRecentName] });
     setPage(1);
-  }, [myProjectOptionsLoading, myProjectOptions, myProjects.length, setRecommendDeveloper]);
+  }, [autoSelectProject, myProjectOptionsLoading, myProjectOptions, myProjects.length, setRecommendDeveloper]);
 
   useEffect(() => {
     if (myProjectOptionsLoading) return;
@@ -332,8 +353,7 @@ const RecommendDeveloperPage = () => {
     [handleBookmarkChange],
   );
 
-  const hasNoProjects = !myProjectOptionsLoading && myProjectOptions.length === 0;
-  if (hasNoProjects) {
+  if (hasReport === false) {
     return (
       <div className="relative min-h-[calc(100vh-6rem)] w-full">
         <div className="pointer-events-none flex min-h-full select-none flex-col gap-6 blur-sm">
@@ -351,6 +371,10 @@ const RecommendDeveloperPage = () => {
             setInterestDomains={setInterestDomains}
             onApply={handleApply}
             onReset={(key) => {
+              if (key === '내 프로젝트 선택') {
+                setAutoSelectProject(false);
+                setRecommendDeveloper({ myProjects: [] });
+              }
               setOpenFilter(null);
               setPage(1);
               fetchList(1);
@@ -359,12 +383,16 @@ const RecommendDeveloperPage = () => {
           <div className="flex flex-col gap-6" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <ReportRequiredCard
-            title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
-            description="나에게 맞는 추천 개발자를 받아 보세요"
-            linkLabel="프로젝트 등록하러 가기"
-            linkTo="/project/create"
-          />
+          {isPm ? (
+            <ReportRequiredCard
+              title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
+              description="나에게 맞는 추천 개발자를 받아 보세요"
+              linkLabel="프로젝트 등록하러 가기"
+              linkTo="/project/create"
+            />
+          ) : (
+            <ReportRequiredCard description="나에게 맞는 추천 개발자를 받아 보세요" />
+          )}
         </div>
       </div>
     );
@@ -386,6 +414,10 @@ const RecommendDeveloperPage = () => {
         setInterestDomains={setInterestDomains}
         onApply={handleApply}
         onReset={(key) => {
+          if (key === '내 프로젝트 선택') {
+            setAutoSelectProject(false);
+            setRecommendDeveloper({ myProjects: [] });
+          }
           setOpenFilter(null);
           setPage(1);
           fetchList(1);
@@ -393,7 +425,7 @@ const RecommendDeveloperPage = () => {
       />
 
       {myProjectOptionsLoading && (
-        <div className="flex justify-center pt-48 pb-8">
+        <div className="flex justify-center py-8">
           <LoadingSpinner size="lg" />
         </div>
       )}
@@ -405,7 +437,7 @@ const RecommendDeveloperPage = () => {
       )}
 
       {loading && myProjects.length > 0 && (
-        <div className="flex justify-center pt-48 pb-8">
+        <div className="flex justify-center py-8">
           <LoadingSpinner size="lg" />
         </div>
       )}

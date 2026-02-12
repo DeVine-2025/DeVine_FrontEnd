@@ -7,7 +7,7 @@ const ReportResultPage = () => {
 
   const { mainReport, detailReport } = data;
   return (
-    <div className="mt-[183px] flex-col items-center gap-15">
+    <div className="mt-[100px] flex-col items-center gap-10">
       <p className="text-center font-bold text-4xl text-ui-1000">리포트 생성이 완료되었어요!</p>
       <div className="flex gap-3">
         <ReportCard

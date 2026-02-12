@@ -23,10 +23,10 @@ export const TECHSTACK_KEY_TO_NAME: Record<string, string | undefined> = {
   JAVASCRIPT: 'JAVASCRIPT',
   TYPESCRIPT: 'TYPESCRIPT',
   REACT: 'REACT',
-  NEXTJS: 'NEXTJS',
   VUEJS: 'VUEJS',
+  NEXTJS: 'NEXTJS',
   SVELTE: 'SVELTE',
-  REACT_NATIVE: 'REACT_NATIVE',
+  REACTNATIVE: 'REACT_NATIVE',
   FLUTTER: 'FLUTTER',
   KOTLIN: 'KOTLIN',
   SWIFT: 'SWIFT',
@@ -50,6 +50,12 @@ export const TECHSTACK_KEY_TO_NAME: Record<string, string | undefined> = {
   DOCKER: 'DOCKER',
   KUBERNETES: 'KUBERNETES',
 };
+
+export const normalizeTechstackKey = (value: string) =>
+  value
+    .trim()
+    .replace(/[^a-z0-9]/gi, '')
+    .toUpperCase();
 
 export const PERIOD_TO_DURATION: Record<string, DurationRange | undefined> = {
   '1개월 이하': 'UNDER_ONE',
@@ -75,7 +81,7 @@ export function buildParams(input: AppliedFilters & { page?: number; size?: numb
     .filter(Boolean) as Category[];
 
   const techstackNames = cleanLabels(input.techStacks)
-    .map((key) => TECHSTACK_KEY_TO_NAME[key])
+    .map((key) => TECHSTACK_KEY_TO_NAME[normalizeTechstackKey(key)])
     .filter(Boolean) as string[];
 
   const durationRanges = cleanLabels(input.expectedPeriods)

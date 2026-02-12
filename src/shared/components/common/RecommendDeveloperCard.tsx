@@ -1,8 +1,8 @@
 import { memo } from 'react';
 import BookmarkButton from '@components/common/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
-import { badgeToneToClass } from 'src/shared/types/badgeTone';
 import { useThemeStore } from '@store/theme';
+import type { BadgeTone } from '@t/badgeTone';
 import {
   BACKEND_DATABASE,
   BACKEND_FRAMEWORK,
@@ -22,7 +22,7 @@ type RecommendDeveloperTech = {
 
 export type RecommendDeveloperCardProps = {
   role: string;
-  roleTone: keyof typeof badgeToneToClass;
+  roleTone?: BadgeTone;
   nickname: string;
   profileImageUrl?: string;
   introduction?: string;
@@ -54,8 +54,8 @@ export type RecommendDeveloperCardProps = {
 };
 
 function RecommendDeveloperCard({
-  role,
-  roleTone,
+  role: _role,
+  roleTone: _roleTone,
   nickname,
   profileImageUrl,
   introduction,
@@ -197,12 +197,6 @@ function RecommendDeveloperCard({
         }`}
       >
         <div className="flex min-w-0 flex-col gap-[4px]">
-          <span
-            className={`Caption1 inline-flex h-[24px] w-fit items-center rounded-[8px] px-[6px] font-semibold ${badgeToneToClass[roleTone]}`}
-          >
-            {role}
-          </span>
-
           <p className="Body1 h-[26px] font-semibold text-[var(--ui-1000)]">{nickname}</p>
 
           <div className="flex flex-nowrap gap-[8px]">

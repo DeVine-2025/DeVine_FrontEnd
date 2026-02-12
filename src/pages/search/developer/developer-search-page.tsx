@@ -9,6 +9,7 @@ import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/
 import Pagination from '@components/common/Pagination';
 import ProfileCard from '@components/common/ProfileCard';
 import { useFilterStore } from '@store/filter';
+import { normalizeTechstackKey, TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
 import type { BadgeTone } from '@t/badgeTone';
 import { DOMAIN_CODE_TO_LABEL, DOMAIN_LABEL_TO_CODE, ROLE_LABEL, ROLE_PRIORITY } from '@t/member';
 import type {
@@ -114,14 +115,20 @@ const DeveloperSearchPage = () => {
       .filter(Boolean);
   }, [interestDomains]);
 
+  const normalizedTechNames = useMemo(() => {
+    return techStacks
+      .map((key) => TECHSTACK_KEY_TO_NAME[normalizeTechstackKey(key)])
+      .filter(Boolean) as string[];
+  }, [techStacks]);
+
   const params = useMemo(
     () => ({
       page,
       size,
       categories,
-      techNames: techStacks,
+      techNames: normalizedTechNames,
     }),
-    [page, categories, techStacks],
+    [page, categories, normalizedTechNames, size],
   );
 
   useEffect(() => {
@@ -131,9 +138,12 @@ const DeveloperSearchPage = () => {
       try {
         const token = await getToken(); // null일 수 있음
         const pageData = await getDevelopers(params, token, controller.signal);
-        const filtered = (pageData.content ?? []).filter((item) => item.member?.mainType !== 'PM');
-        setSearchContent(filtered);
-        setTotalPages(pageData.totalPages ?? 0);
+        const filtered = (pageData.content ?? []).filter(
+          (item) => item.member?.mainType !== 'PM',
+         );
+
+          setSearchContent(filtered);
+          setTotalPages(Math.min(pageData.totalPages ?? 0, 10));
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') return;
         console.error('[개발자 검색] 실패', e);
