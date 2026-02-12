@@ -118,7 +118,7 @@ const MyInfoSetting = () => {
               <GithubIcon className="w-11 h-11" />
               <p className="text-ui-1000 text-2xl">GitHub</p>
             </div>
-            <Label content={hasGithub ? "연동완료" : "연동하기"} isConnect={hasGithub} />
+            <Label content={hasGithub ? "연동완료" : "연동하기"} isConnect={!!hasGithub} />
           </div>
           <div className="flex flex-1 items-center justify-between">
             <div className="flex items-center gap-[1.6rem]">
@@ -127,7 +127,7 @@ const MyInfoSetting = () => {
               </div>
               <p className="text-ui-1000 text-2xl">Google</p>
             </div>
-            <Label content={hasGoogle ? "연동완료" : "연동하기"} isConnect={hasGoogle} />
+            <Label content={hasGoogle ? "연동완료" : "연동하기"} isConnect={!!hasGoogle} />
           </div>
         </div>
       </div>
