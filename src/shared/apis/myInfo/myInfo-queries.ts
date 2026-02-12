@@ -45,6 +45,16 @@ export const getMyRepo = async (
   return data;
 };
 
+export const getMemberRepo = async (
+  nickname: string,
+  params?: GitRepoRequest
+): Promise<MyReposResponse> => {
+  const { data } = await axiosInstance.get(`/api/v1/members/${nickname}/git-repos`, {
+    params,
+  });
+  return data;
+};
+
 export const getMyTechStacks = async () => {
   const { data } = await axiosInstance.get('/api/v1/members/me/techstacks');
   return data;
@@ -121,6 +131,22 @@ export const myInfoQueries = {
     initialPageParam: 1,
 
 
+    getNextPageParam: (lastPage: MyReposResponse) => {
+      const currentPage = lastPage.result.page;
+      const totalPages = lastPage.result.totalPages;
+      const isLast = lastPage.result.last;
+
+      if (isLast) return undefined;
+      return currentPage + 1;
+    },
+  }),
+
+  memberReposInfinite: (memberNick: string) => ({
+    queryKey: ['member/repos', memberNick],
+    queryFn: ({ pageParam = 1 }: { pageParam?: number }) =>
+      getMemberRepo(memberNick, { page: pageParam, size: 10 }),
+    enabled: Boolean(memberNick),
+    initialPageParam: 1,
     getNextPageParam: (lastPage: MyReposResponse) => {
       const currentPage = lastPage.result.page;
       const totalPages = lastPage.result.totalPages;
