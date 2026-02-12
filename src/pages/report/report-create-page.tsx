@@ -29,7 +29,6 @@ const ReportCreatePage = () => {
   };
 
   const handleCreateRepo = () => {
-    // 연동된 레포가 없으면 깃허브 연동(계정 설정) 페이지로 이동
     if (!isLoading && repo.length === 0) {
       navigate('/my-info/setting');
       return;
@@ -76,7 +75,6 @@ const ReportCreatePage = () => {
               />
             ))}
 
-          {/* 연동된 레포가 없을 때 안내 */}
           {!isLoading && repo.length === 0 && (
             <div className="flex h-full min-h-[200px] flex-col items-center justify-center gap-[1.2rem] rounded-2xl bg-[var(--ui-50)] py-[3rem]">
               <p className="text-center text-2xl text-[var(--ui-600)]">

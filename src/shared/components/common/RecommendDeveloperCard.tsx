@@ -32,6 +32,8 @@ export type RecommendDeveloperCardProps = {
 
   matchedProjectName?: string;
   matchedReason?: string;
+  /** 매칭 문구 표시 여부 */
+  showMatchedReason?: boolean;
 
   bookmarked?: boolean;
   onBookmarkChange?: (next: boolean) => void;
@@ -57,6 +59,7 @@ function RecommendDeveloperCard({
   techStack,
   matchedProjectName = 'A 프로젝트',
   matchedReason = '프로젝트의 요구사항과 일치합니다.',
+  showMatchedReason = true,
   bookmarked = false,
   onBookmarkChange,
   memberId,
@@ -219,13 +222,14 @@ function RecommendDeveloperCard({
         colorIconClassName="h-[44px] w-[44px]"
       />
 
-      {/* 하단 매칭 문구 */}
-      <div className="absolute left-[24px] top-[172px] flex items-center justify-center rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
-        <p className="Label1 font-medium text-[var(--ui-1000)]">
-          <span className="text-[var(--badge-text-primary)]">[{matchedProjectName}]</span>
-          {matchedReason}
-        </p>
-      </div>
+      {showMatchedReason && (
+        <div className="absolute left-[24px] top-[172px] flex items-center justify-center rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
+          <p className="Label1 font-medium text-[var(--ui-1000)]">
+            <span className="text-[var(--badge-text-primary)]">[{matchedProjectName}]</span>
+            {matchedReason}
+          </p>
+        </div>
+      )}
     </article>
   );
 }
