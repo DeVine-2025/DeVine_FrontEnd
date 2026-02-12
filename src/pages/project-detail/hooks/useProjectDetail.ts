@@ -2,7 +2,11 @@ import { applyProject, getMyApplyStatus, updateMyApply } from '@apis/apply';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getMemberProfileByNickname } from '@apis/members';
 import { getProjectDetail, type ProjectStatus, updateProjectStatus } from '@apis/project-detail';
-import { getMyRecruitingProjects } from '@apis/projects';
+import {
+  getMYProjectCompleted,
+  getMYProjectInprogress,
+  getMYProjectRecruiting,
+} from '@apis/project/project-queries';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
@@ -249,23 +253,45 @@ export function useProjectDetail() {
       setIsOwnerByList(false);
       return;
     }
-    const controller = new AbortController();
-    getToken()
-      .then((token) => {
-        if (!token) return null;
-        return getMyRecruitingProjects(token, controller.signal);
-      })
-      .then((projects) => {
-        if (!projects) return;
-        const numericId = Number(projectId);
-        if (!Number.isFinite(numericId)) return;
-        const hit = projects.some((p) => p.projectId === numericId);
-        setIsOwnerByList(hit);
+    let isActive = true;
+    const numericId = Number(projectId);
+    if (!Number.isFinite(numericId)) {
+      setIsOwnerByList(false);
+      return;
+    }
+
+    const extractProjectIds = (data: unknown): number[] => {
+      const content =
+        (data as any)?.result?.projects?.content ??
+        (data as any)?.projects?.content ??
+        (data as any)?.result?.projectList ??
+        (data as any)?.projectList ??
+        [];
+      if (!Array.isArray(content)) return [];
+      return content
+        .map((p) => (p as any)?.projectId ?? (p as any)?.id)
+        .filter((id) => typeof id === 'number' && Number.isFinite(id));
+    };
+
+    Promise.allSettled([
+      getMYProjectRecruiting(),
+      getMYProjectInprogress(),
+      getMYProjectCompleted(),
+    ])
+      .then((results) => {
+        if (!isActive) return;
+        const ids = results.flatMap((r) =>
+          r.status === 'fulfilled' ? extractProjectIds(r.value) : [],
+        );
+        setIsOwnerByList(ids.includes(numericId));
       })
       .catch(() => {
-        // ignore lookup errors
+        if (isActive) setIsOwnerByList(false);
       });
-    return () => controller.abort();
+
+    return () => {
+      isActive = false;
+    };
   }, [getToken, isLoaded, isSignedIn, projectId]);
 
   // ── Status menu outside click ──
