@@ -227,6 +227,24 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
     });
   };
 
+  const handleNotificationClick = useCallback(
+    (notification: NotificationItem) => {
+      // 1) 알림 목록에서 제거 + 배지 숫자 감소 (먼저 반영되어 이동 후에도 없어 보이게)
+      setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+      if (!notification.isRead) {
+        setUnreadCount(Math.max(0, useNotificationStore.getState().unreadCount - 1));
+      }
+      getToken().then((token) => {
+        if (!token) return;
+        const id = Number(notification.id);
+        if (!Number.isNaN(id)) markNotificationAsRead(id, token).catch(() => {});
+      });
+      // 2) 그 다음 개발자 지원현황으로 이동
+      navigate('/my-project/dev');
+    },
+    [navigate, getToken],
+  );
+
   const navItems = [
     { path: '/search', label: '프로젝트/개발자 보기' },
     { path: '/recommend', label: '추천 프로젝트/개발자' },
@@ -476,6 +494,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
         loading={loadingNotifications}
         onMarkAsRead={handleMarkAsRead}
         onMarkAllAsRead={handleMarkAllAsRead}
+        onNotificationClick={handleNotificationClick}
         hasMore={hasNextNotifications}
         onLoadMore={loadMoreNotifications}
         loadingMore={loadingMoreNotifications}
