@@ -1,11 +1,12 @@
 import { deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getMemberProfileByNickname } from '@apis/members';
+import { getMemberTechStacks } from '@apis/myInfo/myInfo-queries';
 import { getProjectDetail } from '@apis/project-detail';
 import BackIcon from '@assets/icons/back.svg?react';
 import profileDefaultIconUrl from '@assets/icons/profile-default.svg?url';
 import LoadingSpinner from '@components/common/LoadingSpinner';
-import ProfileCard from '@components/common/ProfileCard';
 import ProjectLg from '@components/common/ProjectLg';
+import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import { useAuth } from '@clerk/clerk-react';
 import { mapProjectItemToCard } from '@mappers/project';
 import type { ProjectItem } from '@t/project/api';
@@ -39,6 +40,8 @@ type BookmarkedDeveloper = {
 type DeveloperProfile = {
   imageUrl: string | null;
   body?: string | null;
+  techstacks?: string[];
+  domains?: string[];
 };
 
 const MyInfoBookmark = () => {
@@ -62,8 +65,11 @@ const MyInfoBookmark = () => {
     setError(null);
     try {
       const list = await getBookmarks(token);
-      const projectBookmarks = list.filter((b) => b.targetType === 'PROJECT');
-      const devBookmarks = list.filter((b) => b.targetType === 'DEVELOPER');
+      const sorted = [...list].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+      const projectBookmarks = sorted.filter((b) => b.targetType === 'PROJECT');
+      const devBookmarks = sorted.filter((b) => b.targetType === 'DEVELOPER');
 
       setDevelopers(
         devBookmarks.map((b) => ({
@@ -108,27 +114,38 @@ const MyInfoBookmark = () => {
       return;
     }
     let cancelled = false;
-    Promise.allSettled(
-      nicknames.map((nickname) => getMemberProfileByNickname(nickname)),
-    ).then((results) => {
-      if (cancelled) return;
-      const next: Record<string, DeveloperProfile> = {};
-      results.forEach((result, i) => {
-        const nickname = nicknames[i];
-        if (!nickname) return;
-        if (result.status === 'fulfilled' && result.value) {
+    getToken().then((token) => {
+      Promise.all(
+        nicknames.map(async (nickname) => {
+          const [profileRes, techRes] = await Promise.all([
+            getMemberProfileByNickname(nickname, undefined, token),
+            getMemberTechStacks(nickname).catch(() => null),
+          ]);
+          return { nickname, profile: profileRes, techRes };
+        }),
+      ).then((rows) => {
+        if (cancelled) return;
+        const next: Record<string, DeveloperProfile> = {};
+        rows.forEach(({ nickname, profile, techRes }) => {
+          if (!nickname) return;
+          const techList = techRes?.result?.techstacks;
+          const techNames = Array.isArray(techList)
+            ? techList.map((item: { name?: string }) => item?.name ?? '').filter(Boolean)
+            : [];
           next[nickname] = {
-            imageUrl: result.value.image ?? null,
-            body: result.value.body ?? null,
+            imageUrl: profile?.image ?? null,
+            body: profile?.body ?? null,
+            techstacks: techNames.length > 0 ? techNames : (profile?.techstacks ?? []),
+            domains: profile?.domains ?? [],
           };
-        }
+        });
+        setDeveloperProfiles(next);
       });
-      setDeveloperProfiles(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [developers]);
+  }, [developers, getToken]);
 
   const handleRemoveProjectBookmark = useCallback(
     async (bookmarkId: number) => {
@@ -257,16 +274,21 @@ const MyInfoBookmark = () => {
               const profileImageUrl =
                 resolveThumbnailUrl(profile?.imageUrl ?? undefined) ?? profileDefaultIconUrl;
               return (
-                <ProfileCard
+                <RecommendDeveloperCard
                   key={bookmarkId}
+                  borderStyle="gray"
                   role="개발자"
                   roleTone="blue"
                   nickname={nickname}
                   profileImageUrl={profileImageUrl}
                   introduction={profile?.body ?? '저장한 개발자입니다.'}
-                  badges={[]}
-                  techStack={[]}
-                  size="lg"
+                  domains={
+                    profile?.domains?.map((label) => ({ label })) ?? []
+                  }
+                  techStack={
+                    profile?.techstacks?.map((name, i) => ({ id: `tech-${bookmarkId}-${i}`, name })) ?? []
+                  }
+                  showMatchedReason={false}
                   bookmarked
                   onBookmarkChange={(next) => !next && handleRemoveDeveloperBookmark(bookmarkId)}
                 />

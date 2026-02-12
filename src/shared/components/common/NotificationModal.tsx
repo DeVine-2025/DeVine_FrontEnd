@@ -99,8 +99,9 @@ const NotificationModal = ({
   if (anchorRef && position === null) return null;
 
   const useAnchor = anchorRef?.current && position !== null;
+  const count = notifications.length;
   const modalHeight =
-    notifications.length === 0 ? 220 : notifications.length === 1 ? 260 : Math.min(480, 140 + notifications.length * 88);
+    count === 0 ? 200 : count === 1 ? 260 : count <= 3 ? 260 + (count - 1) * 88 : 260 + 2 * 88;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50">

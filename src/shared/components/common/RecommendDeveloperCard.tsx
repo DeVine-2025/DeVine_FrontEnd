@@ -47,6 +47,10 @@ export type RecommendDeveloperCardProps = {
     bookmarkId?: number,
   ) => void;
   onClick?: () => void;
+  /** 저장한 개발자용: 단순 테두리 + 원래 크기(180px), 적합도 문구는 showMatchedReason=false 로 별도 제어 */
+  variant?: 'recommend' | 'bookmark';
+  /** 테두리: gradient(기본) | gray(저장한 개발자 등) */
+  borderStyle?: 'gradient' | 'gray';
 };
 
 function RecommendDeveloperCard({
@@ -67,6 +71,8 @@ function RecommendDeveloperCard({
   listItemId,
   onBookmarkChangeById,
   onClick,
+  variant = 'recommend',
+  borderStyle,
 }: RecommendDeveloperCardProps) {
   const handleBookmark =
     onBookmarkChangeById && listItemId != null
@@ -74,9 +80,6 @@ function RecommendDeveloperCard({
       : onBookmarkChange;
   const { theme } = useThemeStore();
   const maxChips = 5;
-  const chips = techStack?.slice(0, maxChips) ?? [];
-  const overflow = (techStack?.length ?? 0) - chips.length;
-
   const normalizeTechKey = (v: unknown): string => {
     const s = typeof v === 'string' ? v : v != null ? String(v) : '';
     return s
@@ -116,6 +119,22 @@ function RecommendDeveloperCard({
     return TECH_BADGE_BY_NAME.get(alias) ?? TECH_BADGE_BY_NAME.get(normalized) ?? null;
   };
 
+  const SKIP_TECH_NAMES = new Set([
+    'backend',
+    'frontend',
+    'infra',
+    '백엔드',
+    '프론트엔드',
+    '프런트엔드',
+    '인프라',
+  ]);
+  const filteredTechStack =
+    techStack?.filter((t) => !SKIP_TECH_NAMES.has(normalizeTechKey(t.name))) ?? [];
+  const chips = filteredTechStack.slice(0, maxChips);
+  const overflow = filteredTechStack.length - chips.length;
+
+  const isBookmark = variant === 'bookmark';
+  const useGrayBorder = borderStyle === 'gray' || isBookmark;
   return (
     <article
       role={onClick ? 'button' : undefined}
@@ -131,28 +150,52 @@ function RecommendDeveloperCard({
             }
           : undefined
       }
-      className={`relative h-[236px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
-        onClick ? 'cursor-pointer' : ''
-      }`}
-      style={{
-        border: '1px solid transparent',
-        background:
-          'linear-gradient(var(--ui-bg), var(--ui-bg)) padding-box, linear-gradient(90deg, rgba(114, 110, 255, 0.4) 0%, rgba(219, 80, 179, 0.4) 100%) border-box',
-      }}
+      className={`relative overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
+        isBookmark
+          ? 'h-[180px] max-w-[1180px] w-full'
+          : useGrayBorder
+            ? 'h-[192px] w-full max-w-[1280px]'
+            : 'h-[236px] w-full max-w-[1280px]'
+      } ${useGrayBorder ? 'border border-[var(--ui-200)]' : ''} ${onClick ? 'cursor-pointer' : ''}`}
+      style={
+        useGrayBorder
+          ? undefined
+          : {
+              border: '1px solid transparent',
+              background:
+                'linear-gradient(var(--ui-bg), var(--ui-bg)) padding-box, linear-gradient(90deg, rgba(114, 110, 255, 0.4) 0%, rgba(219, 80, 179, 0.4) 100%) border-box',
+            }
+      }
     >
-      {/* 아바타 */}
-      <div className="absolute left-[24px] top-[24px] h-[64px] w-[64px] overflow-hidden rounded-full border-2 border-[var(--ui-200)] bg-[var(--ui-50)]">
+      {/* 아바타 - 저장한 개발자(회색 테두리)일 때 세로 중앙 */}
+      <div
+        className={`absolute overflow-hidden rounded-full border-2 border-[var(--ui-200)] bg-[var(--ui-50)] ${
+          useGrayBorder && !isBookmark
+            ? 'left-[24px] top-[calc(50%-12px)] h-[64px] w-[64px] -translate-y-1/2'
+            : isBookmark
+              ? 'left-[20px] top-[20px] h-[56px] w-[56px]'
+              : 'left-[24px] top-[24px] h-[64px] w-[64px]'
+        }`}
+      >
         {profileImageUrl ? (
           <img src={profileImageUrl} alt={nickname} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-[var(--ui-300)]">
-            <AvatarIcon aria-hidden className="h-[64px] w-[64px]" />
+            <AvatarIcon aria-hidden className={isBookmark ? 'h-[56px] w-[56px]' : 'h-[64px] w-[64px]'} />
           </div>
         )}
       </div>
 
-      {/* 본문(좌) */}
-      <div className="absolute left-[104px] top-[24px] flex w-[394px] flex-col gap-[22px]">
+      {/* 본문(좌) - 저장한 개발자(회색 테두리)일 때 세로 중앙 */}
+      <div
+        className={`absolute flex flex-col w-[394px] ${
+          useGrayBorder
+            ? 'left-[104px] top-[calc(50%-12px)] -translate-y-1/2 gap-[22px]'
+            : isBookmark
+              ? 'left-[88px] top-[20px] gap-[10px]'
+              : 'left-[104px] top-[24px] gap-[22px]'
+        }`}
+      >
         <div className="flex min-w-0 flex-col gap-[4px]">
           <span
             className={`Caption1 inline-flex h-[24px] w-fit items-center rounded-[8px] px-[6px] font-semibold ${badgeToneToClass[roleTone]}`}
@@ -180,7 +223,11 @@ function RecommendDeveloperCard({
       </div>
 
       {/* 스택(우) - 카드 세로 중앙 */}
-      <div className="absolute left-[698px] top-1/2 flex h-[76px] w-[360px] -translate-y-1/2 flex-wrap items-center gap-[4px]">
+      <div
+        className={`absolute top-1/2 flex h-[76px] w-[360px] -translate-y-1/2 flex-wrap items-center gap-[4px] ${
+          isBookmark ? 'left-[518px]' : 'left-[698px]'
+        }`}
+      >
         {chips.map((t) => (
           <span key={t.id} className="inline-flex items-center">
             {(() => {
@@ -217,9 +264,9 @@ function RecommendDeveloperCard({
         bookmarked={bookmarked}
         onBookmarkChange={handleBookmark}
         stopPropagation
-        className="absolute right-[24px] top-1/2 h-[52px] w-[52px] -translate-y-1/2"
-        iconClassName="h-[32px] w-[32px]"
-        colorIconClassName="h-[44px] w-[44px]"
+        className={`absolute right-[24px] top-1/2 -translate-y-1/2 ${isBookmark ? 'h-[44px] w-[44px]' : 'h-[52px] w-[52px]'}`}
+        iconClassName={isBookmark ? 'h-[28px] w-[28px]' : 'h-[32px] w-[32px]'}
+        colorIconClassName={isBookmark ? 'h-[36px] w-[36px]' : 'h-[44px] w-[44px]'}
       />
 
       {showMatchedReason && (
