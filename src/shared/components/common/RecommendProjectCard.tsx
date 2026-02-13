@@ -21,11 +21,17 @@ function RecommendProjectCard({
   bookmarkId,
   onBookmarkChangeById,
   onClick,
+  onNavigateToProject,
   techstackScorePercent,
   similarityScorePercent,
   domainMatch,
   totalScore,
 }: RecommendProjectCardProps) {
+  const handleClick =
+    onNavigateToProject && projectId != null
+      ? () => onNavigateToProject(projectId)
+      : onClick;
+
   const handleBookmark = onBookmarkChangeById && projectId != null
     ? (next: boolean) => onBookmarkChangeById(projectId, next, bookmarkId)
     : onBookmarkChange;
@@ -47,21 +53,21 @@ function RecommendProjectCard({
 
   return (
     <article
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
+      role={handleClick ? 'button' : undefined}
+      tabIndex={handleClick ? 0 : undefined}
+      onClick={handleClick}
       onKeyDown={
-        onClick
+        handleClick
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                onClick();
+                handleClick();
               }
             }
           : undefined
       }
       className={`relative h-[210px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
-        onClick ? 'cursor-pointer' : ''
+        handleClick ? 'cursor-pointer' : ''
       }`}
       style={{
         border: '1px solid transparent',

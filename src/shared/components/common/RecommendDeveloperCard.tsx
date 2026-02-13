@@ -47,6 +47,8 @@ export type RecommendDeveloperCardProps = {
     bookmarkId?: number,
   ) => void;
   onClick?: () => void;
+  /** 메모 최적화: 부모에서 stable callback 전달 시 사용 */
+  onNavigateToDeveloper?: (nickname: string) => void;
   /** 저장한 개발자용: 단순 테두리 + 원래 크기(180px), 적합도 문구는 showMatchedReason=false 로 별도 제어 */
   variant?: 'recommend' | 'bookmark';
   /** 테두리: gradient(기본) | gray(저장한 개발자 등) */
@@ -71,9 +73,15 @@ function RecommendDeveloperCard({
   listItemId,
   onBookmarkChangeById,
   onClick,
+  onNavigateToDeveloper,
   variant = 'recommend',
   borderStyle,
 }: RecommendDeveloperCardProps) {
+  const handleClick =
+    onNavigateToDeveloper && nickname
+      ? () => onNavigateToDeveloper(nickname)
+      : onClick;
+
   const handleBookmark =
     onBookmarkChangeById && listItemId != null
       ? (next: boolean) => onBookmarkChangeById(memberId ?? 0, listItemId, next, bookmarkId)
@@ -137,15 +145,15 @@ function RecommendDeveloperCard({
   const useGrayBorder = borderStyle === 'gray' || isBookmark;
   return (
     <article
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
+      role={handleClick ? 'button' : undefined}
+      tabIndex={handleClick ? 0 : undefined}
+      onClick={handleClick}
       onKeyDown={
-        onClick
+        handleClick
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                onClick();
+                handleClick();
               }
             }
           : undefined
@@ -156,7 +164,7 @@ function RecommendDeveloperCard({
           : useGrayBorder
             ? 'h-[192px] w-full max-w-[1280px]'
             : 'h-[236px] w-full max-w-[1280px]'
-      } ${useGrayBorder ? 'border border-[var(--ui-200)]' : ''} ${onClick ? 'cursor-pointer' : ''}`}
+      } ${useGrayBorder ? 'border border-[var(--ui-200)]' : ''} ${handleClick ? 'cursor-pointer' : ''}`}
       style={
         useGrayBorder
           ? undefined

@@ -41,6 +41,8 @@ export type RecommendProjectCardCoreProps = {
 
   className?: string;
   onClick?: () => void;
+  /** 메모 최적화: 부모에서 stable callback + projectId 전달 시 사용 */
+  onNavigateToProject?: (projectId: string) => void;
 };
 
 export type RecommendProjectSuitability = {

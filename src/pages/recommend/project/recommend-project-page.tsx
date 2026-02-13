@@ -117,9 +117,10 @@ const RecommendProjectPage = () => {
     fetchList();
   }, [fetchList]);
 
-  const handleProjectClick = (project: ProjectListItem) => {
-    navigate(`/project/${project.id}`);
-  };
+  const handleNavigateToProject = useCallback(
+    (id: string) => navigate(`/project/${id}`),
+    [navigate],
+  );
 
   const handleBookmarkChange = useCallback(
     async (projectId: string, next: boolean, currentBookmarkId?: number) => {
@@ -250,7 +251,7 @@ const RecommendProjectPage = () => {
               projectId={p.id}
               bookmarkId={p.bookmarkId}
               onBookmarkChangeById={handleBookmarkChange}
-              onClick={() => handleProjectClick(p)}
+              onNavigateToProject={handleNavigateToProject}
             />
           ))}
       </div>

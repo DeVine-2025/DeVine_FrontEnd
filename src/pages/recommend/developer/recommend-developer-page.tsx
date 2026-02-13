@@ -183,6 +183,11 @@ const RecommendDeveloperPage = () => {
     [list, bookmarkMap],
   );
 
+  const handleNavigateToDeveloper = useCallback(
+    (nickname: string) => navigate(`/developer-detail/${nickname}`),
+    [navigate],
+  );
+
   const handleApply = useCallback(
     (key: DeveloperFilterKey) => {
       setOpenFilter(null);
@@ -338,7 +343,7 @@ const RecommendDeveloperPage = () => {
                 bookmarkId={dev.bookmarkId}
                 listItemId={dev.id}
                 onBookmarkChangeById={handleBookmarkChangeById}
-                onClick={() => navigate(`/developer-detail/${dev.nickname}`)}
+                onNavigateToDeveloper={handleNavigateToDeveloper}
               />
             ))}
           </div>
