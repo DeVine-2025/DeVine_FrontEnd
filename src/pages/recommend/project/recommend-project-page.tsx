@@ -46,7 +46,6 @@ const RecommendProjectPage = () => {
     [projectTypes, domains, expectedPeriods, techStacks],
   );
 
-  // 리포트 유무 확인
   useEffect(() => {
     let cancelled = false;
     getReports()

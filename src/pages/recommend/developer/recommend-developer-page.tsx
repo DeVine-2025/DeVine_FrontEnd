@@ -3,8 +3,6 @@ import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/
 import LoadingSpinner from '@components/common/LoadingSpinner';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import ReportRequiredCard from '@components/common/ReportRequiredCard';
-import { getReports } from '@apis/report/report-queries';
-import { useAuthStore } from '@store/auth';
 import { useFilterStore } from '@store/filter';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -58,31 +56,11 @@ function buildApiParams(
 const RecommendDeveloperPage = () => {
   const { getToken } = useAuth();
   const navigate = useNavigate();
-  const userRole = useAuthStore((state) => state.role);
-  const isPm = userRole === 'pm';
   const {
     recommendDeveloper,
     setRecommendDeveloper,
   } = useFilterStore();
   const { myProjects, interestDomains, techStacks } = recommendDeveloper;
-
-  const [hasReport, setHasReport] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    getReports()
-      .then((res) => {
-        if (cancelled) return;
-        const reports = res?.result?.reports ?? [];
-        setHasReport(reports.length > 0);
-      })
-      .catch(() => {
-        if (!cancelled) setHasReport(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
   const [myProjectOptions, setMyProjectOptions] = useState<MyProjectOption[]>([]);
@@ -176,17 +154,10 @@ const RecommendDeveloperPage = () => {
           const label = n > 1 ? `${base} (${n})` : base;
           return { id: p.projectId, name: label };
         });
-        const cached = readMyProjectsCache();
-        const apiIds = new Set(fromApi.map((p) => p.id));
-        const onlyInCache = cached.filter((p) => !apiIds.has(p.id));
-        const next = onlyInCache.length > 0 ? [...onlyInCache, ...fromApi] : fromApi;
-        if (next.length > 0) {
-          lastLoadedProjectOptionsRef.current = next;
-          setMyProjectOptions(next);
-          writeMyProjectsCache(next);
-        } else {
-          setMyProjectOptions(lastLoadedProjectOptionsRef.current);
-        }
+        // 목록은 서버(API) 결과만 사용. 캐시 병합하지 않음 → 삭제/마감된 프로젝트 ID로 요청하는 문제 방지
+        lastLoadedProjectOptionsRef.current = fromApi;
+        setMyProjectOptions(fromApi);
+        if (fromApi.length > 0) writeMyProjectsCache(fromApi);
       } catch (e) {
         if (!cancelled) setMyProjectOptions(lastLoadedProjectOptionsRef.current);
         console.error('[내 프로젝트 옵션] 로드 실패', e);
@@ -353,7 +324,7 @@ const RecommendDeveloperPage = () => {
     [handleBookmarkChange],
   );
 
-  if (hasReport === false) {
+  if (!myProjectOptionsLoading && myProjectOptions.length === 0) {
     return (
       <div className="relative min-h-[calc(100vh-6rem)] w-full">
         <div className="pointer-events-none flex min-h-full select-none flex-col gap-6 blur-sm">
@@ -383,16 +354,12 @@ const RecommendDeveloperPage = () => {
           <div className="flex flex-col gap-6" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          {isPm ? (
-            <ReportRequiredCard
-              title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
-              description="나에게 맞는 추천 개발자를 받아 보세요"
-              linkLabel="프로젝트 등록하러 가기"
-              linkTo="/project/create"
-            />
-          ) : (
-            <ReportRequiredCard description="나에게 맞는 추천 개발자를 받아 보세요" />
-          )}
+          <ReportRequiredCard
+            title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
+            description="나에게 맞는 추천 개발자를 받아 보세요"
+            linkLabel="프로젝트 등록하러 가기"
+            linkTo="/project/create"
+          />
         </div>
       </div>
     );
@@ -424,7 +391,7 @@ const RecommendDeveloperPage = () => {
         }}
       />
 
-      {myProjectOptionsLoading && (
+      {(myProjectOptionsLoading || (loading && myProjects.length > 0)) && (
         <div className="flex justify-center py-8">
           <LoadingSpinner size="lg" />
         </div>
@@ -434,12 +401,6 @@ const RecommendDeveloperPage = () => {
         <p className="text-red-500" role="alert">
           {error}
         </p>
-      )}
-
-      {loading && myProjects.length > 0 && (
-        <div className="flex justify-center py-8">
-          <LoadingSpinner size="lg" />
-        </div>
       )}
 
       {!loading && myProjects.length > 0 && list.length === 0 && (
