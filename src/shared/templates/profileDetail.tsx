@@ -223,6 +223,8 @@ const ProfileDetail = ({
                 (page.result?.content ?? []).map((repo) => (
                   <ReportCardSmall
                     key={repo.gitRepoId}
+                    gitRepoId={repo.gitRepoId}
+                    reportType=""
                     title={repo.name}
                     description={repo.description}
                   />
