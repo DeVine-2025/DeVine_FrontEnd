@@ -144,10 +144,11 @@ const NotificationModal = ({
               <p className="text-[13px] text-[var(--ui-400)]">새 소식이 오면 여기에 표시돼요</p>
             </div>
           ) : (
-            notifications.map((notification) => (
+            notifications.map((notification, index) => (
               <button
                 key={notification.id}
                 type="button"
+                style={{ animationDelay: `${index * 45}ms` }}
                 onClick={() => {
                   if (onNotificationClick) {
                     onNotificationClick(notification);
@@ -157,7 +158,7 @@ const NotificationModal = ({
                     handleClose();
                   }
                 }}
-                className={`group relative flex min-h-[84px] flex-col justify-center gap-1.5 rounded-lg px-3.5 py-4 text-left transition-colors duration-150 ${
+                className={`animate-notification-item-in opacity-0 group relative flex min-h-[84px] flex-col justify-center gap-1.5 rounded-lg px-3.5 py-4 text-left transition-colors duration-150 ${
                   !notification.isRead
                     ? 'bg-[var(--ui-50)] hover:bg-[var(--ui-100)]'
                     : 'hover:bg-[var(--ui-50)]'
