@@ -245,16 +245,15 @@ const ProfileDetail = ({
                   reports.map((report) => (
                     <div key={report.reportId} className="min-w-64 max-w-64 flex-shrink-0">
                       <ReportCardSmall
-                        label={
-                          report.reportType === 'MAIN'
-                            ? '메인'
-                            : report.reportType === 'DETAIL' || report.reportType === 'SUB'
-                              ? '상세'
-                              : undefined
-                        }
+                        gitRepoId={report.gitRepoId}
+                        label={report.reportType === 'MAIN'
+                          ? '메인'
+                          : report.reportType === 'DETAIL' || report.reportType === 'SUB'
+                            ? '상세'
+                            : undefined}
                         title={report.repoName}
                         description={report.repoDescription}
-                      />
+                        reportType={report.reportType}                      />
                     </div>
                   ))
                 ) : (

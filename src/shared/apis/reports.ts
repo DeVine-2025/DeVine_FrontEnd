@@ -17,7 +17,7 @@ type GetMyReportsMeResponse = {
   };
 };
 
-export async function createReportSync(gitRepoId: number, token?: string) {
+export async function createReportSync(gitRepoId: number, token: string) {
   const res = await fetch('https://api.devine.kr/api/v1/reports/sync', {
     method: 'POST',
     headers: {
