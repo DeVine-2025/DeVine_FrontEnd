@@ -1,4 +1,4 @@
-import type { Report } from '@apis/report/report';
+import type { Report, ReportDetailContent, ReportMainContent } from '@apis/report/report';
 import { reportQueries } from '@apis/report/report-queries';
 import { useAuth } from '@clerk/clerk-react';
 import MainDetail from '@components/report/MainDetail';
@@ -65,9 +65,9 @@ const ReportDetailPage = () => {
 
       {/* MAIN / DETAIL 분기 */}
       {report.reportType === 'MAIN' ? (
-        <MainDetail data={content} />
+        <MainDetail data={content as unknown as ReportMainContent} />
       ) : (
-        <ReportDetail data={content} />
+        <ReportDetail data={content as unknown as ReportDetailContent} />
       )}
     </div>
   );
