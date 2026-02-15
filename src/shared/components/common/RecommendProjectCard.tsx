@@ -21,11 +21,17 @@ function RecommendProjectCard({
   bookmarkId,
   onBookmarkChangeById,
   onClick,
+  onNavigateToProject,
   techstackScorePercent,
   similarityScorePercent,
   domainMatch,
   totalScore,
 }: RecommendProjectCardProps) {
+  const handleClick =
+    onNavigateToProject && projectId != null
+      ? () => onNavigateToProject(projectId)
+      : onClick;
+
   const handleBookmark = onBookmarkChangeById && projectId != null
     ? (next: boolean) => onBookmarkChangeById(projectId, next, bookmarkId)
     : onBookmarkChange;
@@ -47,21 +53,21 @@ function RecommendProjectCard({
 
   return (
     <article
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
+      role={handleClick ? 'button' : undefined}
+      tabIndex={handleClick ? 0 : undefined}
+      onClick={handleClick}
       onKeyDown={
-        onClick
+        handleClick
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                onClick();
+                handleClick();
               }
             }
           : undefined
       }
-      className={`relative h-[210px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
-        onClick ? 'cursor-pointer' : ''
+      className={`relative h-[182px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
+        handleClick ? 'cursor-pointer' : ''
       }`}
       style={{
         border: '1px solid transparent',
@@ -69,8 +75,8 @@ function RecommendProjectCard({
           'linear-gradient(var(--ui-bg), var(--ui-bg)) padding-box, linear-gradient(90deg, rgba(114, 110, 255, 0.4) 0%, rgba(219, 80, 179, 0.4) 100%) border-box',
       }}
     >
-      <div className="flex h-[132px] items-center gap-[32px] px-[24px] pt-[24px]">
-        <div className="h-[132px] w-[233px] shrink-0 translate-y-[8px] overflow-hidden rounded-[12px] bg-[var(--ui-100)]">
+      <div className="flex h-[108px] items-center gap-[32px] px-[24px] pt-[18px]">
+        <div className="h-[108px] w-[233px] shrink-0 translate-y-[5px] overflow-hidden rounded-[12px] bg-[var(--ui-100)]">
           {thumbnailUrl ? (
             <img
               src={thumbnailUrl}
@@ -101,12 +107,12 @@ function RecommendProjectCard({
             </p>
           </div>
 
-          <p className="Caption1 mt-[32px] font-semibold text-[var(--ui-600)]">
+          <p className="Caption1 mt-[20px] font-semibold text-[var(--ui-600)]">
             {[location, period, mode].filter(Boolean).join(' · ')}
           </p>
         </div>
 
-        <div className="flex h-[132px] w-[202px] shrink-0 translate-y-[16px] flex-col items-center justify-center gap-[12px]">
+        <div className="flex h-[108px] w-[202px] shrink-0 translate-y-[10px] flex-col items-center justify-center gap-[12px]">
           {roles?.slice(0, 3).map((r) => (
             <div
               key={r.key}
@@ -156,7 +162,7 @@ function RecommendProjectCard({
       />
 
       {hasSuitability && suitabilityText ? (
-        <div className="absolute bottom-[12px] left-[24px] w-[908px] rounded-2xl bg-[var(--ui-100)] px-6 py-3">
+        <div className="absolute bottom-[8px] left-[24px] w-[908px] rounded-2xl bg-[var(--ui-100)] px-6 py-2.5">
           <p className="font-medium text-[13px] text-[var(--ui-1000)]">{suitabilityText}</p>
         </div>
       ) : null}

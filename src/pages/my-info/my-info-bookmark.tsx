@@ -6,7 +6,7 @@ import BackIcon from '@assets/icons/back.svg?react';
 import profileDefaultIconUrl from '@assets/icons/profile-default.svg?url';
 import LoadingSpinner from '@components/common/LoadingSpinner';
 import ProjectLg from '@components/common/ProjectLg';
-import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
+import BookmarkDeveloperCard from '@components/common/BookmarkDeveloperCard';
 import { useAuth } from '@clerk/clerk-react';
 import { mapProjectItemToCard } from '@mappers/project';
 import type { ProjectItem } from '@t/project/api';
@@ -278,11 +278,8 @@ const MyInfoBookmark = () => {
                 navigate(`/developer-detail/${targetNickname}`);
               };
               return (
-                <RecommendDeveloperCard
+                <BookmarkDeveloperCard
                   key={bookmarkId}
-                  borderStyle="gray"
-                  role="개발자"
-                  roleTone="blue"
                   nickname={nickname}
                   profileImageUrl={profileImageUrl}
                   introduction={profile?.body ?? '저장한 개발자입니다.'}
@@ -292,7 +289,6 @@ const MyInfoBookmark = () => {
                   techStack={
                     profile?.techstacks?.map((name, i) => ({ id: `tech-${bookmarkId}-${i}`, name })) ?? []
                   }
-                  showMatchedReason={false}
                   bookmarked
                   onBookmarkChange={(next) => !next && handleRemoveDeveloperBookmark(bookmarkId)}
                   onClick={handleDeveloperClick}

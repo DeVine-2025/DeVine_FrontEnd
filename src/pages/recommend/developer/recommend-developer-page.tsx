@@ -1,39 +1,21 @@
+import { createBookmark, deleteBookmark } from '@apis/bookmarks';
+import { getRecommendMembers, type GetRecommendMembersParams, type RecommendDeveloperListItem } from '@apis/members';
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
 import LoadingSpinner from '@components/common/LoadingSpinner';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import ReportRequiredCard from '@components/common/ReportRequiredCard';
-import { getReports } from '@apis/report/report-queries';
-import { useAuthStore } from '@store/auth';
+import { useBookmarks } from '@hooks/useBookmarks';
+import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
 import { useFilterStore } from '@store/filter';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
-import { getRecommendMembers, type GetRecommendMembersParams, type RecommendDeveloperListItem } from '@apis/members';
-import { getMyRecruitingProjects } from '@apis/projects';
 
 const RECOMMEND_DEVELOPER_FILTERS = ['내 프로젝트 선택'] as const;
 
 type MyProjectOption = { id: number; name: string };
 const MY_PROJECTS_CACHE_KEY = 'devine_my_projects_cache_v1';
-
-function readMyProjectsCache(): MyProjectOption[] {
-  try {
-    const raw = localStorage.getItem(MY_PROJECTS_CACHE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter(
-        (v): v is { id: unknown; name: unknown } =>
-          v != null && typeof v === 'object' && 'id' in (v as any) && 'name' in (v as any),
-      )
-      .map((v) => ({ id: Number((v as any).id), name: String((v as any).name) }))
-      .filter((v) => Number.isFinite(v.id) && v.id > 0 && v.name.trim().length > 0);
-  } catch {
-    return [];
-  }
-}
 
 function writeMyProjectsCache(options: MyProjectOption[]) {
   try {
@@ -55,91 +37,59 @@ function buildApiParams(
   return { projectId: projectIds[0], projectIds, page, size: 10 };
 }
 
+function projectsToOptions(projects: { projectId: number; title: string }[]): MyProjectOption[] {
+  const uniqById = Array.from(new Map(projects.map((p) => [p.projectId, p])).values());
+  const seenCounts: Record<string, number> = {};
+  return uniqById.map((p) => {
+    const base = (p.title ?? '').trim() || `프로젝트 ${p.projectId}`;
+    seenCounts[base] = (seenCounts[base] ?? 0) + 1;
+    const n = seenCounts[base];
+    const label = n > 1 ? `${base} (${n})` : base;
+    return { id: p.projectId, name: label };
+  });
+}
+
 const RecommendDeveloperPage = () => {
   const { getToken } = useAuth();
   const navigate = useNavigate();
-  const userRole = useAuthStore((state) => state.role);
-  const isPm = userRole === 'pm';
+  const queryClient = useQueryClient();
   const {
     recommendDeveloper,
     setRecommendDeveloper,
   } = useFilterStore();
   const { myProjects, interestDomains, techStacks } = recommendDeveloper;
 
-  const [hasReport, setHasReport] = useState<boolean | null>(null);
+  const { data: bookmarks = [] } = useBookmarks();
+  const bookmarkMap = useMemo(() => {
+    const map: Record<string | number, number> = {};
+    for (const b of bookmarks) {
+      if (b.targetType !== 'DEVELOPER') continue;
+      const key = b.targetNickname ?? b.targetId;
+      if (key !== undefined && key !== null) map[key] = b.bookmarkId;
+    }
+    return map;
+  }, [bookmarks]);
+  const bookmarkMapRef = useRef(bookmarkMap);
+  bookmarkMapRef.current = bookmarkMap;
 
+  const { data: projectsData, isLoading: myProjectOptionsLoading } = useMyRecruitingProjects();
+  const myProjectOptions = useMemo(
+    () => (projectsData ? projectsToOptions(projectsData) : []),
+    [projectsData],
+  );
   useEffect(() => {
-    let cancelled = false;
-    getReports()
-      .then((res) => {
-        if (cancelled) return;
-        const reports = res?.result?.reports ?? [];
-        setHasReport(reports.length > 0);
-      })
-      .catch(() => {
-        if (!cancelled) setHasReport(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (myProjectOptions.length > 0) writeMyProjectsCache(myProjectOptions);
+  }, [myProjectOptions]);
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
-  const [myProjectOptions, setMyProjectOptions] = useState<MyProjectOption[]>([]);
-  const lastLoadedProjectOptionsRef = useRef<MyProjectOption[]>([]);
-  const [myProjectOptionsLoading, setMyProjectOptionsLoading] = useState(false);
   const [autoSelectProject, setAutoSelectProject] = useState(true);
   const [list, setList] = useState<RecommendDeveloperListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [bookmarkMap, setBookmarkMap] = useState<Record<string | number, number>>({});
-  const bookmarkMapRef = useRef(bookmarkMap);
-  bookmarkMapRef.current = bookmarkMap;
   const listRef = useRef<RecommendDeveloperListItem[]>([]);
   listRef.current = list;
-
-  useEffect(() => {
-    const cached = readMyProjectsCache();
-    if (cached.length === 0) return;
-    lastLoadedProjectOptionsRef.current = cached;
-    setMyProjectOptions(cached);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      const token = await getToken();
-      if (!token || cancelled) return;
-      try {
-        const bookmarks = await getBookmarks(token);
-        if (cancelled) return;
-        const next: Record<string | number, number> = {};
-        for (const b of bookmarks) {
-          if (b.targetType !== 'DEVELOPER') continue;
-          const key = b.targetNickname ?? b.targetId;
-          if (key !== undefined && key !== null) next[key] = b.bookmarkId;
-        }
-        bookmarkMapRef.current = next;
-        setBookmarkMap(next);
-        setList((prev) =>
-          prev.map((d) => {
-            const key = d.memberId ?? d.nickname;
-            const hit = next[key];
-            if (hit === undefined || hit === null) return d;
-            return { ...d, bookmarked: true, bookmarkId: hit > 0 ? hit : undefined };
-          }),
-        );
-      } catch (e) {
-        console.error('[북마크] 목록 로드 실패', e);
-      }
-    };
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [getToken]);
 
   const setMyProjects = useCallback(
     (v: string[] | ((prev: string[]) => string[])) => {
@@ -157,48 +107,6 @@ const RecommendDeveloperPage = () => {
     (v: string[]) => setRecommendDeveloper({ techStacks: v }),
     [setRecommendDeveloper],
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      const token = await getToken();
-      if (!token) return;
-      setMyProjectOptionsLoading(true);
-      try {
-        const projects = await getMyRecruitingProjects(token);
-        if (cancelled) return;
-        const uniqById = Array.from(new Map(projects.map((p) => [p.projectId, p])).values());
-        const seenCounts: Record<string, number> = {};
-        const fromApi: MyProjectOption[] = uniqById.map((p) => {
-          const base = (p.title ?? '').trim() || `프로젝트 ${p.projectId}`;
-          seenCounts[base] = (seenCounts[base] ?? 0) + 1;
-          const n = seenCounts[base];
-          const label = n > 1 ? `${base} (${n})` : base;
-          return { id: p.projectId, name: label };
-        });
-        const cached = readMyProjectsCache();
-        const apiIds = new Set(fromApi.map((p) => p.id));
-        const onlyInCache = cached.filter((p) => !apiIds.has(p.id));
-        const next = onlyInCache.length > 0 ? [...onlyInCache, ...fromApi] : fromApi;
-        if (next.length > 0) {
-          lastLoadedProjectOptionsRef.current = next;
-          setMyProjectOptions(next);
-          writeMyProjectsCache(next);
-        } else {
-          setMyProjectOptions(lastLoadedProjectOptionsRef.current);
-        }
-      } catch (e) {
-        if (!cancelled) setMyProjectOptions(lastLoadedProjectOptionsRef.current);
-        console.error('[내 프로젝트 옵션] 로드 실패', e);
-      } finally {
-        if (!cancelled) setMyProjectOptionsLoading(false);
-      }
-    };
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [getToken]);
 
   useEffect(() => {
     if (!autoSelectProject) return;
@@ -264,6 +172,22 @@ const RecommendDeveloperPage = () => {
     fetchList(page);
   }, [fetchList, page]);
 
+  const displayList = useMemo(
+    () =>
+      list.map((d) => {
+        const key = d.memberId ?? d.nickname;
+        const hit = bookmarkMap[key];
+        if (hit === undefined || hit === null) return d;
+        return { ...d, bookmarked: true, bookmarkId: hit > 0 ? hit : undefined };
+      }),
+    [list, bookmarkMap],
+  );
+
+  const handleNavigateToDeveloper = useCallback(
+    (nickname: string) => navigate(`/developer-detail/${nickname}`),
+    [navigate],
+  );
+
   const handleApply = useCallback(
     (key: DeveloperFilterKey) => {
       setOpenFilter(null);
@@ -277,71 +201,24 @@ const RecommendDeveloperPage = () => {
     async (dev: RecommendDeveloperListItem, next: boolean) => {
       const token = await getToken();
       if (!token) return;
-      const mapKey: string | number = dev.memberId ?? dev.nickname;
-      const prevBookmarkId = bookmarkMapRef.current[mapKey];
-
-      if (next) {
-        setBookmarkMap((prev) => ({ ...prev, [mapKey]: -1 }));
-        setList((prev) =>
-          prev.map((d) =>
-            d.id === dev.id ? { ...d, bookmarked: true, bookmarkId: undefined } : d,
-          ),
-        );
-      } else {
-        if (dev.bookmarkId == null) return;
-        setBookmarkMap((prev) => {
-          const nextMap = { ...prev };
-          delete nextMap[mapKey];
-          return nextMap;
-        });
-        setList((prev) =>
-          prev.map((d) =>
-            d.id === dev.id ? { ...d, bookmarked: false, bookmarkId: undefined } : d,
-          ),
-        );
-      }
+      if (!next && dev.bookmarkId == null) return;
 
       try {
         if (next) {
-          const { bookmarkId } = await createBookmark(
+          await createBookmark(
             { targetType: 'DEVELOPER', targetNickname: dev.nickname },
             token,
           );
-          setBookmarkMap((prev) => ({ ...prev, [mapKey]: bookmarkId }));
-          setList((prev) =>
-            prev.map((d) =>
-              d.id === dev.id ? { ...d, bookmarked: true, bookmarkId } : d,
-            ),
-          );
         } else {
-          if (dev.bookmarkId == null) return;
-          await deleteBookmark(dev.bookmarkId, token);
+          await deleteBookmark(dev.bookmarkId!, token);
         }
+        await queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
       } catch (e) {
         console.error('[북마크]', e);
-        if (next) {
-          setBookmarkMap((prev) => {
-            const nextMap = { ...prev };
-            delete nextMap[mapKey];
-            return nextMap;
-          });
-          setList((prev) =>
-            prev.map((d) =>
-              d.id === dev.id ? { ...d, bookmarked: false, bookmarkId: prevBookmarkId } : d,
-            ),
-          );
-        } else {
-          setBookmarkMap((prev) => ({ ...prev, [mapKey]: dev.bookmarkId! }));
-          setList((prev) =>
-            prev.map((d) =>
-              d.id === dev.id ? { ...d, bookmarked: true, bookmarkId: dev.bookmarkId } : d,
-            ),
-          );
-        }
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
-    [getToken],
+    [getToken, queryClient],
   );
 
   const handleBookmarkChangeById = useCallback(
@@ -353,7 +230,7 @@ const RecommendDeveloperPage = () => {
     [handleBookmarkChange],
   );
 
-  if (hasReport === false) {
+  if (!myProjectOptionsLoading && myProjectOptions.length === 0) {
     return (
       <div className="relative min-h-[calc(100vh-6rem)] w-full">
         <div className="pointer-events-none flex min-h-full select-none flex-col gap-6 blur-sm">
@@ -383,16 +260,12 @@ const RecommendDeveloperPage = () => {
           <div className="flex flex-col gap-6" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          {isPm ? (
-            <ReportRequiredCard
-              title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
-              description="나에게 맞는 추천 개발자를 받아 보세요"
-              linkLabel="프로젝트 등록하러 가기"
-              linkTo="/project/create"
-            />
-          ) : (
-            <ReportRequiredCard description="나에게 맞는 추천 개발자를 받아 보세요" />
-          )}
+          <ReportRequiredCard
+            title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
+            description="나에게 맞는 추천 개발자를 받아 보세요"
+            linkLabel="프로젝트 등록하러 가기"
+            linkTo="/project/create"
+          />
         </div>
       </div>
     );
@@ -424,7 +297,7 @@ const RecommendDeveloperPage = () => {
         }}
       />
 
-      {myProjectOptionsLoading && (
+      {(myProjectOptionsLoading || (loading && myProjects.length > 0)) && (
         <div className="flex justify-center py-8">
           <LoadingSpinner size="lg" />
         </div>
@@ -434,12 +307,6 @@ const RecommendDeveloperPage = () => {
         <p className="text-red-500" role="alert">
           {error}
         </p>
-      )}
-
-      {loading && myProjects.length > 0 && (
-        <div className="flex justify-center py-8">
-          <LoadingSpinner size="lg" />
-        </div>
       )}
 
       {!loading && myProjects.length > 0 && list.length === 0 && (
@@ -456,10 +323,10 @@ const RecommendDeveloperPage = () => {
         </div>
       )}
 
-      {!loading && myProjects.length > 0 && list.length > 0 && (
+      {!loading && myProjects.length > 0 && displayList.length > 0 && (
         <>
           <div className="flex flex-col gap-6">
-            {list.map((dev) => (
+            {displayList.map((dev) => (
               <RecommendDeveloperCard
                 key={dev.id}
                 role={dev.role}
@@ -476,7 +343,7 @@ const RecommendDeveloperPage = () => {
                 bookmarkId={dev.bookmarkId}
                 listItemId={dev.id}
                 onBookmarkChangeById={handleBookmarkChangeById}
-                onClick={() => navigate(`/developer-detail/${dev.nickname}`)}
+                onNavigateToDeveloper={handleNavigateToDeveloper}
               />
             ))}
           </div>
