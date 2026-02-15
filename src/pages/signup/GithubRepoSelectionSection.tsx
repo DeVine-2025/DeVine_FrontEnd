@@ -65,7 +65,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
   const createReportMutation = useMutation({
     mutationFn: async (repoId: number) => {
       const token = await getToken();
-      return createReportSync(repoId, token ?? undefined);
+      return createReportSync(repoId, token || '');
     },
     onMutate: () => {
       setCreateError(null);

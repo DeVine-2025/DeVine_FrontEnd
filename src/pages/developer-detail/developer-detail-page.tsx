@@ -57,7 +57,7 @@ const DeveloperDetailPage = () => {
       : undefined;
     return Array.isArray(list) ? list : [];
   }, [contributionsRes]);
-  const reports = reportsRes?.result?.reports ?? [];
+  const reports = reportsRes?.result?.content ?? [];
 
   const nickname = profile?.member?.nickname || profile?.member?.name || '닉네임';
 

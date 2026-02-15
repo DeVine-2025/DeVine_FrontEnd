@@ -1,11 +1,17 @@
+import { useNavigate } from 'react-router-dom';
+
 type ReportCardSmallProps = {
+  gitRepoId: number;
+  reportType: string;
   label?: string;
   title?: string;
   description?: string;
 }
-const ReportCardSmall = ({label, title, description}: ReportCardSmallProps) => {
+const ReportCardSmall = ({gitRepoId,reportType, label, title, description}: ReportCardSmallProps) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-w-64 w-fit cursor-pointer rounded-3xl border border-ui-200 p-[2.4rem] gap-[0.8rem] flex-col w-full">
+    <div className="min-w-64 w-fit cursor-pointer rounded-3xl border border-ui-200 p-[2.4rem] gap-[0.8rem] flex-col w-full" onClick={() => navigate(`/report/detail/${gitRepoId}?type=${reportType}`)}>
       {label && <div className="flex-col-center rounded-lg bg-badge-bg-primary px-[0.8rem] py-[0.4rem] w-fit">
         <p className="Label1 text-badge-text-primary">{label}</p>
       </div>}
