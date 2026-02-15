@@ -1,3 +1,5 @@
+const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
+
 type CreateReportResponse = {
   isSuccess: boolean;
   result?: {
@@ -18,7 +20,7 @@ type GetMyReportsMeResponse = {
 };
 
 export async function createReportSync(gitRepoId: number, token: string) {
-  const res = await fetch('https://api.devine.kr/api/v1/reports/sync', {
+  const res = await fetch(`${BASE_URL}/api/v1/reports/sync`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -36,7 +38,7 @@ export async function createReportSync(gitRepoId: number, token: string) {
 }
 
 export async function createReport(gitRepoId: number, token?: string) {
-  const res = await fetch('https://api.devine.kr/api/v1/reports', {
+  const res = await fetch(`${BASE_URL}/api/v1/reports`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -54,7 +56,7 @@ export async function createReport(gitRepoId: number, token?: string) {
 }
 
 export async function getReportMain(gitRepoId: number, token?: string): Promise<Report | null> {
-  const res = await fetch(`https://api.devine.kr/api/v1/reports/${gitRepoId}/main`, {
+  const res = await fetch(`${BASE_URL}/api/v1/reports/${gitRepoId}/main`, {
     method: 'GET',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -70,7 +72,7 @@ export async function getReportMain(gitRepoId: number, token?: string): Promise<
 }
 
 export async function getReportDetail(gitRepoId: number, token?: string): Promise<Report | null> {
-  const res = await fetch(`https://api.devine.kr/api/v1/reports/${gitRepoId}/detail`, {
+  const res = await fetch(`${BASE_URL}/api/v1/reports/${gitRepoId}/detail`, {
     method: 'GET',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -88,7 +90,7 @@ export async function getReportDetail(gitRepoId: number, token?: string): Promis
 export async function getMyReportsMe(token?: string, type?: ReportType): Promise<MyReportItem[]> {
   const query = type ? `?type=${type}` : '';
 
-  const res = await fetch(`https://api.devine.kr/api/v1/reports/me${query}`, {
+  const res = await fetch(`${BASE_URL}/api/v1/reports/me${query}`, {
     method: 'GET',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

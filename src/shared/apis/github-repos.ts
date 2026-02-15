@@ -1,3 +1,5 @@
+const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
+
 export type GitRepoItem = {
   gitRepoId: number;
   name: string;
@@ -32,7 +34,7 @@ export async function getGitRepos(token?: string): Promise<GitRepoItem[]> {
   // eslint-disable-next-line no-constant-condition
   while (true) {
     const res = await fetch(
-      `https://api.devine.kr/api/v1/members/me/git-repos?page=${page}&size=${size}`,
+      `${BASE_URL}/api/v1/members/me/git-repos?page=${page}&size=${size}`,
       {
         method: 'POST',
         headers: {

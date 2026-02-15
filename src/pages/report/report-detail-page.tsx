@@ -1,4 +1,4 @@
-import type { Report } from '@apis/report/report';
+import type { Report, ReportDetailContent, ReportMainContent } from '@apis/report/report';
 import { reportQueries } from '@apis/report/report-queries';
 import { useAuth } from '@clerk/clerk-react';
 import MainDetail from '@components/report/MainDetail';
@@ -43,14 +43,20 @@ const ReportDetailPage = () => {
   if (isLoading) return null;
   if (isError || !report) return null;
 
+  const content = report?.content;
+  if (!content) return null;
+
+  const displayTitle =
+    report.reportType === 'MAIN'
+      ? (content as { projectInfo?: { projectName?: string } })?.projectInfo?.projectName
+      : (content as { reportTitle?: string })?.reportTitle;
+
   return (
     <div className="mx-auto flex w-full max-w-[900px] flex-col gap-10">
       {/* 제목 */}
       <section className="flex w-full flex-col gap-3">
         <p className="text-center font-bold text-4xl text-ui-1000">
-          {report.reportType === 'MAIN'
-            ? report.content.projectInfo.projectName
-            : report.content.reportTitle}{' '}
+          {displayTitle ?? '리포트'}{' '}
           {title} 리포트
         </p>
 
@@ -59,9 +65,9 @@ const ReportDetailPage = () => {
 
       {/* MAIN / DETAIL 분기 */}
       {report.reportType === 'MAIN' ? (
-        <MainDetail data={report.content} />
+        <MainDetail data={content as unknown as ReportMainContent} />
       ) : (
-        <ReportDetail data={report.content} />
+        <ReportDetail data={content as unknown as ReportDetailContent} />
       )}
     </div>
   );

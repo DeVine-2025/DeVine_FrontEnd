@@ -191,7 +191,7 @@ type MyProjectsResponse = {
 };
 
 export async function getMyProjects(token: string, signal?: AbortSignal): Promise<MyProjectDto[]> {
-  const res = await fetch(`/api/v1/members/me/projects`, {
+  const res = await fetch(`${BASE_URL}/api/v1/members/me/projects`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,

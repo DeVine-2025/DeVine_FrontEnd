@@ -1,3 +1,5 @@
+const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
+
 export type MatchingStatus = 'PENDING' | 'ACCEPT' | 'REJECT';
 export type RespondDecision = 'ACCEPT' | 'REJECT';
 
@@ -22,7 +24,7 @@ export async function respondApplication(
   token: string,
   signal?: AbortSignal,
 ): Promise<RespondApplicationResponse> {
-  const res = await fetch(`/api/v1/matching/applications/${matchingId}/respond`, {
+  const res = await fetch(`${BASE_URL}/api/v1/matching/applications/${matchingId}/respond`, {
     method: 'PATCH',
     headers: {
       'content-type': 'application/json',

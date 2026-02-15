@@ -77,10 +77,7 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
       } catch {
         if (isActive) {
           setIsDuplicateNickname(false);
-          // 요청하신 문구로 변경
-          setNicknameCheckError(
-            '자음/모음만 입력할 수 없습니다.\n 한글, 영문, 숫자를 포함해 닉네임을 입력해주세요.',
-          );
+          setNicknameCheckError('닉네임 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
         }
       } finally {
         if (isActive) {
