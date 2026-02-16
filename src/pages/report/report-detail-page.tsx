@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useParams, useSearchParams } from 'react-router-dom';
+import PdfIcon from '@assets/icons/create-project/pdf.svg?react';
 
 const ReportDetailPage = () => {
   const { getToken } = useAuth();
@@ -97,16 +98,17 @@ const ReportDetailPage = () => {
           type="button"
           onClick={() => handlePrint()}
           title="인쇄 창에서 '머리글 및 바닥글' 옵션을 끄면 날짜, URL이 출력되지 않습니다."
-          className="absolute right-0 top-0 rounded-xl bg-primary px-6 py-3 font-semibold text-white transition-opacity hover:opacity-90"
+          className="group absolute right-0 top-[80px] flex h-12 w-[150px] items-center justify-center gap-3 rounded-lg bg-[var(--ui-50)] text-ui-600 transition-[color,opacity] hover:opacity-90"
         >
-          출력하기
+          <PdfIcon className="h-6 w-5 shrink-0 [&_path]:stroke-[var(--ui-500)] group-hover:[&_path]:stroke-[var(--ui-1000)]" />
+          <span className="text-base font-medium transition-colors group-hover:font-semibold group-hover:text-ui-1000">PDF로 출력하기</span>
         </button>
         <div
           ref={printRef}
           className={`report-print-content report-print-${report.reportType === 'MAIN' ? 'main' : 'detail'} flex flex-col gap-10`}
           style={{ overflow: 'visible' }}
         >
-          <div className="flex flex-col gap-3">
+          <div className="mb-20 flex flex-col gap-3">
             <p className="text-center font-bold text-4xl text-ui-1000">
               {displayTitle ?? '리포트'}{' '}
               {title} 리포트
