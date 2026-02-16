@@ -16,7 +16,6 @@ export type FallbackProjectShape = {
 // ── Types ──
 
 export type ProjectDetailInfo = {
-  content: string;
   id: string;
   categoryLabel?: string;
   deadlineLabel?: string;
