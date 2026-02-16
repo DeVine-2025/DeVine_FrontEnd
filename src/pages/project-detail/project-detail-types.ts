@@ -16,6 +16,7 @@ export type FallbackProjectShape = {
 // ── Types ──
 
 export type ProjectDetailInfo = {
+  content: string;
   id: string;
   categoryLabel?: string;
   deadlineLabel?: string;
@@ -123,16 +124,6 @@ export const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailI
     'isOwner' in project
       ? Boolean((project as ProjectItem & { isOwner?: boolean }).isOwner)
       : undefined;
-
-  // eslint-disable-next-line no-console
-  console.log(
-    '[프로젝트 상세] API raw creatorImage:',
-    project.creatorImage,
-    '| creatorNickname:',
-    project.creatorNickname,
-    '| creatorName:',
-    project.creatorName,
-  );
 
   return {
     id: String(project.projectId),

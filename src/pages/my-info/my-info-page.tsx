@@ -1,5 +1,5 @@
+import { useAuth } from '@clerk/clerk-react';
 import { cn } from '@libs/cn';
-import {useAuth} from '@clerk/clerk-react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 type MenuItem = {
@@ -19,15 +19,15 @@ const MyInfoPage = () => {
 
   const currentPath = location.pathname;
 
-  const {signOut} = useAuth();
+  const { signOut } = useAuth();
 
   return (
-    <div className="flex">
-      <div className="mx-auto w-full max-w-[1180px] flex justify-between">
+    <div className="flex pt-3">
+      <div className="mx-auto flex w-full max-w-[1180px] justify-between">
         <Outlet />
 
         <div>
-          <ul className="min-w-[254px] flex flex-col gap-[3.2rem] font-semibold text-3xl">
+          <ul className="flex min-w-[254px] flex-col gap-[3.2rem] font-semibold text-3xl">
             {MENU.map((item) => {
               const isSelected =
                 item.path === 'bookmark'
@@ -37,23 +37,25 @@ const MyInfoPage = () => {
                     : currentPath.startsWith(`/my-info/${item.path}`);
 
               return (
-                <li
-                  key={item.path}
-                  onClick={() => {
-                    if (item.path === 'bookmark') {
-                      navigate('/bookmark');
-                    } else if (item.path === '') {
-                      navigate('/my-info');
-                    } else {
-                      navigate(`/my-info/${item.path}`);
-                    }
-                  }}
-                  className={cn(
-                    'cursor-pointer transition-colors',
-                    isSelected ? 'text-ui-900' : 'text-ui-400'
-                  )}
-                >
-                  {item.name}
+                <li key={item.path}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (item.path === 'bookmark') {
+                        navigate('/bookmark');
+                      } else if (item.path === '') {
+                        navigate('/my-info');
+                      } else {
+                        navigate(`/my-info/${item.path}`);
+                      }
+                    }}
+                    className={cn(
+                      'w-full cursor-pointer text-left transition-colors',
+                      isSelected ? 'text-ui-900' : 'text-ui-400',
+                    )}
+                  >
+                    {item.name}
+                  </button>
                 </li>
               );
             })}
@@ -62,10 +64,13 @@ const MyInfoPage = () => {
               <hr className="border-ui-400" />
             </li>
 
-            <li className="cursor-pointer hover:text-ui-900 text-ui-400" onClick={() => {
-              signOut();
-              navigate('/')
-            }}>
+            <li
+              className="cursor-pointer text-ui-400 hover:text-ui-900"
+              onClick={() => {
+                signOut();
+                navigate('/');
+              }}
+            >
               로그아웃
             </li>
           </ul>

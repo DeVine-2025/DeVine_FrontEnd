@@ -57,7 +57,7 @@ export default function ProfileCardLg(props: ProfileCardProps) {
           loading="lazy"
         />
 
-        <div className="flex min-w-0 flex-1 flex-col gap-5">
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
           <div className="truncate pl-1 font-semibold text-2xl text-card-title">{nickname}</div>
 
           <BadgeList badges={badges} className="gap-4" />
@@ -65,7 +65,7 @@ export default function ProfileCardLg(props: ProfileCardProps) {
           <Intro introduction={introduction} />
         </div>
 
-        <div className="flex h-full w-[240px] self-center">
+        <div className="flex h-full w-[330px] self-center">
           <TechChips techStack={techStack} max={5} />
         </div>
 

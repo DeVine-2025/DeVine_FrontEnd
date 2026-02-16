@@ -1,6 +1,6 @@
-import { getPresignedUrl, confirmImage } from '@apis/images';
-import { createProject, updateProject } from '@apis/projects';
+import { confirmImage, getPresignedUrl } from '@apis/images';
 import { getProjectDetail } from '@apis/project-detail';
+import { createProject, updateProject } from '@apis/projects';
 import AddImageLightIcon from '@assets/icons/create-project/addimage-light.svg?react';
 import PlusIcon from '@assets/icons/create-project/plus.svg?react';
 import TablerIconBold from '@assets/icons/create-project/tabler-icon-bold.svg?react';
@@ -35,14 +35,14 @@ import {
   TECH_STACK_LABEL_BY_KEY,
 } from '@constants/position-tech-stack';
 import { TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
+import { LinkCardExtension } from '@pages/project-create/LinkCardNode';
+import { type SlotImage, useProjectCreateStore } from '@store/projectCreate';
+import { useThemeStore } from '@store/theme';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { LinkCardExtension } from '@pages/project-create/LinkCardNode';
-import { useProjectCreateStore, type SlotImage } from '@store/projectCreate';
-import { useThemeStore } from '@store/theme';
 import type { ChangeEvent, ComponentType, SVGProps } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -135,7 +135,14 @@ function ImageSlot({
       className="relative block h-[166px] w-[296px] cursor-pointer overflow-hidden rounded-[12px] bg-ui-50 data-[loading]:pointer-events-none"
       data-loading={loading ? true : undefined}
     >
-      <input id={inputId} type="file" accept="image/*" className="sr-only" onChange={onChange} disabled={loading} />
+      <input
+        id={inputId}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        onChange={onChange}
+        disabled={loading}
+      />
 
       {loading ? (
         <div className="flex h-full w-full items-center justify-center text-ui-400">
@@ -146,7 +153,7 @@ function ImageSlot({
           <img
             src={previewUrl}
             alt={label}
-            className="h-full w-full object-contain bg-[var(--ui-50)]"
+            className="h-full w-full bg-[var(--ui-50)] object-contain"
             draggable={false}
           />
           <button
@@ -202,7 +209,7 @@ function ToolbarButton({
       }}
       onClick={onClick}
       disabled={disabled}
-      className="group flex h-[28px] min-w-[28px] items-center justify-center rounded-md px-1 transition-colors disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-[var(--ui-200)] data-[active]:text-[var(--ui-800)] hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)]"
+      className="group flex h-[28px] min-w-[28px] items-center justify-center rounded-md px-1 transition-colors hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)] disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-[var(--ui-200)] data-[active]:text-[var(--ui-800)]"
       data-active={active || undefined}
       aria-label={label}
     >
@@ -210,8 +217,14 @@ function ToolbarButton({
         <HoverIcon aria-hidden className="h-[20px] w-[20px] shrink-0 text-[var(--ui-800)]" />
       ) : (
         <>
-          <Icon aria-hidden className="h-[20px] w-[20px] shrink-0 text-[var(--ui-500)] group-hover:hidden" />
-          <HoverIcon aria-hidden className="hidden h-[20px] w-[20px] shrink-0 text-[var(--ui-700)] group-hover:block" />
+          <Icon
+            aria-hidden
+            className="h-[20px] w-[20px] shrink-0 text-[var(--ui-500)] group-hover:hidden"
+          />
+          <HoverIcon
+            aria-hidden
+            className="hidden h-[20px] w-[20px] shrink-0 text-[var(--ui-700)] group-hover:block"
+          />
         </>
       )}
     </button>
@@ -254,8 +267,8 @@ const domainToCategory: Record<string, string> = {
   교육: 'EDUCATION',
   '소셜/커뮤니티': 'SOCIAL',
   엔터테인먼트: 'ENTERTAINMENT',
-  'AI/데이터': 'AI',
-  기타: 'OTHER',
+  'AI/데이터': 'AI_DATA',
+  기타: 'ETC',
 };
 const reverseProjectFieldMap: Record<string, string> = Object.fromEntries(
   Object.entries(projectFieldMap).map(([k, v]) => [v, k]),
@@ -274,7 +287,11 @@ const reversePositionMap: Record<string, string> = Object.fromEntries(
 );
 
 const normalizeTechKey = (k: string) =>
-  k.trim().replace(/\s+/g, '').replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
+  k
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/[^0-9a-zA-Z]/g, '')
+    .toUpperCase();
 
 const UI_KEY_TO_BACKEND_TECHSTACK: Record<string, string> = {
   ...TECHSTACK_KEY_TO_NAME,
@@ -381,7 +398,7 @@ const ProjectCreatePage = () => {
         setSlotImages((prev) => {
           const next = [...prev];
           next[index] = { imageId, imageUrl };
-          return next as [typeof prev[0], typeof prev[1], typeof prev[2]];
+          return next as [(typeof prev)[0], (typeof prev)[1], (typeof prev)[2]];
         });
       } catch (err) {
         const msg = err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.';
@@ -398,7 +415,7 @@ const ProjectCreatePage = () => {
       setSlotImages((prev) => {
         const next = [...prev];
         next[index] = null;
-        return next as [typeof prev[0], typeof prev[1], typeof prev[2]];
+        return next as [(typeof prev)[0], (typeof prev)[1], (typeof prev)[2]];
       });
     };
   }, []);
@@ -509,7 +526,9 @@ const ProjectCreatePage = () => {
         setDeadlineText(project.recruitmentDeadline ?? '');
 
         if (project.projectField) {
-          setProjectType(reverseProjectFieldMap[project.projectField] ?? project.projectFieldName ?? null);
+          setProjectType(
+            reverseProjectFieldMap[project.projectField] ?? project.projectFieldName ?? null,
+          );
         }
         if (project.category) {
           setDomain(reverseDomainToCategory[project.category] ?? project.categoryName ?? null);
@@ -518,7 +537,9 @@ const ProjectCreatePage = () => {
           setProgressType(reverseModeMap[project.mode] ?? project.modeName ?? null);
         }
         if (project.durationRange) {
-          setProgressPeriod(reverseDurationRangeMap[project.durationRange] ?? project.durationRangeName ?? null);
+          setProgressPeriod(
+            reverseDurationRangeMap[project.durationRange] ?? project.durationRangeName ?? null,
+          );
         }
 
         const rawRecruitments = project.recruitments ?? project.positions ?? [];
@@ -543,7 +564,10 @@ const ProjectCreatePage = () => {
           setRecruitments(restored);
         }
 
-        const imgUrls = project.imageUrls ?? project.images?.map((i) => i.imageUrl ?? i.url).filter(Boolean) ?? [];
+        const imgUrls =
+          project.imageUrls ??
+          project.images?.map((i) => i.imageUrl ?? i.url).filter(Boolean) ??
+          [];
         if (imgUrls.length > 0) {
           const slots: [SlotImage, SlotImage, SlotImage] = [null, null, null];
           imgUrls.slice(0, 3).forEach((url, i) => {
@@ -561,7 +585,9 @@ const ProjectCreatePage = () => {
         console.error('[project-edit] 기존 데이터 불러오기 실패', e);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [isEditMode, editProjectId, editDataLoaded, editor, getToken]);
 
   useEffect(() => {
@@ -705,12 +731,15 @@ const ProjectCreatePage = () => {
             `recruitments[${i}] ${r.positionLabel}: UI keys = [${r.techStackKeys.join(', ')}] → API로 전송 = [${sent.join(', ')}]`,
           );
         });
-        console.log('→ 백엔드 Swagger/API의 tech stack enum 목록과 위 "API로 전송" 값이 일치해야 합니다.');
+        console.log(
+          '→ 백엔드 Swagger/API의 tech stack enum 목록과 위 "API로 전송" 값이 일치해야 합니다.',
+        );
         console.groupEnd();
       }
-      const result = isEditMode && editProjectId
-        ? await updateProject(editProjectId, body, token)
-        : await createProject(body, token);
+      const result =
+        isEditMode && editProjectId
+          ? await updateProject(editProjectId, body, token)
+          : await createProject(body, token);
 
       try {
         const cacheKey = 'devine_my_projects_cache_v1';
@@ -718,10 +747,9 @@ const ProjectCreatePage = () => {
         const parsed = raw ? (JSON.parse(raw) as unknown) : [];
         const prev = Array.isArray(parsed) ? parsed : [];
         const rest = prev.filter((p: any) => Number(p?.id) !== result.projectId);
-        const next = [
-          { id: result.projectId, name: body.title.trim() },
-          ...rest,
-        ].filter((p: any) => Number.isFinite(Number(p?.id)) && String(p?.name ?? '').trim().length > 0);
+        const next = [{ id: result.projectId, name: body.title.trim() }, ...rest].filter(
+          (p: any) => Number.isFinite(Number(p?.id)) && String(p?.name ?? '').trim().length > 0,
+        );
         localStorage.setItem(cacheKey, JSON.stringify(next));
       } catch {}
 
@@ -736,8 +764,7 @@ const ProjectCreatePage = () => {
         console.error('[project-create] submit failed', e);
       }
       const message = e instanceof Error ? e.message : '등록에 실패했습니다.';
-      const needSignup =
-        /가입|등록|미등록|사용자|member|unauthorized/i.test(message);
+      const needSignup = /가입|등록|미등록|사용자|member|unauthorized/i.test(message);
       const needPm = /PM|권한|프로젝트를 생성/i.test(message);
       const alertMessage = needSignup
         ? `${message}\n\n(백엔드에 회원으로 등록되어 있지 않을 수 있습니다. 회원가입 완료 후 다시 시도해 주세요.)`
@@ -1173,8 +1200,12 @@ const ProjectCreatePage = () => {
                       className="Body1 h-[52px] w-[292px] rounded-[12px] bg-[#4E49FF] font-medium text-white transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
                     >
                       {submitLoading
-                        ? (isEditMode ? '수정 중...' : '등록 중...')
-                        : (isEditMode ? '수정하기' : '등록하기')}
+                        ? isEditMode
+                          ? '수정 중...'
+                          : '등록 중...'
+                        : isEditMode
+                          ? '수정하기'
+                          : '등록하기'}
                     </button>
                   </div>
                 </div>

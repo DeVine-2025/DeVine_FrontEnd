@@ -32,7 +32,6 @@ export async function getProjects(
           size: params.size ?? 10,
         });
   const queryString = qs.startsWith('?') ? qs : `?${qs}`;
-  console.log('REQUEST =>', `${BASE_URL}/api/v1/projects${queryString}`);
 
   const res = await fetch(`${BASE_URL}/api/v1/projects${queryString}`, {
     method: 'GET',
@@ -45,7 +44,6 @@ export async function getProjects(
 
   const json = await res.json().catch(() => null);
   const projects = json?.result?.projects;
-  console.log(projects);
 
   if (!res.ok) {
     throw new Error('프로젝트 목록을 불러오지 못했어요.');

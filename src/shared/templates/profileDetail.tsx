@@ -143,37 +143,34 @@ const ProfileDetail = ({
     }
   };
 
-  console.log(gitRepos?.pages);
   return (
     <section className="mx-auto flex w-full max-w-[1180px] justify-between">
       <div className="max-w-[718px] flex-col gap-14">
         {/*Section 1*/}
         <div className="flex gap-[2.4rem]">
           <ImagePreview isExist={hasImage} imageUrl={imageUrl} />
-          <div className="flex w-full flex-col gap-[0.8rem]">
-            <p className="mb-[0.8rem] font-bold text-4xl text-ui-1000">{nickname}</p>
-            {isDetail ? (
+          <div className="flex w-full flex-col gap-6">
+            <p className="font-bold text-4xl text-ui-1000">{nickname}</p>
+            <div className="flex-col gap-3">
               <button
                 type="button"
                 onClick={handleBookmarkChange}
                 disabled={!targetNickname}
                 aria-pressed={isBookmarked}
-                className="flex items-center gap-[0.4rem] font-medium text-ui-400 text-xl disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex items-center gap-[0.4rem] font-medium text-lg text-ui-400 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <HeartIcon className={isBookmarked ? 'text-primary' : 'text-ui-400'} />
                 관심 도메인
               </button>
-            ) : null}
-            <div className="flex-col gap-[1.4rem]">
               <div className="flex flex-wrap gap-[0.8rem]">
                 {domainBadges.map((domain) => (
                   <DomainBadges key={domain} label={domain} />
                 ))}
               </div>
-              {type === '내 정보' && (
-                <NormalButton label={'프로필 수정'} onClick={() => navigate('/profile-edit')} />
-              )}
             </div>
+            {type === '내 정보' && (
+              <NormalButton label={'프로필 수정'} onClick={() => navigate('/profile-edit')} />
+            )}
           </div>
         </div>
 
@@ -248,14 +245,17 @@ const ProfileDetail = ({
                     <div key={report.reportId} className="min-w-64 max-w-64 flex-shrink-0">
                       <ReportCardSmall
                         gitRepoId={report.gitRepoId}
-                        label={report.reportType === 'MAIN'
-                          ? '메인'
-                          : report.reportType === 'DETAIL' || report.reportType === 'SUB'
-                            ? '상세'
-                            : undefined}
+                        label={
+                          report.reportType === 'MAIN'
+                            ? '메인'
+                            : report.reportType === 'DETAIL' || report.reportType === 'SUB'
+                              ? '상세'
+                              : undefined
+                        }
                         title={report.repoName}
                         description={report.repoDescription}
-                        reportType={report.reportType}                      />
+                        reportType={report.reportType}
+                      />
                     </div>
                   ))
                 ) : (

@@ -1,3 +1,4 @@
+import DevineLogo from '@assets/images/Devine.svg';
 import ProjectBase from '@components/common/ProjectBase';
 import { cn } from '@libs/cn';
 import type { ProjectCardProps } from '@t/project/ui';
@@ -16,7 +17,7 @@ export default function MainProjectCard(props: ProjectCardProps) {
         <article
           {...CardActionProps}
           className={cn(
-            'w-full min-w-0 overflow-hidden rounded-3xl border-0 bg-[var(--ui-bg)] shadow-none outline-none ring-0',
+            'w-full min-w-0 overflow-hidden rounded-3xl border-0 bg-[var(--ui-50)] shadow-none outline-none ring-0',
             props.onClick && 'cursor-pointer',
             props.className,
           )}
@@ -29,7 +30,13 @@ export default function MainProjectCard(props: ProjectCardProps) {
                 className="block h-full w-full object-cover"
               />
             ) : (
-              <div className="h-full w-full bg-[#F3F5FC]" />
+              <div className="flex h-full w-full items-center justify-center bg-[var(--ui-200)]">
+                <img
+                  src={DevineLogo}
+                  alt="Devine logo"
+                  className="h-50 w-50 object-contain opacity-60"
+                />
+              </div>
             )}
             <div className="absolute top-4 right-4 z-10">{Bookmark}</div>
           </div>

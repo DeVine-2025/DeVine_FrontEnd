@@ -1,3 +1,5 @@
+import { cn } from '@libs/cn';
+
 type RoleOption = { key: string; label: string };
 
 type ApplyModalProps = {
@@ -29,21 +31,24 @@ export default function ApplyModal({
   onApply,
   onClose,
 }: ApplyModalProps) {
+  const baseButtonStyle =
+    'cursor-pointer h-[44px] w-full rounded-[12px] text-[14px] font-semibold transition-colors duration-200';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
       <div
-        className="relative w-full max-w-[360px] rounded-[24px] px-8 pt-10 pb-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
+        className="relative w-full max-w-[360px] rounded-[24px] px-10 py-12 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
         style={{ backgroundColor: isDark ? '#212328' : '#FFFFFF' }}
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-6 right-6 text-[var(--ui-400)]"
+          className="absolute top-6 right-8 cursor-pointer text-[var(--ui-400)] text-xl"
           aria-label="닫기"
         >
           ✕
         </button>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 pt-3">
           <h2
             className="font-semibold text-[18px] leading-[24px]"
             style={{ color: isDark ? '#F8F9FB' : 'var(--ui-900)' }}
@@ -64,7 +69,7 @@ export default function ApplyModal({
             <button
               type="button"
               onClick={onToggleRoleMenu}
-              className="flex h-[40px] w-full items-center justify-between rounded-[12px] px-4 text-[14px]"
+              className="flex h-[40px] w-full cursor-pointer items-center justify-between rounded-[12px] px-4 text-[14px]"
               style={{
                 backgroundColor: isDark ? '#191B1E' : '#FFFFFF',
                 border: `1px solid ${isDark ? '#41444D' : 'var(--ui-200)'}`,
@@ -80,7 +85,7 @@ export default function ApplyModal({
                 {selectedRoleLabel}
               </span>
               <svg
-                className={`h-4 w-4 transition-transform ${isRoleMenuOpen ? 'rotate-180' : ''}`}
+                className={`h-6 w-6 transition-transform ${isRoleMenuOpen ? 'rotate-180' : ''}`}
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -94,7 +99,7 @@ export default function ApplyModal({
             </button>
             {isRoleMenuOpen && (
               <div
-                className="absolute z-10 mt-2 w-full rounded-[12px] py-2 shadow-[0_12px_30px_rgba(0,0,0,0.12)]"
+                className="absolute z-10 mt-2 w-full rounded-[12px] py-3 shadow-[0_12px_30px_rgba(0,0,0,0.12)]"
                 style={{
                   backgroundColor: isDark ? '#191B1E' : '#FFFFFF',
                   border: `1px solid ${isDark ? '#41444D' : 'var(--ui-200)'}`,
@@ -105,7 +110,7 @@ export default function ApplyModal({
                     key={option.key}
                     type="button"
                     onClick={() => onSelectRole(option.key)}
-                    className="w-full px-4 py-2 text-left text-[14px]"
+                    className="w-full cursor-pointer px-4 py-2 text-left text-[14px]"
                     style={{
                       color: isDark ? '#F8F9FB' : 'var(--ui-900)',
                     }}
@@ -119,13 +124,14 @@ export default function ApplyModal({
 
           <button
             type="button"
-            disabled={!selectedRole}
+            disabled={!selectedRole || isApplying}
             onClick={onApply}
-            className={`h-[48px] w-full rounded-[12px] font-semibold text-[16px] ${
+            className={cn(
+              baseButtonStyle,
               selectedRole && !isApplying
-                ? 'bg-[#4E49FF] text-white'
-                : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
-            }`}
+                ? 'bg-[#4E49FF] text-white hover:opacity-90'
+                : 'cursor-not-allowed bg-[var(--ui-100)] text-[var(--ui-400)]',
+            )}
           >
             {isApplying
               ? hasApplied
@@ -135,10 +141,14 @@ export default function ApplyModal({
                 ? '수정하기'
                 : '지원하기'}
           </button>
+
           <button
             type="button"
             onClick={onClose}
-            className="text-[14px] text-[var(--ui-400)]"
+            className={cn(
+              baseButtonStyle,
+              'bg-my-tab-inactive text-[var(--ui-400)] hover:opacity-70',
+            )}
           >
             나중에 하기
           </button>

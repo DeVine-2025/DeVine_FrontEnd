@@ -8,8 +8,8 @@ import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
 import Pagination from '@components/common/Pagination';
 import ProfileCard from '@components/common/ProfileCard';
-import { useFilterStore } from '@store/filter';
 import { normalizeTechstackKey, TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
+import { useFilterStore } from '@store/filter';
 import type { BadgeTone } from '@t/badgeTone';
 import { DOMAIN_CODE_TO_LABEL, DOMAIN_LABEL_TO_CODE, ROLE_LABEL, ROLE_PRIORITY } from '@t/member';
 import type {
@@ -138,12 +138,10 @@ const DeveloperSearchPage = () => {
       try {
         const token = await getToken(); // null일 수 있음
         const pageData = await getDevelopers(params, token, controller.signal);
-        const filtered = (pageData.content ?? []).filter(
-          (item) => item.member?.mainType !== 'PM',
-         );
+        const filtered = (pageData.content ?? []).filter((item) => item.member?.mainType !== 'PM');
 
-          setSearchContent(filtered);
-          setTotalPages(Math.min(pageData.totalPages ?? 0, 10));
+        setSearchContent(filtered);
+        setTotalPages(Math.min(pageData.totalPages ?? 0, 10));
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') return;
         console.error('[개발자 검색] 실패', e);
@@ -385,7 +383,7 @@ const DeveloperSearchPage = () => {
       />
 
       {/* 개발자 리스트 */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         {searchedProfiles.map((profile) => (
           <ProfileCard
             key={profile.id}

@@ -1,19 +1,19 @@
 import { applyProject, getMyApplyStatus, updateMyApply } from '@apis/apply';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getMemberProfileByNickname } from '@apis/members';
-import { getProjectDetail, type ProjectStatus, updateProjectStatus } from '@apis/project-detail';
 import {
   getMYProjectCompleted,
   getMYProjectInprogress,
   getMYProjectRecruiting,
 } from '@apis/project/project-queries';
+import { getProjectDetail, type ProjectStatus, updateProjectStatus } from '@apis/project-detail';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth, useUser } from '@clerk/clerk-react';
 import {
+  type ProjectDetailInfo,
   toProjectDetailInfo,
   toProjectDetailInfoFromApi,
-  type ProjectDetailInfo,
 } from '../project-detail-types';
 
 export function useProjectDetail() {
@@ -218,16 +218,6 @@ export function useProjectDetail() {
     isOwnerByList;
 
   const creatorImage = project?.creatorImage ?? creatorProfileImage;
-
-  // eslint-disable-next-line no-console
-  console.log(
-    '[프로젝트 상세] 렌더링 creatorImage:',
-    creatorImage,
-    '| project.creatorImage:',
-    project?.creatorImage,
-    '| creatorProfileImage:',
-    creatorProfileImage,
-  );
 
   // ── Creator profile image fallback ──
   useEffect(() => {
