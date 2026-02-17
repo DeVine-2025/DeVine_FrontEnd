@@ -978,11 +978,11 @@ const ProjectCreatePage = () => {
                           disabled={!canSaveRecruitment}
                           onClick={onSaveRecruitment}
                           className={`flex h-[44px] w-[80px] items-center justify-center rounded-[12px] px-[12px] py-[10px] max-[1100px]:w-full ${
-                            canSaveRecruitment ? 'bg-[#4E49FF]' : 'bg-[var(--ui-50)]'
+                            canSaveRecruitment ? 'cursor-pointer bg-[#4E49FF]' : 'bg-[var(--ui-50)]'
                           }`}
                         >
                           <span
-                            className={`Body1 font-medium ${
+                            className={`Body1 font-base ${
                               canSaveRecruitment ? 'text-white' : 'text-[var(--ui-400)]'
                             }`}
                           >
@@ -991,7 +991,7 @@ const ProjectCreatePage = () => {
                         </button>
                       </div>
 
-                      <div className="h-[140px] w-full rounded-[16px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[12px]">
+                      <div className="h-[140px] w-full rounded-[16px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[14px]">
                         {recruitments.length === 0 ? (
                           <p className="Caption1 text-[var(--ui-300)] tracking-[0.0912px]">
                             아직 등록된 모집 분야가 없습니다. 위에서 정보를 입력해 주세요.
@@ -1014,9 +1014,12 @@ const ProjectCreatePage = () => {
                                     type="button"
                                     aria-label="모집 분야 삭제"
                                     onClick={() => onRemoveRecruitment(r.id)}
-                                    className="inline-flex h-[24px] w-[24px] items-center justify-center text-ui-400 hover:text-ui-700"
+                                    className="inline-flex items-center justify-center text-ui-400 hover:text-ui-700"
                                   >
-                                    <XIcon aria-hidden className="h-[10px] w-[10px]" />
+                                    <XIcon
+                                      aria-hidden
+                                      className="h-[12px] w-[12px] cursor-pointer"
+                                    />
                                   </button>
                                 </div>
                               );
