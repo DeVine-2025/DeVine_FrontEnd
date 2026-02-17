@@ -4,6 +4,7 @@ import { projectQueries } from '@apis/project/project-queries';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import ProfileDetail from '../../shared/templates/profileDetail';
+import { reportQueries } from '@apis/report/report-queries';
 
 const MyInfoProfile = () => {
   const [year, setYear] = useState(new Date().getFullYear());
@@ -19,6 +20,8 @@ const MyInfoProfile = () => {
   } = useInfiniteQuery(myInfoQueries.reposInfinite());
   const { data: projectInprogress } = useQuery(projectQueries.getMYProjectInprogress());
   const { data: projectCompleted } = useQuery(projectQueries.getMYProjectCompleted());
+  const { data: reports } = useQuery(reportQueries.report());
+  console.log(reports)
 
   const techStackNames = useMemo(() => {
     if (!techStack?.result?.techstacks) return [];
@@ -48,6 +51,7 @@ const MyInfoProfile = () => {
         contributions={contributionsData}
         gitRepos={gitRepos}
         year={year}
+        reports={reports?.result?.reports}
         onYearChange={handleYearChange}
         fetchNextPage={fetchNextPage}
         hasNextPage={hasNextPage}

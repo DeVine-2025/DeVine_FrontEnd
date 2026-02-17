@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import {cn} from '@libs/cn';
 import UnderVectorIcon from '@assets/icons/create-project/under-vector.svg?react';
 
 export type SelectOption = {
@@ -51,7 +52,7 @@ export default function SelectDropdown({
   }, [open]);
 
   return (
-    <div ref={wrapRef} className={`relative w-full ${className ?? ''}`}>
+    <div ref={wrapRef} className={cn('relative w-full ',className)}>
       <button
         type="button"
         disabled={disabled}
