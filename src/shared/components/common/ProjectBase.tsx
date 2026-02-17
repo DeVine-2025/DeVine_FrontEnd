@@ -80,7 +80,7 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
       {roles.slice(0, 3).map((r, idx) => (
         <div
           key={`${r.key}-${idx}`}
-          className="grid grid-cols-[60px_auto_8px_1fr] items-center gap-x-4 text-card-muted"
+          className="grid grid-cols-[60px_auto_1fr] items-center gap-x-4 text-card-muted"
         >
           <span
             className={`inline-flex w-fit items-center whitespace-nowrap rounded-lg px-3 py-1 font-semibold text-base ${badgeToneToClass[r.tone]}`}
@@ -94,10 +94,6 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
               {r.current}/{r.total}
             </span>
           </div>
-
-          <span className="justify-self-center text-card-muted/50">
-            {r.techStack?.length ? '|' : ''}
-          </span>
 
           <div className="flex items-center gap-2">
             {r.techStack?.slice(0, 5).map((t) => (

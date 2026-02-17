@@ -93,6 +93,7 @@ const MainPage = () => {
   const navigate = useNavigate();
   const userRole = useAuthStore((state) => state.role);
   const isLoggedIn = Boolean(isSignedIn);
+  const isPm = userRole === 'pm';
   const isDev = userRole === 'dev';
   const isDevOrUnknown = isDev || userRole == null;
   const [weeklyProjects, setWeeklyProjects] = useState<HighlightProject[]>([]);
@@ -326,9 +327,9 @@ const MainPage = () => {
     };
   }, []);
 
-  // 프로젝트 등록했으면 추천 개발자 fetch (역할 무관)
+  // PM이면 추천 개발자 fetch (프로젝트 있을 때)
   useEffect(() => {
-    if (!isLoggedIn || hasProjects !== true) return;
+    if (!isLoggedIn || !isPm || hasProjects !== true) return;
     let isActive = true;
 
     const fetchRecommendedDevelopers = async () => {
@@ -384,7 +385,7 @@ const MainPage = () => {
     return () => {
       isActive = false;
     };
-  }, [getToken, isLoggedIn, hasProjects]);
+  }, [getToken, isLoggedIn, isPm, hasProjects]);
 
   useEffect(() => {
     if (!isLoggedIn || !isDevOrUnknown || hasReport !== true) return;
@@ -440,9 +441,13 @@ const MainPage = () => {
   }, [weeklyProjects]);
   const recommendedProfiles = recommendedDevelopers;
   const recommendTitle = isLoggedIn
-    ? hasProjects
-      ? '나에게 딱 맞는 추천 개발자'
-      : '나에게 딱 맞는 추천 프로젝트/개발자'
+    ? isPm
+      ? hasProjects
+        ? '나에게 딱 맞는 추천 개발자'
+        : '나에게 딱 맞는 추천 프로젝트/개발자'
+      : hasReport
+        ? '나에게 딱 맞는 추천 프로젝트'
+        : '나에게 딱 맞는 추천 프로젝트/개발자'
     : '나에게 딱 맞는 추천 프로젝트/개발자';
   const loginCtaLabel = !isLoggedIn ? '로그인해야 추천 프로젝트를 확인할 수 있어요' : null;
   const handleProjectClick = (project: HighlightProject | MainRecommendProject) => {
@@ -503,7 +508,7 @@ const MainPage = () => {
               isLoggedIn ? '' : 'pointer-events-none select-none blur-sm'
             }`}
           >
-            {isLoggedIn && hasProjects === false ? (
+            {isLoggedIn && isPm && hasProjects === false ? (
               <div className="flex items-center justify-center py-6">
                 <ReportRequiredCard
                   title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
@@ -512,7 +517,16 @@ const MainPage = () => {
                   linkTo="/project/create"
                 />
               </div>
-            ) : isLoggedIn && hasProjects === true ? (
+            ) : isLoggedIn && !isPm && hasReport === false ? (
+              <div className="flex items-center justify-center py-6">
+                <ReportRequiredCard
+                  title="리포트를 등록하면 맞춤 추천을 받을 수 있어요"
+                  description="나에게 맞는 추천 프로젝트를 받아 보세요"
+                  linkLabel="리포트 등록하러 가기"
+                  linkTo="/report/create"
+                />
+              </div>
+            ) : isLoggedIn && isPm && hasProjects === true ? (
               isDeveloperPreviewEmpty ? (
                 <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
                   나에게 딱 맞는 추천 개발자가 아직 없어요.
@@ -544,12 +558,13 @@ const MainPage = () => {
                   />
                 ))
               )
-            ) : recommendedProjects.length === 0 ? (
-              <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
-                나에게 딱 맞는 추천 프로젝트가 아직 없어요.
-              </div>
-            ) : (
-              recommendedProjects.map((project) =>
+            ) : isLoggedIn && !isPm ? (
+              recommendedProjects.length === 0 ? (
+                <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
+                  나에게 딱 맞는 추천 프로젝트가 아직 없어요.
+                </div>
+              ) : (
+                recommendedProjects.map((project) =>
                 (() => {
                   const targetId = Number(project.id);
                   const hasNumericId = Number.isFinite(targetId) && targetId > 0;
@@ -591,7 +606,8 @@ const MainPage = () => {
                   );
                 })(),
               )
-            )}
+            )
+            ) : null}
           </div>
 
           {!isLoggedIn && (

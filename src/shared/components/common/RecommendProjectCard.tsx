@@ -86,7 +86,7 @@ function RecommendProjectCard({
         bookmarked={bookmarked}
         onBookmarkChange={handleBookmark}
         render={(ui) => (
-          <div className="flex h-[180px] w-full items-center gap-8 overflow-hidden px-8 py-6">
+          <div className="flex h-[180px] w-full items-center gap-6 overflow-hidden px-8 py-6">
             {ui.Thumbnail}
 
             <div className="flex min-w-0 flex-1 flex-col justify-center gap-6">
@@ -95,10 +95,12 @@ function RecommendProjectCard({
               {ui.Meta}
             </div>
 
-            <div className="ml-auto flex shrink-0 items-center justify-end gap-12 pr-6">
-              {ui.RolesLg}
-              {dueLabel && <div className="flex min-w-[60px] justify-center text-center">{ui.Due}</div>}
-              {ui.Bookmark}
+            <div className="ml-auto mr-2 flex w-[320px] shrink-0 items-center gap-4 pr-0">
+              <div className="min-w-0 flex-1">{ui.RolesLg}</div>
+              <div className="flex shrink-0 items-center gap-2">
+                {dueLabel && <div className="flex shrink-0 justify-center text-center">{ui.Due}</div>}
+                {ui.Bookmark}
+              </div>
             </div>
           </div>
         )}
