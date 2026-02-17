@@ -1,10 +1,10 @@
-import { useLayoutEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import Footer from '@layouts/footer';
 import Header from '@layouts/header';
-import { useAuthStore, type UserRole } from '@store/auth';
+import { type UserRole, useAuthStore } from '@store/auth';
 import { getStoredUserRole, setCurrentUserId } from '@utils/storage';
+import { useLayoutEffect, useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 export type RootLayoutOutletContext = {
   setNavLocked: (value: boolean) => void;
@@ -22,6 +22,8 @@ const RootLayout = () => {
   const [navLocked, setNavLocked] = useState(false);
   const [onboardingIncomplete, setOnboardingIncomplete] = useState(false);
   const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
+  const hideFooterPaths = ['/signup', '/terms/service', '/terms/privacy'];
+  const shouldHideFooter = hideFooterPaths.includes(location.pathname);
 
   useLayoutEffect(() => {
     const { scrollRestoration } = window.history;
@@ -50,9 +52,7 @@ const RootLayout = () => {
     sessionStorage.removeItem('show_onboarding_modal');
     const localComplete = (() => {
       try {
-        return user?.id
-          ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true'
-          : false;
+        return user?.id ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true' : false;
       } catch {
         return false;
       }
@@ -71,9 +71,7 @@ const RootLayout = () => {
 
     const localComplete = (() => {
       try {
-        return user?.id
-          ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true'
-          : false;
+        return user?.id ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true' : false;
       } catch {
         return false;
       }
@@ -166,12 +164,12 @@ const RootLayout = () => {
           />
         </div>
       </main>
-      {location.pathname !== '/signup' && <Footer />}
+      {!shouldHideFooter && <Footer />}
 
       {showOnboardingModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">
-          <div className="w-full max-w-[360px] rounded-[24px] bg-[var(--ui-bg)] px-8 pb-8 pt-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
-            <h2 className="text-[18px] font-semibold text-[var(--ui-900)]">
+          <div className="w-full max-w-[360px] rounded-[24px] bg-[var(--ui-bg)] px-8 pt-10 pb-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
+            <h2 className="font-semibold text-[18px] text-[var(--ui-900)]">
               회원정보 입력이 필요해요
             </h2>
             <p className="mt-2 text-[13px] text-[var(--ui-400)]">
@@ -186,7 +184,7 @@ const RootLayout = () => {
                     navigate('/signup');
                   }
                 }}
-                className="h-[48px] w-full rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
+                className="h-[48px] w-full rounded-[12px] bg-[#4E49FF] font-semibold text-[16px] text-white"
               >
                 회원가입 계속하기
               </button>

@@ -1,22 +1,21 @@
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
-import { getDevelopers } from '@apis/developer';
-import { getMyProjectsAllStatuses } from '@apis/projects';
-import { getRecommendMembersPreview } from '@apis/recommendMembers';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
-import profileDefaultSvg from '@assets/icons/profile-default.svg';
+import ProfileDefaultImage from '@assets/images/Profile.svg';
+import ProfileDefaultDark from '@assets/images/Profile_dark.svg';
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
+import ProjectListState from '@components/common/ListStateUI';
 import Pagination from '@components/common/Pagination';
 import ProfileCard from '@components/common/ProfileCard';
-import { useFilterStore } from '@store/filter';
+import { useDevelopers } from '@hooks/useDevelopers';
+import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
+import { useRecommendMembersPreview } from '@hooks/useRecommendMembersPreview';
 import { normalizeTechstackKey, TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
+import { useFilterStore } from '@store/filter';
+import { useThemeStore } from '@store/theme';
 import type { BadgeTone } from '@t/badgeTone';
 import { DOMAIN_CODE_TO_LABEL, DOMAIN_LABEL_TO_CODE, ROLE_LABEL, ROLE_PRIORITY } from '@t/member';
-import type {
-  DeveloperSearchContentDto,
-  MemberSearchCategory,
-  ProfileCardProps,
-} from '@t/profileCard.types';
+import type { MemberSearchCategory, ProfileCardProps } from '@t/profileCard.types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -40,10 +39,6 @@ const DeveloperSearchPage = () => {
   const { developerSearch, setDeveloperSearch } = useFilterStore();
   const { interestDomains, myProjects, techStacks } = developerSearch;
 
-  // 프로젝트 등록 유무 확인 (상태 무관 + 캐시 fallback)
-  const [hasProjects, setHasProjects] = useState<boolean | null>(null);
-  const [projectId, setProjectId] = useState<number | null>(null);
-
   const readMyProjectsCache = useCallback(() => {
     try {
       const raw = localStorage.getItem('devine_my_projects_cache_v1');
@@ -57,70 +52,17 @@ const DeveloperSearchPage = () => {
     }
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        const token = await getToken();
-
-        if (!token || cancelled) {
-          if (!cancelled) {
-            const cached = readMyProjectsCache();
-            if (cached.length > 0) {
-              setHasProjects(true);
-              setProjectId(cached[0].projectId);
-            } else {
-              setHasProjects(false);
-              setProjectId(null);
-            }
-          }
-          return;
-        }
-
-        const projects = await getMyProjectsAllStatuses(token);
-        if (cancelled) return;
-
-        if (projects.length > 0) {
-          setHasProjects(true);
-          setProjectId(projects[0]?.projectId ?? null);
-          return;
-        }
-        const cached = readMyProjectsCache();
-        if (cached.length > 0) {
-          setHasProjects(true);
-          setProjectId(cached[0].projectId);
-        } else {
-          setHasProjects(false);
-          setProjectId(null);
-        }
-      } catch {
-        if (!cancelled) {
-          const cached = readMyProjectsCache();
-          if (cached.length > 0) {
-            setHasProjects(true);
-            setProjectId(cached[0].projectId);
-          } else {
-            setHasProjects(false);
-            setProjectId(null);
-          }
-        }
-      }
-    };
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [getToken, readMyProjectsCache]);
-
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
-  const [searchContent, setSearchContent] = useState<DeveloperSearchContentDto[]>([]);
   const [bookmarkMap, setBookmarkMap] = useState<Record<string | number, number>>({});
-
   const [page, setPage] = useState(1);
   const size = 10;
-  const [totalPages, setTotalPages] = useState(0);
+
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
+  const defaultProfileImage = useMemo(
+    () => (isDark ? ProfileDefaultDark : ProfileDefaultImage),
+    [isDark],
+  );
 
   const setInterestDomains = (v: string[]) => setDeveloperSearch({ interestDomains: v });
   const setMyProjects = (v: string[]) => setDeveloperSearch({ myProjects: v });
@@ -138,7 +80,6 @@ const DeveloperSearchPage = () => {
 
   useEffect(() => {
     if (page <= 0) return;
-
     requestAnimationFrame(() => {
       listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -163,87 +104,65 @@ const DeveloperSearchPage = () => {
       categories,
       techNames: normalizedTechNames,
     }),
-    [page, categories, normalizedTechNames, size],
+    [page, categories, normalizedTechNames],
   );
 
-  useEffect(() => {
-    const controller = new AbortController();
+  // 내 프로젝트(등록 유무/프로젝트ID) - API + 캐시 fallback (등록 직후 반영)
+  const myRecruitingQ = useMyRecruitingProjects();
+  const cachedProjects = readMyProjectsCache();
+  const apiProjects = myRecruitingQ.data ?? [];
+  const hasProjects =
+    myRecruitingQ.isLoading && cachedProjects.length === 0
+      ? null
+      : apiProjects.length > 0 || cachedProjects.length > 0;
+  const projectId =
+    apiProjects[0]?.projectId ?? cachedProjects[0]?.projectId ?? null;
 
-    (async () => {
-      try {
-        const token = await getToken(); // null일 수 있음
-        const pageData = await getDevelopers(params, token, controller.signal);
-        const filtered = (pageData.content ?? []).filter(
-          (item) => item.member?.mainType !== 'PM',
-         );
+  // 개발자 검색 목록
+  const developersQ = useDevelopers(params);
+  const pageData = developersQ.data;
 
-          setSearchContent(filtered);
-          setTotalPages(Math.min(pageData.totalPages ?? 0, 10));
-      } catch (e) {
-        if (e instanceof DOMException && e.name === 'AbortError') return;
-        console.error('[개발자 검색] 실패', e);
-        setSearchContent([]);
-        setTotalPages(0);
-      }
-    })();
+  const searchContent = useMemo(() => {
+    const content = pageData?.content ?? [];
+    return content.filter((item) => item.member?.mainType !== 'PM');
+  }, [pageData]);
 
-    return () => controller.abort();
-  }, [getToken, params]);
+  const totalPages = Math.min(pageData?.totalPages ?? 0, 10);
 
-  const [profiles, setProfiles] = useState<ProfileCardProps[]>([]);
+  // 추천 개발자 프리뷰 (projectId 있을 때만 enabled)
+  const previewQ = useRecommendMembersPreview(projectId, 4);
 
-  useEffect(() => {
-    if (hasProjects !== true) return;
-    if (projectId == null) return;
+  const profiles = useMemo<ProfileCardProps[]>(() => {
+    const result = previewQ.data ?? [];
+    return result.map((x, index) => {
+      const isPm = x.member?.mainType === 'PM';
+      const roleTone: BadgeTone = isPm ? 'blue' : 'green';
+      const roleNames = (x.techstacks ?? []).filter((t) => t.genre == null).map((t) => t.name);
+      const roleKey = pickRole(roleNames);
 
-    const controller = new AbortController();
+      const pureTechStacks = (x.techstacks ?? [])
+        .filter((t) => t.genre != null)
+        .map((t) => ({
+          id: String(t.techstackId),
+          name: t.name,
+        }));
 
-    (async () => {
-      try {
-        const token = await getToken();
-        if (!token) return;
-
-        const result = await getRecommendMembersPreview(projectId, 4, token, controller.signal);
-
-        const mapped = result.map((x, index) => {
-          const isPm = x.member?.mainType === 'PM';
-          const roleTone: BadgeTone = isPm ? 'blue' : 'green';
-          const roleNames = (x.techstacks ?? []).filter((t) => t.genre == null).map((t) => t.name);
-          const roleKey = pickRole(roleNames);
-
-          const pureTechStacks = (x.techstacks ?? [])
-            .filter((t) => t.genre != null)
-            .map((t) => ({
-              id: String(t.techstackId),
-              name: t.name,
-            }));
-
-          return {
-            id: `preview-${x.member.nickname}-${index}`,
-            nickname: x.member.nickname,
-            profileImageUrl: x.member.imageUrl ?? FALLBACK_PROFILE_IMAGE,
-            introduction: x.member.body ?? '',
-            techStack: pureTechStacks,
-            role: isPm ? 'PM' : (ROLE_LABEL[roleKey] ?? '개발자'),
-            roleTone,
-            badges: (x.domains ?? []).map((d) => ({
-              label: isMemberSearchCategory(d) ? DOMAIN_CODE_TO_LABEL[d] : d,
-              tone: 'gray' as BadgeTone,
-            })),
-            bookmarked: false,
-          };
-        });
-
-        setProfiles(mapped);
-      } catch (e) {
-        if (e instanceof DOMException && e.name === 'AbortError') return;
-        console.error('[추천 개발자 프리뷰] 실패', e);
-        setProfiles([]); // ✅ 실패 시 비워주기(선택)
-      }
-    })();
-
-    return () => controller.abort();
-  }, [getToken, hasProjects, projectId]);
+      return {
+        id: `preview-${x.member.nickname}-${index}`,
+        nickname: x.member.nickname,
+        profileImageUrl: x.member.imageUrl || defaultProfileImage,
+        introduction: x.member.body ?? '',
+        techStack: pureTechStacks,
+        role: isPm ? 'PM' : (ROLE_LABEL[roleKey] ?? '개발자'),
+        roleTone,
+        badges: (x.domains ?? []).map((d) => ({
+          label: isMemberSearchCategory(d) ? DOMAIN_CODE_TO_LABEL[d] : d,
+          tone: 'gray' as BadgeTone,
+        })),
+        bookmarked: false,
+      };
+    });
+  }, [previewQ.data, defaultProfileImage]);
 
   // 새로고침 시에도 북마크 상태 유지: 내 북마크 목록 하이드레이션
   useEffect(() => {
@@ -271,8 +190,6 @@ const DeveloperSearchPage = () => {
     };
   }, [getToken]);
 
-  const FALLBACK_PROFILE_IMAGE = profileDefaultSvg;
-
   const searchedProfiles = useMemo(() => {
     return searchContent.map((x, index) => {
       const isPm = x.member?.mainType === 'PM';
@@ -292,7 +209,7 @@ const DeveloperSearchPage = () => {
         id: `search-${x.member.nickname}-${index}`,
         memberId: undefined,
         nickname: x.member.nickname,
-        profileImageUrl: x.member.imageUrl ?? FALLBACK_PROFILE_IMAGE,
+        profileImageUrl: x.member.imageUrl || defaultProfileImage,
         introduction: x.member.body ?? undefined,
 
         techStack: pureTechStacks,
@@ -309,7 +226,7 @@ const DeveloperSearchPage = () => {
         bookmarked: false,
       };
     });
-  }, [searchContent]);
+  }, [searchContent, defaultProfileImage]);
 
   const handleBookmarkChange = useCallback(
     async (memberId: number | undefined, nickname: string, next: boolean) => {
@@ -359,7 +276,7 @@ const DeveloperSearchPage = () => {
   );
 
   return (
-    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
+    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30">
       {/* 추천 개발자 */}
       <header className="flex items-center justify-between">
         <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 개발자</h2>
@@ -420,22 +337,35 @@ const DeveloperSearchPage = () => {
       />
 
       {/* 개발자 리스트 */}
-      <div className="flex flex-col gap-4">
-        {searchedProfiles.map((profile) => (
-          <ProfileCard
-            key={profile.id}
-            {...profile}
-            size="lg"
-            bookmarked={
-              bookmarkMap[profile.memberId ?? profile.nickname] != null ||
-              (profile.bookmarked ?? false)
-            }
-            onBookmarkChange={(next) =>
-              handleBookmarkChange(profile.memberId, profile.nickname, next)
-            }
-            onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
-          />
-        ))}
+      <div className="flex flex-col gap-6">
+        {developersQ.isLoading && <ProjectListState type="loading" />}
+
+        {!developersQ.isLoading && developersQ.isError && (
+          <ProjectListState type="error" onRetry={() => developersQ.refetch()} />
+        )}
+
+        {!developersQ.isLoading && !developersQ.isError && searchedProfiles.length === 0 && (
+          <ProjectListState type="empty" />
+        )}
+
+        {!developersQ.isLoading &&
+          !developersQ.isError &&
+          searchedProfiles.length > 0 &&
+          searchedProfiles.map((profile) => (
+            <ProfileCard
+              key={profile.id}
+              {...profile}
+              size="lg"
+              bookmarked={
+                bookmarkMap[profile.memberId ?? profile.nickname] != null ||
+                (profile.bookmarked ?? false)
+              }
+              onBookmarkChange={(next) =>
+                handleBookmarkChange(profile.memberId, profile.nickname, next)
+              }
+              onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
+            />
+          ))}
       </div>
 
       <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />

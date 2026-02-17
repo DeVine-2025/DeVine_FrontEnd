@@ -97,7 +97,7 @@
     }
 
     .card-size-lg {
-        @apply max-w-[1180px] h-[180px] p-10;
+        @apply max-w-[1180px] h-[160px] p-10;
     }
 
     .card-size-lg--with-header {

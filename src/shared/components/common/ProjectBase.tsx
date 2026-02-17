@@ -1,4 +1,5 @@
 import PersonIcon from '@assets/icons/person.svg?react';
+import DevineLogo from '@assets/images/Devine.svg';
 import BookmarkButton from '@components/common/BookmarkButton';
 import { badgeToneToClass } from '@t/badgeTone';
 import type { ProjectCardBaseProps } from '@t/project/ui';
@@ -24,16 +25,24 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
 
   const Thumbnail = (
     <div className="shrink-0">
-      {thumbnailUrl ? (
-        <img
-          src={thumbnailUrl}
-          alt={thumbnailAlt ?? title}
-          className="h-[132px] w-[233px] rounded-2xl bg-card-section-bg object-cover"
-          loading="lazy"
-        />
-      ) : (
-        <div className="h-[132px] w-[233px] rounded-2xl bg-card-profile-reason-bg" />
-      )}
+      <div className="flex h-[132px] w-[233px] overflow-hidden rounded-2xl bg-card-section-bg">
+        {thumbnailUrl ? (
+          <img
+            src={thumbnailUrl}
+            alt={thumbnailAlt ?? title}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-[var(--ui-200)]">
+            <img
+              src={DevineLogo}
+              alt="Devine logo"
+              className="h-50 w-50 object-contain opacity-60"
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 

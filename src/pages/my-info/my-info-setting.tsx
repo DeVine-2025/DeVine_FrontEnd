@@ -1,16 +1,14 @@
-import { useState, useEffect } from 'react';
-import { cn } from '@libs/cn';
-import { useUser } from '@clerk/clerk-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-import GithubIcon from "@assets/icons/github.svg?react";
-import GoogleIcon from "@assets/icons/google.svg?react";
-
-import TabMenu from '@components/myInfo/TabMenu';
-import Switch from '@components/myInfo/Switch';
-import { myInfoQueries, updateMyProfile } from '@apis/myInfo/myInfo-queries';
 import type { UpdateProfileRequest } from '@apis/myInfo/myInfo';
+import { myInfoQueries, updateMyProfile } from '@apis/myInfo/myInfo-queries';
+import GithubIcon from '@assets/icons/github.svg?react';
+import GoogleIcon from '@assets/icons/google.svg?react';
+import { useUser } from '@clerk/clerk-react';
+import Switch from '@components/myInfo/Switch';
+import TabMenu from '@components/myInfo/TabMenu';
+import { cn } from '@libs/cn';
 import { useAuthStore } from '@store/auth';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
 interface SettingMenuProps {
   title: string;
@@ -22,20 +20,27 @@ interface LabelProps {
   isConnect: boolean;
 }
 
-const SettingMenu = ({title, description}: SettingMenuProps) => {
+const SettingMenu = ({ title, description }: SettingMenuProps) => {
   return (
     <div className="flex-col gap-[1.6rem]">
-      <p className="text-3xl font-bold text-ui-1000">{title}</p>
+      <p className="font-bold text-3xl text-ui-1000">{title}</p>
       <p className="text-2xl text-ui-600">{description}</p>
     </div>
-  )
-}
+  );
+};
 
-const Label = ({content, isConnect}: LabelProps) => {
+const Label = ({ content, isConnect }: LabelProps) => {
   return (
-    <p className={cn('w-fit px-[1.2rem] py-[0.8rem] text-xl font-semibold)}', isConnect ? "text-primary": "text-ui-300 bg-ui-50 rounded-full")}>{content}</p>
-  )
-}
+    <p
+      className={cn(
+        'w-fit px-[1.2rem] py-[0.8rem] font-semibold)} text-xl',
+        isConnect ? 'text-primary' : 'rounded-full bg-ui-50 text-ui-300',
+      )}
+    >
+      {content}
+    </p>
+  );
+};
 
 const MyInfoSetting = () => {
   const [isOnFirst, setIsOnFirst] = useState<boolean>(false);
@@ -121,18 +126,17 @@ const MyInfoSetting = () => {
     updateMutation.mutate(payload);
   };
 
-  const hasGoogle = user?.externalAccounts?.some(
-    acc => acc.provider === 'google'
-  );
+  const hasGoogle = user?.externalAccounts?.some((acc) => acc.provider === 'google');
 
-  const hasGithub = user?.externalAccounts?.some(
-    acc => acc.provider === 'github'
-  );
+  const hasGithub = user?.externalAccounts?.some((acc) => acc.provider === 'github');
 
   return (
-    <div className="flex-col gap-[6rem] mt-[4rem]">
-      <div className="flex justify-between items-center gap-[5rem]">
-        <SettingMenu title={"메인 권한 설정"} description={"선택한 권한에 맞춰 가장 필요한 정보를 메인 화면에 먼저 확인할 수 있습니다."} />
+    <div className="mt-[4rem] flex-col gap-[6rem]">
+      <div className="flex items-center justify-between gap-[5rem]">
+        <SettingMenu
+          title={'메인 권한 설정'}
+          description={'선택한 권한에 맞춰 가장 필요한 정보를 메인 화면에 먼저 확인할 수 있습니다.'}
+        />
         <TabMenu activeTab={activeTab} setActiveTab={handleMainTypeChange} tabs={tabs} />
       </div>
 
@@ -146,8 +150,11 @@ const MyInfoSetting = () => {
           }}
         />
       </div>
-      <div className="flex justify-between items-center">
-        <SettingMenu title={"프로젝트 제안 알림"} description={"PM이 제안하는 프로젝트 알림을 받을 수 있습니다."} />
+      <div className="flex items-center justify-between">
+        <SettingMenu
+          title={'프로젝트 제안 알림'}
+          description={'PM이 제안하는 프로젝트 알림을 받을 수 있습니다.'}
+        />
         <Switch isOn={isOnSecond} setIsOn={setIsOnSecond} />
       </div>
 
@@ -174,8 +181,6 @@ const MyInfoSetting = () => {
       {/*    </div>*/}
       {/*  </div>*/}
       {/*</div>*/}
-
-
     </div>
   );
 };
