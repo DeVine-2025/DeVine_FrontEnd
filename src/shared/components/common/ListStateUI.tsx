@@ -32,7 +32,7 @@ export default function ProjectListState({ type, onRetry }: Props) {
   }
 
   return (
-    <p className="py-30 text-center text-3xl text-card-muted">
+    <p className="mb-100 py-30 text-center text-3xl text-card-muted">
       선택하신 조건에 맞는 프로젝트가 없습니다.
     </p>
   );

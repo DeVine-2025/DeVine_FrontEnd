@@ -54,12 +54,7 @@ export async function getWeeklyBestProjects() {
 
 export type ProjectStatus = 'RECRUITING' | 'IN_PROGRESS' | 'COMPLETED';
 
-/** PATCH /api/v1/projects/{projectId}/status - 프로젝트 상태 변경 */
-export async function updateProjectStatus(
-  projectId: number,
-  status: ProjectStatus,
-  token: string,
-) {
+export async function updateProjectStatus(projectId: number, status: ProjectStatus, token: string) {
   const res = await fetch(`${BASE_URL}/api/v1/projects/${projectId}/status`, {
     method: 'PATCH',
     headers: {
