@@ -54,16 +54,23 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
 
   const fetchUnreadCount = useCallback(() => {
+    if (isSignedIn !== true) return;
     getToken().then((token) => {
       if (!token) return;
       getUnreadNotificationCount(token)
         .then((count) => setUnreadCount(count))
         .catch(() => setUnreadCount(0));
     });
-  }, [getToken, setUnreadCount]);
+  }, [getToken, isSignedIn, setUnreadCount]);
 
+  // 로그아웃 시 알림 개수 초기화
   useEffect(() => {
-    if (!isSignedIn) return;
+    if (isSignedIn !== true) setUnreadCount(0);
+  }, [isSignedIn, setUnreadCount]);
+
+  // 로그인한 경우에만 알림 SSE 구독 (비로그인 시 호출/연결하지 않음)
+  useEffect(() => {
+    if (isSignedIn !== true) return;
     const controller = new AbortController();
     getToken().then((token) => {
       if (!token) return;
@@ -135,8 +142,9 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   }, [clerkUser?.id, getToken]);
 
   useEffect(() => {
+    if (isSignedIn !== true) return;
     fetchUnreadCount();
-  }, [fetchUnreadCount]);
+  }, [isSignedIn, fetchUnreadCount]);
 
   useEffect(() => {
     if (!isNotificationOpen) return;
