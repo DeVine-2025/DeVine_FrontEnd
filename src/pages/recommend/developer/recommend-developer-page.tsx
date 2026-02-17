@@ -357,6 +357,7 @@ const RecommendDeveloperPage = () => {
                 profileImageUrl={dev.profileImageUrl}
                 introduction={dev.introduction}
                 domains={dev.domains}
+                techStack={dev.techStack}
                 matchedProjectName={myProjects.length > 0 ? myProjects.join(', ') : '선택한 프로젝트'}
                 matchedReason="프로젝트의 요구사항과 일치합니다."
                 bookmarked={dev.bookmarked ?? false}

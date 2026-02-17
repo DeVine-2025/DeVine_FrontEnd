@@ -205,6 +205,8 @@ const DeveloperSearchPage = () => {
           icon: undefined,
         }));
 
+      // 검색 API의 domains는 검색 조건(필터)과 혼동되어 잘못 표시될 수 있으므로
+      // 검색 결과 카드에서는 도메인 뱃지를 표시하지 않음 (백엔드에서 프로필 도메인만 내려주면 복구 가능)
       return {
         id: `search-${x.member.nickname}-${index}`,
         memberId: undefined,
@@ -217,11 +219,7 @@ const DeveloperSearchPage = () => {
         role: isPm ? 'PM' : (ROLE_LABEL[roleKey] ?? '개발자'),
         roleTone,
 
-        badges: (x.domains ?? []).map((d, i) => ({
-          id: `d-${index}-${i}`,
-          label: isMemberSearchCategory(d) ? DOMAIN_CODE_TO_LABEL[d] : d,
-          tone: 'gray' as BadgeTone,
-        })),
+        badges: [],
 
         bookmarked: false,
       };

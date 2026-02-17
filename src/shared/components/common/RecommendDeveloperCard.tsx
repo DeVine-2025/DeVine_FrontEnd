@@ -1,7 +1,21 @@
 import { memo } from 'react';
 import BookmarkButton from '@components/common/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
+import { cn } from '@libs/cn';
 import type { BadgeTone } from '@t/badgeTone';
+import { useThemeStore } from '@store/theme';
+import {
+  BACKEND_DATABASE,
+  BACKEND_FRAMEWORK,
+  BACKEND_LANGUAGE,
+  FRONTEND_LANGUAGE_FRAMEWORK,
+  FRONTEND_MOBILE,
+  INFRA_CLOUD,
+  INFRA_CONTAINER,
+  type TechStackChip,
+} from '@constants/position-tech-stack';
+
+export type RecommendDeveloperCardTech = { id: string; name: string; icon?: React.ReactNode };
 
 export type RecommendDeveloperCardProps = {
   role: string;
@@ -11,6 +25,7 @@ export type RecommendDeveloperCardProps = {
   introduction?: string;
 
   domains?: Array<{ label: string }>;
+  techStack?: RecommendDeveloperCardTech[];
 
   matchedProjectName?: string;
   matchedReason?: string;
@@ -33,6 +48,16 @@ export type RecommendDeveloperCardProps = {
   onNavigateToDeveloper?: (nickname: string) => void;
 };
 
+const SKIP_TECH_NAMES = new Set([
+  'backend',
+  'frontend',
+  'infra',
+  '백엔드',
+  '프론트엔드',
+  '프런트엔드',
+  '인프라',
+]);
+
 function RecommendDeveloperCard({
   role: _role,
   roleTone: _roleTone,
@@ -40,6 +65,7 @@ function RecommendDeveloperCard({
   profileImageUrl,
   introduction,
   domains,
+  techStack,
   matchedProjectName = 'A 프로젝트',
   matchedReason = '프로젝트의 요구사항과 일치합니다.',
   showMatchedReason = true,
@@ -52,6 +78,52 @@ function RecommendDeveloperCard({
   onClick,
   onNavigateToDeveloper,
 }: RecommendDeveloperCardProps) {
+  const { theme } = useThemeStore();
+
+  const normalizeTechKey = (v: unknown): string => {
+    const s = typeof v === 'string' ? v : v != null ? String(v) : '';
+    return s
+      .trim()
+      .toLowerCase()
+      .replace(/\s/g, '')
+      .replace(/\./g, '')
+      .replace(/-/g, '')
+      .replace(/_/g, '');
+  };
+
+  const ALL_TECH_STACK_BADGES: Array<Extract<TechStackChip, { off: string; on: string }>> = [
+    ...FRONTEND_LANGUAGE_FRAMEWORK,
+    ...FRONTEND_MOBILE,
+    ...BACKEND_LANGUAGE,
+    ...BACKEND_FRAMEWORK,
+    ...BACKEND_DATABASE,
+    ...INFRA_CLOUD,
+    ...INFRA_CONTAINER,
+  ].filter((b): b is Extract<TechStackChip, { off: string; on: string }> => 'off' in b && 'on' in b);
+
+  const TECH_BADGE_BY_NAME = new Map(
+    ALL_TECH_STACK_BADGES.flatMap((b) => [
+      [normalizeTechKey(b.key), b],
+      [normalizeTechKey(b.label), b],
+    ]),
+  );
+
+  const findBadge = (name: unknown) => {
+    const normalized = normalizeTechKey(name);
+    const alias = normalized
+      .replace(/^spring$/g, 'springboot')
+      .replace(/typescript/g, 'typescript')
+      .replace(/nextjs/g, 'nextjs')
+      .replace(/nodejs/g, 'nodejs')
+      .replace(/reactnative/g, 'reactnative');
+    return TECH_BADGE_BY_NAME.get(alias) ?? TECH_BADGE_BY_NAME.get(normalized) ?? null;
+  };
+
+  const filteredTechStack =
+    techStack?.filter((t) => !SKIP_TECH_NAMES.has(normalizeTechKey(t.name))) ?? [];
+  const techChips = filteredTechStack.slice(0, 5);
+  const techOverflow = filteredTechStack.length - techChips.length;
+
   const handleClick =
     onNavigateToDeveloper && nickname
       ? () => onNavigateToDeveloper(nickname)
@@ -77,28 +149,26 @@ function RecommendDeveloperCard({
             }
           : undefined
       }
-      className={`relative overflow-hidden rounded-[24px] bg-[var(--ui-bg)] h-[236px] w-full max-w-[1280px] ${handleClick ? 'cursor-pointer' : ''}`}
-      style={{
-        border: '1px solid transparent',
-        background:
-          'linear-gradient(var(--ui-bg), var(--ui-bg)) padding-box, linear-gradient(90deg, rgba(114, 110, 255, 0.4) 0%, rgba(219, 80, 179, 0.4) 100%) border-box',
-      }}
+      className={cn(
+        'relative overflow-hidden rounded-[24px] border border-[var(--ui-200)] bg-[var(--ui-bg)] h-[196px] w-full max-w-[1280px] transition-all duration-300',
+        handleClick && 'cursor-pointer recommend-card-hover-border',
+      )}
     >
-      {/* 왼쪽 블록(프로필 + 소개) - 세로 정중앙 */}
-      <div className="absolute left-[24px] top-[calc(50%-40px)] flex -translate-y-1/2 items-center gap-[16px]">
+      {/* 왼쪽 블록(프로필 + 소개) - 세로 정중앙, 아주 살짝 위로 */}
+      <div className="absolute left-[24px] top-[calc(50%-30px)] flex -translate-y-1/2 items-center gap-[12px]">
         {/* 아바타 */}
-        <div className="h-[64px] w-[64px] shrink-0 overflow-hidden rounded-full border-2 border-[var(--ui-200)] bg-[var(--ui-50)]">
+        <div className="h-[56px] w-[56px] shrink-0 overflow-hidden rounded-full border-2 border-[var(--ui-200)] bg-[var(--ui-50)]">
           {profileImageUrl ? (
             <img src={profileImageUrl} alt={nickname} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-[var(--ui-300)]">
-              <AvatarIcon aria-hidden className="h-[64px] w-[64px]" />
+              <AvatarIcon aria-hidden className="h-[56px] w-[56px]" />
             </div>
           )}
         </div>
 
         {/* 본문(좌) */}
-        <div className="flex w-[394px] flex-col gap-[22px]">
+        <div className="flex w-[394px] flex-col gap-[10px]">
           <div className="flex min-w-0 flex-col gap-[4px]">
             <p className="Body1 h-[26px] font-semibold text-[var(--ui-1000)]">{nickname}</p>
             <div className="flex flex-nowrap gap-[8px]">
@@ -116,6 +186,39 @@ function RecommendDeveloperCard({
         </div>
       </div>
 
+      {/* 기술스택 뱃지 - 3개 넘으면 두 줄로 */}
+      <div className="absolute left-[780px] top-1/2 w-[300px] -translate-y-1/2">
+        <div className="flex min-h-[72px] flex-wrap items-center gap-[4px]">
+        {techChips.map((t) => {
+          const badge = findBadge(t.name);
+          if (badge) {
+            const offSrc = theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off;
+            return (
+              <span key={t.id} className="inline-flex items-center">
+                <img
+                  src={offSrc}
+                  alt={badge.label}
+                  className="h-[32px] w-auto select-none"
+                  draggable={false}
+                />
+              </span>
+            );
+          }
+          return (
+            <span
+              key={t.id}
+              className="Caption1 inline-flex items-center rounded-[20px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-[10px] py-[6px] font-medium text-[var(--ui-800)]"
+            >
+              {t.name}
+            </span>
+          );
+        })}
+        {techOverflow > 0 ? (
+          <span className="Label1 font-medium text-[var(--ui-400)]">+{techOverflow}</span>
+        ) : null}
+        </div>
+      </div>
+
       {/* 북마크 */}
       <BookmarkButton
         bookmarked={bookmarked}
@@ -127,7 +230,7 @@ function RecommendDeveloperCard({
       />
 
       {showMatchedReason && (
-        <div className="absolute left-[24px] top-[148px] flex items-center justify-center rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
+        <div className="absolute left-[24px] bottom-[32px] flex items-center justify-center rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
           <p className="Label1 font-medium text-[var(--ui-1000)]">
             <span className="text-[var(--badge-text-primary)]">[{matchedProjectName}]</span>
             {matchedReason}

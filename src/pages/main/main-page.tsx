@@ -541,6 +541,7 @@ const MainPage = () => {
                     profileImageUrl={profile.profileImageUrl}
                     introduction={profile.introduction}
                     domains={profile.badges?.map((badge) => ({ label: badge.label }))}
+                    techStack={profile.techStack}
                     bookmarked={
                       developerBookmarkMap[profile.memberId ?? profile.nickname] != null ||
                       (profile.bookmarked ?? false)
