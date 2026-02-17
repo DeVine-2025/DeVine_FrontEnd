@@ -1,5 +1,5 @@
 import {
-  getMyRecruitingProjects,
+  getMyProjectsAllStatuses,
   type MyRecruitingProjectItem,
 } from '@apis/projects';
 import { useAuth } from '@clerk/clerk-react';
@@ -15,7 +15,7 @@ export function useMyRecruitingProjects(options?: { enabled?: boolean }) {
     queryFn: async ({ signal }): Promise<MyRecruitingProjectItem[]> => {
       const token = await getToken();
       if (!token) return [];
-      return getMyRecruitingProjects(token, signal);
+      return getMyProjectsAllStatuses(token, signal);
     },
     enabled: options?.enabled ?? isSignedIn ?? false,
     staleTime: 60_000,

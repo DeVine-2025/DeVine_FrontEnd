@@ -241,7 +241,7 @@ const RecommendProjectPage = () => {
               location={p.location}
               period={p.period}
               mode={p.mode}
-              roles={[]}
+              roles={p.roles}
               dueLabel={p.dueLabel}
               bookmarked={p.bookmarked ?? false}
               techstackScorePercent={p.techstackScorePercent}

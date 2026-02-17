@@ -1,6 +1,6 @@
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getDevelopers } from '@apis/developer';
-import { getMyRecruitingProjects } from '@apis/projects';
+import { getMyProjectsAllStatuses } from '@apis/projects';
 import { getRecommendMembersPreview } from '@apis/recommendMembers';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import profileDefaultSvg from '@assets/icons/profile-default.svg';
@@ -40,9 +40,22 @@ const DeveloperSearchPage = () => {
   const { developerSearch, setDeveloperSearch } = useFilterStore();
   const { interestDomains, myProjects, techStacks } = developerSearch;
 
-  // 프로젝트 등록 유무 확인
+  // 프로젝트 등록 유무 확인 (상태 무관 + 캐시 fallback)
   const [hasProjects, setHasProjects] = useState<boolean | null>(null);
   const [projectId, setProjectId] = useState<number | null>(null);
+
+  const readMyProjectsCache = useCallback(() => {
+    try {
+      const raw = localStorage.getItem('devine_my_projects_cache_v1');
+      const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .map((p: any) => ({ projectId: Number(p?.id) }))
+        .filter((p: any) => Number.isFinite(p.projectId) && p.projectId > 0);
+    } catch {
+      return [];
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,22 +66,44 @@ const DeveloperSearchPage = () => {
 
         if (!token || cancelled) {
           if (!cancelled) {
-            setHasProjects(false);
-            setProjectId(null);
+            const cached = readMyProjectsCache();
+            if (cached.length > 0) {
+              setHasProjects(true);
+              setProjectId(cached[0].projectId);
+            } else {
+              setHasProjects(false);
+              setProjectId(null);
+            }
           }
           return;
         }
 
-        const projects = await getMyRecruitingProjects(token);
+        const projects = await getMyProjectsAllStatuses(token);
         if (cancelled) return;
 
-        const has = projects.length > 0;
-        setHasProjects(has);
-        setProjectId(has ? (projects[0]?.projectId ?? null) : null);
-      } catch {
-        if (!cancelled) {
+        if (projects.length > 0) {
+          setHasProjects(true);
+          setProjectId(projects[0]?.projectId ?? null);
+          return;
+        }
+        const cached = readMyProjectsCache();
+        if (cached.length > 0) {
+          setHasProjects(true);
+          setProjectId(cached[0].projectId);
+        } else {
           setHasProjects(false);
           setProjectId(null);
+        }
+      } catch {
+        if (!cancelled) {
+          const cached = readMyProjectsCache();
+          if (cached.length > 0) {
+            setHasProjects(true);
+            setProjectId(cached[0].projectId);
+          } else {
+            setHasProjects(false);
+            setProjectId(null);
+          }
         }
       }
     };
@@ -77,7 +112,7 @@ const DeveloperSearchPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [getToken]);
+  }, [getToken, readMyProjectsCache]);
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
   const [searchContent, setSearchContent] = useState<DeveloperSearchContentDto[]>([]);

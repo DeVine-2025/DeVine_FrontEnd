@@ -18,7 +18,8 @@ import { useAuthStore } from '@store/auth';
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDueLabel, mapPositionsToRoles } from 'src/shared/mappers/project';
+import { getDueLabel, mapPositionsToRoles, mapRecommendPositionsToRoles } from 'src/shared/mappers/project';
+import { getMyProjectsAllStatuses } from '@apis/projects';
 
 type HighlightProject = ProjectCardProps & { id: number };
 
@@ -34,6 +35,7 @@ type MainRecommendProject = {
   dueLabel?: string;
   bookmarked?: boolean;
   bookmarkId?: number;
+  roles?: ProjectRole[];
   techstackScorePercent?: number | null;
   similarityScorePercent?: number | null;
   domainMatch?: boolean | null;
@@ -91,7 +93,6 @@ const MainPage = () => {
   const navigate = useNavigate();
   const userRole = useAuthStore((state) => state.role);
   const isLoggedIn = Boolean(isSignedIn);
-  const isPm = userRole === 'pm';
   const isDev = userRole === 'dev';
   const isDevOrUnknown = isDev || userRole == null;
   const [weeklyProjects, setWeeklyProjects] = useState<HighlightProject[]>([]);
@@ -106,6 +107,25 @@ const MainPage = () => {
   const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<string | number, number>>(
     {},
   );
+  const MY_PROJECTS_CACHE_KEY = 'devine_my_projects_cache_v1';
+
+  const readMyProjectsCache = useCallback(() => {
+    try {
+      const raw = localStorage.getItem(MY_PROJECTS_CACHE_KEY);
+      const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .map((p: any) => ({
+          projectId: Number(p?.id),
+          title: String(p?.name ?? '').trim(),
+        }))
+        .filter(
+          (p: any) => Number.isFinite(p.projectId) && p.projectId > 0 && p.title.length > 0,
+        ) as Array<{ projectId: number; title: string }>;
+    } catch {
+      return [];
+    }
+  }, []);
 
   // 새로고침에도 북마크 반영: 내 북마크 목록을 하이드레이션
   useEffect(() => {
@@ -159,8 +179,9 @@ const MainPage = () => {
     };
   }, [isLoggedIn]);
 
+  // 프로젝트 등록 여부 확인 (역할/상태 무관)
   useEffect(() => {
-    if (!isLoggedIn || !isPm) {
+    if (!isLoggedIn) {
       setHasProjects(null);
       return;
     }
@@ -168,19 +189,28 @@ const MainPage = () => {
     getToken()
       .then((token) => {
         if (!token || cancelled) return;
-        return getMyRecruitingProjects(token);
+        return getMyProjectsAllStatuses(token);
       })
       .then((projects) => {
         if (cancelled || projects == null) return;
-        setHasProjects(projects.length > 0);
+        if (projects.length > 0) {
+          setHasProjects(true);
+          return;
+        }
+        // 서버 반영 지연/상태 미포함 시 로컬 캐시 fallback (프로젝트 생성 직후 즉시 반영)
+        const cached = readMyProjectsCache();
+        setHasProjects(cached.length > 0);
       })
       .catch(() => {
-        if (!cancelled) setHasProjects(null);
+        if (!cancelled) {
+          const cached = readMyProjectsCache();
+          setHasProjects(cached.length > 0 ? true : null);
+        }
       });
     return () => {
       cancelled = true;
     };
-  }, [isLoggedIn, isPm, getToken]);
+  }, [isLoggedIn, getToken, readMyProjectsCache]);
 
   const requireToken = useCallback(async () => {
     const token = await getToken();
@@ -296,20 +326,21 @@ const MainPage = () => {
     };
   }, []);
 
+  // 프로젝트 등록했으면 추천 개발자 fetch (역할 무관)
   useEffect(() => {
-    if (!isLoggedIn || !isPm || hasProjects !== true) return;
+    if (!isLoggedIn || hasProjects !== true) return;
     let isActive = true;
 
     const fetchRecommendedDevelopers = async () => {
       try {
         const token = await getToken();
         if (!token || !isActive) return;
-        const myProjects = await getMyRecruitingProjects(token);
+        const myProjects = await getMyProjectsAllStatuses(token);
         const firstProject = myProjects[0];
-        const targetProjectId = firstProject?.projectId;
-        if (firstProject?.title) {
-          setMatchedProjectName(firstProject.title);
-        }
+        const fallback = !firstProject ? readMyProjectsCache()[0] : null;
+        const targetProjectId = firstProject?.projectId ?? fallback?.projectId;
+        const title = firstProject?.title ?? fallback?.title;
+        if (title) setMatchedProjectName(title);
         if (!targetProjectId) {
           setIsDeveloperPreviewEmpty(true);
           setRecommendedDevelopers([]);
@@ -353,7 +384,7 @@ const MainPage = () => {
     return () => {
       isActive = false;
     };
-  }, [getToken, isLoggedIn, isPm, hasProjects]);
+  }, [getToken, isLoggedIn, hasProjects]);
 
   useEffect(() => {
     if (!isLoggedIn || !isDevOrUnknown || hasReport !== true) return;
@@ -377,7 +408,7 @@ const MainPage = () => {
           dueLabel: getDueLabel(item.daysUntilDeadline) ?? '추후 결정 예정',
           bookmarked: item.bookmarked,
           bookmarkId: item.bookmarkId,
-          roles: mapPositionsToRoles(item.positions as never),
+          roles: mapRecommendPositionsToRoles(item.positions),
           techstackScorePercent: item.techstackScorePercent ?? item.techScore ?? null,
           similarityScorePercent: item.similarityScorePercent ?? item.techStackCountScore ?? null,
           domainMatch: item.domainMatch ?? null,
@@ -409,9 +440,9 @@ const MainPage = () => {
   }, [weeklyProjects]);
   const recommendedProfiles = recommendedDevelopers;
   const recommendTitle = isLoggedIn
-    ? isPm
+    ? hasProjects
       ? '나에게 딱 맞는 추천 개발자'
-      : '나에게 딱 맞는 추천 프로젝트'
+      : '나에게 딱 맞는 추천 프로젝트/개발자'
     : '나에게 딱 맞는 추천 프로젝트/개발자';
   const loginCtaLabel = !isLoggedIn ? '로그인해야 추천 프로젝트를 확인할 수 있어요' : null;
   const handleProjectClick = (project: HighlightProject | MainRecommendProject) => {
@@ -472,7 +503,7 @@ const MainPage = () => {
               isLoggedIn ? '' : 'pointer-events-none select-none blur-sm'
             }`}
           >
-            {isLoggedIn && isPm && hasProjects === false ? (
+            {isLoggedIn && hasProjects === false ? (
               <div className="flex items-center justify-center py-6">
                 <ReportRequiredCard
                   title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
@@ -481,16 +512,7 @@ const MainPage = () => {
                   linkTo="/project/create"
                 />
               </div>
-            ) : isLoggedIn && !isPm && hasReport === false ? (
-              <div className="flex items-center justify-center py-6">
-                <ReportRequiredCard
-                  title="리포트를 등록하면 맞춤 추천을 받을 수 있어요"
-                  description="나에게 맞는 추천 프로젝트를 받아 보세요"
-                  linkLabel="리포트 등록하러 가기"
-                  linkTo="/report/create"
-                />
-              </div>
-            ) : isPm ? (
+            ) : isLoggedIn && hasProjects === true ? (
               isDeveloperPreviewEmpty ? (
                 <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
                   나에게 딱 맞는 추천 개발자가 아직 없어요.
@@ -505,7 +527,6 @@ const MainPage = () => {
                     profileImageUrl={profile.profileImageUrl}
                     introduction={profile.introduction}
                     domains={profile.badges?.map((badge) => ({ label: badge.label }))}
-                    techStack={profile.techStack}
                     bookmarked={
                       developerBookmarkMap[profile.memberId ?? profile.nickname] != null ||
                       (profile.bookmarked ?? false)
@@ -541,19 +562,30 @@ const MainPage = () => {
                       categoryLabel={project.categoryLabel}
                       deadlineLabel={project.deadlineLabel}
                       title={project.title}
+                      thumbnailUrl={project.thumbnailUrl}
+                      thumbnailAlt={project.title}
                       location={project.location}
                       period={project.period}
                       mode={project.mode}
-                      roles={[]}
+                      roles={project.roles}
                       dueLabel={project.dueLabel}
                       bookmarked={isBookmarked}
                       techstackScorePercent={project.techstackScorePercent}
                       similarityScorePercent={project.similarityScorePercent}
                       domainMatch={project.domainMatch}
                       totalScore={project.totalScore}
+                      projectId={project.id}
+                      bookmarkId={project.bookmarkId}
                       onBookmarkChange={(next) =>
                         hasNumericId ? handleProjectBookmarkChange(targetId, next) : undefined
                       }
+                      onBookmarkChangeById={
+                        hasNumericId
+                          ? (pid, next, bkid) =>
+                              handleProjectBookmarkChange(Number(pid), next)
+                          : undefined
+                      }
+                      onNavigateToProject={(pid) => navigate(`/project/${pid}`)}
                       onClick={() => handleProjectClick(project)}
                     />
                   );
