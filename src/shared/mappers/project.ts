@@ -53,6 +53,32 @@ export function mapPositionsToRoles(positions: ProjectItem['positions']): Projec
   }));
 }
 
+type PositionWithTechStacks = {
+  position: string;
+  positionName: string;
+  count: number;
+  currentCount: number;
+  techStacks?: Array<{ techStack: string }>;
+};
+
+/** 추천 API position 배열 → roles (techStack에 id, name 포함) */
+export function mapRecommendPositionsToRoles(
+  positions: PositionWithTechStacks[] | undefined,
+): ProjectRole[] {
+  if (!Array.isArray(positions)) return [];
+  return positions.slice(0, 3).map((pos, idx) => ({
+    key: pos.position,
+    label: pos.positionName,
+    tone: getRoleTone(pos.position),
+    current: pos.currentCount,
+    total: pos.count,
+    techStack: (pos.techStacks ?? []).slice(0, 5).map((ts, i) => ({
+      id: `role-${idx}-${i}-${ts.techStack}`,
+      name: ts.techStack,
+    })),
+  }));
+}
+
 // 프로젝트 API 응답 -> 카드 컴포넌트 사용 변환
 export function mapProjectItemToCard(p: ProjectItem): ProjectCardModel {
   return {

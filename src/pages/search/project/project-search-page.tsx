@@ -132,7 +132,7 @@ export default function ProjectSearchPage() {
         page,
         size,
       }),
-    [applied, page, size],
+    [applied, page],
   );
 
   const { data, isLoading, isError } = useProjects(params);
@@ -270,7 +270,7 @@ export default function ProjectSearchPage() {
   };
 
   return (
-    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
+    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30">
       {/* 추천 프로젝트 */}
       <header className="flex items-center justify-between">
         <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 프로젝트</h2>

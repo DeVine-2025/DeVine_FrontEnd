@@ -5,7 +5,6 @@ import FileIcon from '@assets/icons/detail-page/file.svg?react';
 import TimeIcon from '@assets/icons/detail-page/time.svg?react';
 import ContentBox from '@components/report/ContentBox';
 import { cn } from '@libs/cn';
-import React from 'react';
 
 type MainDetailProps = {
   data: ReportMainContent;
@@ -22,31 +21,33 @@ const MainDetail = ({ data }: MainDetailProps) => {
 
   return (
     <div className="mb-30 flex-col gap-[4.9rem]">
-      <ContentBox>
-        <section className={contentStyle}>
-          <p className={subtTitleStyle}>프로젝트 개요</p>
-          <p className="font-bold text-ui-1000 text-xl leading-relaxed">
-            {data?.overview?.summary}
-          </p>{' '}
-        </section>
-        <section className={cn(contentStyle, 'border-ui-200 border-t-1 border-b-1')}>
-          <p className={subtTitleStyle}>주요 기술</p>
-          <p className="text-lg text-ui-1000">{data?.overview?.mainTech}</p>
-        </section>
-        <section className={contentStyle}>
-          <p className={subtTitleStyle}>할 수 있는 것</p>
-          <div className="flex-col gap-[0.3rem]">
-            {data?.overview?.capabilities.map((todo) => (
-              <p key={todo} className="flex items-center gap-2 font-normal text-lg text-ui-1000">
-                <span className="text-2xl text-[#4E49FF]">•</span>
-                {todo}
-              </p>
-            ))}
-          </div>
-        </section>
-      </ContentBox>
+      {/* 첫 페이지: 프로젝트 개요 + 프로젝트 기본 정보 */}
+      <div className={`report-print-section report-print-main-first ${titleContentGapStyle}`}>
+        <ContentBox>
+          <section className={contentStyle}>
+            <p className={subtTitleStyle}>프로젝트 개요</p>
+            <p className="font-bold text-ui-1000 text-xl leading-relaxed">
+              {data?.overview?.summary}
+            </p>{' '}
+          </section>
+          <section className={cn(contentStyle, 'border-ui-200 border-t-1 border-b-1')}>
+            <p className={subtTitleStyle}>주요 기술</p>
+            <p className="text-lg text-ui-1000">{data?.overview?.mainTech}</p>
+          </section>
+          <section className={contentStyle}>
+            <p className={subtTitleStyle}>할 수 있는 것</p>
+            <div className="flex-col gap-[0.3rem]">
+              {data?.overview?.capabilities.map((todo) => (
+                <p key={todo} className="flex items-center gap-2 font-normal text-lg text-ui-1000">
+                  <span className="text-2xl text-[#4E49FF]">•</span>
+                  {todo}
+                </p>
+              ))}
+            </div>
+          </section>
+        </ContentBox>
 
-      <div className={titleContentGapStyle}>
+        <div className={titleContentGapStyle}>
         <p className={sectionTitleStyle}>프로젝트 기본 정보</p>
         <ContentBox>
           <section className={contentStyle}>
@@ -85,9 +86,10 @@ const MainDetail = ({ data }: MainDetailProps) => {
             </div>
           </section>
         </ContentBox>
+        </div>
       </div>
 
-      <div className={titleContentGapStyle}>
+      <div className={`report-print-section ${titleContentGapStyle}`}>
         <p className={sectionTitleStyle}>핵심 구현 사례</p>
         <div className="flex-col gap-[2rem]">
           {data?.keyImplementations?.map((item) => (
@@ -115,12 +117,14 @@ const MainDetail = ({ data }: MainDetailProps) => {
         </div>
       </div>
 
-      <div className={titleContentGapStyle}>
+      {/* 한 페이지: AI 평가 + 이런 프로젝트에 추천합니다 */}
+      <div className={`report-print-section report-print-main-last ${titleContentGapStyle}`}>
+        <div className={titleContentGapStyle}>
         <p className={sectionTitleStyle}>AI 평가</p>
         <ContentBox>
           <div className="flex-col gap-[1.2rem] p-[3.3rem]">
             {data?.aiEvaluation.map((item) => (
-              <React.Fragment key={item.title}>
+              <div key={item.title} className="report-print-block">
                 <p className="flex items-center gap-[0.8rem] font-semibold text-2xl text-ui-1000">
                   <CheckGreenIcon />
                   {item?.title}
@@ -136,19 +140,19 @@ const MainDetail = ({ data }: MainDetailProps) => {
                     </p>
                   ))}
                 </div>
-              </React.Fragment>
+              </div>
             ))}
           </div>
         </ContentBox>
-      </div>
+        </div>
 
-      <div className={titleContentGapStyle}>
+        <div className={titleContentGapStyle}>
         <p className={sectionTitleStyle}>이런 프로젝트에 추천합니다</p>
         <div className="flex gap-[2.4rem]">
           {data?.recommendations?.map((item) => (
             <div
               key={item}
-              className="inline-flex h-48 w-full flex-col items-start justify-start rounded-[10px] bg-gradient-to-br from-indigo-600 to-slate-300 px-8 pt-8 pb-px"
+              className="report-print-block inline-flex h-48 w-full flex-col items-start justify-start rounded-[10px] bg-gradient-to-br from-indigo-600 to-slate-300 px-8 pt-8 pb-px"
             >
               <div className="flex h-28 flex-col items-start justify-start gap-4 self-stretch">
                 <div className="justify-start self-stretch p-2 font-['Pretendard'] font-bold text-2xl text-white leading-8">
@@ -157,6 +161,7 @@ const MainDetail = ({ data }: MainDetailProps) => {
               </div>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </div>

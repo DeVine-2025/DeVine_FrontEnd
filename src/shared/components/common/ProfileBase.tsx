@@ -89,7 +89,7 @@ type BadgeProps = {
 
 export function Badge({ label }: BadgeProps) {
   return (
-    <span className="inline-flex items-center whitespace-nowrap rounded-xl bg-badge-bg-gray px-4 py-2 font-semibold text-[10px] text-badge-text-gray">
+    <span className="Caption1 inline-flex h-[24px] shrink-0 items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] font-semibold text-[var(--ui-600)]">
       {label}
     </span>
   );
@@ -150,7 +150,13 @@ export function TechChips({ techStack, max }: { techStack?: TechStackItem[]; max
 
   const findBadge = (name: unknown) => {
     const normalized = normalizeTechKey(name);
-    return TECH_BADGE_BY_NAME.get(normalized) ?? null;
+    const alias = normalized
+      .replace(/^spring$/g, 'springboot')
+      .replace(/typescript/g, 'typescript')
+      .replace(/nextjs/g, 'nextjs')
+      .replace(/nodejs/g, 'nodejs')
+      .replace(/reactnative/g, 'reactnative');
+    return TECH_BADGE_BY_NAME.get(alias) ?? TECH_BADGE_BY_NAME.get(normalized) ?? null;
   };
 
   const shown = techStack.slice(0, max);
@@ -172,7 +178,7 @@ export function TechChips({ techStack, max }: { techStack?: TechStackItem[]; max
               <img
                 src={offSrc}
                 alt={badge.label}
-                className="h-13 w-32 select-none"
+                className="h-[32px] w-auto select-none"
                 draggable={false}
               />
             </span>
@@ -186,10 +192,21 @@ export function TechChips({ techStack, max }: { techStack?: TechStackItem[]; max
             </span>
           );
         }
+
+        if (label) {
+          return (
+            <span
+              key={key}
+              className="Caption1 inline-flex items-center rounded-[20px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-[10px] py-[6px] font-medium text-[var(--ui-800)]"
+            >
+              {label}
+            </span>
+          );
+        }
         return null;
       })}
 
-      {rest > 0 ? <span className="font-semibold text-card-muted text-lg">+{rest}</span> : null}
+      {rest > 0 ? <span className="Label1 font-medium text-[var(--ui-400)]">+{rest}</span> : null}
     </div>
   );
 }

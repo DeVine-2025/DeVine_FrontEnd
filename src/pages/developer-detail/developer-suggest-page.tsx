@@ -38,8 +38,6 @@ const DeveloperSuggestPage = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  console.log("프로젝트", projects);
-
   // navigate state로 전달된 프로필 데이터 가져오기
   const profileData = location.state?.profileData as { result?: MyProfile } | undefined;
   const { data: profileRes } = useQuery({
@@ -47,7 +45,7 @@ const DeveloperSuggestPage = () => {
     enabled: Boolean(memberNick),
   });
   const profile = profileData?.result ?? profileRes?.result;
-  
+
   // domains를 영어에서 한글로 변환
   const koreanDomains = useMemo(() => {
     const domains = profile?.domains ?? [];
@@ -228,7 +226,7 @@ const DeveloperSuggestPage = () => {
           </div>
         </section>
     </div>
-);
+  );
 };
 
 export default DeveloperSuggestPage;

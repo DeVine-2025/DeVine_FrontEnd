@@ -5,6 +5,8 @@ export type RecommendBadgeTone = 'blue' | 'green' | 'pink' | 'orange';
 export type RecommendTechStackItem = {
   id: string;
   icon?: ReactNode;
+  /** icon이 없을 때 getTechBadgeByName(name)으로 아이콘 해석 */
+  name?: string;
 };
 
 export type RecommendProjectRole = {
