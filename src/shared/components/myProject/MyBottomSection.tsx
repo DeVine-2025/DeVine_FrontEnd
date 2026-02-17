@@ -73,6 +73,7 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) 
               deadlineLabel={project.category?.name}
               title={project.title}
               location={project.location}
+              showBookmark={false}
               durationRangeName={project.durationRange}
               mode={project.mode}
               thumbnailUrl={project.imageUrls?.[0]}

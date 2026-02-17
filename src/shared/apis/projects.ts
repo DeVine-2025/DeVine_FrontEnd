@@ -131,11 +131,21 @@ export async function updateProject(
 export type MyRecruitingProjectItem = {
   projectId: number;
   title: string;
+  thumbnailUrl?: string;
+  categoryName?: string;
+  location?: string;
+  durationRangeName?: string;
+  modeName?: string;
 };
 
 type MyRecruitingContentItem = {
   projectId?: number;
   title?: string;
+  thumbnailUrl?: string;
+  categoryName?: string;
+  location?: string;
+  durationRangeName?: string;
+  modeName?: string;
 };
 
 type MyRecruitingResponse = {
@@ -169,11 +179,18 @@ export async function getMyRecruitingProjects(
   }
 
   const content = json?.result?.projects?.content ?? json?.projects?.content ?? [];
+  console.log("내부",content)
 
   return content
     .map((item) => ({
       projectId: item.projectId ?? 0,
       title: typeof item.title === 'string' ? item.title : '',
+      thumbnailUrl: item.thumbnailUrl ?? '',
+      categoryName:item.categoryName,
+      location: item.location,
+      durationRangeName: item.durationRangeName,
+      modeName: item.modeName,
+
     }))
     .filter((item) => Number.isFinite(item.projectId) && item.projectId > 0);
 }
