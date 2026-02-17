@@ -239,7 +239,6 @@ const ProfileDetail = ({
           </div>
 
           {/* 리포트 */}
-          {type === '개발자 상세' && (
             <div className="flex flex-col gap-[1.5rem]">
               <p className="font-bold text-3xl text-ui-1000">리포트</p>
               <div className="flex w-full flex-nowrap gap-[1.5rem] overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-ui-200 [&::-webkit-scrollbar]:h-2">
@@ -265,7 +264,6 @@ const ProfileDetail = ({
                 )}
               </div>
             </div>
-          )}
         </div>
 
         <div className="w-full">
