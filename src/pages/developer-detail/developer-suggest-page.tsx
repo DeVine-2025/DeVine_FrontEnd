@@ -103,8 +103,9 @@ const DeveloperSuggestPage = () => {
       setSubmitSuccess(true);
       setProposalContent('');
     } catch (e) {
-      alert(e.message);
-      setSubmitError(e instanceof Error ? e.message : '제안하기에 실패했습니다.');
+      const errorMessage = e instanceof Error ? e.message : '제안하기에 실패했습니다.';
+      alert(errorMessage);
+      setSubmitError(errorMessage);
     } finally {
       setSubmitLoading(false);
     }
