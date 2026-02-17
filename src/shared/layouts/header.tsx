@@ -3,8 +3,8 @@ import {
   getUnreadNotificationCount,
   markAllNotificationsAsRead,
   markNotificationAsRead,
-  subscribeNotificationStream,
   type NotificationItem,
+  subscribeNotificationStream,
 } from '@apis/notifications';
 import AlarmIcon from '@assets/icons/alarm.svg?react';
 import AlarmDarkHoverIcon from '@assets/icons/alarm-dark-hover.svg?react';
@@ -19,12 +19,7 @@ import ModeDarkHoverIcon from '@assets/icons/mode-dark-hover.svg?react';
 import ModeLightIcon from '@assets/icons/mode-light.svg?react';
 import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
 import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
-import {
-  SignedIn,
-  SignedOut,
-  useAuth as useClerkAuth,
-  useUser,
-} from '@clerk/clerk-react';
+import { SignedIn, SignedOut, useAuth as useClerkAuth, useUser } from '@clerk/clerk-react';
 import NotificationModal from '@components/common/NotificationModal';
 import { useNotificationStore } from '@store/notification';
 import { useThemeStore } from '@store/theme';
@@ -292,7 +287,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                 </span>
               </button>
               {navLocked && (
-                <div className="pointer-events-none absolute left-0 top-full mt-2 hidden rounded-md bg-black/80 px-3 py-2 text-[12px] text-white group-hover:block">
+                <div className="pointer-events-none absolute top-full left-0 mt-2 hidden rounded-md bg-black/80 px-3 py-2 text-[12px] text-white group-hover:block">
                   리포트 생성 중에는 이동할 수 없어요
                 </div>
               )}
@@ -326,7 +321,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             <SignedIn>
               <Link
                 to="/project/create"
-                className="Caption1 relative h-[3.2rem] flex-row-center whitespace-nowrap rounded-[8px] bg-[#4E49FF] px-[1.0rem] py-[0.6rem] font-semibold text-white transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:scale-[0.98] active:translate-y-[1px]"
+                className="Caption1 relative h-[3.2rem] flex-row-center whitespace-nowrap rounded-[8px] bg-[#4E49FF] px-[1.0rem] py-[0.6rem] font-semibold text-white transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:translate-y-[1px] active:scale-[0.98]"
               >
                 프로젝트 등록하기
               </Link>
@@ -335,7 +330,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             <button
               type="button"
               onClick={toggleTheme}
-              className="group max-[391px]:!hidden relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg p-[0.4rem]"
+              className="group max-[391px]:!hidden relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg"
             >
               {theme === 'dark' ? (
                 <>
@@ -382,10 +377,8 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                   className="absolute top-[0.4rem] right-[0.4rem] flex size-5 items-center justify-center rounded-full bg-[#4E49FF] font-semibold text-[0.7rem] text-white leading-none"
                   aria-hidden="true"
                 >
-                  <span className="absolute inset-0 rounded-full bg-[#4E49FF] animate-notification-pulse" />
-                  <span className="relative">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
+                  <span className="absolute inset-0 animate-notification-pulse rounded-full bg-[#4E49FF]" />
+                  <span className="relative">{unreadCount > 99 ? '99+' : unreadCount}</span>
                 </span>
               )}
             </button>
@@ -401,7 +394,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
               <button
                 type="button"
                 onClick={() => navigate('/my-info')}
-                className="relative h-[2.7rem] w-[2.7rem] shrink-0 cursor-pointer overflow-hidden rounded-full -translate-y-[0.15rem]"
+                className="-translate-y-[0.15rem] relative h-[2.7rem] w-[2.7rem] shrink-0 cursor-pointer overflow-hidden rounded-full"
                 aria-label="내 정보 페이지로 이동"
               >
                 <img

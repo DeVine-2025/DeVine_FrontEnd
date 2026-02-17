@@ -1192,12 +1192,12 @@ const ProjectCreatePage = () => {
                     </div>
                   </div>
 
-                  <div className="flex w-full justify-center pt-[8px]">
+                  <div className="flex w-full justify-end">
                     <button
                       type="button"
                       disabled={submitLoading}
                       onClick={handleSubmit}
-                      className="Body1 h-[52px] w-[292px] rounded-[12px] bg-[#4E49FF] font-medium text-white transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
+                      className="Body1 h-[48px] w-[270px] cursor-pointer rounded-[12px] bg-[#4E49FF] font-medium text-white transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
                     >
                       {submitLoading
                         ? isEditMode

@@ -27,7 +27,7 @@ const MyInfoPage = () => {
         <Outlet />
 
         <div>
-          <ul className="flex min-w-[254px] flex-col gap-[3.2rem] font-semibold text-3xl">
+          <ul className="flex min-w-[270px] flex-col gap-[3.2rem] font-semibold text-3xl">
             {MENU.map((item) => {
               const isSelected =
                 item.path === 'bookmark'

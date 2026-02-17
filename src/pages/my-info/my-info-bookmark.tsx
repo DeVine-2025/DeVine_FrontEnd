@@ -4,10 +4,10 @@ import { getMemberTechStacks } from '@apis/myInfo/myInfo-queries';
 import { getProjectDetail } from '@apis/project-detail';
 import BackIcon from '@assets/icons/back.svg?react';
 import profileDefaultIconUrl from '@assets/icons/profile-default.svg?url';
+import { useAuth } from '@clerk/clerk-react';
+import BookmarkDeveloperCard from '@components/common/BookmarkDeveloperCard';
 import LoadingSpinner from '@components/common/LoadingSpinner';
 import ProjectLg from '@components/common/ProjectLg';
-import BookmarkDeveloperCard from '@components/common/BookmarkDeveloperCard';
-import { useAuth } from '@clerk/clerk-react';
 import { mapProjectItemToCard } from '@mappers/project';
 import type { ProjectItem } from '@t/project/api';
 import { useCallback, useEffect, useState } from 'react';
@@ -181,13 +181,14 @@ const MyInfoBookmark = () => {
     [getToken, developers],
   );
 
-  const baseTabClass = 'rounded-xl py-3 text-2xl text-center font-semibold transition-colors';
+  const baseTabClass =
+    'rounded-xl py-3 text-2xl text-center font-semibold transition-colors cursor-pointer';
   const activeClass = 'bg-tab-bg-active text-tab-text-active';
   const inactiveClass = 'text-tab-text-inactive hover:text-tab-text-active';
 
   return (
     <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-[2rem]">
-      <div className="flex flex-col gap-[2.4rem]">
+      <div className="flex items-center gap-3">
         <BackIcon className="h-12 w-12 cursor-pointer text-ui-700" onClick={() => navigate(-1)} />
         <p className="font-bold text-4xl text-ui-900">저장한 프로젝트/개발자</p>
       </div>
@@ -221,7 +222,7 @@ const MyInfoBookmark = () => {
       {!loading && !error && activeTab === 'project' && (
         <div className="flex flex-col gap-[2rem]">
           {projects.length === 0 ? (
-            <p className="text-ui-600 text-[18px]">저장한 프로젝트가 없습니다.</p>
+            <p className="text-[18px] text-ui-600">저장한 프로젝트가 없습니다.</p>
           ) : (
             projects.map(({ bookmarkId, targetId, project }) => {
               if (!project) {
@@ -266,10 +267,11 @@ const MyInfoBookmark = () => {
       {!loading && !error && activeTab === 'developer' && (
         <div className="flex flex-col gap-[2rem]">
           {developers.length === 0 ? (
-            <p className="text-ui-600 text-[18px]">저장한 개발자가 없습니다.</p>
+            <p className="text-[18px] text-ui-600">저장한 개발자가 없습니다.</p>
           ) : (
             developers.map(({ bookmarkId, targetId, targetNickname }) => {
-              const nickname = targetNickname ?? (targetId != null ? `회원 #${targetId}` : '알 수 없음');
+              const nickname =
+                targetNickname ?? (targetId != null ? `회원 #${targetId}` : '알 수 없음');
               const profile = targetNickname ? developerProfiles[targetNickname] : undefined;
               const profileImageUrl =
                 resolveThumbnailUrl(profile?.imageUrl ?? undefined) ?? profileDefaultIconUrl;
@@ -283,11 +285,12 @@ const MyInfoBookmark = () => {
                   nickname={nickname}
                   profileImageUrl={profileImageUrl}
                   introduction={profile?.body ?? '저장한 개발자입니다.'}
-                  domains={
-                    profile?.domains?.map((label) => ({ label })) ?? []
-                  }
+                  domains={profile?.domains?.map((label) => ({ label })) ?? []}
                   techStack={
-                    profile?.techstacks?.map((name, i) => ({ id: `tech-${bookmarkId}-${i}`, name })) ?? []
+                    profile?.techstacks?.map((name, i) => ({
+                      id: `tech-${bookmarkId}-${i}`,
+                      name,
+                    })) ?? []
                   }
                   bookmarked
                   onBookmarkChange={(next) => !next && handleRemoveDeveloperBookmark(bookmarkId)}

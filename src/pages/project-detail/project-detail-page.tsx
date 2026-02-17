@@ -138,7 +138,7 @@ const ProjectDetailPage = () => {
             {/* 제목 + 크리에이터 + 지원/수정 버튼 */}
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3">
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                   <h1 className="max-w-[800px] font-semibold text-[26px] text-card-title lg:text-[28px]">
                     {project.title}
                   </h1>
@@ -146,7 +146,7 @@ const ProjectDetailPage = () => {
                     bookmarked={bookmarkState.bookmarked}
                     onBookmarkChange={handleBookmarkChange}
                     className="mt-2 ml-auto h-[48px] w-[48px] shrink-0"
-                    iconClassName="h-[30px] w-[30px]"
+                    iconClassName="h-[28px] w-[28px]"
                     colorIconClassName="h-[48px] w-[48px]"
                     aria-label="북마크"
                   />
