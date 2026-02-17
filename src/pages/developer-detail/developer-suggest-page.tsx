@@ -100,9 +100,12 @@ const DeveloperSuggestPage = () => {
     setSubmitSuccess(false);
     try {
       await createMemberProposal(memberNick, selectedProjectId,proposalPart, trimmed, token);
+      alert("제안을 보냈습니다.");
+      navigate(-1);
       setSubmitSuccess(true);
       setProposalContent('');
     } catch (e) {
+      alert(e.message);
       setSubmitError(e instanceof Error ? e.message : '제안하기에 실패했습니다.');
     } finally {
       setSubmitLoading(false);
@@ -213,8 +216,6 @@ const DeveloperSuggestPage = () => {
             onChange={(e) => setProposalContent(e.target.value)}
             className="h-72 w-full resize-none rounded-2xl bg-ui-50 p-6 text-[14px] text-ui-800 placeholder:text-ui-500"
           />
-          {submitError && <p className="text-sm text-red-500">{submitError}</p>}
-          {submitSuccess && <p className="text-sm text-green-500">제안을 보냈습니다.</p>}
           <div className="flex items-center justify-end">
             <button
               type="button"
