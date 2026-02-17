@@ -133,7 +133,9 @@ export type MyRecruitingProjectItem = {
 
 type MyRecruitingContentItem = {
   projectId?: number;
+  id?: number;
   title?: string;
+  [key: string]: unknown;
 };
 
 type MyRecruitingResponse = {
@@ -147,11 +149,39 @@ type MyRecruitingResponse = {
   };
 };
 
-export async function getMyRecruitingProjects(
+function extractMyProjectsRawList(json: MyRecruitingResponse | null): MyRecruitingContentItem[] {
+  const result = (json as any)?.result;
+  let rawList: MyRecruitingContentItem[] = [];
+  if (Array.isArray(result)) {
+    rawList = result;
+  } else if (Array.isArray(result?.projects)) {
+    rawList = result.projects;
+  } else if (Array.isArray(result?.projects?.content)) {
+    rawList = result.projects.content;
+  } else if (result && 'content' in result && Array.isArray((result as any).content)) {
+    rawList = (result as any).content as MyRecruitingContentItem[];
+  } else {
+    const proj = (json as any)?.projects;
+    if (Array.isArray(proj)) {
+      rawList = proj as MyRecruitingContentItem[];
+    } else if (
+      proj &&
+      typeof proj === 'object' &&
+      'content' in proj &&
+      Array.isArray((proj as any).content)
+    ) {
+      rawList = (proj as any).content as MyRecruitingContentItem[];
+    }
+  }
+  return rawList;
+}
+
+async function fetchMyProjectsByPath(
+  path: string,
   token: string,
   signal?: AbortSignal,
 ): Promise<MyRecruitingProjectItem[]> {
-  const res = await fetch(`${BASE_URL}/api/v1/projects/my/recruiting`, {
+  const res = await fetch(`${BASE_URL}${path}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -166,12 +196,47 @@ export async function getMyRecruitingProjects(
     throw new Error(typeof message === 'string' ? message : `요청 실패 (${res.status})`);
   }
 
-  const content = json?.result?.projects?.content ?? json?.projects?.content ?? [];
+  const rawList = extractMyProjectsRawList(json);
 
-  return content
+  return rawList
     .map((item) => ({
-      projectId: item.projectId ?? 0,
+      projectId: item.projectId ?? item.id ?? 0,
       title: typeof item.title === 'string' ? item.title : '',
     }))
     .filter((item) => Number.isFinite(item.projectId) && item.projectId > 0);
+}
+
+export async function getMyRecruitingProjects(
+  token: string,
+  signal?: AbortSignal,
+): Promise<MyRecruitingProjectItem[]> {
+  return fetchMyProjectsByPath('/api/v1/projects/my/recruiting', token, signal);
+}
+
+/**
+ * 내 프로젝트 목록(상태 무관) - 추천 개발자에서 "프로젝트 등록 여부" 판별용
+ * 백엔드에서 방금 만든 프로젝트가 RECRUITING으로 즉시 반영되지 않아도 잡히도록
+ * recruiting / in-progress / completed를 합쳐서 반환합니다.
+ */
+export async function getMyProjectsAllStatuses(
+  token: string,
+  signal?: AbortSignal,
+): Promise<MyRecruitingProjectItem[]> {
+  const endpoints = [
+    '/api/v1/projects/my/recruiting',
+    '/api/v1/projects/my/in-progress',
+    '/api/v1/projects/my/completed',
+  ] as const;
+
+  const settled = await Promise.allSettled(
+    endpoints.map((p) => fetchMyProjectsByPath(p, token, signal)),
+  );
+
+  const merged: MyRecruitingProjectItem[] = [];
+  for (const s of settled) {
+    if (s.status === 'fulfilled') merged.push(...s.value);
+  }
+
+  // projectId 기준 중복 제거
+  return Array.from(new Map(merged.map((p) => [p.projectId, p])).values());
 }

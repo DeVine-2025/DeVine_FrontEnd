@@ -1,3 +1,6 @@
+import type { ProjectRole } from '@t/project/ui';
+import { mapRecommendPositionsToRoles } from '@mappers/project';
+
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
 
 /** GET /api/v1/projects/recommend 쿼리 파라미터 (API 스펙: 복수 선택 배열, 페이징 없음) */
@@ -65,6 +68,7 @@ export type ProjectListItem = {
   dueLabel: string;
   bookmarked?: boolean;
   bookmarkId?: number;
+  roles?: ProjectRole[];
   /** 기술스택 매칭 (%) - API techstackScorePercent */
   techstackScorePercent?: number | null;
   /** 리포트 유사도 (%) - API similarityScorePercent */
@@ -108,6 +112,7 @@ export function mapRecommendProjectToListItem(dto: RecommendProjectDto): Project
     dueLabel: formatDueLabel(dto.recruitmentDeadline ?? '', dto.daysUntilDeadline ?? 0),
     bookmarked: dto.bookmarked,
     bookmarkId: dto.bookmarkId,
+    roles: mapRecommendPositionsToRoles(dto.positions),
     techstackScorePercent: dto.techstackScorePercent ?? null,
     similarityScorePercent: dto.similarityScorePercent ?? null,
     domainMatch: dto.domainMatch ?? null,

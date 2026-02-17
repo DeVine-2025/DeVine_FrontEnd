@@ -39,6 +39,19 @@ const DeveloperSearchPage = () => {
   const { developerSearch, setDeveloperSearch } = useFilterStore();
   const { interestDomains, myProjects, techStacks } = developerSearch;
 
+  const readMyProjectsCache = useCallback(() => {
+    try {
+      const raw = localStorage.getItem('devine_my_projects_cache_v1');
+      const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .map((p: any) => ({ projectId: Number(p?.id) }))
+        .filter((p: any) => Number.isFinite(p.projectId) && p.projectId > 0);
+    } catch {
+      return [];
+    }
+  }, []);
+
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
   const [bookmarkMap, setBookmarkMap] = useState<Record<string | number, number>>({});
   const [page, setPage] = useState(1);
@@ -94,10 +107,16 @@ const DeveloperSearchPage = () => {
     [page, categories, normalizedTechNames],
   );
 
-  // 내 모집중 프로젝트(=프로젝트 등록 유무/프로젝트ID)
+  // 내 프로젝트(등록 유무/프로젝트ID) - API + 캐시 fallback (등록 직후 반영)
   const myRecruitingQ = useMyRecruitingProjects();
-  const hasProjects = (myRecruitingQ.data?.length ?? 0) > 0;
-  const projectId = hasProjects ? (myRecruitingQ.data?.[0]?.projectId ?? null) : null;
+  const cachedProjects = readMyProjectsCache();
+  const apiProjects = myRecruitingQ.data ?? [];
+  const hasProjects =
+    myRecruitingQ.isLoading && cachedProjects.length === 0
+      ? null
+      : apiProjects.length > 0 || cachedProjects.length > 0;
+  const projectId =
+    apiProjects[0]?.projectId ?? cachedProjects[0]?.projectId ?? null;
 
   // 개발자 검색 목록
   const developersQ = useDevelopers(params);
@@ -186,6 +205,8 @@ const DeveloperSearchPage = () => {
           icon: undefined,
         }));
 
+      // 검색 API의 domains는 검색 조건(필터)과 혼동되어 잘못 표시될 수 있으므로
+      // 검색 결과 카드에서는 도메인 뱃지를 표시하지 않음 (백엔드에서 프로필 도메인만 내려주면 복구 가능)
       return {
         id: `search-${x.member.nickname}-${index}`,
         memberId: undefined,
@@ -198,11 +219,7 @@ const DeveloperSearchPage = () => {
         role: isPm ? 'PM' : (ROLE_LABEL[roleKey] ?? '개발자'),
         roleTone,
 
-        badges: (x.domains ?? []).map((d, i) => ({
-          id: `d-${index}-${i}`,
-          label: isMemberSearchCategory(d) ? DOMAIN_CODE_TO_LABEL[d] : d,
-          tone: 'gray' as BadgeTone,
-        })),
+        badges: [],
 
         bookmarked: false,
       };

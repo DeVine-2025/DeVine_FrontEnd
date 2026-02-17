@@ -175,7 +175,7 @@ export default function PositionTechStackDropdown({
 
     const wrapperClass = [
       'rounded-[999px] transition-transform duration-150 ease-out active:scale-[0.98]',
-      isOn ? 'ring-1 ring-[#4E49FF]' : 'ring-1 ring-transparent',
+      isOn ? 'ring-1 ring-[#4E49FF]' : 'ring-1 ring-[var(--ui-200)]',
     ].join(' ');
 
     if ('off' in b && 'on' in b) {
@@ -294,7 +294,7 @@ export default function PositionTechStackDropdown({
         asModal
           ? 'w-[520px] rounded-[16px]'
           : 'absolute top-[calc(100%+12px)] left-0 z-50 w-[358px] rounded-[12px]'
-      } overflow-hidden bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)] ${containerHeightClass}`}
+      } overflow-hidden border border-[var(--ui-100)] bg-[var(--ui-50)] shadow-[0px_4px_8px_0px_rgba(0,0,0,0.08)] ${containerHeightClass}`}
     >
       <div className="flex items-center justify-between px-[16px] pt-[16px]">
         <p className="Label1 font-medium text-[var(--ui-600)]">{title}</p>

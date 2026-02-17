@@ -45,7 +45,9 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import type { ChangeEvent, ComponentType, SVGProps } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { MY_RECRUITING_PROJECTS_QUERY_KEY } from '@hooks/useMyRecruitingProjects';
 
 type SvgIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -317,6 +319,7 @@ const ProjectCreatePage = () => {
   const isDev = Boolean((import.meta as any).env?.DEV);
   const { getToken } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const location = useLocation();
   const locState = location.state as { projectId?: number; mode?: string } | null;
   const isEditMode = locState?.mode === 'edit' && locState?.projectId != null;
@@ -741,6 +744,9 @@ const ProjectCreatePage = () => {
           ? await updateProject(editProjectId, body, token)
           : await createProject(body, token);
 
+      try {
+        await queryClient.invalidateQueries({ queryKey: MY_RECRUITING_PROJECTS_QUERY_KEY });
+      } catch {}
       try {
         const cacheKey = 'devine_my_projects_cache_v1';
         const raw = localStorage.getItem(cacheKey);

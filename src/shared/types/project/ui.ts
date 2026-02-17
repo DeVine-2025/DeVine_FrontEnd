@@ -9,6 +9,8 @@ export const ERROR_MESSAGE =
 export type TechStackItem = {
   id: string;
   icon?: ReactNode;
+  /** icon 없을 때 배지 해석용 */
+  name?: string;
 };
 
 export type RecommendPreviewItem = {

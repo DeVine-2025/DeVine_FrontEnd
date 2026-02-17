@@ -73,10 +73,23 @@ const RecommendDeveloperPage = () => {
   bookmarkMapRef.current = bookmarkMap;
 
   const { data: projectsData, isLoading: myProjectOptionsLoading } = useMyRecruitingProjects();
-  const myProjectOptions = useMemo(
-    () => (projectsData ? projectsToOptions(projectsData) : []),
-    [projectsData],
-  );
+  const myProjectOptions = useMemo(() => (projectsData ? projectsToOptions(projectsData) : []), [projectsData]);
+
+  // 서버 목록이 비어도(상태 반영 지연 등) 방금 생성한 프로젝트를 바로 쓸 수 있도록 로컬 캐시 fallback
+  const myProjectOptionsWithCacheFallback = useMemo(() => {
+    if (myProjectOptions.length > 0) return myProjectOptions;
+    try {
+      const raw = localStorage.getItem(MY_PROJECTS_CACHE_KEY);
+      const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+      if (!Array.isArray(parsed)) return myProjectOptions;
+      const cached = parsed
+        .map((p: any) => ({ id: Number(p?.id), name: String(p?.name ?? '').trim() }))
+        .filter((p: any) => Number.isFinite(p.id) && p.id > 0 && p.name.length > 0);
+      return cached.length > 0 ? (cached as MyProjectOption[]) : myProjectOptions;
+    } catch {
+      return myProjectOptions;
+    }
+  }, [myProjectOptions]);
   useEffect(() => {
     if (myProjectOptions.length > 0) writeMyProjectsCache(myProjectOptions);
   }, [myProjectOptions]);
@@ -111,20 +124,20 @@ const RecommendDeveloperPage = () => {
   useEffect(() => {
     if (!autoSelectProject) return;
     if (myProjectOptionsLoading) return;
-    if (myProjectOptions.length === 0) return;
+    if (myProjectOptionsWithCacheFallback.length === 0) return;
     if (myProjects.length > 0) return;
-    const mostRecentName = myProjectOptions[0].name;
+    const mostRecentName = myProjectOptionsWithCacheFallback[0].name;
     setRecommendDeveloper({ myProjects: [mostRecentName] });
     setPage(1);
-  }, [autoSelectProject, myProjectOptionsLoading, myProjectOptions, myProjects.length, setRecommendDeveloper]);
+  }, [autoSelectProject, myProjectOptionsLoading, myProjectOptionsWithCacheFallback, myProjects.length, setRecommendDeveloper]);
 
   useEffect(() => {
     if (myProjectOptionsLoading) return;
-    if (myProjectOptions.length === 0) return;
+    if (myProjectOptionsWithCacheFallback.length === 0) return;
     setPage(1);
     fetchList(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myProjects]);
+  }, [myProjects, myProjectOptionsWithCacheFallback.length, myProjectOptionsLoading]);
 
   const fetchList = useCallback(
     async (pageNum: number = 1) => {
@@ -137,7 +150,7 @@ const RecommendDeveloperPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const params = buildApiParams(myProjects, pageNum, myProjectOptions);
+        const params = buildApiParams(myProjects, pageNum, myProjectOptionsWithCacheFallback);
         if (!params) {
           setList([]);
           setTotalPages(0);
@@ -160,12 +173,18 @@ const RecommendDeveloperPage = () => {
         setError(msg);
         setList([]);
         setTotalPages(0);
-        console.error('[추천 개발자] 에러', msg, '요청 params:', buildApiParams(myProjects, pageNum, myProjectOptions), e);
+        console.error(
+          '[추천 개발자] 에러',
+          msg,
+          '요청 params:',
+          buildApiParams(myProjects, pageNum, myProjectOptionsWithCacheFallback),
+          e,
+        );
       } finally {
         setLoading(false);
       }
     },
-    [getToken, myProjects, myProjectOptions],
+    [getToken, myProjects, myProjectOptionsWithCacheFallback],
   );
 
   useEffect(() => {
@@ -230,7 +249,7 @@ const RecommendDeveloperPage = () => {
     [handleBookmarkChange],
   );
 
-  if (!myProjectOptionsLoading && myProjectOptions.length === 0) {
+  if (!myProjectOptionsLoading && myProjectOptionsWithCacheFallback.length === 0) {
     return (
       <div className="relative min-h-[calc(100vh-6rem)] w-full">
         <div className="pointer-events-none flex min-h-full select-none flex-col gap-6 blur-sm">
@@ -240,7 +259,7 @@ const RecommendDeveloperPage = () => {
             setOpenFilter={setOpenFilter}
             myProjects={myProjects}
             setMyProjects={setMyProjects}
-            myProjectOptions={myProjectOptions}
+            myProjectOptions={myProjectOptionsWithCacheFallback}
             myProjectOptionsLoading={myProjectOptionsLoading}
             techStacks={techStacks}
             setTechStacks={setTechStacks}
@@ -279,7 +298,7 @@ const RecommendDeveloperPage = () => {
         setOpenFilter={setOpenFilter}
         myProjects={myProjects}
         setMyProjects={setMyProjects}
-        myProjectOptions={myProjectOptions}
+        myProjectOptions={myProjectOptionsWithCacheFallback}
         myProjectOptionsLoading={myProjectOptionsLoading}
         techStacks={techStacks}
         setTechStacks={setTechStacks}
@@ -316,7 +335,10 @@ const RecommendDeveloperPage = () => {
         </div>
       )}
 
-      {!loading && myProjects.length === 0 && !myProjectOptionsLoading && myProjectOptions.length === 0 && (
+      {!loading &&
+        myProjects.length === 0 &&
+        !myProjectOptionsLoading &&
+        myProjectOptionsWithCacheFallback.length === 0 && (
         <div className="flex min-h-[50vh] flex-1 flex-col items-center justify-center py-12 text-center">
           <p className="text-2xl font-semibold text-[var(--ui-900)]">등록한 프로젝트가 없습니다.</p>
           <p className="mt-2 text-lg text-[var(--ui-600)]">프로젝트를 만든 뒤 추천 개발자를 확인할 수 있어요.</p>
