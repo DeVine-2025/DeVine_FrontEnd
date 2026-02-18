@@ -42,3 +42,25 @@ export async function respondApplication(
 
   return data!;
 }
+
+export async function respondProposal(
+  matchingId: number,
+  decision: RespondDecision,
+  token: string,
+) {
+  const res = await fetch(`${BASE_URL}/api/v1/matching/proposals/${matchingId}/respond`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ decision }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `Failed to respond proposal (${res.status})`);
+  }
+
+  return res.json();
+}

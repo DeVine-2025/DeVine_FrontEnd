@@ -44,23 +44,31 @@ type ApiResponse<T> = {
 
 const EMPTY = { content: [], totalElements: 0 } as const;
 
-async function fetchPmDevelopers(args: { endpoint: string; token: string; signal?: AbortSignal }) {
-  const { endpoint, token, signal } = args;
+async function fetchPmDevelopers({
+  endpoint,
+  token,
+  signal,
+}: {
+  endpoint: string;
+  token: string;
+  signal?: AbortSignal;
+}) {
+  try {
+    const res = await fetch(endpoint, {
+      method: 'GET',
+      signal,
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-  const res = await fetch(endpoint, {
-    method: 'GET',
-    signal,
-    headers: { Authorization: `Bearer ${token}` },
-  });
+    if (res.status === 404 || res.status === 204) return EMPTY;
+    if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
 
-  if (res.status === 404 || res.status === 204) return EMPTY;
-  if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-
-  const json = (await res.json()) as ApiResponse<{
-    developers: Page<MatchingDeveloper>;
-  }>;
-
-  return json.result.developers;
+    const json = (await res.json()) as ApiResponse<{ developers: Page<MatchingDeveloper> }>;
+    return json.result.developers;
+  } catch (e: any) {
+    if (e?.name === 'AbortError') return EMPTY;
+    throw e;
+  }
 }
 
 export function usePmDevelopers(tab: DevTab) {
@@ -75,5 +83,7 @@ export function usePmDevelopers(tab: DevTab) {
       return fetchPmDevelopers({ endpoint, token, signal });
     },
     staleTime: 30_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }

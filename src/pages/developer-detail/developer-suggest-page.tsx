@@ -1,28 +1,25 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@clerk/clerk-react';
-import { cn } from '@libs/cn';
-
-import { DOMAIN_REVERSE_MAP } from '@constants/domain';
+import { createMemberProposal } from '@apis/apply';
+import type { MyProfile } from '@apis/myInfo/myInfo';
+import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import { getMyRecruitingProjects, type MyRecruitingProjectItem } from '@apis/projects';
 import BackIcon from '@assets/icons/back.svg?react';
-
+import { useAuth } from '@clerk/clerk-react';
+import MainProjectCard from '@components/common/MainProjectCard';
+import SelectDropdown from '@components/common/SelectDropdown';
 import ImagePreview from '@components/profileDetail/ImagePreview';
 import RoleChips from '@components/profileDetail/RoleChips';
-import SelectDropdown from '@components/common/SelectDropdown';
-import MainProjectCard from '@components/common/MainProjectCard';
-
-import type { MyProfile } from '@apis/myInfo/myInfo';
-import { getMyRecruitingProjects, type MyRecruitingProjectItem } from '@apis/projects';
-import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
-import { createMemberProposal } from '@apis/apply';
+import { DOMAIN_REVERSE_MAP } from '@constants/domain';
+import { cn } from '@libs/cn';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 const DROPDOWN_OPTIONS = [
-{ label: 'PM', value: 'PM' },
-{ label: '프론트엔드', value: 'FRONTEND' },
-{ label: '백엔드', value: 'BACKEND' },
+  { label: 'PM', value: 'PM' },
+  { label: '프론트엔드', value: 'FRONTEND' },
+  { label: '백엔드', value: 'BACKEND' },
   { label: '인프라', value: 'INFRA' },
-]
+];
 const DeveloperSuggestPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,7 +63,9 @@ const DeveloperSuggestPage = () => {
       } catch (e) {
         if (cancelled) return;
         setProjects([]);
-        setProjectsError(e instanceof Error ? e.message : '모집중인 프로젝트를 불러오지 못했습니다.');
+        setProjectsError(
+          e instanceof Error ? e.message : '모집중인 프로젝트를 불러오지 못했습니다.',
+        );
       } finally {
         if (!cancelled) setProjectsLoading(false);
       }
@@ -97,8 +96,8 @@ const DeveloperSuggestPage = () => {
     setSubmitError(null);
     setSubmitSuccess(false);
     try {
-      await createMemberProposal(memberNick, selectedProjectId,proposalPart, trimmed, token);
-      alert("제안을 보냈습니다.");
+      await createMemberProposal(memberNick, selectedProjectId, proposalPart, trimmed, token);
+      alert('제안을 보냈습니다.');
       navigate(-1);
       setSubmitSuccess(true);
       setProposalContent('');
@@ -123,39 +122,36 @@ const DeveloperSuggestPage = () => {
           <BackIcon className="h-8 w-8" />
         </button>
         <div className="flex flex-col gap-2">
-          <p className="text-4xl font-bold text-ui-900">
+          <p className="font-bold text-4xl text-ui-900">
             프로젝트를 선택해
-            <br />
-            [{memberNick}]님에게 매칭을 제안하세요!
+            <br />[{memberNick}]님에게 매칭을 제안하세요!
           </p>
         </div>
       </header>
 
       <section className="mt-10 flex w-full max-w-[500px] flex-col gap-6 rounded-3xl border border-ui-200 bg-ui-bg p-8">
-        <div className="flex flex-row items-start gap-6">
+        <div className="flex flex-row items-start gap-5">
           <ImagePreview
             isExist={profile?.member?.imageUrl !== undefined}
             imageUrl={profile?.member?.imageUrl}
           />
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             <RoleChips
               roleTone={profile?.member?.mainType === 'DEVELOPER' ? 'green' : 'blue'}
               role={profile?.member?.mainType === 'DEVELOPER' ? '개발자' : 'PM'}
             />
-            <p className="text-2xl font-semibold text-ui-1000">
-              {profile?.member?.nickname}
-            </p>
+            <p className="pl-2 font-semibold text-2xl text-ui-1000">{profile?.member?.nickname}</p>
             <div className="flex flex-wrap gap-2">
               {koreanDomains.map((item: string, index: number) => (
                 <span
                   key={index}
-                  className="rounded-lg bg-ui-100 px-2.5 py-1 text-sm font-semibold text-ui-600"
+                  className="rounded-lg bg-ui-100 px-2.5 py-1 font-semibold text-sm text-ui-600"
                 >
                   {item}
                 </span>
               ))}
             </div>
-            <p className="text-sm font-normal text-ui-600">
+            <p className="pl-2 font-normal text-sm text-ui-600">
               {profile?.member?.body || '소개가 입력되지 않았어요.'}
             </p>
           </div>
@@ -164,12 +160,15 @@ const DeveloperSuggestPage = () => {
 
       <section className="mt-10 flex flex-col gap-5">
         <div className="flex items-center justify-between">
-          <p className="text-3xl font-bold text-ui-1000">나의 프로젝트</p>
+          <p className="font-bold text-3xl text-ui-1000">나의 프로젝트</p>
         </div>
         {projectsLoading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={`project-skeleton-${i}`} className="h-[220px] rounded-2xl border border-ui-200 bg-ui-50" />
+              <div
+                key={`project-skeleton-${i}`}
+                className="h-[220px] rounded-2xl border border-ui-200 bg-ui-50"
+              />
             ))}
           </div>
         ) : projectsError ? (
@@ -193,9 +192,16 @@ const DeveloperSuggestPage = () => {
                     showBookmark={false}
                     onClick={() => setSelectedProjectId(project.projectId)}
                   />
-                    <div className={cn('absolute top-4 right-4 z-20 flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold', isSelected ? " bg-primary text-white" : "border border-ui-200 bg-ui-200 text-ui-300")}>
-                      ✓
-                    </div>
+                  <div
+                    className={cn(
+                      'absolute top-4 right-4 z-20 flex h-9 w-9 items-center justify-center rounded-full font-bold text-xl',
+                      isSelected
+                        ? 'bg-primary text-white'
+                        : 'border border-ui-200 bg-ui-200 text-ui-300',
+                    )}
+                  >
+                    ✓
+                  </div>
                 </div>
               );
             })}
@@ -204,28 +210,34 @@ const DeveloperSuggestPage = () => {
       </section>
 
       <section className="mt-12 flex flex-col gap-5">
-        <p className="text-3xl font-bold text-ui-1000">제안 포지션</p>
-        <SelectDropdown placeholder="포지션을 선택해주세요" value={proposalPart} onChange={setProposalPart} options={DROPDOWN_OPTIONS} className="w-115" />
+        <p className="font-bold text-3xl text-ui-1000">제안 포지션</p>
+        <SelectDropdown
+          placeholder="포지션을 선택해주세요"
+          value={proposalPart}
+          onChange={setProposalPart}
+          options={DROPDOWN_OPTIONS}
+          className="w-115"
+        />
       </section>
-        <section className="mt-12 flex flex-col gap-5">
-          <p className="text-3xl font-bold text-ui-1000">제안 내용</p>
-          <textarea
-            placeholder="제안 내용을 입력해주세요."
-            value={proposalContent}
-            onChange={(e) => setProposalContent(e.target.value)}
-            className="h-72 w-full resize-none rounded-2xl bg-ui-50 p-6 text-[14px] text-ui-800 placeholder:text-ui-500"
-          />
-          <div className="flex items-center justify-end">
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitLoading || !selectedProjectId}
-              className="rounded-xl bg-primary px-30 py-6 text-lg font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {submitLoading ? '전송 중...' : '제안하기'}
-            </button>
-          </div>
-        </section>
+      <section className="mt-12 flex flex-col gap-5">
+        <p className="font-bold text-3xl text-ui-1000">제안 내용</p>
+        <textarea
+          placeholder="제안 내용을 입력해주세요."
+          value={proposalContent}
+          onChange={(e) => setProposalContent(e.target.value)}
+          className="h-72 w-full resize-none rounded-2xl bg-ui-50 p-6 text-[14px] text-ui-800 placeholder:text-ui-500"
+        />
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitLoading || !selectedProjectId}
+            className="rounded-xl bg-primary px-30 py-6 font-medium text-lg text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {submitLoading ? '전송 중...' : '제안하기'}
+          </button>
+        </div>
+      </section>
     </div>
   );
 };
