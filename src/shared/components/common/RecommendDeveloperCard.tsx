@@ -1,7 +1,8 @@
 import { memo } from 'react';
 import BookmarkButton from '@components/common/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
-import { badgeToneToClass } from 'src/shared/types/badgeTone';
+import { cn } from '@libs/cn';
+import type { BadgeTone } from '@t/badgeTone';
 import { useThemeStore } from '@store/theme';
 import {
   BACKEND_DATABASE,
@@ -14,21 +15,17 @@ import {
   type TechStackChip,
 } from '@constants/position-tech-stack';
 
-type RecommendDeveloperTech = {
-  id: string;
-  name: string;
-  icon?: React.ReactNode;
-};
+export type RecommendDeveloperCardTech = { id: string; name: string; icon?: React.ReactNode };
 
 export type RecommendDeveloperCardProps = {
   role: string;
-  roleTone: keyof typeof badgeToneToClass;
+  roleTone?: BadgeTone;
   nickname: string;
   profileImageUrl?: string;
   introduction?: string;
 
   domains?: Array<{ label: string }>;
-  techStack?: RecommendDeveloperTech[];
+  techStack?: RecommendDeveloperCardTech[];
 
   matchedProjectName?: string;
   matchedReason?: string;
@@ -47,11 +44,23 @@ export type RecommendDeveloperCardProps = {
     bookmarkId?: number,
   ) => void;
   onClick?: () => void;
+  /** 메모 최적화: 부모에서 stable callback 전달 시 사용 */
+  onNavigateToDeveloper?: (nickname: string) => void;
 };
 
+const SKIP_TECH_NAMES = new Set([
+  'backend',
+  'frontend',
+  'infra',
+  '백엔드',
+  '프론트엔드',
+  '프런트엔드',
+  '인프라',
+]);
+
 function RecommendDeveloperCard({
-  role,
-  roleTone,
+  role: _role,
+  roleTone: _roleTone,
   nickname,
   profileImageUrl,
   introduction,
@@ -67,15 +76,9 @@ function RecommendDeveloperCard({
   listItemId,
   onBookmarkChangeById,
   onClick,
+  onNavigateToDeveloper,
 }: RecommendDeveloperCardProps) {
-  const handleBookmark =
-    onBookmarkChangeById && listItemId != null
-      ? (next: boolean) => onBookmarkChangeById(memberId ?? 0, listItemId, next, bookmarkId)
-      : onBookmarkChange;
   const { theme } = useThemeStore();
-  const maxChips = 5;
-  const chips = techStack?.slice(0, maxChips) ?? [];
-  const overflow = (techStack?.length ?? 0) - chips.length;
 
   const normalizeTechKey = (v: unknown): string => {
     const s = typeof v === 'string' ? v : v != null ? String(v) : '';
@@ -98,8 +101,8 @@ function RecommendDeveloperCard({
     ...INFRA_CONTAINER,
   ].filter((b): b is Extract<TechStackChip, { off: string; on: string }> => 'off' in b && 'on' in b);
 
-  const TECH_BADGE_BY_NAME = new Map<string, Extract<TechStackChip, { off: string; on: string }>>(
-    ALL_TECH_STACK_BADGES.flatMap((b: Extract<TechStackChip, { off: string; on: string }>) => [
+  const TECH_BADGE_BY_NAME = new Map(
+    ALL_TECH_STACK_BADGES.flatMap((b) => [
       [normalizeTechKey(b.key), b],
       [normalizeTechKey(b.label), b],
     ]),
@@ -116,100 +119,104 @@ function RecommendDeveloperCard({
     return TECH_BADGE_BY_NAME.get(alias) ?? TECH_BADGE_BY_NAME.get(normalized) ?? null;
   };
 
+  const filteredTechStack =
+    techStack?.filter((t) => !SKIP_TECH_NAMES.has(normalizeTechKey(t.name))) ?? [];
+  const techChips = filteredTechStack.slice(0, 5);
+  const techOverflow = filteredTechStack.length - techChips.length;
+
+  const handleClick =
+    onNavigateToDeveloper && nickname
+      ? () => onNavigateToDeveloper(nickname)
+      : onClick;
+
+  const handleBookmark =
+    onBookmarkChangeById && listItemId != null
+      ? (next: boolean) => onBookmarkChangeById(memberId ?? 0, listItemId, next, bookmarkId)
+      : onBookmarkChange;
+
   return (
     <article
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
+      role={handleClick ? 'button' : undefined}
+      tabIndex={handleClick ? 0 : undefined}
+      onClick={handleClick}
       onKeyDown={
-        onClick
+        handleClick
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                onClick();
+                handleClick();
               }
             }
           : undefined
       }
-      className={`relative h-[236px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
-        onClick ? 'cursor-pointer' : ''
-      }`}
-      style={{
-        border: '1px solid transparent',
-        background:
-          'linear-gradient(var(--ui-bg), var(--ui-bg)) padding-box, linear-gradient(90deg, rgba(114, 110, 255, 0.4) 0%, rgba(219, 80, 179, 0.4) 100%) border-box',
-      }}
+      className={cn(
+        'relative overflow-hidden rounded-[24px] border border-[var(--ui-200)] bg-[var(--ui-bg)] h-[196px] w-full max-w-[1280px] transition-all duration-300',
+        handleClick && 'cursor-pointer recommend-card-hover-border',
+      )}
     >
-      {/* 아바타 */}
-      <div className="absolute left-[24px] top-[24px] h-[64px] w-[64px] overflow-hidden rounded-full border-2 border-[var(--ui-200)] bg-[var(--ui-50)]">
-        {profileImageUrl ? (
-          <img src={profileImageUrl} alt={nickname} className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-[var(--ui-300)]">
-            <AvatarIcon aria-hidden className="h-[64px] w-[64px]" />
-          </div>
-        )}
-      </div>
-
-      {/* 본문(좌) */}
-      <div className="absolute left-[104px] top-[24px] flex h-[142px] w-[394px] flex-col gap-[12px]">
-        <div className="flex w-[220px] flex-col gap-[8px]">
-          <span
-            className={`Caption1 inline-flex h-[24px] w-fit items-center rounded-[8px] px-[6px] font-semibold ${badgeToneToClass[roleTone]}`}
-          >
-            {role}
-          </span>
-
-          <p className="Body1 h-[26px] font-semibold text-[var(--ui-1000)]">{nickname}</p>
-
-          <div className="flex flex-wrap gap-[8px]">
-            {domains?.slice(0, 3).map((d) => (
-              <span
-                key={d.label}
-                className="Caption1 flex h-[24px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] font-semibold text-[var(--ui-600)]"
-              >
-                {d.label}
-              </span>
-            ))}
-          </div>
+      {/* 왼쪽 블록(프로필 + 소개) - 세로 정중앙, 아주 살짝 위로 */}
+      <div className="absolute left-[24px] top-[calc(50%-30px)] flex -translate-y-1/2 items-center gap-[12px]">
+        {/* 아바타 */}
+        <div className="h-[56px] w-[56px] shrink-0 overflow-hidden rounded-full border-2 border-[var(--ui-200)] bg-[var(--ui-50)]">
+          {profileImageUrl ? (
+            <img src={profileImageUrl} alt={nickname} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-[var(--ui-300)]">
+              <AvatarIcon aria-hidden className="h-[56px] w-[56px]" />
+            </div>
+          )}
         </div>
 
-        <p className="Caption1 line-clamp-2 text-[var(--ui-600)]">
-          {introduction}
-        </p>
+        {/* 본문(좌) */}
+        <div className="flex w-[394px] flex-col gap-[10px]">
+          <div className="flex min-w-0 flex-col gap-[4px]">
+            <p className="Body1 h-[26px] font-semibold text-[var(--ui-1000)]">{nickname}</p>
+            <div className="flex flex-nowrap gap-[8px]">
+              {domains?.slice(0, 3).map((d) => (
+                <span
+                  key={d.label}
+                  className="Caption1 shrink-0 flex h-[24px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] font-semibold text-[var(--ui-600)]"
+                >
+                  {d.label}
+                </span>
+              ))}
+            </div>
+          </div>
+          <p className="Caption1 line-clamp-2 text-[var(--ui-600)]">{introduction}</p>
+        </div>
       </div>
 
-      {/* 스택(우) */}
-      <div className="absolute left-[698px] top-[50px] flex h-[76px] w-[360px] flex-wrap items-center gap-[4px]">
-        {chips.map((t) => (
-          <span key={t.id} className="inline-flex items-center">
-            {(() => {
-              const badge = findBadge(t.name);
-              if (badge) {
-                const offSrc = theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off;
-                return (
-                  <img
-                    src={offSrc}
-                    alt={badge.label}
-                    className="h-[36px] w-auto select-none"
-                    draggable={false}
-                  />
-                );
-              }
-
-              return (
-                <span className="flex items-center gap-[8px] rounded-[24px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-[12px] py-[8px]">
-                  {t.icon ? <span className="h-[20px] w-[20px]">{t.icon}</span> : null}
-                  <span className="Caption1 font-medium text-[var(--ui-800)]">{t.name}</span>
-                </span>
-              );
-            })()}
-          </span>
-        ))}
-
-        {overflow > 0 ? (
-          <span className="Label1 font-medium text-[var(--ui-400)]">+{overflow}</span>
+      {/* 기술스택 뱃지 - 3개 넘으면 두 줄로 */}
+      <div className="absolute left-[780px] top-1/2 w-[300px] -translate-y-1/2">
+        <div className="flex min-h-[72px] flex-wrap items-center gap-[4px]">
+        {techChips.map((t) => {
+          const badge = findBadge(t.name);
+          if (badge) {
+            const offSrc = theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off;
+            return (
+              <span key={t.id} className="inline-flex items-center">
+                <img
+                  src={offSrc}
+                  alt={badge.label}
+                  className="h-[32px] w-auto select-none"
+                  draggable={false}
+                />
+              </span>
+            );
+          }
+          return (
+            <span
+              key={t.id}
+              className="Caption1 inline-flex items-center rounded-[20px] border border-[var(--ui-200)] bg-[var(--ui-100)] px-[10px] py-[6px] font-medium text-[var(--ui-800)]"
+            >
+              {t.name}
+            </span>
+          );
+        })}
+        {techOverflow > 0 ? (
+          <span className="Label1 font-medium text-[var(--ui-400)]">+{techOverflow}</span>
         ) : null}
+        </div>
       </div>
 
       {/* 북마크 */}
@@ -223,7 +230,7 @@ function RecommendDeveloperCard({
       />
 
       {showMatchedReason && (
-        <div className="absolute left-[24px] top-[172px] flex items-center justify-center rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
+        <div className="absolute left-[24px] bottom-[32px] flex items-center justify-center rounded-[12px] bg-[var(--ui-100)] px-[12px] py-[8px]">
           <p className="Label1 font-medium text-[var(--ui-1000)]">
             <span className="text-[var(--badge-text-primary)]">[{matchedProjectName}]</span>
             {matchedReason}

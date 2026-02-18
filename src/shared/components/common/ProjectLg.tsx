@@ -22,8 +22,8 @@ export default function ProjectLg({
         <article
           {...ui.CardActionProps}
           className={cn(
-            'flex h-[180px] w-full max-w-[1180px] items-center gap-8 overflow-hidden rounded-2xl border border-card-border bg-card-bg p-8',
-            props.onClick && 'cursor-pointer',
+            'flex h-[180px] w-full max-w-[1180px] items-center gap-8 overflow-hidden rounded-2xl border border-card-border bg-card-bg p-8 transition-all duration-300',
+            props.onClick && 'cursor-pointer recommend-card-hover-border',
             props.className,
           )}
         >

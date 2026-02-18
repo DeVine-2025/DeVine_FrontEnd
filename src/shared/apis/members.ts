@@ -44,22 +44,65 @@ type MemberProfileResponse = {
     nickname?: string;
     image?: string | null;
     body?: string | null;
-    techstacks?: string[];
+    techstacks?: string[] | Array<{ name?: string; techstack?: string; techStackName?: string }>;
+    techStacks?: unknown[];
     techGenres?: string[];
     member?: {
       nickname?: string;
       imageUrl?: string | null;
       body?: string | null;
+      techstacks?: unknown[];
+      techStacks?: unknown[];
+      domains?: unknown[];
     };
-    domains?: string[];
+    domains?: string[] | Array<{ label?: string; name?: string }>;
+    interestDomains?: unknown[];
     contacts?: Array<{ type?: string; value?: string; link?: string }>;
   };
 };
 
-export async function getMemberProfileByNickname(nickname: string, signal?: AbortSignal) {
+function normalizeTechstacksToNames(raw: unknown): string[] {
+  if (!Array.isArray(raw) || raw.length === 0) return [];
+  return raw
+    .map((item) => {
+      if (typeof item === 'string') return item.trim();
+      if (item != null && typeof item === 'object') {
+        const o = item as Record<string, unknown>;
+        const n =
+          o.name ?? o.techstack ?? o.techStackName ?? o.techstackName ?? o.skillName ?? o.label;
+        return typeof n === 'string' ? n.trim() : '';
+      }
+      return String(item ?? '').trim();
+    })
+    .filter((s) => s.length > 0);
+}
+
+function normalizeDomainsToLabels(raw: unknown): string[] {
+  if (!Array.isArray(raw) || raw.length === 0) return [];
+  return raw
+    .map((item) => {
+      if (typeof item === 'string') return item.trim();
+      if (item != null && typeof item === 'object') {
+        const o = item as Record<string, unknown>;
+        const label = o.label ?? o.name ?? o.domain;
+        return typeof label === 'string' ? label.trim() : '';
+      }
+      return String(item ?? '').trim();
+    })
+    .filter((s) => s.length > 0);
+}
+
+export async function getMemberProfileByNickname(
+  nickname: string,
+  signal?: AbortSignal,
+  token?: string | null,
+) {
   const safeNickname = encodeURIComponent(nickname);
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${BASE_URL}/api/v1/members/${safeNickname}`, {
     method: 'GET',
+    headers: Object.keys(headers).length > 0 ? headers : undefined,
     signal,
   });
 
@@ -69,14 +112,19 @@ export async function getMemberProfileByNickname(nickname: string, signal?: Abor
   }
 
   if (!data?.result) return null;
-  const result = data.result;
-  const member = result.member;
+  const result = data.result as Record<string, unknown>;
+  const member = result.member as Record<string, unknown> | undefined;
+  const techstacksRaw =
+    result.techstacks ?? result.techStacks ?? member?.techstacks ?? member?.techStacks;
+  const domainsRaw =
+    result.domains ?? result.interestDomains ?? member?.domains;
   return {
-    nickname: result.nickname ?? member?.nickname,
-    image: result.image ?? member?.imageUrl ?? null,
-    body: result.body ?? member?.body ?? null,
-    techstacks: result.techstacks ?? [],
-    techGenres: result.techGenres ?? [],
+    nickname: (result.nickname ?? member?.nickname) as string | undefined,
+    image: (result.image ?? member?.imageUrl ?? null) as string | null,
+    body: (result.body ?? member?.body ?? null) as string | null,
+    techstacks: normalizeTechstacksToNames(techstacksRaw),
+    domains: normalizeDomainsToLabels(domainsRaw),
+    techGenres: (result.techGenres ?? []) as string[],
   };
 }
 
@@ -143,7 +191,7 @@ type MyProjectsResponse = {
 };
 
 export async function getMyProjects(token: string, signal?: AbortSignal): Promise<MyProjectDto[]> {
-  const res = await fetch(`/api/v1/members/me/projects`, {
+  const res = await fetch(`${BASE_URL}/api/v1/members/me/projects`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -257,12 +305,41 @@ function pickString(dto: Record<string, unknown>, ...keys: string[]): string {
 }
 
 function pickImageUrl(dto: Record<string, unknown>): string | undefined {
-  const v = dto.image ?? dto.imageUrl ?? dto.profileImageUrl ?? dto.avatarUrl ?? dto.profileImage;
+  const v =
+    dto.image ??
+    dto.imageUrl ??
+    dto.profileImageUrl ??
+    dto.profileImage ??
+    dto.profileImgUrl ??
+    dto.avatarUrl ??
+    dto.avatar ??
+    dto.avatarImage;
   if (typeof v === 'string' && v.trim().length > 0) return v.trim();
   for (const nest of ['member', 'user', 'profile', 'developer', 'account']) {
     const obj = dto[nest] as Record<string, unknown> | undefined;
     if (obj && typeof obj === 'object') {
-      const w = obj.image ?? obj.imageUrl ?? obj.profileImageUrl ?? obj.avatarUrl;
+      const w =
+        obj.image ??
+        obj.imageUrl ??
+        obj.profileImageUrl ??
+        obj.profileImage ??
+        obj.profileImgUrl ??
+        obj.avatarUrl ??
+        obj.avatar ??
+        obj.avatarImage;
+      if (typeof w === 'string' && w.trim().length > 0) return w.trim();
+    }
+  }
+  return undefined;
+}
+
+function pickMainType(dto: Record<string, unknown>): string | undefined {
+  const v = dto.mainType ?? dto.memberType ?? dto.role ?? dto.memberRole;
+  if (typeof v === 'string' && v.trim().length > 0) return v.trim();
+  for (const nest of ['member', 'user', 'profile', 'developer', 'account']) {
+    const obj = dto[nest] as Record<string, unknown> | undefined;
+    if (obj && typeof obj === 'object') {
+      const w = obj.mainType ?? obj.memberType ?? obj.role ?? obj.memberRole;
       if (typeof w === 'string' && w.trim().length > 0) return w.trim();
     }
   }
@@ -302,6 +379,8 @@ function mapRecommendMemberToListItem(
   index: number,
 ): RecommendDeveloperListItem {
   const raw = dto as Record<string, unknown>;
+  const mainType = pickMainType(raw);
+  const isPm = mainType === 'PM';
   const memberId =
     (typeof dto.memberId === 'number' && dto.memberId > 0 ? dto.memberId : undefined) ??
     (typeof dto.id === 'number' && dto.id > 0 ? dto.id : undefined) ??
@@ -310,6 +389,10 @@ function mapRecommendMemberToListItem(
     raw,
     'nickname',
     'nickName',
+    'memberNickname',
+    'memberNick',
+    'member_nickname',
+    'nick',
     'name',
     'userName',
     'username',
@@ -381,8 +464,8 @@ function mapRecommendMemberToListItem(
     profileImageUrl: profileImageUrl ?? undefined,
     introduction,
     techStack,
-    role: '개발자',
-    roleTone: 'blue',
+    role: isPm ? 'PM' : '개발자',
+    roleTone: isPm ? 'blue' : 'green',
     domains: (() => {
       const raw = dto as Record<string, unknown>;
       let arr: unknown[] = [];
@@ -487,7 +570,12 @@ export async function getRecommendMembers(
 
   const page = json?.result;
   const content = page?.content ?? [];
-  const list = content.map(mapRecommendMemberToListItem);
+  const list = content
+    .filter((dto) => {
+      const mainType = pickMainType(dto as Record<string, unknown>);
+      return mainType !== 'PM';
+    })
+    .map(mapRecommendMemberToListItem);
 
   return {
     list,

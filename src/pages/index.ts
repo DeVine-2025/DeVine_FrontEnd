@@ -22,6 +22,7 @@ export { default as RecommendDeveloperPage } from './recommend/developer/recomme
 export { default as RecommendProjectPage } from './recommend/project/recommend-project-page';
 export { default as RecommendPage } from './recommend/recommend-page';
 export { default as DeveloperDetailPage } from './developer-detail/developer-detail-page';
+export { default as DeveloperSuggestPage } from './developer-detail/developer-suggest-page';
 export { default as ReportDetailPage } from './report/report-detail-page';
 export { default as ReportResultPage } from './report/report-result-page';
 export { default as ReportLoadingPage } from './report/report-loading-page';

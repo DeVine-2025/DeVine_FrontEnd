@@ -99,14 +99,14 @@ export default function DatePickerPopover({
           type="button"
           aria-label="캘린더 열기"
           onClick={() => setOpen((o) => !o)}
-          className="absolute top-1/2 right-3 -translate-y-1/2 text-[var(--ui-500)] hover:text-[var(--ui-700)]"
+          className="-translate-y-1/2 absolute top-1/2 right-6 text-[var(--ui-500)] hover:text-[var(--ui-700)]"
         >
           <CalendarIcon />
         </button>
       </div>
 
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-2">
+        <div className="absolute top-full left-0 z-50 mt-2">
           <DayPicker
             mode="single"
             locale={ko}
@@ -115,11 +115,12 @@ export default function DatePickerPopover({
             disabled={minDate ? { before: minDate } : undefined}
             defaultMonth={selectedDate ?? minDate ?? new Date()}
             formatters={{
-              formatCaption: (date) => `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월`,
+              formatCaption: (date) =>
+                `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월`,
             }}
             components={{
               Footer: () => (
-                <div className="mt-3 flex justify-between border-t border-[var(--ui-200)] pt-3">
+                <div className="mt-3 flex justify-between border-[var(--ui-200)] border-t pt-3">
                   <button
                     type="button"
                     onClick={clear}
@@ -146,7 +147,16 @@ export default function DatePickerPopover({
 
 function CalendarIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />

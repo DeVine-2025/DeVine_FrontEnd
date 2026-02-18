@@ -32,7 +32,6 @@ export async function getProjects(
           size: params.size ?? 10,
         });
   const queryString = qs.startsWith('?') ? qs : `?${qs}`;
-  console.log('REQUEST =>', `${BASE_URL}/api/v1/projects${queryString}`);
 
   const res = await fetch(`${BASE_URL}/api/v1/projects${queryString}`, {
     method: 'GET',
@@ -45,7 +44,6 @@ export async function getProjects(
 
   const json = await res.json().catch(() => null);
   const projects = json?.result?.projects;
-  console.log(projects);
 
   if (!res.ok) {
     throw new Error('프로젝트 목록을 불러오지 못했어요.');
@@ -131,11 +129,23 @@ export async function updateProject(
 export type MyRecruitingProjectItem = {
   projectId: number;
   title: string;
+  thumbnailUrl?: string;
+  categoryName?: string;
+  location?: string;
+  durationRangeName?: string;
+  modeName?: string;
 };
 
 type MyRecruitingContentItem = {
   projectId?: number;
+  id?: number;
   title?: string;
+  thumbnailUrl?: string;
+  categoryName?: string;
+  location?: string;
+  durationRangeName?: string;
+  modeName?: string;
+  [key: string]: unknown;
 };
 
 type MyRecruitingResponse = {
@@ -149,7 +159,35 @@ type MyRecruitingResponse = {
   };
 };
 
-export async function getMyRecruitingProjects(
+function extractMyProjectsRawList(json: MyRecruitingResponse | null): MyRecruitingContentItem[] {
+  const result = (json as any)?.result;
+  let rawList: MyRecruitingContentItem[] = [];
+  if (Array.isArray(result)) {
+    rawList = result;
+  } else if (Array.isArray(result?.projects)) {
+    rawList = result.projects;
+  } else if (Array.isArray(result?.projects?.content)) {
+    rawList = result.projects.content;
+  } else if (result && 'content' in result && Array.isArray((result as any).content)) {
+    rawList = (result as any).content as MyRecruitingContentItem[];
+  } else {
+    const proj = (json as any)?.projects;
+    if (Array.isArray(proj)) {
+      rawList = proj as MyRecruitingContentItem[];
+    } else if (
+      proj &&
+      typeof proj === 'object' &&
+      'content' in proj &&
+      Array.isArray((proj as any).content)
+    ) {
+      rawList = (proj as any).content as MyRecruitingContentItem[];
+    }
+  }
+  return rawList;
+}
+
+async function fetchMyProjectsByPath(
+  path: string,
   token: string,
   signal?: AbortSignal,
 ): Promise<MyRecruitingProjectItem[]> {
@@ -174,6 +212,46 @@ export async function getMyRecruitingProjects(
     .map((item) => ({
       projectId: item.projectId ?? 0,
       title: typeof item.title === 'string' ? item.title : '',
+      thumbnailUrl: item.thumbnailUrl ?? '',
+      categoryName: item.categoryName,
+      location: item.location,
+      durationRangeName: item.durationRangeName,
+      modeName: item.modeName,
     }))
     .filter((item) => Number.isFinite(item.projectId) && item.projectId > 0);
+}
+
+export async function getMyRecruitingProjects(
+  token: string,
+  signal?: AbortSignal,
+): Promise<MyRecruitingProjectItem[]> {
+  return fetchMyProjectsByPath('/api/v1/projects/my/recruiting', token, signal);
+}
+
+/**
+ * 내 프로젝트 목록(상태 무관) - 추천 개발자에서 "프로젝트 등록 여부" 판별용
+ * 백엔드에서 방금 만든 프로젝트가 RECRUITING으로 즉시 반영되지 않아도 잡히도록
+ * recruiting / in-progress / completed를 합쳐서 반환합니다.
+ */
+export async function getMyProjectsAllStatuses(
+  token: string,
+  signal?: AbortSignal,
+): Promise<MyRecruitingProjectItem[]> {
+  const endpoints = [
+    '/api/v1/projects/my/recruiting',
+    '/api/v1/projects/my/in-progress',
+    '/api/v1/projects/my/completed',
+  ] as const;
+
+  const settled = await Promise.allSettled(
+    endpoints.map((p) => fetchMyProjectsByPath(p, token, signal)),
+  );
+
+  const merged: MyRecruitingProjectItem[] = [];
+  for (const s of settled) {
+    if (s.status === 'fulfilled') merged.push(...s.value);
+  }
+
+  // projectId 기준 중복 제거
+  return Array.from(new Map(merged.map((p) => [p.projectId, p])).values());
 }

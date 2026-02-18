@@ -3,8 +3,8 @@ import {
   getUnreadNotificationCount,
   markAllNotificationsAsRead,
   markNotificationAsRead,
-  subscribeNotificationStream,
   type NotificationItem,
+  subscribeNotificationStream,
 } from '@apis/notifications';
 import AlarmIcon from '@assets/icons/alarm.svg?react';
 import AlarmDarkHoverIcon from '@assets/icons/alarm-dark-hover.svg?react';
@@ -19,12 +19,7 @@ import ModeDarkHoverIcon from '@assets/icons/mode-dark-hover.svg?react';
 import ModeLightIcon from '@assets/icons/mode-light.svg?react';
 import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
 import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
-import {
-  SignedIn,
-  SignedOut,
-  useAuth as useClerkAuth,
-  useUser,
-} from '@clerk/clerk-react';
+import { SignedIn, SignedOut, useAuth as useClerkAuth, useUser } from '@clerk/clerk-react';
 import NotificationModal from '@components/common/NotificationModal';
 import { useNotificationStore } from '@store/notification';
 import { useThemeStore } from '@store/theme';
@@ -59,16 +54,23 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
 
   const fetchUnreadCount = useCallback(() => {
+    if (isSignedIn !== true) return;
     getToken().then((token) => {
       if (!token) return;
       getUnreadNotificationCount(token)
         .then((count) => setUnreadCount(count))
         .catch(() => setUnreadCount(0));
     });
-  }, [getToken, setUnreadCount]);
+  }, [getToken, isSignedIn, setUnreadCount]);
 
+  // 로그아웃 시 알림 개수 초기화
   useEffect(() => {
-    if (!isSignedIn) return;
+    if (isSignedIn !== true) setUnreadCount(0);
+  }, [isSignedIn, setUnreadCount]);
+
+  // 로그인한 경우에만 알림 SSE 구독 (비로그인 시 호출/연결하지 않음)
+  useEffect(() => {
+    if (isSignedIn !== true) return;
     const controller = new AbortController();
     getToken().then((token) => {
       if (!token) return;
@@ -140,8 +142,9 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   }, [clerkUser?.id, getToken]);
 
   useEffect(() => {
+    if (isSignedIn !== true) return;
     fetchUnreadCount();
-  }, [fetchUnreadCount]);
+  }, [isSignedIn, fetchUnreadCount]);
 
   useEffect(() => {
     if (!isNotificationOpen) return;
@@ -227,6 +230,24 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
     });
   };
 
+  const handleNotificationClick = useCallback(
+    (notification: NotificationItem) => {
+      // 1) 알림 목록에서 제거 + 배지 숫자 감소 (먼저 반영되어 이동 후에도 없어 보이게)
+      setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+      if (!notification.isRead) {
+        setUnreadCount(Math.max(0, useNotificationStore.getState().unreadCount - 1));
+      }
+      getToken().then((token) => {
+        if (!token) return;
+        const id = Number(notification.id);
+        if (!Number.isNaN(id)) markNotificationAsRead(id, token).catch(() => {});
+      });
+      // 2) 그 다음 개발자 지원현황으로 이동
+      navigate('/my-project/dev');
+    },
+    [navigate, getToken],
+  );
+
   const navItems = [
     { path: '/search', label: '프로젝트/개발자 보기' },
     { path: '/recommend', label: '추천 프로젝트/개발자' },
@@ -274,7 +295,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                 </span>
               </button>
               {navLocked && (
-                <div className="pointer-events-none absolute left-0 top-full mt-2 hidden rounded-md bg-black/80 px-3 py-2 text-[12px] text-white group-hover:block">
+                <div className="pointer-events-none absolute top-full left-0 mt-2 hidden rounded-md bg-black/80 px-3 py-2 text-[12px] text-white group-hover:block">
                   리포트 생성 중에는 이동할 수 없어요
                 </div>
               )}
@@ -308,7 +329,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             <SignedIn>
               <Link
                 to="/project/create"
-                className="Caption1 relative h-[3.2rem] flex-row-center whitespace-nowrap rounded-[8px] bg-[#4E49FF] px-[1.0rem] py-[0.6rem] font-semibold text-white transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:scale-[0.98] active:translate-y-[1px]"
+                className="Caption1 relative h-[3.2rem] flex-row-center whitespace-nowrap rounded-[8px] bg-[#4E49FF] px-[1.0rem] py-[0.6rem] font-semibold text-white transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:translate-y-[1px] active:scale-[0.98]"
               >
                 프로젝트 등록하기
               </Link>
@@ -317,7 +338,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             <button
               type="button"
               onClick={toggleTheme}
-              className="group max-[391px]:!hidden relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg p-[0.4rem]"
+              className="group max-[391px]:!hidden relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg"
             >
               {theme === 'dark' ? (
                 <>
@@ -364,10 +385,8 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                   className="absolute top-[0.4rem] right-[0.4rem] flex size-5 items-center justify-center rounded-full bg-[#4E49FF] font-semibold text-[0.7rem] text-white leading-none"
                   aria-hidden="true"
                 >
-                  <span className="absolute inset-0 rounded-full bg-[#4E49FF] animate-notification-pulse" />
-                  <span className="relative">
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
+                  <span className="absolute inset-0 animate-notification-pulse rounded-full bg-[#4E49FF]" />
+                  <span className="relative">{unreadCount > 99 ? '99+' : unreadCount}</span>
                 </span>
               )}
             </button>
@@ -383,7 +402,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
               <button
                 type="button"
                 onClick={() => navigate('/my-info')}
-                className="relative h-[2.7rem] w-[2.7rem] shrink-0 cursor-pointer overflow-hidden rounded-full -translate-y-[0.15rem]"
+                className="-translate-y-[0.15rem] relative h-[2.7rem] w-[2.7rem] shrink-0 cursor-pointer overflow-hidden rounded-full"
                 aria-label="내 정보 페이지로 이동"
               >
                 <img
@@ -476,6 +495,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
         loading={loadingNotifications}
         onMarkAsRead={handleMarkAsRead}
         onMarkAllAsRead={handleMarkAllAsRead}
+        onNotificationClick={handleNotificationClick}
         hasMore={hasNextNotifications}
         onLoadMore={loadMoreNotifications}
         loadingMore={loadingMoreNotifications}

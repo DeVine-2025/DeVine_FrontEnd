@@ -27,7 +27,6 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
   const listGapStyle = 'flex-col gap-[0.2rem]';
   const listItemStyle =
     'flex items-start flex-col gap-[1rem] font-normal text-lg text-ui-1000 pb-2';
-  const bulletStyle = 'text-2xl leading-none';
 
   const scale = data.projectOverview.projectScale;
 
@@ -41,7 +40,7 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
   return (
     <div className="mb-30 flex-col gap-[8rem]">
       {/* 프로젝트 개요 */}
-      <section className="flex-col gap-[2.4rem]">
+      <section className="report-print-section flex-col gap-[2.4rem]">
         <div className="flex-col gap-[1rem]">
           <p className={sectionTitleStyle}>프로젝트 개요</p>
           <hr className="border-ui-100" />
@@ -88,21 +87,21 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
         </div>
       </section>
 
-      {/* 구현 기능 상세 */}
-      <section>
+      {/* 구현 기능 상세 (한 페이지에 모두) */}
+      <section className="report-print-section report-print-implement">
         <div className="flex-col gap-[1rem]">
           <p className={sectionTitleStyle}>구현 기능 상세분석</p>
           <hr className="border-ui-100" />
 
           {data.implementedFeatures.map((item: any, idx: number) => (
             <ContentBox key={idx}>
-              <div className="flex-col gap-13 p-[2rem]">
+              <div className="report-print-implement-inner flex-col gap-13 p-[2rem]">
                 <p className="font-bold text-ui-1000 text-xl">
                   {item.categoryNumber + ' . ' + item.category}
                 </p>
 
                 {item.features.map((feature: any, fIdx: number) => (
-                  <div key={fIdx} className="flex-col gap-[2.9rem]">
+                  <div key={fIdx} className="report-print-block flex-col gap-[2.9rem]">
                     <div className="flex-col gap-[1rem]">
                       <p className="font-semibold text-lg text-ui-400">
                         {feature.name} - 구현 내용
@@ -147,15 +146,16 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
         </div>
       </section>
 
-      {/* 코드 인사이트 */}
-      <section>
-        <div className="flex-col gap-[1rem]">
+      {/* 코드 인사이트 + 개선 가능한 영역 (같은 페이지) */}
+      <div className="report-print-section report-print-same-page flex flex-col gap-[8rem]">
+        {/* 코드 인사이트 */}
+        <section className="flex-col gap-[1rem]">
           <p className={sectionTitleStyle}>코드 분석 인사이트</p>
           <hr className="border-ui-100" />
           <ContentBox>
             <div className="flex-col gap-[3rem] p-[3.2rem]">
               {data.codeInsights.map((item: CodeInsight, idx: number) => (
-                <div key={idx} className="flex-col gap-[0.7rem]">
+                <div key={idx} className="report-print-block flex-col gap-[0.7rem]">
                   <p className="pb-1 font-semibold text-ui-1000 text-xl">
                     {item.number + ' . ' + item.title}
                   </p>
@@ -168,27 +168,25 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
               ))}
             </div>
           </ContentBox>
-        </div>
-      </section>
+        </section>
 
-      {/* 개선 */}
-      <section>
-        <div className="flex-col gap-[1rem]">
+        {/* 개선 가능한 영역 (인쇄 시 컴팩트) */}
+        <section className="report-print-compact flex-col gap-[1rem]">
           <p className={sectionTitleStyle}>개선 가능한 영역</p>
           <hr className="border-ui-100" />
 
           {data.improvements.map((item: Improvement, idx: number) => (
             <ContentBox key={idx}>
-              <div className="flex-col gap-10 p-[3rem]">
+              <div className="flex-col gap-10 p-[3rem] report-print-compact-inner">
                 <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
               </div>
             </ContentBox>
           ))}
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* 다음 스텝 */}
-      <section>
+      <section className="report-print-section">
         <div className="flex-col gap-[1rem]">
           <p className={sectionTitleStyle}>다음 프로젝트에서 시도해볼 만한 것</p>
           <hr className="border-ui-100" />
@@ -198,11 +196,13 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
               <div className="flex-col gap-[0.7rem] p-[3rem]">
                 <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
                 <p className="text-lg text-ui-400">{item.description.join(', ')}</p>
-                <div className="flex gap-2 mt-2">
-                  <p
-                  className="flex items-center justify-center w-fit text-primary font-bold bg-indigo-600/10 rounded border border-indigo-600/20 px-2 py-1">추천
-                  기술</p>
-                      <p className="text-ui-1000 text-sm font-medium flex items-center gap-3">{item.recommendKeyword.join(' , ')}</p>
+                <div className="mt-2 flex gap-2">
+                  <p className="flex w-fit items-center justify-center rounded border border-indigo-600/20 bg-indigo-600/10 px-2 py-1 font-bold text-primary">
+                    추천 기술
+                  </p>
+                  <p className="flex items-center gap-3 font-medium text-sm text-ui-1000">
+                    {item.recommendKeyword.join(' , ')}
+                  </p>
                 </div>
               </div>
             </ContentBox>

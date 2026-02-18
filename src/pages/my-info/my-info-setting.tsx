@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react';
-import { cn } from '@libs/cn';
-import { useUser } from '@clerk/clerk-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-import GithubIcon from "@assets/icons/github.svg?react";
-import GoogleIcon from "@assets/icons/google.svg?react";
-
-import TabMenu from '@components/myInfo/TabMenu';
-import Switch from '@components/myInfo/Switch';
-import { myInfoQueries, updateMyProfile } from '@apis/myInfo/myInfo-queries';
 import type { UpdateProfileRequest } from '@apis/myInfo/myInfo';
+import { myInfoQueries, updateMyProfile } from '@apis/myInfo/myInfo-queries';
+import GithubIcon from '@assets/icons/github.svg?react';
+import GoogleIcon from '@assets/icons/google.svg?react';
+import { useUser } from '@clerk/clerk-react';
+import Switch from '@components/myInfo/Switch';
+import TabMenu from '@components/myInfo/TabMenu';
+import { cn } from '@libs/cn';
+import { useAuthStore } from '@store/auth';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
 interface SettingMenuProps {
   title: string;
@@ -21,20 +20,27 @@ interface LabelProps {
   isConnect: boolean;
 }
 
-const SettingMenu = ({title, description}: SettingMenuProps) => {
+const SettingMenu = ({ title, description }: SettingMenuProps) => {
   return (
     <div className="flex-col gap-[1.6rem]">
-      <p className="text-3xl font-bold text-ui-1000">{title}</p>
+      <p className="font-bold text-3xl text-ui-1000">{title}</p>
       <p className="text-2xl text-ui-600">{description}</p>
     </div>
-  )
-}
+  );
+};
 
-const Label = ({content, isConnect}: LabelProps) => {
+const Label = ({ content, isConnect }: LabelProps) => {
   return (
-    <p className={cn('w-fit px-[1.2rem] py-[0.8rem] text-xl font-semibold)}', isConnect ? "text-primary": "text-ui-300 bg-ui-50 rounded-full")}>{content}</p>
-  )
-}
+    <p
+      className={cn(
+        'w-fit px-[1.2rem] py-[0.8rem] font-semibold)} text-xl',
+        isConnect ? 'text-primary' : 'rounded-full bg-ui-50 text-ui-300',
+      )}
+    >
+      {content}
+    </p>
+  );
+};
 
 const MyInfoSetting = () => {
   const [isOnFirst, setIsOnFirst] = useState<boolean>(false);
@@ -43,16 +49,29 @@ const MyInfoSetting = () => {
   const tabs = ['PM', '개발자'];
   const { user, isLoaded } = useUser();
   const queryClient = useQueryClient();
+  const setRole = useAuthStore((state) => state.setRole);
 
   const { data: profileData } = useQuery(myInfoQueries.profile());
   const updateMutation = useMutation({
     mutationFn: updateMyProfile,
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['member'] });
+      setRole(variables.mainType === 'PM' ? 'pm' : 'dev');
     },
     onError: (_err, variables) => {
       setActiveTab(variables.mainType === 'PM' ? '개발자' : 'PM');
       alert('메인 권한 변경에 실패했습니다.');
+    },
+  });
+
+  const disclosureMutation = useMutation({
+    mutationFn: updateMyProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['member'] });
+    },
+    onError: () => {
+      setIsOnFirst((prev) => !prev);
+      alert('개발자 검색 노출 설정 변경에 실패했습니다.');
     },
   });
 
@@ -62,6 +81,30 @@ const MyInfoSetting = () => {
       setActiveTab(mainType === 'PM' ? 'PM' : '개발자');
     }
   }, [profileData]);
+
+  useEffect(() => {
+    const disclosure = profileData?.result?.member?.disclosure;
+    if (typeof disclosure === 'boolean') {
+      setIsOnFirst(disclosure);
+    }
+  }, [profileData?.result?.member?.disclosure]);
+
+  const handleDisclosureChange = (next: boolean) => {
+    const profile = profileData?.result;
+    if (!profile) return;
+    setIsOnFirst(next);
+    const payload: UpdateProfileRequest = {
+      nickname: profile.member?.nickname ?? '',
+      address: profile.member?.address ?? '',
+      body: profile.member?.body ?? '',
+      domains: profile.domains ?? [],
+      contacts: profile.contacts ?? [],
+      mainType: (profile.member?.mainType === 'PM' ? 'PM' : 'DEVELOPER') as 'PM' | 'DEVELOPER',
+      disclosure: next,
+      ...(profile.member?.imageUrl && { imageUrl: profile.member.imageUrl }),
+    };
+    disclosureMutation.mutate(payload);
+  };
 
   const handleMainTypeChange = (tab: string) => {
     if (tab === activeTab) return;
@@ -83,56 +126,61 @@ const MyInfoSetting = () => {
     updateMutation.mutate(payload);
   };
 
-  const hasGoogle = user?.externalAccounts?.some(
-    acc => acc.provider === 'google'
-  );
+  const hasGoogle = user?.externalAccounts?.some((acc) => acc.provider === 'google');
 
-  const hasGithub = user?.externalAccounts?.some(
-    acc => acc.provider === 'github'
-  );
+  const hasGithub = user?.externalAccounts?.some((acc) => acc.provider === 'github');
 
-  console.log(typeof hasGithub, hasGoogle)
   return (
-    <div className="flex-col gap-[6rem] mt-[4rem]">
-      <div className="flex justify-between items-center gap-[5rem]">
-        <SettingMenu title={"메인 권한 설정"} description={"선택한 권한에 맞춰 가장 필요한 정보를 메인 화면에 먼저 확인할 수 있습니다."} />
+    <div className="mt-[4rem] flex-col gap-[6rem]">
+      <div className="flex items-center justify-between gap-[5rem]">
+        <SettingMenu
+          title={'메인 권한 설정'}
+          description={'선택한 권한에 맞춰 가장 필요한 정보를 메인 화면에 먼저 확인할 수 있습니다.'}
+        />
         <TabMenu activeTab={activeTab} setActiveTab={handleMainTypeChange} tabs={tabs} />
       </div>
 
       <div className="flex justify-between items-center">
         <SettingMenu title={"개발자 검색 노출 공개"} description={"공개 상태인 경우 내 프로필이 노출되어 프로젝트 제안을 받을 수 있습니다."} />
-        <Switch isOn={isOnFirst} setIsOn={setIsOnFirst} />
+        <Switch
+          isOn={isOnFirst}
+          setIsOn={(updater) => {
+            const next = typeof updater === 'function' ? updater(isOnFirst) : updater;
+            handleDisclosureChange(next);
+          }}
+        />
       </div>
-      <div className="flex justify-between items-center">
-        <SettingMenu title={"프로젝트 제안 알림"} description={"PM이 제안하는 프로젝트 알림을 받을 수 있습니다."} />
+      <div className="flex items-center justify-between">
+        <SettingMenu
+          title={'프로젝트 제안 알림'}
+          description={'PM이 제안하는 프로젝트 알림을 받을 수 있습니다.'}
+        />
         <Switch isOn={isOnSecond} setIsOn={setIsOnSecond} />
       </div>
 
-      <div className="flex-col gap-[2.4rem]">
-        <div className="flex justify-between items-center">
-          <SettingMenu title={"계정 설정"} description={"연동된 계정"} />
-        </div>
-        <div className="flex justify-between gap-[20rem]">
-          <div className="flex flex-1 items-center justify-between">
-            <div className="flex items-center gap-[1.6rem]">
-              <GithubIcon className="w-11 h-11" />
-              <p className="text-ui-1000 text-2xl">GitHub</p>
-            </div>
-            <Label content={hasGithub ? "연동완료" : "연동하기"} isConnect={!!hasGithub} />
-          </div>
-          <div className="flex flex-1 items-center justify-between">
-            <div className="flex items-center gap-[1.6rem]">
-              <div className="p-[1rem] border border-ui-100 rounded-full flex-col-center">
-                <GoogleIcon className="w-6 h-6 " />
-              </div>
-              <p className="text-ui-1000 text-2xl">Google</p>
-            </div>
-            <Label content={hasGoogle ? "연동완료" : "연동하기"} isConnect={!!hasGoogle} />
-          </div>
-        </div>
-      </div>
-
-
+      {/*<div className="flex-col gap-[2.4rem]">*/}
+      {/*  <div className="flex justify-between items-center">*/}
+      {/*    <SettingMenu title={"계정 설정"} description={"연동된 계정"} />*/}
+      {/*  </div>*/}
+      {/*  <div className="flex justify-between gap-[20rem]">*/}
+      {/*    <div className="flex flex-1 items-center justify-between">*/}
+      {/*      <div className="flex items-center gap-[1.6rem]">*/}
+      {/*        <GithubIcon className="w-11 h-11" />*/}
+      {/*        <p className="text-ui-1000 text-2xl">GitHub</p>*/}
+      {/*      </div>*/}
+      {/*      <Label content={hasGithub ? "연동완료" : "연동하기"} isConnect={!!hasGithub} />*/}
+      {/*    </div>*/}
+      {/*    <div className="flex flex-1 items-center justify-between">*/}
+      {/*      <div className="flex items-center gap-[1.6rem]">*/}
+      {/*        <div className="p-[1rem] border border-ui-100 rounded-full flex-col-center">*/}
+      {/*          <GoogleIcon className="w-6 h-6 " />*/}
+      {/*        </div>*/}
+      {/*        <p className="text-ui-1000 text-2xl">Google</p>*/}
+      {/*      </div>*/}
+      {/*      <Label content={hasGoogle ? "연동완료" : "연동하기"} isConnect={!!hasGoogle} />*/}
+      {/*    </div>*/}
+      {/*  </div>*/}
+      {/*</div>*/}
     </div>
   );
 };

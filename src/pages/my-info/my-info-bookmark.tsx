@@ -1,12 +1,13 @@
 import { deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getMemberProfileByNickname } from '@apis/members';
+import { getMemberTechStacks } from '@apis/myInfo/myInfo-queries';
 import { getProjectDetail } from '@apis/project-detail';
 import BackIcon from '@assets/icons/back.svg?react';
 import profileDefaultIconUrl from '@assets/icons/profile-default.svg?url';
-import LoadingSpinner from '@components/common/LoadingSpinner';
-import ProfileCard from '@components/common/ProfileCard';
-import ProjectLg from '@components/common/ProjectLg';
 import { useAuth } from '@clerk/clerk-react';
+import BookmarkDeveloperCard from '@components/common/BookmarkDeveloperCard';
+import LoadingSpinner from '@components/common/LoadingSpinner';
+import ProjectLg from '@components/common/ProjectLg';
 import { mapProjectItemToCard } from '@mappers/project';
 import type { ProjectItem } from '@t/project/api';
 import { useCallback, useEffect, useState } from 'react';
@@ -39,6 +40,8 @@ type BookmarkedDeveloper = {
 type DeveloperProfile = {
   imageUrl: string | null;
   body?: string | null;
+  techstacks?: string[];
+  domains?: string[];
 };
 
 const MyInfoBookmark = () => {
@@ -62,8 +65,11 @@ const MyInfoBookmark = () => {
     setError(null);
     try {
       const list = await getBookmarks(token);
-      const projectBookmarks = list.filter((b) => b.targetType === 'PROJECT');
-      const devBookmarks = list.filter((b) => b.targetType === 'DEVELOPER');
+      const sorted = [...list].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+      const projectBookmarks = sorted.filter((b) => b.targetType === 'PROJECT');
+      const devBookmarks = sorted.filter((b) => b.targetType === 'DEVELOPER');
 
       setDevelopers(
         devBookmarks.map((b) => ({
@@ -108,27 +114,38 @@ const MyInfoBookmark = () => {
       return;
     }
     let cancelled = false;
-    Promise.allSettled(
-      nicknames.map((nickname) => getMemberProfileByNickname(nickname)),
-    ).then((results) => {
-      if (cancelled) return;
-      const next: Record<string, DeveloperProfile> = {};
-      results.forEach((result, i) => {
-        const nickname = nicknames[i];
-        if (!nickname) return;
-        if (result.status === 'fulfilled' && result.value) {
+    getToken().then((token) => {
+      Promise.all(
+        nicknames.map(async (nickname) => {
+          const [profileRes, techRes] = await Promise.all([
+            getMemberProfileByNickname(nickname, undefined, token),
+            getMemberTechStacks(nickname).catch(() => null),
+          ]);
+          return { nickname, profile: profileRes, techRes };
+        }),
+      ).then((rows) => {
+        if (cancelled) return;
+        const next: Record<string, DeveloperProfile> = {};
+        rows.forEach(({ nickname, profile, techRes }) => {
+          if (!nickname) return;
+          const techList = techRes?.result?.techstacks;
+          const techNames = Array.isArray(techList)
+            ? techList.map((item: { name?: string }) => item?.name ?? '').filter(Boolean)
+            : [];
           next[nickname] = {
-            imageUrl: result.value.image ?? null,
-            body: result.value.body ?? null,
+            imageUrl: profile?.image ?? null,
+            body: profile?.body ?? null,
+            techstacks: techNames.length > 0 ? techNames : (profile?.techstacks ?? []),
+            domains: profile?.domains ?? [],
           };
-        }
+        });
+        setDeveloperProfiles(next);
       });
-      setDeveloperProfiles(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [developers]);
+  }, [developers, getToken]);
 
   const handleRemoveProjectBookmark = useCallback(
     async (bookmarkId: number) => {
@@ -164,13 +181,14 @@ const MyInfoBookmark = () => {
     [getToken, developers],
   );
 
-  const baseTabClass = 'rounded-xl py-3 text-2xl text-center font-semibold transition-colors';
+  const baseTabClass =
+    'rounded-xl py-3 text-2xl text-center font-semibold transition-colors cursor-pointer';
   const activeClass = 'bg-tab-bg-active text-tab-text-active';
   const inactiveClass = 'text-tab-text-inactive hover:text-tab-text-active';
 
   return (
     <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-[2rem]">
-      <div className="flex flex-col gap-[2.4rem]">
+      <div className="flex items-center gap-3">
         <BackIcon className="h-12 w-12 cursor-pointer text-ui-700" onClick={() => navigate(-1)} />
         <p className="font-bold text-4xl text-ui-900">저장한 프로젝트/개발자</p>
       </div>
@@ -204,7 +222,7 @@ const MyInfoBookmark = () => {
       {!loading && !error && activeTab === 'project' && (
         <div className="flex flex-col gap-[2rem]">
           {projects.length === 0 ? (
-            <p className="text-ui-600">저장한 프로젝트가 없습니다.</p>
+            <p className="text-[18px] text-ui-600">저장한 프로젝트가 없습니다.</p>
           ) : (
             projects.map(({ bookmarkId, targetId, project }) => {
               if (!project) {
@@ -249,26 +267,34 @@ const MyInfoBookmark = () => {
       {!loading && !error && activeTab === 'developer' && (
         <div className="flex flex-col gap-[2rem]">
           {developers.length === 0 ? (
-            <p className="text-ui-600">저장한 개발자가 없습니다.</p>
+            <p className="text-[18px] text-ui-600">저장한 개발자가 없습니다.</p>
           ) : (
             developers.map(({ bookmarkId, targetId, targetNickname }) => {
-              const nickname = targetNickname ?? (targetId != null ? `회원 #${targetId}` : '알 수 없음');
+              const nickname =
+                targetNickname ?? (targetId != null ? `회원 #${targetId}` : '알 수 없음');
               const profile = targetNickname ? developerProfiles[targetNickname] : undefined;
               const profileImageUrl =
                 resolveThumbnailUrl(profile?.imageUrl ?? undefined) ?? profileDefaultIconUrl;
+              const handleDeveloperClick = () => {
+                if (!targetNickname) return;
+                navigate(`/developer-detail/${targetNickname}`);
+              };
               return (
-                <ProfileCard
+                <BookmarkDeveloperCard
                   key={bookmarkId}
-                  role="개발자"
-                  roleTone="blue"
                   nickname={nickname}
                   profileImageUrl={profileImageUrl}
                   introduction={profile?.body ?? '저장한 개발자입니다.'}
-                  badges={[]}
-                  techStack={[]}
-                  size="lg"
+                  domains={profile?.domains?.map((label) => ({ label })) ?? []}
+                  techStack={
+                    profile?.techstacks?.map((name, i) => ({
+                      id: `tech-${bookmarkId}-${i}`,
+                      name,
+                    })) ?? []
+                  }
                   bookmarked
                   onBookmarkChange={(next) => !next && handleRemoveDeveloperBookmark(bookmarkId)}
+                  onClick={handleDeveloperClick}
                 />
               );
             })

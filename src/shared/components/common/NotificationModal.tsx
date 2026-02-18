@@ -21,6 +21,8 @@ interface NotificationModalProps {
   loading?: boolean;
   onMarkAsRead?: (notificationId: string) => void;
   onMarkAllAsRead?: () => void;
+  /** 알림 클릭 시 호출 (이동 + 읽음/제거는 이 콜백에서 처리) */
+  onNotificationClick?: (notification: NotificationItem) => void;
   hasMore?: boolean;
   onLoadMore?: () => void;
   loadingMore?: boolean;
@@ -36,6 +38,7 @@ const NotificationModal = ({
   loading = false,
   onMarkAsRead,
   onMarkAllAsRead,
+  onNotificationClick,
   hasMore = false,
   onLoadMore,
   loadingMore = false,
@@ -99,8 +102,9 @@ const NotificationModal = ({
   if (anchorRef && position === null) return null;
 
   const useAnchor = anchorRef?.current && position !== null;
+  const count = notifications.length;
   const modalHeight =
-    notifications.length === 0 ? 220 : notifications.length === 1 ? 260 : Math.min(480, 140 + notifications.length * 88);
+    count === 0 ? 200 : count === 1 ? 260 : count <= 3 ? 260 + (count - 1) * 88 : 260 + 2 * 88;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50">
@@ -140,15 +144,21 @@ const NotificationModal = ({
               <p className="text-[13px] text-[var(--ui-400)]">새 소식이 오면 여기에 표시돼요</p>
             </div>
           ) : (
-            notifications.map((notification) => (
+            notifications.map((notification, index) => (
               <button
                 key={notification.id}
                 type="button"
+                style={{ animationDelay: `${index * 45}ms` }}
                 onClick={() => {
-                  if (!notification.isRead && onMarkAsRead) onMarkAsRead(notification.id);
-                  handleClose();
+                  if (onNotificationClick) {
+                    onNotificationClick(notification);
+                    handleClose();
+                  } else {
+                    if (!notification.isRead && onMarkAsRead) onMarkAsRead(notification.id);
+                    handleClose();
+                  }
                 }}
-                className={`group relative flex min-h-[84px] flex-col justify-center gap-1.5 rounded-lg px-3.5 py-4 text-left transition-colors duration-150 ${
+                className={`animate-notification-item-in opacity-0 group relative flex min-h-[84px] flex-col justify-center gap-1.5 rounded-lg px-3.5 py-4 text-left transition-colors duration-150 ${
                   !notification.isRead
                     ? 'bg-[var(--ui-50)] hover:bg-[var(--ui-100)]'
                     : 'hover:bg-[var(--ui-50)]'

@@ -5,24 +5,46 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export type ProjectTab = 'ongoing' | 'done';
+export type ProjectTab = 'ongoing' | 'recruiting' | 'done';
 
 type Props = {
   projectTab: ProjectTab;
   onChangeProjectTab: (tab: ProjectTab) => void;
+  memberNick?: string;
 };
 
-const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
+const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) => {
   const navigate = useNavigate();
 
-  const { data: inProgressData } = useQuery(projectQueries.getMYProjectInprogress());
-  const { data: completedData } = useQuery(projectQueries.getMYProjectCompleted());
+  const useMemberProjects = Boolean(memberNick);
+  const { data: inProgressData } = useQuery(
+    useMemberProjects
+      ? projectQueries.getMemberProjectInprogress(memberNick!)
+      : projectQueries.getMYProjectInprogress()
+  );
+  const { data: recruitingData } = useQuery(
+    useMemberProjects
+      ? projectQueries.getMemberProjectRecruiting(memberNick!)
+      : projectQueries.getMYProjectRecruiting()
+  );
+  const { data: completedData } = useQuery(
+    useMemberProjects
+      ? projectQueries.getMemberProjectCompleted(memberNick!)
+      : projectQueries.getMYProjectCompleted()
+  );
 
   const currentProjects = useMemo(() => {
-    const data = projectTab === 'ongoing' ? inProgressData : completedData;
+    let data;
+    if (projectTab === 'ongoing') {
+      data = inProgressData;
+    } else if (projectTab === 'recruiting') {
+      data = recruitingData;
+    } else {
+      data = completedData;
+    }
     const projects = data?.result?.projects?.content || [];
     return projects;
-  }, [projectTab, inProgressData, completedData]);
+  }, [projectTab, inProgressData, recruitingData, completedData]);
 
   const handleProjectClick = (projectId: number) => {
     navigate(`/project/${projectId}`);
@@ -36,6 +58,7 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
           onChange={onChangeProjectTab}
           items={[
             { value: 'ongoing', label: '진행 중인 프로젝트' },
+            { value: 'recruiting', label: '모집중인 프로젝트' },
             { value: 'done', label: '완료된 프로젝트' },
           ]}
         />
@@ -50,6 +73,7 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
               deadlineLabel={project.category?.name}
               title={project.title}
               location={project.location}
+              showBookmark={false}
               durationRangeName={project.durationRange}
               mode={project.mode}
               thumbnailUrl={project.imageUrls?.[0]}
@@ -61,6 +85,8 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab }: Props) => {
             <p className="text-lg text-ui-400">
               {projectTab === 'ongoing'
                 ? '진행 중인 프로젝트가 없습니다.'
+                : projectTab === 'recruiting'
+                ? '모집중인 프로젝트가 없습니다.'
                 : '완료된 프로젝트가 없습니다.'}
             </p>
           </div>

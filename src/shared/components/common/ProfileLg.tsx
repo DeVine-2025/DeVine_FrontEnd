@@ -1,13 +1,12 @@
 import BookmarkButton from '@components/common/BookmarkButton';
 import { cn } from '@libs/cn';
-import { badgeToneToClass } from '../../types/badgeTone';
 import type { ProfileCardProps } from '../../types/profileCard.types';
 import { BadgeList, Intro, TechChips } from './ProfileBase';
 
 export default function ProfileCardLg(props: ProfileCardProps) {
   const {
-    role,
-    roleTone,
+    role: _role,
+    roleTone: _roleTone,
     nickname,
     profileImageUrl,
     profileImageAlt,
@@ -39,37 +38,26 @@ export default function ProfileCardLg(props: ProfileCardProps) {
           : undefined
       }
       className={cn(
-        'rounded-2xl border border-card-border bg-card-bg',
-        'card-size-lg',
+        'rounded-2xl border border-card-border bg-card-bg transition-all duration-300',
+        'card-size-lg flex flex-col',
         header && 'card-size-lg--with-header',
-        onClick && 'cursor-pointer',
+        onClick && 'cursor-pointer recommend-card-hover-border',
         className,
       )}
     >
       {header ? <div className="">{header}</div> : null}
-      <div className="flex items-stretch gap-7">
+      <div className="flex min-h-0 flex-1 items-center gap-9">
         <img
           src={profileImageUrl}
           alt={profileImageAlt ?? nickname}
           className={cn(
             'card-avatar-sm',
-            'shrink-0 self-start rounded-full object-cover ring-2 ring-white/10',
+            'shrink-0 rounded-full object-cover ring-2 ring-white/10',
           )}
           loading="lazy"
         />
 
-        <div className="flex min-w-0 flex-1 flex-col gap-5">
-          {role && roleTone && (
-            <span
-              className={cn(
-                'inline-flex w-fit items-center whitespace-nowrap rounded-lg px-3 py-1 font-semibold text-lg',
-                badgeToneToClass[roleTone],
-              )}
-            >
-              {role}
-            </span>
-          )}
-
+        <div className="flex min-w-0 flex-1 flex-col justify-center gap-4">
           <div className="truncate pl-1 font-semibold text-2xl text-card-title">{nickname}</div>
 
           <BadgeList badges={badges} className="gap-4" />
@@ -77,11 +65,11 @@ export default function ProfileCardLg(props: ProfileCardProps) {
           <Intro introduction={introduction} />
         </div>
 
-        <div className="flex h-full w-[240px] self-center">
+        <div className="flex w-[330px] items-center">
           <TechChips techStack={techStack} max={5} />
         </div>
 
-        <div className="ml-auto flex h-full self-center pr-5">
+        <div className="ml-auto flex items-center pr-5">
           {action ?? (
             <BookmarkButton
               bookmarked={bookmarked}

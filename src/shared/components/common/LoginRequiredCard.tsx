@@ -18,24 +18,24 @@ const LoginRequiredCard = ({
 
   return (
     <div
-      className={`flex flex-col items-start rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)] text-left ${
-        isSmall ? 'w-[320px] gap-5 p-8' : 'h-[210px] w-[400px] gap-7 p-11'
+      className={`flex flex-col items-start justify-between rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)] text-left ${
+        isSmall ? 'w-[320px] gap-5 p-10' : 'h-[190px] w-[400px] gap-7 p-14'
       }`}
     >
-      <div className={`flex flex-col ${isSmall ? 'gap-1.5' : 'gap-2'}`}>
+      <div className={`flex flex-col ${isSmall ? 'gap-1.5' : 'gap-4'}`}>
         <span
-          className={`font-semibold text-[var(--ui-900)] ${isSmall ? 'text-[17px]' : 'text-[21px]'}`}
+          className={`font-semibold text-[var(--ui-900)] ${isSmall ? 'text-[15px]' : 'text-[19px]'}`}
         >
           {title}
         </span>
-        <span className={`text-[var(--ui-500)] ${isSmall ? 'text-[13px]' : 'text-[15px]'}`}>
+        <span className={`text-[var(--ui-500)] ${isSmall ? 'text-[13px]' : 'text-[14px]'}`}>
           {description}
         </span>
       </div>
       <Link
         to="/login"
         className={`inline-flex w-full items-center justify-center rounded-2xl bg-[#4E49FF] font-semibold text-white ${
-          isSmall ? 'h-[40px] text-[15px]' : 'h-[52px] text-[18px]'
+          isSmall ? 'h-[40px] text-[15px]' : 'h-[42px] text-[16px]'
         }`}
       >
         로그인하기

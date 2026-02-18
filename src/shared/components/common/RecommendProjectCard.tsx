@@ -1,7 +1,6 @@
+import ProjectBase from '@components/common/ProjectBase';
+import { cn } from '@libs/cn';
 import { memo } from 'react';
-import BookmarkButton from '@components/common/BookmarkButton';
-import PersonIcon from '@assets/icons/person.svg?react';
-import { badgeToneToClass } from 'src/shared/types/badgeTone';
 import type { RecommendProjectCardProps } from 'src/shared/types/recommendProjectCard.types';
 
 function RecommendProjectCard({
@@ -21,14 +20,20 @@ function RecommendProjectCard({
   bookmarkId,
   onBookmarkChangeById,
   onClick,
+  onNavigateToProject,
   techstackScorePercent,
   similarityScorePercent,
   domainMatch,
   totalScore,
 }: RecommendProjectCardProps) {
-  const handleBookmark = onBookmarkChangeById && projectId != null
-    ? (next: boolean) => onBookmarkChangeById(projectId, next, bookmarkId)
-    : onBookmarkChange;
+  const handleClick =
+    onNavigateToProject && projectId != null ? () => onNavigateToProject(projectId) : onClick;
+
+  const handleBookmark =
+    onBookmarkChangeById && projectId != null
+      ? (next: boolean) => onBookmarkChangeById(projectId, next, bookmarkId)
+      : onBookmarkChange;
+
   const hasSuitability =
     techstackScorePercent != null ||
     similarityScorePercent != null ||
@@ -36,128 +41,77 @@ function RecommendProjectCard({
     totalScore != null;
 
   const suitabilityParts: string[] = [];
-  if (techstackScorePercent != null) suitabilityParts.push(`기술스택 일치 ${techstackScorePercent}%`);
+  if (techstackScorePercent != null) suitabilityParts.push(`기술스택 ${techstackScorePercent}%`);
   if (domainMatch != null) suitabilityParts.push(domainMatch ? '도메인 일치' : '도메인 불일치');
-  if (similarityScorePercent != null) suitabilityParts.push(`리포트 유사도 ${similarityScorePercent}%`);
+  if (similarityScorePercent != null) suitabilityParts.push(`리포트 ${similarityScorePercent}%`);
   if (totalScore != null) suitabilityParts.push(`종합 ${totalScore}`);
-  const suitabilityText = suitabilityParts.join(', ');
+  const suitabilityText = suitabilityParts.join(' · ');
 
-  // Recommend 전용 타입과 공용 배지 톤 매핑을 느슨하게 연결
-  const toneToClass = badgeToneToClass as unknown as Record<string, string>;
+  const suitabilityHeight = 40;
+  const cardHeight = hasSuitability && suitabilityText ? 180 + suitabilityHeight : 180;
 
   return (
     <article
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onClick={onClick}
+      role={handleClick ? 'button' : undefined}
+      tabIndex={handleClick ? 0 : undefined}
+      onClick={handleClick}
       onKeyDown={
-        onClick
+        handleClick
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                onClick();
+                handleClick();
               }
             }
           : undefined
       }
-      className={`relative h-[210px] w-full max-w-[1280px] overflow-hidden rounded-[24px] bg-[var(--ui-bg)] ${
-        onClick ? 'cursor-pointer' : ''
-      }`}
-      style={{
-        border: '1px solid transparent',
-        background:
-          'linear-gradient(var(--ui-bg), var(--ui-bg)) padding-box, linear-gradient(90deg, rgba(114, 110, 255, 0.4) 0%, rgba(219, 80, 179, 0.4) 100%) border-box',
-      }}
+      className={cn(
+        'group relative flex w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)] transition-all duration-300',
+        handleClick && 'recommend-card-hover-border cursor-pointer',
+      )}
+      style={{ height: cardHeight }}
     >
-      <div className="flex h-[132px] items-center gap-[32px] px-[24px] pt-[24px]">
-        <div className="h-[132px] w-[233px] shrink-0 translate-y-[8px] overflow-hidden rounded-[12px] bg-[var(--ui-100)]">
-          {thumbnailUrl ? (
-            <img
-              src={thumbnailUrl}
-              alt={thumbnailAlt ?? title}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          ) : null}
-        </div>
-
-        <div className="-translate-y-[3px] gap flex w-[372px] shrink-0 flex-col">
-          <div className="flex flex-col gap-[12px]">
-            <div className="flex items-center gap-[4px]">
-              {categoryLabel ? (
-                <span className="Caption1 flex h-[24px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] py-[3px] font-semibold text-[11px] text-[var(--ui-600)]">
-                  {categoryLabel}
-                </span>
-              ) : null}
-              {deadlineLabel ? (
-                <span className="Caption1 flex h-[24px] items-center justify-center rounded-[8px] bg-[var(--ui-100)] px-[6px] py-[3px] font-semibold text-[11px] text-[var(--ui-600)]">
-                  {deadlineLabel}
-                </span>
-              ) : null}
-            </div>
-
-            <p className="w-[372px] whitespace-pre-wrap font-semibold text-[15px] text-[var(--ui-1000)]">
-              {title}
-            </p>
-          </div>
-
-          <p className="Caption1 mt-[32px] font-semibold text-[var(--ui-600)]">
-            {[location, period, mode].filter(Boolean).join(' · ')}
-          </p>
-        </div>
-
-        <div className="flex h-[132px] w-[202px] shrink-0 translate-y-[16px] flex-col items-center justify-center gap-[12px]">
-          {roles?.slice(0, 3).map((r) => (
-            <div
-              key={r.key}
-              className="grid w-full grid-cols-[96px_56px_1fr] items-center gap-x-[12px]"
-            >
-              <span
-                className={`Label2 inline-flex w-fit max-w-[96px] items-center justify-center justify-self-center truncate rounded-[8px] px-4 py-2 font-semibold ${
-                  toneToClass[r.tone] ?? ''
-                }`}
-              >
-                {r.label}
-              </span>
-
-              <div className="flex w-[56px] items-center gap-[4px] text-[var(--ui-400)]">
-                <PersonIcon aria-hidden className="h-7 w-7" />
-                <span className="Caption2 font-semibold text-[var(--ui-1000)]">{r.current}</span>
-                <span className="Caption2 font-semibold text-[var(--ui-500)]">/</span>
-                <span className="Caption2 font-semibold text-[var(--ui-400)]">{r.total}</span>
-              </div>
-
-              <div className="flex items-center gap-[4px] overflow-hidden">
-                {r.techStack?.slice(0, 5).map((t) => (
-                  <span
-                    key={t.id}
-                    className="inline-flex h-[20px] w-[20px] items-center justify-center"
-                  >
-                    {t.icon}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="-translate-y-1/2 absolute top-1/2 right-[140px] flex w-[100px] items-center justify-center text-center font-semibold text-xl text-[var(--ui-500)]">
-        {dueLabel}
-      </div>
-
-      <BookmarkButton
+      <ProjectBase
+        categoryLabel={categoryLabel}
+        deadlineLabel={deadlineLabel}
+        thumbnailUrl={thumbnailUrl}
+        thumbnailAlt={thumbnailAlt}
+        title={title}
+        location={location}
+        durationRangeName={period}
+        mode={mode}
+        roles={roles}
+        dueLabel={dueLabel}
         bookmarked={bookmarked}
         onBookmarkChange={handleBookmark}
-        stopPropagation
-        className="-translate-y-1/2 absolute top-1/2 right-[24px] h-[52px] w-[52px]"
-        iconClassName="h-12 w-12"
-        colorIconClassName="h-[44px] w-[44px]"
+        render={(ui) => (
+          <div className="flex h-[180px] w-full items-center gap-10 overflow-hidden px-8 py-6">
+            {ui.Thumbnail}
+
+            <div className="flex min-w-0 flex-1 flex-col justify-center gap-6">
+              {ui.HeaderBadges}
+              <div>{ui.Title}</div>
+              {ui.Meta}
+            </div>
+
+            <div className="mr-2 ml-auto flex w-[340px] shrink-0 items-center gap-4">
+              <div className="min-w-0 flex-1">{ui.RolesLg}</div>
+              <div className="flex shrink-0 items-center gap-12">
+                {dueLabel && (
+                  <div className="flex shrink-0 justify-center text-center">{ui.Due}</div>
+                )}
+                {ui.Bookmark}
+              </div>
+            </div>
+          </div>
+        )}
       />
 
       {hasSuitability && suitabilityText ? (
-        <div className="absolute bottom-[12px] left-[24px] w-[908px] rounded-2xl bg-[var(--ui-100)] px-6 py-3">
-          <p className="font-medium text-[13px] text-[var(--ui-1000)]">{suitabilityText}</p>
+        <div className="flex shrink-0 items-center border-[var(--ui-200)] border-t px-8 py-4">
+          <p className="font-medium text-[12px] text-[var(--ui-500)] tracking-tight">
+            {suitabilityText}
+          </p>
         </div>
       ) : null}
     </article>

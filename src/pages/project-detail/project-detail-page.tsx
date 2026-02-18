@@ -1,16 +1,16 @@
+import type { ProjectStatus } from '@apis/project-detail';
 import PersonIcon from '@assets/icons/person.svg?react';
 import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
 import BookmarkButton from '@components/common/BookmarkButton';
 import LoadingSpinner from '@components/common/LoadingSpinner';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { useThemeStore } from '@store/theme';
-import type { ProjectStatus } from '@apis/project-detail';
 import type { BadgeTone } from 'src/shared/types/badgeTone';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
-import { useProjectDetail } from './hooks/useProjectDetail';
 import ApplyModal from './components/ApplyModal';
-import LoginModal from './components/LoginModal';
 import ImageLightbox from './components/ImageLightbox';
+import LoginModal from './components/LoginModal';
+import { useProjectDetail } from './hooks/useProjectDetail';
 
 // ── Small components ──
 
@@ -94,36 +94,12 @@ const ProjectDetailPage = () => {
   }
 
   // ── Render ──
-
   return (
-    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-20">
-      {/* 뒤로가기 */}
-      <header className="flex items-center gap-4">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-card-bg text-[var(--ui-700)] hover:opacity-80"
-          aria-label="뒤로가기"
-        >
-          <svg
-            className="h-12 w-12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-      </header>
-
+    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 px-5 pt-10 pb-50">
       {/* 프로젝트 상세 카드 */}
-      <section className="flex flex-col gap-8 rounded-3xl bg-card-bg p-8">
+      <section className="flex flex-col gap-14 rounded-3xl bg-card-bg">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
-          <div className="flex min-w-0 flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-12">
             {/* 이미지 갤러리 */}
             {(project.imageUrls?.length ?? 0) > 0 && (
               <div
@@ -162,15 +138,15 @@ const ProjectDetailPage = () => {
             {/* 제목 + 크리에이터 + 지원/수정 버튼 */}
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-3">
-                <div className="flex items-start gap-3">
-                  <h1 className="max-w-[800px] font-semibold text-[24px] text-card-title lg:text-[28px]">
+                <div className="flex items-center gap-3">
+                  <h1 className="max-w-[800px] font-semibold text-[26px] text-card-title lg:text-[28px]">
                     {project.title}
                   </h1>
                   <BookmarkButton
                     bookmarked={bookmarkState.bookmarked}
                     onBookmarkChange={handleBookmarkChange}
                     className="mt-2 ml-auto h-[48px] w-[48px] shrink-0"
-                    iconClassName="h-[40px] w-[40px]"
+                    iconClassName="h-[28px] w-[28px]"
                     colorIconClassName="h-[48px] w-[48px]"
                     aria-label="북마크"
                   />
@@ -185,10 +161,10 @@ const ProjectDetailPage = () => {
                     />
                   ) : (
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-card-section-bg">
-                      <ProfilePlaceholderIcon className="h-12 w-12 text-card-muted" aria-hidden />
+                      <ProfilePlaceholderIcon className="h-142 w-12 text-card-muted" aria-hidden />
                     </div>
                   )}
-                  <span className="font-semibold text-[var(--ui-1000)] text-xl">
+                  <span className="font-semibold text-2xl text-[var(--ui-1000)]">
                     {project.creatorName ?? '닉네임'}
                   </span>
                 </div>
@@ -217,7 +193,7 @@ const ProjectDetailPage = () => {
                       <path d="M12 20h9" />
                       <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
                     </svg>
-                    수정하기
+                    지원 파트 변경하기
                   </button>
                 )}
 
@@ -246,7 +222,7 @@ const ProjectDetailPage = () => {
                         <path d="M12 20h9" />
                         <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
                       </svg>
-                      수정하기
+                      프로젝트 수정
                     </button>
                     <StatusMenu
                       isDark={isDark}
@@ -277,7 +253,7 @@ const ProjectDetailPage = () => {
               <button
                 type="button"
                 onClick={openApplyModal}
-                className="h-[36px] w-[200px] rounded-[10px] bg-[#4E49FF] px-4 font-medium text-[14px] text-white hover:opacity-80"
+                className="h-[42px] w-[200px] cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
               >
                 지원하기
               </button>
@@ -286,9 +262,9 @@ const ProjectDetailPage = () => {
         </div>
 
         {/* 프로젝트 메타 정보 */}
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_240px]">
           <div className="flex min-w-0 flex-col gap-6">
-            <div className="grid gap-x-12 gap-y-8 text-card-muted lg:grid-cols-2">
+            <div className="grid gap-x-20 gap-y-8 text-card-muted lg:grid-cols-2">
               <MetaRow label="프로젝트 유형" value={project.categoryLabel ?? '모바일/앱'} />
               <MetaRow label="도메인" value={project.deadlineLabel ?? '추후 결정 예정'} />
               <MetaRow label="진행 장소" value={project.location ?? '추후 결정 예정'} />
@@ -298,7 +274,7 @@ const ProjectDetailPage = () => {
             </div>
 
             {/* 모집 분야 */}
-            <section className="mt-4 flex flex-col gap-4">
+            <section className="mt-4 flex flex-col gap-8">
               <h2
                 className="font-medium text-[15px]"
                 style={{ color: isDark ? '#7F8596' : '#939AAE' }}
@@ -307,12 +283,12 @@ const ProjectDetailPage = () => {
               </h2>
               {project.roles?.length ? (
                 project.roles.map((role) => (
-                  <div key={role.key} className="flex flex-col gap-4">
+                  <div key={role.key} className="flex flex-col gap-3">
                     <div className="flex items-center gap-3">
                       <RoleBadge label={role.label} tone={role.tone} />
-                      <span className="flex items-center gap-2 font-semibold text-[14px]">
+                      <span className="flex items-center gap-1 font-semibold text-[12px]">
                         <PersonIcon
-                          className="h-6 w-6"
+                          className="h-5 w-5"
                           style={{ color: isDark ? '#D4DAE7' : '#41444D' }}
                           aria-hidden
                         />
@@ -345,7 +321,7 @@ const ProjectDetailPage = () => {
       </section>
 
       {/* 프로젝트 소개 */}
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
+      <section className="grid gap-6 pt-5 lg:grid-cols-[minmax(0,1fr)_240px]">
         <div className="flex min-w-0 flex-col gap-6">
           <div className="font-semibold text-2xl text-card-title">프로젝트 소개</div>
           <div className="flex items-center">
@@ -353,7 +329,7 @@ const ProjectDetailPage = () => {
             <span className="h-[1.5px] flex-1 bg-[var(--color-card-border)]" />
           </div>
           <div
-            className="max-w-[880px] text-white/85 text-xl leading-relaxed [&_a]:text-badge-text-primary [&_a]:underline [&_em]:italic [&_h1]:my-2 [&_h1]:font-bold [&_h1]:text-2xl [&_h2]:my-2 [&_h2]:font-bold [&_h2]:text-xl [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_p]:text-xl [&_s]:line-through [&_ul]:list-disc [&_ul]:pl-5"
+            className="max-w-[880px] text-2xl text-card-title leading-relaxed [&_a]:text-badge-text-primary [&_a]:underline [&_em]:italic [&_h1]:my-2 [&_h1]:font-bold [&_h1]:text-2xl [&_h2]:my-2 [&_h2]:font-bold [&_h2]:text-xl [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_p]:text-xl [&_s]:line-through [&_ul]:list-disc [&_ul]:pl-5"
             dangerouslySetInnerHTML={{
               __html: project.summary?.trim() || '<p>프로젝트 소개 정보가 없습니다.</p>',
             }}
@@ -482,17 +458,11 @@ function StatusMenu({
               type="button"
               onClick={() => onChange(option.key)}
               className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-[14px] transition-colors ${
-                projectStatus === option.key
-                  ? 'font-semibold'
-                  : 'hover:bg-[var(--ui-100)]'
+                projectStatus === option.key ? 'font-semibold' : 'hover:bg-[var(--ui-100)]'
               }`}
               style={{
                 color:
-                  projectStatus === option.key
-                    ? '#4E49FF'
-                    : isDark
-                      ? '#F8F9FB'
-                      : 'var(--ui-700)',
+                  projectStatus === option.key ? '#4E49FF' : isDark ? '#F8F9FB' : 'var(--ui-700)',
               }}
             >
               <span

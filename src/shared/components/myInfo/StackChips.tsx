@@ -18,27 +18,30 @@ const StackChips = ({ stacks, onRemove }: StackChipsProps) => {
       {stacks.map((key) => {
         const label = TECH_STACK_LABEL_BY_KEY[key] ?? key;
         const badge = getTechBadgeByName(label);
-        const iconSrc = badge && 'off' in badge && 'on' in badge 
-          ? (theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off) 
-          : undefined;
+        const iconSrc =
+          badge && 'off' in badge && 'on' in badge
+            ? theme === 'dark'
+              ? (badge.offDark ?? badge.off)
+              : badge.off
+            : undefined;
 
         return (
-          <button 
-            key={key} 
-            type="button" 
-            onClick={() => removeStack(key)} 
+          <button
+            key={key}
+            type="button"
+            onClick={() => removeStack(key)}
             className="relative inline-flex items-center"
           >
             {iconSrc ? (
               <img src={iconSrc} alt={`${label} 배지`} className="h-[32px] w-auto" loading="lazy" />
             ) : (
-              <div className="inline-flex h-[32px] items-center gap-[8px] rounded-[24px] px-[12px] py-[6px] bg-[var(--ui-100)] ring-[1.5px] ring-[var(--ui-200)]">
+              <div className="inline-flex h-[32px] items-center gap-[8px] rounded-[24px] bg-[var(--ui-100)] px-[12px] py-[6px] ring-[1.5px] ring-[var(--ui-200)]">
                 <span className="Caption1 font-medium text-[var(--ui-800)]">{label}</span>
               </div>
             )}
             <span
               aria-hidden
-              className="absolute -right-[4px] -top-[4px] flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--ui-50)] text-[11px] text-[var(--ui-400)]"
+              className="-right-[4px] -top-[4px] absolute flex h-[18px] w-[18px] cursor-pointer items-center justify-center rounded-full bg-[var(--ui-50)] text-[11px] text-[var(--ui-400)]"
             >
               ×
             </span>

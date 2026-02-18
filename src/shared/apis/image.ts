@@ -1,3 +1,5 @@
+const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
+
 type PresignedUrlResult = {
   imageId: number;
   presignedUrl: string;
@@ -21,7 +23,7 @@ export async function createPresignedUrl(
   payload: { imageType: 'PROFILE'; fileName: string },
   token?: string,
 ) {
-  const res = await fetch('https://api.devine.kr/api/v1/images/presigned-url', {
+  const res = await fetch(`${BASE_URL}/api/v1/images/presigned-url`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,7 +45,7 @@ export async function createPresignedUrl(
 }
 
 export async function confirmImageUpload(imageId: number, imageUrl: string, token?: string) {
-  const res = await fetch(`https://api.devine.kr/api/v1/images/confirm/${imageId}`, {
+  const res = await fetch(`${BASE_URL}/api/v1/images/confirm/${imageId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

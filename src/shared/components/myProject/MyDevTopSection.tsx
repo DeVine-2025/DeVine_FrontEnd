@@ -1,8 +1,9 @@
 import ProjectLg from '@components/common/ProjectLg';
 import Tabs from '@components/tab/CommonTabs';
-import { type DevTab, type MatchingProject, useDevProjects } from '@hooks/useDevProjects';
-import { useNavigate } from 'react-router-dom';
+import { type DevTab, useDevProjects } from '@hooks/useDevProjects';
+import { useRespondProposal } from '@hooks/useRespondProposal';
 import type { ProjectCardProps } from '@t/project/ui';
+import { useNavigate } from 'react-router-dom';
 
 type Props = {
   devTab: DevTab;
@@ -13,9 +14,25 @@ function getEmptyMessage(tab: DevTab) {
   return tab === 'suggested' ? '받은 제안이 없어요.' : '지원 중인 프로젝트가 없어요.';
 }
 
-function toProjectLgProps(p: MatchingProject): ProjectCardProps {
+function toProjectLgProps(m: any): ProjectCardProps {
   return {
-    title: p.projectName ?? '',
+    title: m.projectName,
+
+    categoryLabel: m.categoryName,
+    deadlineLabel: undefined,
+
+    thumbnailUrl: m.thumbnailUrl ?? undefined,
+    thumbnailAlt: m.projectName,
+
+    location: m.location ?? undefined,
+    durationRangeName: m.durationRangeName ?? m.durationRangeName,
+    mode: m.modeName ?? undefined,
+
+    roles:
+      m.positions?.map((p: any) => ({
+        label: p.positionName ?? p.name,
+        count: p.recruitCount ?? p.count,
+      })) ?? [],
   };
 }
 
@@ -68,7 +85,7 @@ const AppliedBadge = ({ decision }: { decision?: string }) => {
 const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
   const navigate = useNavigate();
   const { data, isLoading, isError } = useDevProjects(devTab);
-  // console.log(data);
+  const { mutate: respond, isPending } = useRespondProposal();
 
   const handleProjectClick = (projectId: number) => {
     navigate(`/project/${projectId}`);
@@ -92,7 +109,7 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
       <div className="mt-6 flex flex-col gap-4">
         {isLoading && <div className="py-30 text-center text-3xl text-card-muted">로딩중...</div>}
         {isError && (
-          <div className="py-30 text-center text-3xl text-card-muted">불러오기에 실패했어요.</div>
+          <div className="py-30 text-center text-3xl text-card-muted">받은 제안이 없어요.</div>
         )}
         {empty && (
           <div className="py-30 text-center text-3xl text-card-muted">
@@ -113,14 +130,15 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
                 showBookmark={false}
                 showDue={false}
                 action={
-                  devTab === 'suggested' ? (
+                  devTab === 'suggested' && m.decision === 'PENDING' ? (
                     <div className="flex gap-3">
                       <button
                         type="button"
-                        className="cursor-pointer rounded-xl bg-[#4E49FF] px-3 py-2 font-medium text-[12px] text-my-tab-inactive"
+                        disabled={isPending}
+                        className="cursor-pointer rounded-xl bg-[#4E49FF] px-3 py-2 font-medium text-[12px] text-my-tab-inactive disabled:opacity-50"
                         onClick={(event) => {
                           event.stopPropagation();
-                          console.log('수락', m.matchingId);
+                          respond({ matchingId: m.matchingId, decision: 'ACCEPT', tab: devTab });
                         }}
                       >
                         수락하기
@@ -128,10 +146,11 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
 
                       <button
                         type="button"
-                        className="cursor-pointer rounded-xl bg-surface-tab px-3 py-2 font-medium text-[12px] text-my-tab-text"
+                        disabled={isPending}
+                        className="cursor-pointer rounded-xl bg-surface-tab px-3 py-2 font-medium text-[12px] text-my-tab-text disabled:opacity-50"
                         onClick={(event) => {
                           event.stopPropagation();
-                          console.log('거절', m.matchingId);
+                          respond({ matchingId: m.matchingId, decision: 'REJECT', tab: devTab });
                         }}
                       >
                         거절하기

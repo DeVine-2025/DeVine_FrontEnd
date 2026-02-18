@@ -1,39 +1,49 @@
-import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
+import { createBookmark, deleteBookmark } from '@apis/bookmarks';
 import { getRecommendProjects, type ProjectListItem } from '@apis/recommend';
+import { reportQueries } from '@apis/report/report-queries';
 import { useAuth } from '@clerk/clerk-react';
 import ProjectListState from '@components/common/ListStateUI';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
+import { useBookmarks } from '@hooks/useBookmarks';
 import { buildParams } from '@mappers/projectFilters';
-import { useAuthStore } from '@store/auth';
 import { useFilterStore } from '@store/filter';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReportRequiredCard from '@components/common/ReportRequiredCard';
-import { getReports } from '@apis/report/report-queries';
 import { useNavigate } from 'react-router-dom';
 import { PROJECT_FILTERS } from '@components/common/ProjectFilterBar';
 
 const RecommendProjectPage = () => {
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
   const navigate = useNavigate();
-  const userRole = useAuthStore((state) => state.role);
-  const isPm = userRole === 'pm';
+  const queryClient = useQueryClient();
   const { recommendProject, setRecommendProject } = useFilterStore();
   const { domains, expectedPeriods, projectTypes, techStacks } = recommendProject;
 
-  const [hasReport, setHasReport] = useState<boolean | null>(null);
+  const { data: reportsData, isFetched: reportsFetched } = useQuery({
+    ...reportQueries.report(),
+    enabled: !!isSignedIn,
+    staleTime: 60_000,
+  });
+  const hasReport = (reportsData?.result?.reports?.length ?? 0) > 0;
+
+  const { data: bookmarks = [] } = useBookmarks();
+  const bookmarkMap = useMemo(() => {
+    const map: Record<number, number> = {};
+    for (const b of bookmarks) {
+      if (b.targetType === 'PROJECT' && b.targetId != null) map[b.targetId] = b.bookmarkId;
+    }
+    return map;
+  }, [bookmarks]);
+  const bookmarkMapRef = useRef(bookmarkMap);
+  bookmarkMapRef.current = bookmarkMap;
+
   const [openFilter, setOpenFilter] = useState<null | (typeof PROJECT_FILTERS)[number]>(null);
   const [list, setList] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [page, setPage] = useState(1);
-  const [bookmarkMap, setBookmarkMap] = useState<Record<number, number>>({});
-
-  const bookmarkMapRef = useRef<Record<number, number>>({});
-
-  useEffect(() => {
-    bookmarkMapRef.current = bookmarkMap;
-  }, [bookmarkMap]);
 
   const params = useMemo(
     () =>
@@ -45,58 +55,6 @@ const RecommendProjectPage = () => {
       }),
     [projectTypes, domains, expectedPeriods, techStacks],
   );
-
-  // 리포트 유무 확인
-  useEffect(() => {
-    let cancelled = false;
-    getReports()
-      .then((res) => {
-        if (cancelled) return;
-        const reports = res?.result?.reports ?? [];
-        setHasReport(reports.length > 0);
-      })
-      .catch(() => {
-        if (!cancelled) setHasReport(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      const token = await getToken();
-      if (!token || cancelled) return;
-
-      try {
-        const bookmarks = await getBookmarks(token);
-        if (cancelled) return;
-
-        const next: Record<number, number> = {};
-        for (const b of bookmarks) {
-          if (b.targetType !== 'PROJECT' || b.targetId == null) continue;
-          next[b.targetId] = b.bookmarkId;
-        }
-
-        setBookmarkMap(next);
-
-        setList((prev) =>
-          prev.map((p) => {
-            const hit = next[Number(p.id)];
-            return hit ? { ...p, bookmarked: true, bookmarkId: hit } : p;
-          }),
-        );
-      } catch (e) {
-        console.error('[북마크] 목록 로드 실패', e);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [getToken]);
 
   const fetchList = useCallback(async () => {
     const token = await getToken();
@@ -112,9 +70,7 @@ const RecommendProjectPage = () => {
 
     try {
       const result = await getRecommendProjects(token, params);
-
       const map = bookmarkMapRef.current;
-
       setList(
         result.list.map((p: ProjectListItem) => {
           const hit = map[Number(p.id)];
@@ -129,6 +85,16 @@ const RecommendProjectPage = () => {
       setLoading(false);
     }
   }, [getToken, params]);
+
+  const displayList = useMemo(
+    () =>
+      list.map((p) => ({
+        ...p,
+        bookmarked: !!bookmarkMap[Number(p.id)],
+        bookmarkId: bookmarkMap[Number(p.id)],
+      })),
+    [list, bookmarkMap],
+  );
 
   const setDomains = useCallback(
     (v: string[]) => setRecommendProject({ domains: v }),
@@ -151,9 +117,10 @@ const RecommendProjectPage = () => {
     fetchList();
   }, [fetchList]);
 
-  const handleProjectClick = (project: ProjectListItem) => {
-    navigate(`/project/${project.id}`);
-  };
+  const handleNavigateToProject = useCallback(
+    (id: string) => navigate(`/project/${id}`),
+    [navigate],
+  );
 
   const handleBookmarkChange = useCallback(
     async (projectId: string, next: boolean, currentBookmarkId?: number) => {
@@ -162,70 +129,26 @@ const RecommendProjectPage = () => {
       const targetId = Number(projectId);
       if (Number.isNaN(targetId)) return;
 
-      const prevMap = bookmarkMapRef.current;
-      const prevBookmarkId = prevMap[targetId];
-      if (next) {
-        setBookmarkMap((prev) => ({ ...prev, [targetId]: -1 }));
-        setList((prev) =>
-          prev.map((p) =>
-            p.id === projectId ? { ...p, bookmarked: true, bookmarkId: undefined } : p,
-          ),
-        );
-      } else {
-        if (currentBookmarkId == null) return;
-        setBookmarkMap((prev) => {
-          const nextMap = { ...prev };
-          delete nextMap[targetId];
-          return nextMap;
-        });
-        setList((prev) =>
-          prev.map((p) =>
-            p.id === projectId ? { ...p, bookmarked: false, bookmarkId: undefined } : p,
-          ),
-        );
-      }
-
       try {
         if (next) {
-          const { bookmarkId } = await createBookmark({ targetType: 'PROJECT', targetId }, token);
-          setBookmarkMap((prev) => ({ ...prev, [targetId]: bookmarkId }));
-          setList((prev) =>
-            prev.map((p) => (p.id === projectId ? { ...p, bookmarked: true, bookmarkId } : p)),
-          );
+          await createBookmark({ targetType: 'PROJECT', targetId }, token);
         } else {
           if (currentBookmarkId == null) return;
           await deleteBookmark(currentBookmarkId, token);
         }
+        await queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
       } catch (e) {
         console.error('[북마크]', e);
-        if (next) {
-          setBookmarkMap((prev) => {
-            const nextMap = { ...prev };
-            delete nextMap[targetId];
-            return nextMap;
-          });
-          setList((prev) =>
-            prev.map((p) =>
-              p.id === projectId ? { ...p, bookmarked: false, bookmarkId: prevBookmarkId } : p,
-            ),
-          );
-        } else {
-          setBookmarkMap((prev) => ({ ...prev, [targetId]: currentBookmarkId! }));
-          setList((prev) =>
-            prev.map((p) =>
-              p.id === projectId ? { ...p, bookmarked: true, bookmarkId: currentBookmarkId } : p,
-            ),
-          );
-        }
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
-    [getToken],
+    [getToken, queryClient],
   );
 
   const handleRetry = useCallback(() => {
     setPage(1);
-  }, []);
+    fetchList();
+  }, [fetchList]);
 
   const handleApply = useCallback(() => {
     setOpenFilter(null);
@@ -237,7 +160,7 @@ const RecommendProjectPage = () => {
     setPage(1);
   }, []);
 
-  const showReportCardOverlay = hasReport === false;
+  const showReportCardOverlay = !!isSignedIn && reportsFetched && !hasReport;
 
   if (showReportCardOverlay) {
     return (
@@ -306,8 +229,8 @@ const RecommendProjectPage = () => {
 
         {!loading &&
           !isError &&
-          list.length > 0 &&
-          list.map((p) => (
+          displayList.length > 0 &&
+          displayList.map((p) => (
             <RecommendProjectCard
               key={p.id}
               categoryLabel={p.categoryLabel}
@@ -318,7 +241,7 @@ const RecommendProjectPage = () => {
               location={p.location}
               period={p.period}
               mode={p.mode}
-              roles={[]}
+              roles={p.roles}
               dueLabel={p.dueLabel}
               bookmarked={p.bookmarked ?? false}
               techstackScorePercent={p.techstackScorePercent}
@@ -328,7 +251,7 @@ const RecommendProjectPage = () => {
               projectId={p.id}
               bookmarkId={p.bookmarkId}
               onBookmarkChangeById={handleBookmarkChange}
-              onClick={() => handleProjectClick(p)}
+              onNavigateToProject={handleNavigateToProject}
             />
           ))}
       </div>
