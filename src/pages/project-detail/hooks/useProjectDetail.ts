@@ -205,17 +205,22 @@ export function useProjectDetail() {
 
   // ── Owner check ──
   const currentMemberId = useMemo(() => {
-    const unsafe = user?.unsafeMetadata as { memberId?: number } | undefined;
-    const publicMeta = user?.publicMetadata as { memberId?: number } | undefined;
-    return unsafe?.memberId ?? publicMeta?.memberId ?? null;
-  }, [user?.publicMetadata, user?.unsafeMetadata]);
+    const unsafe = user?.unsafeMetadata as { memberId?: number | string } | undefined;
+    const publicMeta = user?.publicMetadata as { memberId?: number | string } | undefined;
+
+    const raw = unsafe?.memberId ?? publicMeta?.memberId ?? null;
+    if (raw == null) return null;
+
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }, [user?.id, user?.unsafeMetadata, user?.publicMetadata]);
+
+  const creatorId = project?.creatorId == null ? null : Number(project.creatorId);
 
   const isOwner =
     Boolean(project?.isOwner) ||
-    (project?.creatorId != null &&
-      currentMemberId != null &&
-      project.creatorId === currentMemberId) ||
-    isOwnerByList;
+    (creatorId != null && currentMemberId != null && creatorId === currentMemberId) ||
+    Boolean(isOwnerByList);
 
   const creatorImage = project?.creatorImage ?? creatorProfileImage;
 
