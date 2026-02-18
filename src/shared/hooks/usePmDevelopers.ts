@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 
 export type DevTab = 'suggested' | 'applied';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+
 const ENDPOINT_BY_TAB: Record<DevTab, string> = {
   suggested: '/api/v1/matching/pm/proposed-developers',
   applied: '/api/v1/matching/pm/applications',
@@ -44,6 +46,12 @@ type ApiResponse<T> = {
 
 const EMPTY = { content: [], totalElements: 0 } as const;
 
+function joinUrl(base: string, path: string) {
+  const b = base.replace(/\/+$/, '');
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return `${b}${p}`;
+}
+
 async function fetchPmDevelopers({
   endpoint,
   token,
@@ -53,11 +61,18 @@ async function fetchPmDevelopers({
   token: string;
   signal?: AbortSignal;
 }) {
+  if (!API_BASE_URL) throw new Error('VITE_API_BASE_URL is not set');
+
+  const url = joinUrl(API_BASE_URL, endpoint);
+
   try {
-    const res = await fetch(endpoint, {
+    const res = await fetch(url, {
       method: 'GET',
       signal,
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
     });
 
     if (res.status === 404 || res.status === 204) return EMPTY;

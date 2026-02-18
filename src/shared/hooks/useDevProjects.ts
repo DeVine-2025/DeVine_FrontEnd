@@ -2,6 +2,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { useQuery } from '@tanstack/react-query';
 
 export type DevTab = 'suggested' | 'applied';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const ENDPOINT_BY_TAB: Record<DevTab, string> = {
   suggested: '/api/v1/matching/developer/received-proposals',
@@ -35,8 +36,9 @@ type ApiResponse<T> = {
 
 async function fetchDevProjects(args: { endpoint: string; token: string; signal?: AbortSignal }) {
   const { endpoint, token, signal } = args;
+  const url = `${API_BASE_URL}${endpoint}`;
 
-  const res = await fetch(endpoint, {
+  const res = await fetch(url, {
     method: 'GET',
     signal,
     headers: { Authorization: `Bearer ${token}` },
