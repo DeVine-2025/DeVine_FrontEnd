@@ -202,7 +202,6 @@ export function useProjectDetail() {
     apiProject ??
     sessionProject ??
     (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
-  console.log(project);
 
   // ── Owner check ──
   const currentMemberId = useMemo(() => {
@@ -222,8 +221,6 @@ export function useProjectDetail() {
     Boolean(project?.isOwner) ||
     (creatorId != null && currentMemberId != null && creatorId === currentMemberId) ||
     Boolean(isOwnerByList);
-
-  console.log(isOwner);
 
   const creatorImage = project?.creatorImage ?? creatorProfileImage;
 
