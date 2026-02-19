@@ -2,8 +2,12 @@ import ProfileCard from '@components/common/ProfileCard';
 import Tabs from '@components/tab/CommonTabs';
 import { type DevTab, type MatchingDeveloper, usePmDevelopers } from '@hooks/usePmDevelopers';
 import { useRespondApplication } from '@hooks/useRespondApplication';
+import { useThemeStore } from '@store/theme';
 import type { ProfileCardProps, TechStackItem } from '@t/profileCard.types';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ProfileDefaultLight from '@assets/images/Profile.svg?url';
+import ProfileDefaultDark from '@assets/images/Profile_dark.svg?url';
 
 type Props = {
   devTab: DevTab;
@@ -25,23 +29,16 @@ function mapTechStacks(stacks: string[]): TechStackItem[] {
   }));
 }
 
-function toProfileCardProps(d: MatchingDeveloper): ProfileCardProps {
+function toProfileCardProps(d: MatchingDeveloper, defaultProfileUrl: string): ProfileCardProps {
   return {
     id: String(d.developerId),
-
     role: d.partName,
     roleTone: 'green',
-
     nickname: d.developerNickname,
-
-    profileImageUrl: d.developerImageUrl ?? '/images/default-profile.png',
-
+    profileImageUrl: d.developerImageUrl?.trim() || defaultProfileUrl,
     introduction: d.body ?? '한줄 소개가 들어가는 자리입니다.',
-
     badges: mapBadges(d.categories),
-
     techStack: mapTechStacks(d.techStacks),
-
     size: 'lg',
   };
 }
@@ -72,7 +69,7 @@ const Action = ({
   if (!visible) return null;
 
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-4" onClick={(e) => e.stopPropagation()}>
       <button
         type="button"
         disabled={disabled}
@@ -95,6 +92,12 @@ const Action = ({
 };
 
 const MyPMTopSection = ({ devTab, onChangeDevTab }: Props) => {
+  const navigate = useNavigate();
+  const { theme } = useThemeStore();
+  const defaultProfileUrl = useMemo(
+    () => (theme === 'dark' ? ProfileDefaultDark : ProfileDefaultLight),
+    [theme],
+  );
   const { data, isLoading, isError } = usePmDevelopers(devTab);
   const respondMut = useRespondApplication();
 
@@ -170,7 +173,7 @@ const MyPMTopSection = ({ devTab, onChangeDevTab }: Props) => {
         {!isLoading &&
           !isError &&
           (data?.content ?? []).map((d) => {
-            const cardProps = toProfileCardProps(d);
+            const cardProps = toProfileCardProps(d, defaultProfileUrl);
 
             const decision = getDecision(
               d.matchingId,
@@ -183,6 +186,7 @@ const MyPMTopSection = ({ devTab, onChangeDevTab }: Props) => {
               <ProfileCard
                 key={d.matchingId}
                 {...cardProps}
+                onClick={() => navigate(`/developer-detail/${d.developerNickname}`)}
                 header={<Header projectName={d.projectName} />}
                 action={
                   devTab === 'applied' ? (
