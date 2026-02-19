@@ -1,3 +1,5 @@
+import { axiosInstance } from '@apis/instance';
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 type ApplyStatusResponse = {
@@ -82,6 +84,11 @@ export async function applyProject(projectId: number, part: string, token: strin
   }
 
   return res.json().catch(() => null);
+}
+
+export async function getMemberProposal(projectId: number | null, nickname: string | undefined) {
+  const res  = axiosInstance.get(`/api/v1/matching/projects/${projectId}/propose/${nickname}`)
+  return res;
 }
 
 export async function createMemberProposal(

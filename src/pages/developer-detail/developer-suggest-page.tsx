@@ -2,6 +2,8 @@ import { createMemberProposal } from '@apis/apply';
 import type { MyProfile } from '@apis/myInfo/myInfo';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { getMyRecruitingProjects, type MyRecruitingProjectItem } from '@apis/projects';
+import { getMemberProposal } from '@apis/apply';
+
 import BackIcon from '@assets/icons/back.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import MainProjectCard from '@components/common/MainProjectCard';
@@ -27,6 +29,7 @@ const DeveloperSuggestPage = () => {
   const { getToken } = useAuth();
   const [projects, setProjects] = useState<MyRecruitingProjectItem[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [isSuggested, setIsSuggested] = useState<boolean>();
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [projectsError, setProjectsError] = useState<string | null>(null);
   const [proposalPart, setProposalPart] = useState<string | null>(null);
@@ -48,6 +51,20 @@ const DeveloperSuggestPage = () => {
     const domains = profile?.domains ?? [];
     return domains.map((domain: string) => DOMAIN_REVERSE_MAP[domain] ?? domain);
   }, [profile?.domains]);
+
+  const getSuggestions = async () => {
+    try{
+      if(selectedProjectId === null) return;
+      const res = await getMemberProposal(selectedProjectId, memberNick);
+      setIsSuggested(res?.data?.result?.exists)
+      console.log("제안상태조회", res?.data?.result?.exists);
+    } catch (e){
+      console.error(e);
+    }
+  }
+  useEffect(() => {
+    getSuggestions()
+  }, [selectedProjectId]);
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -231,10 +248,10 @@ const DeveloperSuggestPage = () => {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={submitLoading || !selectedProjectId}
-            className="rounded-xl bg-primary px-30 py-6 font-medium text-lg text-white disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={submitLoading || !selectedProjectId || isSuggested}
+            className={cn('rounded-xl bg-primary px-30 py-6 font-medium text-lg text-white disabled:cursor-not-allowed disabled:opacity-60', isSuggested & "bg-ui-50 text-ui-500")}
           >
-            {submitLoading ? '전송 중...' : '제안하기'}
+            {submitLoading ? '전송 중...' : isSuggested ? '제안완료' : '제안하기'}
           </button>
         </div>
       </section>
