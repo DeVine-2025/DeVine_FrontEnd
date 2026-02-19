@@ -248,7 +248,7 @@ const DeveloperSuggestPage = () => {
             type="button"
             onClick={handleSubmit}
             disabled={submitLoading || !selectedProjectId || isSuggested}
-            className={cn('rounded-xl bg-primary px-30 py-6 font-medium text-lg text-white disabled:cursor-not-allowed disabled:opacity-60', isSuggested & "bg-ui-50 text-ui-500")}
+            className={cn('rounded-xl bg-primary px-30 py-6 font-medium text-lg text-white disabled:cursor-not-allowed disabled:opacity-60', isSuggested && "bg-ui-50 text-ui-500")}
           >
             {submitLoading ? '전송 중...' : isSuggested ? '제안완료' : '제안하기'}
           </button>
