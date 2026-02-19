@@ -23,6 +23,7 @@ const RoleBadge = ({ label, tone }: { label: string; tone: BadgeTone }) => (
 );
 
 // ── Main ──
+type ApplyStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
 
 const ProjectDetailPage = () => {
   const { theme } = useThemeStore();
@@ -37,6 +38,7 @@ const ProjectDetailPage = () => {
     creatorImage,
     bookmarkState,
     handleBookmarkChange,
+    handleCancelApply,
     openApplyModal,
     isApplyModalOpen,
     setIsApplyModalOpen,
@@ -47,6 +49,7 @@ const ProjectDetailPage = () => {
     isRoleMenuOpen,
     setIsRoleMenuOpen,
     hasApplied,
+    appliedStatus,
     appliedPart,
     isApplying,
     handleApply,
@@ -63,6 +66,10 @@ const ProjectDetailPage = () => {
     currentStatusLabel,
     handleStatusChange,
   } = useProjectDetail();
+
+const isApply = appliedStatus === 'PENDING' || appliedStatus === 'PROCESSING';
+const isAccepted = appliedStatus === 'COMPLETED';
+const canApply = appliedStatus == null || appliedStatus === 'CANCELLED';
 
   const renderTechBadge = (tech: string, key: string) => {
     const badge = getTechBadgeByName(tech);
@@ -170,7 +177,7 @@ const ProjectDetailPage = () => {
                 </div>
 
                 {/* 지원 수정 (지원자) */}
-                {hasApplied && !isOwner && (
+                {!isOwner && isApply && (
                   <button
                     type="button"
                     onClick={() => {
@@ -224,17 +231,19 @@ const ProjectDetailPage = () => {
                       </svg>
                       프로젝트 수정
                     </button>
-                    <StatusMenu
-                      isDark={isDark}
-                      statusMenuRef={statusMenuRef}
-                      projectStatus={projectStatus}
-                      isStatusMenuOpen={isStatusMenuOpen}
-                      isStatusUpdating={isStatusUpdating}
-                      currentStatusLabel={currentStatusLabel}
-                      STATUS_OPTIONS={STATUS_OPTIONS}
-                      onToggle={() => setIsStatusMenuOpen((prev) => !prev)}
-                      onChange={handleStatusChange}
-                    />
+                    {isOwner && (
+                      <StatusMenu
+                        isDark={isDark}
+                        statusMenuRef={statusMenuRef}
+                        projectStatus={projectStatus}
+                        isStatusMenuOpen={isStatusMenuOpen}
+                        isStatusUpdating={isStatusUpdating}
+                        currentStatusLabel={currentStatusLabel}
+                        STATUS_OPTIONS={STATUS_OPTIONS}
+                        onToggle={() => setIsStatusMenuOpen((prev) => !prev)}
+                        onChange={handleStatusChange}
+                      />
+                    )}
                   </div>
                 )}
               </div>
@@ -243,20 +252,39 @@ const ProjectDetailPage = () => {
             <div className="h-px w-full bg-card-border" />
           </div>
 
-          {/* 지원하기 버튼 (우측) */}
-          <div
-            className={`flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-end lg:gap-6 ${
-              (project.imageUrls?.length ?? 0) > 0 ? 'mt-[20rem] lg:mt-[30rem]' : 'mt-20 lg:mt-24'
-            }`}
-          >
-            {!isOwner && !hasApplied && (
-              <button
-                type="button"
-                onClick={openApplyModal}
+          {/* 우측 버튼 */}
+          <div>
+            {!isOwner && (
+            <>
+              {/* PENDING/미지원/취소됨 → 지원하기 */}
+              {canApply && (
+                <button
+                  type="button"
+                  onClick={openApplyModal}
+                  className="h-[42px] w-[200px] cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
+                >
+                  지원하기
+                </button>
+              )}
+
+              {/* PROCESSING → 취소하기 */}
+              {isApply && (
+                <button type="button" onClick={handleCancelApply}
                 className="h-[42px] w-[200px] cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
-              >
-                지원하기
-              </button>
+                >
+                  지원 취소하기
+                </button>
+              )}
+
+              {/* COMPLETED → 수락 완료 */}
+              {isAccepted && (
+                <button type="button" disabled
+                  className="h-[42px] w-[200px] cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
+                >
+                  수락 완료
+                </button>
+              )}
+            </>
             )}
           </div>
         </div>

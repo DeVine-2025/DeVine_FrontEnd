@@ -1,6 +1,7 @@
 import ProjectLg from '@components/common/ProjectLg';
 import Tabs from '@components/tab/CommonTabs';
 import { type DevTab, useDevProjects } from '@hooks/useDevProjects';
+import { useRespondProposal } from '@hooks/useRespondProposal';
 import type { ProjectCardProps } from '@t/project/ui';
 import { useNavigate } from 'react-router-dom';
 
@@ -84,7 +85,7 @@ const AppliedBadge = ({ decision }: { decision?: string }) => {
 const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
   const navigate = useNavigate();
   const { data, isLoading, isError } = useDevProjects(devTab);
-  // console.log(data);
+  const { mutate: respond, isPending } = useRespondProposal();
 
   const handleProjectClick = (projectId: number) => {
     navigate(`/project/${projectId}`);
@@ -121,8 +122,6 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
           (data?.content ?? []).map((m) => {
             const projectProps = toProjectLgProps(m);
 
-            console.log(projectProps);
-
             return (
               <ProjectLg
                 key={m.matchingId}
@@ -131,14 +130,15 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
                 showBookmark={false}
                 showDue={false}
                 action={
-                  devTab === 'suggested' ? (
+                  devTab === 'suggested' && m.decision === 'PENDING' ? (
                     <div className="flex gap-3">
                       <button
                         type="button"
-                        className="cursor-pointer rounded-xl bg-[#4E49FF] px-3 py-2 font-medium text-[12px] text-my-tab-inactive"
+                        disabled={isPending}
+                        className="cursor-pointer rounded-xl bg-[#4E49FF] px-3 py-2 font-medium text-[12px] text-my-tab-inactive disabled:opacity-50"
                         onClick={(event) => {
                           event.stopPropagation();
-                          console.log('수락', m.matchingId);
+                          respond({ matchingId: m.matchingId, decision: 'ACCEPT', tab: devTab });
                         }}
                       >
                         수락하기
@@ -146,10 +146,11 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
 
                       <button
                         type="button"
-                        className="cursor-pointer rounded-xl bg-surface-tab px-3 py-2 font-medium text-[12px] text-my-tab-text"
+                        disabled={isPending}
+                        className="cursor-pointer rounded-xl bg-surface-tab px-3 py-2 font-medium text-[12px] text-my-tab-text disabled:opacity-50"
                         onClick={(event) => {
                           event.stopPropagation();
-                          console.log('거절', m.matchingId);
+                          respond({ matchingId: m.matchingId, decision: 'REJECT', tab: devTab });
                         }}
                       >
                         거절하기

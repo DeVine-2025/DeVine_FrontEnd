@@ -129,12 +129,22 @@ export async function updateProject(
 export type MyRecruitingProjectItem = {
   projectId: number;
   title: string;
+  thumbnailUrl?: string;
+  categoryName?: string;
+  location?: string;
+  durationRangeName?: string;
+  modeName?: string;
 };
 
 type MyRecruitingContentItem = {
   projectId?: number;
   id?: number;
   title?: string;
+  thumbnailUrl?: string;
+  categoryName?: string;
+  location?: string;
+  durationRangeName?: string;
+  modeName?: string;
   [key: string]: unknown;
 };
 
@@ -181,7 +191,7 @@ async function fetchMyProjectsByPath(
   token: string,
   signal?: AbortSignal,
 ): Promise<MyRecruitingProjectItem[]> {
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(`${BASE_URL}/api/v1/projects/my/recruiting`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -196,12 +206,17 @@ async function fetchMyProjectsByPath(
     throw new Error(typeof message === 'string' ? message : `요청 실패 (${res.status})`);
   }
 
-  const rawList = extractMyProjectsRawList(json);
+  const content = json?.result?.projects?.content ?? json?.projects?.content ?? [];
 
-  return rawList
+  return content
     .map((item) => ({
-      projectId: item.projectId ?? item.id ?? 0,
+      projectId: item.projectId ?? 0,
       title: typeof item.title === 'string' ? item.title : '',
+      thumbnailUrl: item.thumbnailUrl ?? '',
+      categoryName: item.categoryName,
+      location: item.location,
+      durationRangeName: item.durationRangeName,
+      modeName: item.modeName,
     }))
     .filter((item) => Number.isFinite(item.projectId) && item.projectId > 0);
 }

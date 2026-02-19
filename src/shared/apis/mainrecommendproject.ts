@@ -98,15 +98,6 @@ export async function getRecommendProjectsPreview(limit: number, token: string) 
   }
 
   const data = await res.json().catch(() => null);
-  if (import.meta.env.DEV) {
-    // console.log('[recommend-projects] raw response:', JSON.stringify(data, null, 2));
-    console.log(
-      '[recommend-projects] result type:',
-      typeof data?.result,
-      Array.isArray(data?.result) ? '(array)' : '',
-    );
-    console.log('[recommend-projects] result value:', data?.result);
-  }
 
   // 다양한 응답 구조 대응
   const result = data?.result;
@@ -127,10 +118,6 @@ export async function getRecommendProjectsPreview(limit: number, token: string) 
   } else if (data?.projects?.content && Array.isArray(data.projects.content)) {
     // { projects: { content: [ ... ] } }
     projects = data.projects.content;
-  }
-
-  if (import.meta.env.DEV) {
-    console.log('[recommend-projects] parsed projects:', projects.length, '개');
   }
 
   return projects;

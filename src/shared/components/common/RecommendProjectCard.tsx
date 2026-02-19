@@ -1,6 +1,6 @@
-import { memo } from 'react';
-import { cn } from '@libs/cn';
 import ProjectBase from '@components/common/ProjectBase';
+import { cn } from '@libs/cn';
+import { memo } from 'react';
 import type { RecommendProjectCardProps } from 'src/shared/types/recommendProjectCard.types';
 
 function RecommendProjectCard({
@@ -27,13 +27,12 @@ function RecommendProjectCard({
   totalScore,
 }: RecommendProjectCardProps) {
   const handleClick =
-    onNavigateToProject && projectId != null
-      ? () => onNavigateToProject(projectId)
-      : onClick;
+    onNavigateToProject && projectId != null ? () => onNavigateToProject(projectId) : onClick;
 
-  const handleBookmark = onBookmarkChangeById && projectId != null
-    ? (next: boolean) => onBookmarkChangeById(projectId, next, bookmarkId)
-    : onBookmarkChange;
+  const handleBookmark =
+    onBookmarkChangeById && projectId != null
+      ? (next: boolean) => onBookmarkChangeById(projectId, next, bookmarkId)
+      : onBookmarkChange;
 
   const hasSuitability =
     techstackScorePercent != null ||
@@ -68,7 +67,7 @@ function RecommendProjectCard({
       }
       className={cn(
         'group relative flex w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)] transition-all duration-300',
-        handleClick && 'cursor-pointer recommend-card-hover-border',
+        handleClick && 'recommend-card-hover-border cursor-pointer',
       )}
       style={{ height: cardHeight }}
     >
@@ -86,7 +85,7 @@ function RecommendProjectCard({
         bookmarked={bookmarked}
         onBookmarkChange={handleBookmark}
         render={(ui) => (
-          <div className="flex h-[180px] w-full items-center gap-6 overflow-hidden px-8 py-6">
+          <div className="flex h-[180px] w-full items-center gap-10 overflow-hidden px-8 py-6">
             {ui.Thumbnail}
 
             <div className="flex min-w-0 flex-1 flex-col justify-center gap-6">
@@ -95,10 +94,12 @@ function RecommendProjectCard({
               {ui.Meta}
             </div>
 
-            <div className="ml-auto mr-2 flex w-[320px] shrink-0 items-center gap-4 pr-0">
+            <div className="mr-2 ml-auto flex w-[340px] shrink-0 items-center gap-4">
               <div className="min-w-0 flex-1">{ui.RolesLg}</div>
-              <div className="flex shrink-0 items-center gap-2">
-                {dueLabel && <div className="flex shrink-0 justify-center text-center">{ui.Due}</div>}
+              <div className="flex shrink-0 items-center gap-12">
+                {dueLabel && (
+                  <div className="flex shrink-0 justify-center text-center">{ui.Due}</div>
+                )}
                 {ui.Bookmark}
               </div>
             </div>
@@ -107,8 +108,10 @@ function RecommendProjectCard({
       />
 
       {hasSuitability && suitabilityText ? (
-        <div className="flex shrink-0 items-center border-t border-[var(--ui-200)] px-8 py-2.5">
-          <p className="text-[12px] font-medium tracking-tight text-[var(--ui-500)]">{suitabilityText}</p>
+        <div className="flex shrink-0 items-center border-[var(--ui-200)] border-t px-8 py-4">
+          <p className="font-medium text-[12px] text-[var(--ui-500)] tracking-tight">
+            {suitabilityText}
+          </p>
         </div>
       ) : null}
     </article>

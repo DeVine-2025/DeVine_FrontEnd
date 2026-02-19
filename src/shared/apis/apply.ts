@@ -87,8 +87,9 @@ export async function applyProject(projectId: number, part: string, token: strin
 export async function createMemberProposal(
   nickname: string,
   projectId: number,
+  part: string | null,
   content: string,
-  token: string,
+  token: string
 ) {
   const res = await fetch(`${BASE_URL}/api/v1/matching/proposals/members/${nickname}`, {
     method: 'POST',
@@ -96,7 +97,7 @@ export async function createMemberProposal(
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ projectId, content }),
+    body: JSON.stringify({ projectId,part,content }),
   });
 
   const json = (await res.json().catch(() => null)) as ProposalResponse | null;

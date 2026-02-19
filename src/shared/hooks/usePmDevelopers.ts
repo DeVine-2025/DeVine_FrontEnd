@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 
 export type DevTab = 'suggested' | 'applied';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+
 const ENDPOINT_BY_TAB: Record<DevTab, string> = {
   suggested: '/api/v1/matching/pm/proposed-developers',
   applied: '/api/v1/matching/pm/applications',
@@ -44,23 +46,44 @@ type ApiResponse<T> = {
 
 const EMPTY = { content: [], totalElements: 0 } as const;
 
-async function fetchPmDevelopers(args: { endpoint: string; token: string; signal?: AbortSignal }) {
-  const { endpoint, token, signal } = args;
+function joinUrl(base: string, path: string) {
+  const b = base.replace(/\/+$/, '');
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return `${b}${p}`;
+}
 
-  const res = await fetch(endpoint, {
-    method: 'GET',
-    signal,
-    headers: { Authorization: `Bearer ${token}` },
-  });
+async function fetchPmDevelopers({
+  endpoint,
+  token,
+  signal,
+}: {
+  endpoint: string;
+  token: string;
+  signal?: AbortSignal;
+}) {
+  if (!API_BASE_URL) throw new Error('VITE_API_BASE_URL is not set');
 
-  if (res.status === 404 || res.status === 204) return EMPTY;
-  if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+  const url = joinUrl(API_BASE_URL, endpoint);
 
-  const json = (await res.json()) as ApiResponse<{
-    developers: Page<MatchingDeveloper>;
-  }>;
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      signal,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+    });
 
-  return json.result.developers;
+    if (res.status === 404 || res.status === 204) return EMPTY;
+    if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+
+    const json = (await res.json()) as ApiResponse<{ developers: Page<MatchingDeveloper> }>;
+    return json.result.developers;
+  } catch (e: any) {
+    if (e?.name === 'AbortError') return EMPTY;
+    throw e;
+  }
 }
 
 export function usePmDevelopers(tab: DevTab) {
@@ -75,5 +98,7 @@ export function usePmDevelopers(tab: DevTab) {
       return fetchPmDevelopers({ endpoint, token, signal });
     },
     staleTime: 30_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
