@@ -330,9 +330,12 @@ export function useProjectDetail() {
       if (hasApplied) {
         await updateMyApply(Number(projectId), selectedRole, token);
         setAppliedPart(selectedRole);
+        setAppliedStatus((prev) => prev ?? 'PENDING');
       } else {
         await applyProject(Number(projectId), selectedRole, token);
         setHasApplied(true);
+        setAppliedPart(selectedRole);
+        setAppliedStatus('PENDING');
       }
 
       setIsApplyModalOpen(false);
