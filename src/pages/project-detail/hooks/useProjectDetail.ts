@@ -15,6 +15,8 @@ import {
   toProjectDetailInfo,
   toProjectDetailInfoFromApi,
 } from '../project-detail-types';
+import { useAuthMe } from '@hooks/useAuthMe';
+export type ApplyStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
 
 export function useProjectDetail() {
   const { projectId } = useParams();
@@ -30,6 +32,7 @@ export function useProjectDetail() {
   const [hasApplied, setHasApplied] = useState(false);
   const [appliedMatchingId, setAppliedMatchingId] = useState<number | undefined>(undefined);
   const [appliedPart, setAppliedPart] = useState<string | undefined>(undefined);
+  const [appliedStatus, setAppliedStatus] = useState<ApplyStatus | null>(null);
   const [isApplying, setIsApplying] = useState(false);
   const [apiProject, setApiProject] = useState<ProjectDetailInfo | null>(null);
   const [isOwnerByList, setIsOwnerByList] = useState(false);
@@ -139,11 +142,12 @@ export function useProjectDetail() {
 
         if (token) {
           try {
-            const applyStatus = await getMyApplyStatus(numericId, token);
+            const applyStatus = await getMyApplyStatus(numericId, token); // 지원 상태 조회
             if (isActive) {
               setHasApplied(applyStatus.exists);
               setAppliedMatchingId(applyStatus.matchingId);
               setAppliedPart(applyStatus.part);
+              setAppliedStatus((applyStatus.status as ApplyStatus) ?? null);
             }
           } catch (e) {
             console.error('[지원 상태] 조회 실패', e);
@@ -204,23 +208,15 @@ export function useProjectDetail() {
     (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
 
   // ── Owner check ──
-  const currentMemberId = useMemo(() => {
-    const unsafe = user?.unsafeMetadata as { memberId?: number | string } | undefined;
-    const publicMeta = user?.publicMetadata as { memberId?: number | string } | undefined;
-
-    const raw = unsafe?.memberId ?? publicMeta?.memberId ?? null;
-    if (raw == null) return null;
-
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : null;
-  }, [user?.id, user?.unsafeMetadata, user?.publicMetadata]);
-
   const creatorId = project?.creatorId == null ? null : Number(project.creatorId);
 
+  const { data: me } = useAuthMe();
+  const myMemberId = me?.memberId ?? null;
+
   const isOwner =
-    Boolean(project?.isOwner) ||
-    (creatorId != null && currentMemberId != null && creatorId === currentMemberId) ||
-    Boolean(isOwnerByList);
+    creatorId != null &&
+    myMemberId != null &&
+    creatorId === myMemberId;
 
   const creatorImage = project?.creatorImage ?? creatorProfileImage;
 
@@ -402,6 +398,7 @@ export function useProjectDetail() {
     handleBookmarkChange,
     openApplyModal,
     // Apply modal
+    appliedStatus,
     isApplyModalOpen,
     setIsApplyModalOpen,
     isLoginModalOpen,
