@@ -6,7 +6,7 @@ import {
   getMYProjectInprogress,
   getMYProjectRecruiting,
 } from '@apis/project/project-queries';
-import { getProjectDetail, type ProjectStatus, updateProjectStatus } from '@apis/project-detail';
+import { cancelMyApply, getProjectDetail, type ProjectStatus, updateProjectStatus } from '@apis/project-detail';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -378,6 +378,28 @@ export function useProjectDetail() {
     }
   };
 
+  const handleCancelApply = async () => {
+  if (!projectId) return;
+
+  try {
+    const token = await getToken();
+    if (!token) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    await cancelMyApply(Number(projectId), token);
+
+    setHasApplied(false);
+    setAppliedMatchingId(undefined);
+    setAppliedPart(undefined);
+    setAppliedStatus(null);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
   const openApplyModal = () => {
     if (isLoaded && !isSignedIn) {
       setIsLoginModalOpen(true);
@@ -396,6 +418,7 @@ export function useProjectDetail() {
     creatorImage,
     bookmarkState,
     handleBookmarkChange,
+    handleCancelApply,
     openApplyModal,
     // Apply modal
     appliedStatus,

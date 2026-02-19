@@ -90,3 +90,22 @@ export async function getProjectDetail(projectId: number, token?: string | null)
 
   return data.result ?? null;
 }
+
+export async function cancelMyApply(projectId: number, token: string) {
+  const res = await fetch(
+    `${BASE_URL}/api/v1/matching/applications/projects/${projectId}/cancel`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => null);
+    throw new Error(error?.message ?? '지원 취소에 실패했습니다.');
+  }
+
+  return res.json().catch(() => null);
+}

@@ -38,6 +38,7 @@ const ProjectDetailPage = () => {
     creatorImage,
     bookmarkState,
     handleBookmarkChange,
+    handleCancelApply,
     openApplyModal,
     isApplyModalOpen,
     setIsApplyModalOpen,
@@ -268,7 +269,7 @@ const canApply = appliedStatus == null || appliedStatus === 'CANCELLED';
 
               {/* PROCESSING → 취소하기 */}
               {isApply && (
-                <button type="button" onClick={() => {}}
+                <button type="button" onClick={handleCancelApply}
                 className="h-[42px] w-[200px] cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
                 >
                   지원 취소하기
