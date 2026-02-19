@@ -237,8 +237,8 @@ const projectFieldMap: Record<string, string> = {
   웹: 'WEB',
   '모바일/앱': 'MOBILE',
   게임: 'GAME',
-  블록체인: 'GAME',
-  기타: 'WEB',
+  블록체인: 'BLOCKCHAIN',
+  기타: 'ETC',
 };
 const modeMap: Record<string, string> = {
   온라인: 'ONLINE',
@@ -294,6 +294,19 @@ const normalizeTechKey = (k: string) =>
     .replace(/\s+/g, '')
     .replace(/[^0-9a-zA-Z]/g, '')
     .toUpperCase();
+
+/** API에서 오는 값(JAVASCRIPT 등) → UI 옵션 키(Javascript 등)로 변환. 수정 모드 복원 시 사용 */
+const BACKEND_NAME_TO_UI_KEY: Record<string, string> = (() => {
+  const positionKeys: PositionKey[] = ['frontend', 'backend', 'infra'];
+  const acc: Record<string, string> = {};
+  positionKeys.forEach((pos) => {
+    getKeysByPosition(pos).forEach((uiKey) => {
+      acc[normalizeTechKey(uiKey)] = uiKey;
+    });
+  });
+  acc['REACT_NATIVE'] = 'ReactNative';
+  return acc;
+})();
 
 const UI_KEY_TO_BACKEND_TECHSTACK: Record<string, string> = {
   ...TECHSTACK_KEY_TO_NAME,
@@ -552,8 +565,10 @@ const ProjectCreatePage = () => {
             const techKeys = Array.isArray(r.techStacks)
               ? r.techStacks
                   .map((ts) => {
-                    const name = ts.techStackName ?? (ts as any).techStack ?? '';
-                    return normalizeTechKey(name);
+                    const name = (ts.techStackName ?? (ts as any).techStack ?? '').trim();
+                    if (!name) return '';
+                    const normalized = normalizeTechKey(name);
+                    return BACKEND_NAME_TO_UI_KEY[normalized] ?? normalized;
                   })
                   .filter(Boolean)
               : [];
@@ -711,7 +726,7 @@ const ProjectCreatePage = () => {
       });
       const body = {
         projectField: projectFieldMap[projectType ?? ''] ?? 'WEB',
-        category: domainToCategory[domain ?? ''] ?? 'OTHER',
+        category: domainToCategory[domain ?? ''] ?? 'ETC',
         mode: modeMap[progressType ?? ''] ?? 'ONLINE',
         durationMonths: durationMonthsMap[progressPeriod ?? ''] ?? 1,
         durationRange: durationRangeMap[progressPeriod ?? ''] ?? 'ONE_TO_THREE',
@@ -1201,7 +1216,7 @@ const ProjectCreatePage = () => {
                     </div>
                   </div>
 
-                  <div className="flex w-full justify-end">
+                  <div className="flex w-full justify-center">
                     <button
                       type="button"
                       disabled={submitLoading}

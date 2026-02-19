@@ -5,6 +5,29 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
+
+function resolveThumbnailUrl(url: string | undefined): string | undefined {
+  if (!url?.trim()) return undefined;
+  const u = url.trim();
+  if (u.startsWith('http://') || u.startsWith('https://') || u.startsWith('//')) return u;
+  if (u.startsWith('/') && API_BASE) return `${API_BASE.replace(/\/$/, '')}${u}`;
+  return u;
+}
+
+function getProjectThumbnailUrl(project: {
+  thumbnailUrl?: string | null;
+  imageUrls?: string[];
+  images?: Array<{ imageUrl?: string; url?: string }>;
+}): string | undefined {
+  const raw =
+    project.thumbnailUrl ??
+    project.imageUrls?.[0] ??
+    project.images?.[0]?.imageUrl ??
+    project.images?.[0]?.url;
+  return resolveThumbnailUrl(raw);
+}
+
 export type ProjectTab = 'ongoing' | 'recruiting' | 'done';
 
 type Props = {
@@ -75,7 +98,7 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) 
               location={project.location}
               durationRangeName={project.durationRange}
               mode={project.mode}
-              thumbnailUrl={project.imageUrls?.[0]}
+              thumbnailUrl={getProjectThumbnailUrl(project)}
               onClick={() => handleProjectClick(project.projectId)}
             />
           ))
