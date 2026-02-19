@@ -499,7 +499,9 @@ const MainPage = () => {
         </div>
       </section>
 
-      <section className="mb-40 flex flex-col gap-20">
+      <section
+        className={`flex flex-col gap-20 ${!isLoggedIn ? 'mb-96 pt-16' : 'mb-40'}`}
+      >
         <div className="flex items-center justify-between">
           <h2 className="Heading2 font-semibold text-card-title">{recommendTitle}</h2>
         </div>
@@ -613,7 +615,7 @@ const MainPage = () => {
           </div>
 
           {!isLoggedIn && (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center pt-32">
               <LoginRequiredCard
                 description={
                   loginCtaLabel ?? '나에게 딱 맞는 추천 프로젝트/개발자를 보려면 로그인해 주세요.'
