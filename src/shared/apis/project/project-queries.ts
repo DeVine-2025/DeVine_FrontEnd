@@ -8,11 +8,11 @@ export const getMemberProjects = async (
   page = 1,
   size = 10
 ) => {
-  const {data} = await axiosInstance.get(`/api/v1/members/${nickname}/projects`, {
-    params: { status, page, size }
+  const { data } = await axiosInstance.get(`/api/v1/members/${nickname}/projects`, {
+    params: { statuses: [status], page, size },
   });
   return data;
-}
+};
 
 export const getMYProjectInprogress = async () => {
   const {data} = await axiosInstance.get('/api/v1/projects/my/in-progress');

@@ -65,7 +65,17 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) 
     } else {
       data = completedData;
     }
-    const projects = data?.result?.projects?.content || [];
+    const raw = data?.result ?? data;
+    const projects = (() => {
+      if (Array.isArray(raw)) return raw;
+      if (!raw || typeof raw !== 'object') return [];
+      const r = raw as Record<string, unknown>;
+      if (Array.isArray(r.content)) return r.content;
+      if (Array.isArray(r.projects)) return r.projects;
+      const proj = r.projects as Record<string, unknown> | undefined;
+      if (proj && Array.isArray(proj.content)) return proj.content;
+      return [];
+    })();
     return projects;
   }, [projectTab, inProgressData, recruitingData, completedData]);
 
@@ -91,15 +101,15 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) 
         {currentProjects.length > 0 ? (
           currentProjects.map((project: any) => (
             <MainProjectCard
-              key={project.projectId}
-              categoryLabel={project.projectField}
-              deadlineLabel={project.category?.name}
+              key={project.projectId ?? project.id}
+              categoryLabel={project.projectFieldName ?? project.projectField}
+              deadlineLabel={project.categoryName ?? project.category?.name}
               title={project.title}
               location={project.location}
-              durationRangeName={project.durationRange}
-              mode={project.mode}
+              durationRangeName={project.durationRangeName ?? project.durationRange}
+              mode={project.modeName ?? project.mode}
               thumbnailUrl={getProjectThumbnailUrl(project)}
-              onClick={() => handleProjectClick(project.projectId)}
+              onClick={() => handleProjectClick(project.projectId ?? project.id)}
             />
           ))
         ) : (
