@@ -61,7 +61,7 @@ const ReportCard = ({
           handleCardClick();
         }
       }}
-      className="inline-flex h-[25rem] w-fit cursor-pointer rounded-3xl border border-[var(--ui-200)] p-[2.5rem] text-left"
+      className="inline-flex h-[25rem] w-fit cursor-pointer rounded-3xl border border-[var(--ui-200)] p-[2.5rem] text-left transition-colors duration-200 hover:border-[#4E49FF]"
     >
       <div className="w-[21rem]">
         {type === 'create' && (

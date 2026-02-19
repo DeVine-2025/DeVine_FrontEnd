@@ -46,13 +46,14 @@ export default function ProfileCardLg(props: ProfileCardProps) {
       )}
     >
       {header ? <div className="">{header}</div> : null}
-      <div className="flex min-h-0 flex-1 items-center gap-9">
+      <div className="group/profile flex min-h-0 flex-1 items-center gap-9">
         <img
           src={profileImageUrl}
           alt={profileImageAlt ?? nickname}
           className={cn(
             'card-avatar-sm',
             'shrink-0 rounded-full object-cover ring-2 ring-white/10',
+            onClick && 'transition-transform duration-300 ease-out group-hover/profile:scale-105',
           )}
           loading="lazy"
         />
