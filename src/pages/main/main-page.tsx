@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDueLabel, mapPositionsToRoles, mapRecommendPositionsToRoles } from 'src/shared/mappers/project';
 import { getMyProjectsAllStatuses } from '@apis/projects';
+import { useAuthMe } from '@hooks/useAuthMe';
 
 type HighlightProject = ProjectCardProps & { id: number };
 

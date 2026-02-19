@@ -4,16 +4,27 @@ import { reportQueries } from '@apis/report/report-queries';
 import TalkBalloonIcon from '@assets/icons/detail-page/talkBalloon.svg?react';
 import ContactCard from '@components/profileDetail/ContactCard';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ProfileDetail from '../../shared/templates/profileDetail';
+import { useAuthMe } from '@hooks/useAuthMe';
 
 const DeveloperDetailPage = () => {
   const { memberNick } = useParams<{ memberNick: string }>();
+  const {data: myInfo} = useQuery(myInfoQueries.profile());
   const [year, setYear] = useState(new Date().getFullYear());
+  const [isMine, setIsMine] = useState<boolean>(false);
+
+  useEffect(() => {
+    if(myInfo?.result?.member?.nickname === memberNick){
+      setIsMine(true)
+    }
+  }, []);
+
 
   const enabled = Boolean(memberNick);
   const navigate = useNavigate();
+
 
   const { data: profileRes } = useQuery({
     ...myInfoQueries.memberProfile(memberNick!),
@@ -60,6 +71,10 @@ const DeveloperDetailPage = () => {
 
   const nickname = profile?.member?.nickname || profile?.member?.name || '닉네임';
 
+
+  useEffect(() => {
+    // if(me?.memberId == profileRes)
+  }, []);
   return (
     <div className="flex">
       <div className="mx-auto flex w-full max-w-[1180px] justify-between px-5 pb-20">
@@ -77,7 +92,8 @@ const DeveloperDetailPage = () => {
           reports={reports}
           memberNick={memberNick}
         />
-        <div className="sticky top-8 flex h-fit flex-1/3 flex-col gap-[1.2rem] self-start rounded-2xl border border-ui-200 bg-ui-bg p-[2.4rem]">
+        {!isMine && <div
+          className="sticky top-8 flex h-fit flex-1/3 flex-col gap-[1.2rem] self-start rounded-2xl border border-ui-200 bg-ui-bg p-[2.4rem]">
           <p className="font-semibold text-2xl text-ui-900">
             {nickname}님에게 <br />
             나의 프로젝트를 제안해보세요!
@@ -93,14 +109,14 @@ const DeveloperDetailPage = () => {
             type="button"
             onClick={() => {
               navigate(`/developer-detail/${memberNick}/suggest`, {
-                state: { profileData: profileRes },
+                state: { profileData: profileRes }
               });
             }}
             className="w-full cursor-pointer justify-center rounded-xl bg-primary py-[1.4rem] font-medium text-white text-xl"
           >
             제안하기
           </button>
-        </div>
+        </div>}
       </div>
     </div>
   );
