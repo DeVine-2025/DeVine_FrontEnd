@@ -57,7 +57,6 @@ const DeveloperSuggestPage = () => {
       if(selectedProjectId === null) return;
       const res = await getMemberProposal(selectedProjectId, memberNick);
       setIsSuggested(res?.data?.result?.exists)
-      console.log("제안상태조회", res?.data?.result?.exists);
     } catch (e){
       console.error(e);
     }
