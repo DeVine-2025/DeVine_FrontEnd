@@ -103,8 +103,18 @@ const NotificationModal = ({
 
   const useAnchor = anchorRef?.current && position !== null;
   const count = notifications.length;
+  const hasMarkAllRead = onMarkAllAsRead && notifications.some((n) => !n.isRead);
+  // 알림 1개일 때: 헤더 + 아이템 1개 + (전체 읽음 버튼 있으면) 버튼 영역만큼만 높이 지정
   const modalHeight =
-    count === 0 ? 200 : count === 1 ? 260 : count <= 3 ? 260 + (count - 1) * 88 : 260 + 2 * 88;
+    count === 0
+      ? 200
+      : count === 1
+        ? hasMarkAllRead
+          ? 200
+          : 185
+        : count <= 3
+          ? 260 + (count - 1) * 88
+          : 260 + 2 * 88;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50">

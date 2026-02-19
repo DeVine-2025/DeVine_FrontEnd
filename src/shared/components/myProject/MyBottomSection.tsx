@@ -5,6 +5,29 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
+
+function resolveThumbnailUrl(url: string | undefined): string | undefined {
+  if (!url?.trim()) return undefined;
+  const u = url.trim();
+  if (u.startsWith('http://') || u.startsWith('https://') || u.startsWith('//')) return u;
+  if (u.startsWith('/') && API_BASE) return `${API_BASE.replace(/\/$/, '')}${u}`;
+  return u;
+}
+
+function getProjectThumbnailUrl(project: {
+  thumbnailUrl?: string | null;
+  imageUrls?: string[];
+  images?: Array<{ imageUrl?: string; url?: string }>;
+}): string | undefined {
+  const raw =
+    project.thumbnailUrl ??
+    project.imageUrls?.[0] ??
+    project.images?.[0]?.imageUrl ??
+    project.images?.[0]?.url;
+  return resolveThumbnailUrl(raw);
+}
+
 export type ProjectTab = 'ongoing' | 'recruiting' | 'done';
 
 type Props = {
@@ -42,7 +65,17 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) 
     } else {
       data = completedData;
     }
-    const projects = data?.result?.projects?.content || [];
+    const raw = data?.result ?? data;
+    const projects = (() => {
+      if (Array.isArray(raw)) return raw;
+      if (!raw || typeof raw !== 'object') return [];
+      const r = raw as Record<string, unknown>;
+      if (Array.isArray(r.content)) return r.content;
+      if (Array.isArray(r.projects)) return r.projects;
+      const proj = r.projects as Record<string, unknown> | undefined;
+      if (proj && Array.isArray(proj.content)) return proj.content;
+      return [];
+    })();
     return projects;
   }, [projectTab, inProgressData, recruitingData, completedData]);
 
@@ -68,16 +101,15 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) 
         {currentProjects.length > 0 ? (
           currentProjects.map((project: any) => (
             <MainProjectCard
-              key={project.projectId}
-              categoryLabel={project.projectField}
-              deadlineLabel={project.category?.name}
+              key={project.projectId ?? project.id}
+              categoryLabel={project.projectFieldName ?? project.projectField}
+              deadlineLabel={project.categoryName ?? project.category?.name}
               title={project.title}
               location={project.location}
-              showBookmark={false}
-              durationRangeName={project.durationRange}
-              mode={project.mode}
-              thumbnailUrl={project.imageUrls?.[0]}
-              onClick={() => handleProjectClick(project.projectId)}
+              durationRangeName={project.durationRangeName ?? project.durationRange}
+              mode={project.modeName ?? project.mode}
+              thumbnailUrl={getProjectThumbnailUrl(project)}
+              onClick={() => handleProjectClick(project.projectId ?? project.id)}
             />
           ))
         ) : (
