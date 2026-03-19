@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom';
+
 type LoginModalProps = {
   isDark: boolean;
   onLogin: () => void;
@@ -5,7 +7,7 @@ type LoginModalProps = {
 };
 
 export default function LoginModal({ isDark, onLogin, onClose }: LoginModalProps) {
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">
       <div
         className="relative w-full max-w-[360px] rounded-[24px] px-8 pt-10 pb-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
@@ -48,6 +50,7 @@ export default function LoginModal({ isDark, onLogin, onClose }: LoginModalProps
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
