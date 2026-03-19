@@ -158,7 +158,7 @@ const ProfilePage = ({ onBack, onNext, initialRole = null, initialDomains = [] }
           다음
         </button>
         <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
-          돌아가기
+          <span className="cursor-pointer">돌아가기</span>
         </button>
       </div>
     </div>

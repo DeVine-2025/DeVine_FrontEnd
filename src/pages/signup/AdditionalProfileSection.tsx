@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useThemeStore } from '@store/theme';
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 import { getTechBadgeByName, TECH_STACK_LABEL_BY_KEY } from '@constants/position-tech-stack';
@@ -78,49 +78,65 @@ const AdditionalProfileSection = ({
     setStacks((prev) => prev.filter((item) => item !== key));
   };
 
-  const submitSignup = async (onSuccess: () => void) => {
-    if (!isEmailValid || !isLinkedinValid || !isLinkedinLengthValid) {
-      showToast('error', '입력값을 확인해주세요.');
-      return;
-    }
-
-    // 연타 방지
-    if (submitLockRef.current) return;
-
-    submitLockRef.current = true;
-    setIsSubmitting(true);
-
-    try {
-      const payload: SignupPayload = {
-        ...signupData,
-        techstackIds: getTechstackIdsByKeys(stacks),
-        body: summary.trim().length > 0 ? summary.trim() : null,
-        email: trimmedEmail.length > 0 ? trimmedEmail : null,
-        linkedin: trimmedLinkedin.length > 0 ? trimmedLinkedin : null,
-      };
-
-      const token = await getToken();
-
-      // token이 null이어도 서버 정책상 허용할 수도 있어서 그대로 전달
-      await signupMember(payload, token ?? undefined);
-      if (onComplete) {
-        await onComplete();
+  const submitSignup = useCallback(
+    async (onSuccess: () => void) => {
+      if (!isEmailValid || !isLinkedinValid || !isLinkedinLengthValid) {
+        showToast('error', '입력값을 확인해주세요.');
+        return;
       }
 
-      sessionStorage.setItem('skip_onboarding_modal_once', 'true');
+      // 연타 방지
+      if (submitLockRef.current) return;
 
-      showToast('success', '가입이 완료되었습니다. 이동 중입니다…');
-      onSuccess();
-    } catch (e) {
-      console.error(e);
+      submitLockRef.current = true;
+      setIsSubmitting(true);
 
-      // 실패 시 복구
-      submitLockRef.current = false;
-      setIsSubmitting(false);
+      try {
+        const payload: SignupPayload = {
+          ...signupData,
+          techstackIds: getTechstackIdsByKeys(stacks),
+          body: summary.trim().length > 0 ? summary.trim() : null,
+          email: trimmedEmail.length > 0 ? trimmedEmail : null,
+          linkedin: trimmedLinkedin.length > 0 ? trimmedLinkedin : null,
+        };
 
-      showToast('error', '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.');
-    }
-  };
+        const token = await getToken();
+        if (!token) {
+          throw new Error('missing token');
+        }
+
+        await signupMember(payload, token);
+        if (onComplete) {
+          await onComplete();
+        }
+
+        sessionStorage.setItem('skip_onboarding_modal_once', 'true');
+
+        showToast('success', '가입이 완료되었습니다. 이동 중입니다…');
+        onSuccess();
+      } catch (e) {
+        console.error(e);
+
+        // 실패 시 복구
+        submitLockRef.current = false;
+        setIsSubmitting(false);
+
+        showToast('error', '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      }
+    },
+    [
+      getToken,
+      isEmailValid,
+      isLinkedinLengthValid,
+      isLinkedinValid,
+      onComplete,
+      signupData,
+      stacks,
+      summary,
+      trimmedEmail,
+      trimmedLinkedin,
+    ],
+  );
 
   const handleSubmit = async () => {
     await submitSignup(onNext);
@@ -294,13 +310,13 @@ const AdditionalProfileSection = ({
               : theme === 'dark'
                 ? 'bg-[#1E1D4D] text-[#7E7AFF]'
                 : 'bg-[#EEEDFF] text-[#4E49FF]'
-          } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
+          } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           {isSubmitting ? '처리 중…' : hasAnyInput ? '회원가입' : '건너뛰기'}
         </button>
 
         <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
-          돌아가기
+          <span className="cursor-pointer">돌아가기</span>
         </button>
       </div>
     </div>

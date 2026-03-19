@@ -245,7 +245,7 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
           다음
         </button>
         <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
-          돌아가기
+          <span className="cursor-pointer">돌아가기</span>
         </button>
       </div>
     </div>

@@ -5,8 +5,9 @@ import LogoDark from '@assets/icons/logo-dark.svg?react';
 import LogoLight from '@assets/icons/logo-light.svg?react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
+import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
 import { useUser } from '@clerk/clerk-react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '@store/theme';
 import { getProfileImageKey } from '@utils/storage';
 import BasicProfileSection from './BasicProfileSection';
@@ -15,7 +16,6 @@ import GithubRepoSelectionSection from './GithubRepoSelectionSection';
 import ProfilePage from '@pages/login/profile-page';
 import TermsDetailScreen from '@pages/signup/TermsDetailScreen';
 import { TERMS_CONTENT, TERMS_IDS } from './terms-content';
-import type { RootLayoutOutletContext } from '@layouts/root-layout';
 
 type BasicProfileData = {
   nickname: string;
@@ -29,16 +29,14 @@ type ProfileData = {
 };
 
 type AgreementListProps = {
-  onClose: () => void;
   onConfirm: () => void;
   loginProvider: 'github' | 'google';
 };
 
-const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps) => {
+const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
   const { theme } = useThemeStore();
   const navigate = useNavigate();
   const { user } = useUser();
-  const { openOnboardingModal } = useOutletContext<RootLayoutOutletContext>();
   const onboardingConfirmedRef = useRef(false);
   const logoSubmitHandlerRef = useRef<null | (() => void)>(null);
   const [serviceAgreed, setServiceAgreed] = useState(false);
@@ -287,10 +285,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                 <button
                   type="button"
                   onClick={() => setActiveTermsKey('service')}
-                  className="text-[var(--ui-400)] hover:text-[var(--ui-600)]"
+                  className="cursor-pointer text-[var(--ui-400)] hover:text-[var(--ui-600)]"
                   aria-label="서비스 이용약관 보기"
                 >
-                  {'>'}
+                  <ChevronLeftIcon className="h-5 w-5 rotate-180" aria-hidden="true" />
                 </button>
               </div>
               <div className="mt-4 flex items-center justify-between gap-3">
@@ -316,10 +314,10 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
                 <button
                   type="button"
                   onClick={() => setActiveTermsKey('privacy')}
-                  className="text-[var(--ui-400)] hover:text-[var(--ui-600)]"
+                  className="cursor-pointer text-[var(--ui-400)] hover:text-[var(--ui-600)]"
                   aria-label="개인정보 처리방침 보기"
                 >
-                  {'>'}
+                  <ChevronLeftIcon className="h-5 w-5 rotate-180" aria-hidden="true" />
                 </button>
               </div>
 
@@ -334,8 +332,8 @@ const AgreementList = ({ onClose, onConfirm, loginProvider }: AgreementListProps
             disabled={!requiredAgreed}
             className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
               requiredAgreed
-                ? 'bg-[var(--color-primary)] text-white'
-                : 'bg-[var(--ui-50)] text-[var(--ui-300)]'
+                ? 'cursor-pointer bg-[var(--color-primary)] text-white'
+                : 'cursor-not-allowed bg-[var(--ui-50)] text-[var(--ui-300)]'
             }`}
           >
             다음

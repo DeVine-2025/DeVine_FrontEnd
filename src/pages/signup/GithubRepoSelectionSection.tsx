@@ -319,7 +319,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
             {createReportMutation.isPending ? '리포트 생성 중...' : '선택 완료'}
           </button>
           <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
-            돌아가기
+            <span className="cursor-pointer">돌아가기</span>
           </button>
         </div>
       )}
