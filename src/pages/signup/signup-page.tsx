@@ -27,6 +27,10 @@ const SignupPage = () => {
 
   useEffect(() => {
     if (!isLoaded) return;
+    if (!user) {
+      navigate('/', { replace: true });
+      return;
+    }
     if (user?.unsafeMetadata?.onboardingComplete) {
       navigate('/', { replace: true });
     }
@@ -45,8 +49,6 @@ const SignupPage = () => {
         loginProvider,
       },
     });
-    // TODO: 백엔드에 회원 등록 API가 있으면 여기서 호출 필요 (예: POST /api/v1/members).
-    // 호출하지 않으면 프로젝트 등록 시 "가입되지 않은 사용자" 오류가 발생할 수 있음.
   };
 
   return (
