@@ -22,6 +22,7 @@ const RootLayout = () => {
   const [navLocked, setNavLocked] = useState(false);
   const [onboardingIncomplete, setOnboardingIncomplete] = useState(false);
   const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
+  const isSsoCallbackRoute = location.pathname === '/sso-callback';
   const hideFooterPaths = ['/signup', '/terms/service', '/terms/privacy'];
   const shouldHideFooter = hideFooterPaths.includes(location.pathname);
 
@@ -151,7 +152,7 @@ const RootLayout = () => {
 
   return (
     <div className="flex min-h-[100vh] flex-col">
-      <Header navLocked={navLocked} onLogoClick={handleLogoClick} />
+      {!isSsoCallbackRoute && <Header navLocked={navLocked} onLogoClick={handleLogoClick} />}
       <main className="min-h-0 flex-1 py-12">
         <div key={location.key} className="page-transition">
           <Outlet
@@ -164,7 +165,7 @@ const RootLayout = () => {
           />
         </div>
       </main>
-      {!shouldHideFooter && <Footer />}
+      {!isSsoCallbackRoute && !shouldHideFooter && <Footer />}
 
       {showOnboardingModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">
