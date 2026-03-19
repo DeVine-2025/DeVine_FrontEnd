@@ -53,7 +53,6 @@ const SignupPage = () => {
 
   return (
     <AgreementList
-      onClose={() => navigate('/login')}
       onConfirm={handleConfirm}
       loginProvider={loginProvider}
     />

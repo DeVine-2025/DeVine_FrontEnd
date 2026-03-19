@@ -5,9 +5,7 @@ import {
 } from '@apis/mainrecommendproject';
 import { getRecommendDevelopersPreview } from '@apis/members';
 import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-detail';
-import { getMyRecruitingProjects } from '@apis/projects';
 import { getReports } from '@apis/report/report-queries';
-import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import LoginRequiredCard from '@components/common/LoginRequiredCard';
 import MainProjectCard from '@components/common/MainProjectCard';
@@ -20,9 +18,8 @@ import { useThemeStore } from '@store/theme';
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDueLabel, mapPositionsToRoles, mapRecommendPositionsToRoles } from 'src/shared/mappers/project';
+import { getDueLabel, mapRecommendPositionsToRoles } from 'src/shared/mappers/project';
 import { getMyProjectsAllStatuses } from '@apis/projects';
-import { useAuthMe } from '@hooks/useAuthMe';
 
 type HighlightProject = ProjectCardProps & { id: number };
 
@@ -101,7 +98,6 @@ const MainPage = () => {
   const isDev = userRole === 'dev';
   const isDevOrUnknown = isDev || userRole == null;
   const [weeklyProjects, setWeeklyProjects] = useState<HighlightProject[]>([]);
-  const fallbackRoles = useMemo<ProjectRole[]>(() => [], []);
   const [recommendedDevelopers, setRecommendedDevelopers] = useState<MainRecommendDeveloper[]>([]);
   const [hasReport, setHasReport] = useState<boolean | null>(null);
   const [hasProjects, setHasProjects] = useState<boolean | null>(null);
