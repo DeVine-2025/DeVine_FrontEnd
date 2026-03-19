@@ -1,6 +1,7 @@
 import { useUser } from '@clerk/clerk-react';
 import Footer from '@layouts/footer';
 import Header from '@layouts/header';
+import { trackPageView } from '@libs/analytics';
 import { type UserRole, useAuthStore } from '@store/auth';
 import { getStoredUserRole, setCurrentUserId } from '@utils/storage';
 import { useLayoutEffect, useState } from 'react';
@@ -24,6 +25,10 @@ const RootLayout = () => {
   const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
   const hideFooterPaths = ['/signup', '/terms/service', '/terms/privacy'];
   const shouldHideFooter = hideFooterPaths.includes(location.pathname);
+
+  useLayoutEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location.pathname, location.search]);
 
   useLayoutEffect(() => {
     const { scrollRestoration } = window.history;
