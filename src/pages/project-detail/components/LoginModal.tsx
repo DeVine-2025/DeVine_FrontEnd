@@ -44,7 +44,7 @@ export default function LoginModal({ isDark, onLogin, onClose }: LoginModalProps
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer text-[14px] text-[var(--ui-400)]"
+            className="text-[14px] text-[var(--ui-400)]"
           >
             나중에 하기
           </button>
