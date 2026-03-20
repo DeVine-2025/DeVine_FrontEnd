@@ -116,8 +116,8 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
                 setIsWaitModalOpen(true);
                 return;
               }
-              if (step === 'additionalProfile' && logoSubmitHandlerRef.current) {
-                logoSubmitHandlerRef.current();
+              if (step === 'additionalProfile') {
+                setIsStayModalOpen(true);
                 return;
               }
               if (step === 'signupComplete') {
