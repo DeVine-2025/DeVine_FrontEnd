@@ -238,14 +238,18 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
           disabled={!canUseNickname || isUploading}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
             canUseNickname && !isUploading
-              ? 'bg-[var(--color-primary)] text-white'
-              : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
+              ? 'cursor-pointer bg-[var(--color-primary)] text-white'
+              : 'cursor-not-allowed bg-[var(--ui-100)] text-[var(--ui-400)]'
           }`}
         >
           다음
         </button>
-        <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
-          <span className="cursor-pointer">돌아가기</span>
+        <button
+          type="button"
+          onClick={onBack}
+          className="Body1 inline-flex w-fit self-center text-[var(--ui-400)]"
+        >
+          <span>돌아가기</span>
         </button>
       </div>
     </div>

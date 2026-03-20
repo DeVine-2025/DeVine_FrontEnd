@@ -183,7 +183,7 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
             <button
               type="button"
               onClick={() => setStep('githubRepos')}
-              className="h-[54px] w-full rounded-xl bg-[var(--color-primary)] text-[17px] font-semibold text-white"
+              className="h-[54px] w-full cursor-pointer rounded-xl bg-[var(--color-primary)] text-[17px] font-semibold text-white"
             >
               리포트 생성하기
             </button>
@@ -193,9 +193,9 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
                 await confirmOnboardingOnce();
                 navigate('/');
               }}
-              className="text-[15px] font-medium text-[var(--ui-400)]"
+              className="inline-flex w-fit self-center text-[15px] font-medium text-[var(--ui-400)]"
             >
-              메인 화면으로 이동하기
+              <span>메인 화면으로 이동하기</span>
             </button>
           </div>
         </div>
@@ -354,7 +354,7 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
             <button
               type="button"
               onClick={() => setIsStayModalOpen(false)}
-              className="mt-6 h-[48px] w-full rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
+              className="mt-6 h-[48px] w-full cursor-pointer rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
             >
               회원가입 계속하기
             </button>

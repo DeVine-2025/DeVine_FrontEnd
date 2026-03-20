@@ -37,14 +37,14 @@ export default function LoginModal({ isDark, onLogin, onClose }: LoginModalProps
           <button
             type="button"
             onClick={onLogin}
-            className="h-[48px] w-full rounded-[12px] bg-[#4E49FF] font-semibold text-[16px] text-white"
+            className="h-[48px] w-full cursor-pointer rounded-[12px] bg-[#4E49FF] font-semibold text-[16px] text-white"
           >
             로그인 하러가기
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="text-[14px] text-[var(--ui-400)]"
+            className="cursor-pointer text-[14px] text-[var(--ui-400)]"
           >
             나중에 하기
           </button>

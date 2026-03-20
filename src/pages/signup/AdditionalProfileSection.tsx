@@ -315,8 +315,12 @@ const AdditionalProfileSection = ({
           {isSubmitting ? '처리 중…' : hasAnyInput ? '회원가입' : '건너뛰기'}
         </button>
 
-        <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
-          <span className="cursor-pointer">돌아가기</span>
+        <button
+          type="button"
+          onClick={onBack}
+          className="Body1 inline-flex w-fit self-center text-[var(--ui-400)]"
+        >
+          <span>돌아가기</span>
         </button>
       </div>
     </div>

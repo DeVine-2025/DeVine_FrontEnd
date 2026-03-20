@@ -447,7 +447,7 @@ export default function PositionTechStackDropdown({
             onReset?.();
             onChange([]);
           }}
-          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-transparent px-[10px] text-[var(--ui-500)] hover:text-[var(--ui-700)]"
+          className="Label1 flex h-[36px] w-[60px] cursor-pointer items-center justify-center rounded-[8px] bg-transparent px-[10px] text-[var(--ui-500)] hover:text-[var(--ui-700)]"
         >
           초기화
         </button>
@@ -457,7 +457,7 @@ export default function PositionTechStackDropdown({
             onApply?.();
             onClose();
           }}
-          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-[#4E49FF] px-[10px] text-white"
+          className="Label1 flex h-[36px] w-[60px] cursor-pointer items-center justify-center rounded-[8px] bg-[#4E49FF] px-[10px] text-white"
         >
           저장
         </button>

@@ -108,7 +108,7 @@ const LoginPage = () => {
             disabled={!isLoaded || isAnyLoading}
             aria-busy={loadingProvider === 'github'}
             className={`relative flex h-[48px] w-full items-center justify-center gap-4 rounded-[12px] px-4 overflow-visible whitespace-nowrap bg-[var(--color-auth-btn-dark-bg)] text-[var(--color-auth-btn-dark-text)]
-              ${isAnyLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              ${isAnyLoading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <span className="pointer-events-none absolute -top-16 left-[110%] -translate-x-1/2 rounded-full rounded-bl-[6px] bg-[var(--badge-bg-primary)] px-6 py-2 text-[14px] font-semibold text-[var(--badge-text-primary)] shadow-[0_3px_14px_rgba(78,73,255,0.1)]">
               깃허브 로그인 시 1회 무료 리포트 생성
@@ -123,7 +123,7 @@ const LoginPage = () => {
             disabled={!isLoaded || isAnyLoading}
             aria-busy={loadingProvider === 'google'}
             className={`flex h-[48px] w-full items-center justify-center gap-4 rounded-[12px] px-4 whitespace-nowrap bg-[var(--color-auth-btn-light-bg)] text-[var(--color-auth-btn-light-text)] border border-[var(--color-auth-btn-light-border)]
-              ${isAnyLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              ${isAnyLoading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <GoogleIcon className="h-7 w-7" aria-hidden="true" />
             {loadingProvider === 'google' ? '로그인 진행 중…' : '구글 계정으로 계속하기'}
