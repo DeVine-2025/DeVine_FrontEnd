@@ -1,5 +1,6 @@
 import { useSignIn } from '@clerk/clerk-react';
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import GithubIcon from '@assets/icons/github.svg?react';
 import GoogleIcon from '@assets/icons/google.svg?react';
 import LogoDark from '@assets/icons/logo-dark.svg?react';
@@ -8,9 +9,16 @@ import { useThemeStore } from '@store/theme';
 
 const UNLOCK_TIMEOUT_MS = 10_000; // 10초 후 자동 해제(리다이렉트가 막힌 특이 케이스 대비)
 
+const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect';
+
+type LoginLocationState = {
+  postLoginRedirectPath?: string;
+};
+
 const LoginPage = () => {
   const { isLoaded, signIn } = useSignIn();
   const { theme } = useThemeStore();
+  const location = useLocation();
 
   // UI용: 어떤 provider로 진행 중인지
   const [loadingProvider, setLoadingProvider] = useState<'github' | 'google' | null>(null);
@@ -81,6 +89,18 @@ const LoginPage = () => {
   useEffect(() => {
     return () => clearUnlockTimer();
   }, []);
+
+  useEffect(() => {
+    const state = location.state as LoginLocationState | null;
+    const redirectPath = state?.postLoginRedirectPath;
+
+    if (typeof redirectPath === 'string' && redirectPath.startsWith('/')) {
+      sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, redirectPath);
+      return;
+    }
+
+    sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+  }, [location.state]);
 
   const isAnyLoading = loadingProvider !== null;
 

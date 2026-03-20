@@ -4,6 +4,16 @@ import { useUser } from '@clerk/clerk-react';
 import AgreementList from './AgreementList';
 
 const LOGIN_PROVIDER_KEY = 'login_provider';
+const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect';
+
+const consumePostLoginRedirectPath = () => {
+  const path = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY);
+  sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+  if (typeof path === 'string' && path.startsWith('/')) {
+    return path;
+  }
+  return '/';
+};
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -32,9 +42,13 @@ const SignupPage = () => {
       return;
     }
     if (user?.unsafeMetadata?.onboardingComplete) {
-      navigate('/', { replace: true });
+      navigate(consumePostLoginRedirectPath(), { replace: true });
     }
   }, [isLoaded, navigate, user]);
+
+  if (user?.unsafeMetadata?.onboardingComplete) {
+    return null;
+  }
 
   if (!isLoaded) {
     return null;
