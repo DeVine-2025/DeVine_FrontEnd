@@ -4,7 +4,7 @@ import Header from '@layouts/header';
 import { type UserRole, useAuthStore } from '@store/auth';
 import { getStoredUserRole, setCurrentUserId } from '@utils/storage';
 import { useLayoutEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 export type RootLayoutOutletContext = {
   setNavLocked: (value: boolean) => void;
@@ -25,6 +25,20 @@ const RootLayout = () => {
   const isSsoCallbackRoute = location.pathname === '/sso-callback';
   const hideFooterPaths = ['/signup', '/terms/service', '/terms/privacy'];
   const shouldHideFooter = hideFooterPaths.includes(location.pathname);
+  const localOnboardingComplete = (() => {
+    try {
+      return user?.id ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true' : false;
+    } catch {
+      return false;
+    }
+  })();
+  const isOnboardingCompleteNow = user?.unsafeMetadata?.onboardingComplete === true || localOnboardingComplete;
+  const shouldRedirectToSignupImmediately =
+    isLoaded &&
+    location.pathname === '/' &&
+    !!user &&
+    !isOnboardingCompleteNow &&
+    sessionStorage.getItem('login_provider') !== null;
 
   useLayoutEffect(() => {
     const { scrollRestoration } = window.history;
@@ -149,6 +163,10 @@ const RootLayout = () => {
     }
     navigate('/');
   };
+
+  if (shouldRedirectToSignupImmediately) {
+    return <Navigate to="/signup" replace />;
+  }
 
   return (
     <div className="flex min-h-[100vh] flex-col">
