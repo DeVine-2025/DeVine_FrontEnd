@@ -12,9 +12,9 @@ type FileCardItemProps = {
 
 const FileCardItem = ({ filePath }: FileCardItemProps) => {
   return (
-    <div className="relative flex h-12 w-96 items-center gap-2 rounded-lg border border-1 border-ui-100 bg-ui-bg px-[0.7rem] py-[1.2rem]">
+    <div className="relative flex w-96 items-start gap-2 rounded-lg border border-1 border-ui-100 bg-ui-bg px-[0.7rem] py-[1.2rem]">
       <FileSmallIcon />
-      <p className="font-normal text-sm text-ui-800">{filePath}</p>
+      <p className="font-normal text-sm text-ui-800 whitespace-pre-line break-all">{filePath}c,mv,zc,zvmcz.,xvm.,czmv.,zcmv./,.,vm.skdjlkfjlk,zcmv.,vzc.mvmm</p>
     </div>
   );
 };
