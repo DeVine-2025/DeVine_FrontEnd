@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useThemeStore } from '@store/theme';
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
-import { getTechBadgeByName, TECH_STACK_LABEL_BY_KEY } from '@constants/position-tech-stack';
+import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { useAuth } from '@clerk/clerk-react';
 import { signupMember, type SignupPayload } from '@apis/signup';
-import { getTechstackIdsByKeys } from '@constants/signup-mapping';
+import { buildTechstackNameByIdMap, formatTechstackLabel } from '@apis/techstacks';
+import { useTechstacks } from '@hooks/useTechstacks';
 import { useOutletContext } from 'react-router-dom';
 import type { RootLayoutOutletContext } from '@layouts/root-layout';
 
@@ -33,6 +34,8 @@ const AdditionalProfileSection = ({
   const [linkedin, setLinkedin] = useState('');
   const { getToken } = useAuth();
   const { setLogoClickHandler } = useOutletContext<RootLayoutOutletContext>();
+  const { data: techstackGroups = [] } = useTechstacks();
+  const techstackNameById = useMemo(() => buildTechstackNameByIdMap(techstackGroups), [techstackGroups]);
 
   const LINKEDIN_MAX_LENGTH = 255;
 
@@ -94,7 +97,9 @@ const AdditionalProfileSection = ({
       try {
         const payload: SignupPayload = {
           ...signupData,
-          techstackIds: getTechstackIdsByKeys(stacks),
+          techstackIds: stacks
+            .map((stack) => Number(stack))
+            .filter((id) => Number.isFinite(id) && id > 0),
           body: summary.trim().length > 0 ? summary.trim() : null,
           email: trimmedEmail.length > 0 ? trimmedEmail : null,
           linkedin: trimmedLinkedin.length > 0 ? trimmedLinkedin : null,
@@ -212,6 +217,7 @@ const AdditionalProfileSection = ({
                 title="보유 스택"
                 showCloseButton
                 value={stacks}
+                valueType="id"
                 onChange={setStacks}
                 onApply={() => setIsTechStackOpen(false)}
                 onReset={() => setStacks([])}
@@ -220,13 +226,14 @@ const AdditionalProfileSection = ({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {stacks.map((key) => {
-                const label = TECH_STACK_LABEL_BY_KEY[key] ?? key;
-                const badge = getTechBadgeByName(label);
+              {stacks.map((id) => {
+                const rawName = techstackNameById.get(id) ?? id;
+                const label = formatTechstackLabel(rawName);
+                const badge = getTechBadgeByName(rawName);
                 const iconSrc = badge ? (theme === 'dark' ? badge.offDark ?? badge.off : badge.off) : undefined;
 
                 return (
-                  <button key={key} type="button" onClick={() => removeStack(key)} className="relative inline-flex items-center">
+                  <button key={id} type="button" onClick={() => removeStack(id)} className="relative inline-flex items-center">
                     {iconSrc && <img src={iconSrc} alt={`${label} 배지`} className="h-[32px] w-auto" loading="lazy" />}
                     <span
                       aria-hidden
