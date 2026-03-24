@@ -70,6 +70,7 @@ const ReportCreatePage = () => {
                 key={item.gitRepoId}
                 title={item.name}
                 description={item.description}
+                isExist={item.hasReport}
                 isActive={selectedId === item.gitRepoId}
                 onClick={() => toggleCheckbox(item.gitRepoId)}
               />
