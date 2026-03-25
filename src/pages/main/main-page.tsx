@@ -5,22 +5,21 @@ import {
 } from '@apis/mainrecommendproject';
 import { getRecommendDevelopersPreview } from '@apis/members';
 import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-detail';
-import { getMyRecruitingProjects } from '@apis/projects';
 import { getReports } from '@apis/report/report-queries';
-import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import LoginRequiredCard from '@components/common/LoginRequiredCard';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import ReportRequiredCard from '@components/common/ReportRequiredCard';
+import LoginModal from '@pages/project-detail/components/LoginModal';
 import { useAuthStore } from '@store/auth';
+import { useThemeStore } from '@store/theme';
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDueLabel, mapPositionsToRoles, mapRecommendPositionsToRoles } from 'src/shared/mappers/project';
+import { getDueLabel, mapRecommendPositionsToRoles } from 'src/shared/mappers/project';
 import { getMyProjectsAllStatuses } from '@apis/projects';
-import { useAuthMe } from '@hooks/useAuthMe';
 
 type HighlightProject = ProjectCardProps & { id: number };
 
@@ -91,6 +90,7 @@ const mapWeeklyProject = (project: WeeklyBestProject): HighlightProject => ({
 
 const MainPage = () => {
   const { isSignedIn, getToken } = useAuth();
+  const { theme } = useThemeStore();
   const navigate = useNavigate();
   const userRole = useAuthStore((state) => state.role);
   const isLoggedIn = Boolean(isSignedIn);
@@ -98,7 +98,6 @@ const MainPage = () => {
   const isDev = userRole === 'dev';
   const isDevOrUnknown = isDev || userRole == null;
   const [weeklyProjects, setWeeklyProjects] = useState<HighlightProject[]>([]);
-  const fallbackRoles = useMemo<ProjectRole[]>(() => [], []);
   const [recommendedDevelopers, setRecommendedDevelopers] = useState<MainRecommendDeveloper[]>([]);
   const [hasReport, setHasReport] = useState<boolean | null>(null);
   const [hasProjects, setHasProjects] = useState<boolean | null>(null);
@@ -109,7 +108,9 @@ const MainPage = () => {
   const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<string | number, number>>(
     {},
   );
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const MY_PROJECTS_CACHE_KEY = 'devine_my_projects_cache_v1';
+  const isDark = theme === 'dark';
 
   const readMyProjectsCache = useCallback(() => {
     try {
@@ -217,12 +218,11 @@ const MainPage = () => {
   const requireToken = useCallback(async () => {
     const token = await getToken();
     if (!token) {
-      alert('로그인이 필요합니다.');
-      navigate('/login');
+      setIsLoginModalOpen(true);
       return null;
     }
     return token;
-  }, [getToken, navigate]);
+  }, [getToken]);
 
   const handleProjectBookmarkChange = useCallback(
     async (targetId: number, next: boolean) => {
@@ -450,7 +450,7 @@ const MainPage = () => {
         ? '나에게 딱 맞는 추천 프로젝트'
         : '나에게 딱 맞는 추천 프로젝트/개발자'
     : '나에게 딱 맞는 추천 프로젝트/개발자';
-  const loginCtaLabel = !isLoggedIn ? '로그인해야 추천 프로젝트를 확인할 수 있어요' : null;
+  const loginCtaLabel = !isLoggedIn ? '로그인해야 추천 프로젝트/개발자를 확인할 수 있어요' : null;
   const handleProjectClick = (project: HighlightProject | MainRecommendProject) => {
     try {
       const payload = {
@@ -500,7 +500,7 @@ const MainPage = () => {
       </section>
 
       <section
-        className={`flex flex-col gap-20 ${!isLoggedIn ? 'mb-96 pt-16' : 'mb-40'}`}
+        className={`flex flex-col gap-6 ${!isLoggedIn ? 'mb-96 pt-16' : 'mb-40'}`}
       >
         <div className="flex items-center justify-between">
           <h2 className="Heading2 font-semibold text-card-title">{recommendTitle}</h2>
@@ -625,6 +625,17 @@ const MainPage = () => {
           )}
         </div>
       </section>
+
+      {isLoginModalOpen && (
+        <LoginModal
+          isDark={isDark}
+          onLogin={() => {
+            setIsLoginModalOpen(false);
+            navigate('/login');
+          }}
+          onClose={() => setIsLoginModalOpen(false)}
+        />
+      )}
     </section>
   );
 };
