@@ -205,9 +205,8 @@ const ServicePage = () => {
               코드로 증명하는 사이드 프로젝트 매칭, <span className="font-bold">DeVine</span>입니다.
             </p>
           </RevealText>
-          <div className="relative h-290 w-full">
-            <RevealImage src={landingImage[9]} className="w-56" alt="프로젝트 분석 리포트" delayMs={600} />
-            <RevealImage src={landingImage[10]} className="absolute top-10 right-0" alt="프로젝트 분석 리포트" delayMs={660} />
+          <div className="flex h-290 w-full justify-end">
+            <RevealImage src={landingImage[10]} className="h-200 w-200" alt="프로젝트 분석 리포트"/>
           </div>
         </section>
       </div>
