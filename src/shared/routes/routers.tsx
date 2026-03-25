@@ -37,10 +37,15 @@ import {
   SignupPage,
   SsoCallbackPage,
   TermsPage,
+  ServicePage,
 } from '@pages';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 export const router = createBrowserRouter([
+  {
+    path: '/service',
+    element: <ServicePage />,
+  },
   {
     element: <RootLayout />,
     children: [
