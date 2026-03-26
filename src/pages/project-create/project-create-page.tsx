@@ -375,8 +375,6 @@ const ProjectCreatePage = () => {
   const [editorImageUploading, setEditorImageUploading] = useState(false);
   const editorImageInputRef = useRef<HTMLInputElement | null>(null);
   const [, setEditorSelectionKey] = useState(0);
-  const linkCardOpen = false; // 링크 카드는 본문 노드로만 사용 (미사용 변수 제거 시 에러 방지)
-
   useEffect(() => {
     if (isEditMode) clearDraft();
   }, [isEditMode]);
@@ -654,22 +652,31 @@ const ProjectCreatePage = () => {
 
   const onToolbarLink = () => {
     if (!editor) return;
-    const { from, to } = editor.state.selection;
-    const hasSelection = to > from;
-    if (hasSelection) {
-      const prev = editor.getAttributes('link')?.href as string | undefined;
-      const url = window.prompt('링크 URL을 입력해주세요', prev ?? '');
-      if (url === null) return;
-      const next = url.trim();
-      if (!next) {
-        editor.chain().focus().extendMarkRange('link').unsetLink().run();
-        return;
+    const linkCardType = editor.schema.nodes.linkCard;
+    if (!linkCardType) return;
+
+    let cardPos: number | null = null;
+    let cardSize = 0;
+    editor.state.doc.descendants((node, pos) => {
+      if (node.type === linkCardType) {
+        cardPos = pos;
+        cardSize = node.nodeSize;
+        return false;
       }
-      const href = /^https?:\/\//i.test(next) ? next : `https://${next}`;
-      editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
-    } else {
-      editor.chain().focus().insertContent({ type: 'linkCard' }).run();
+      return true;
+    });
+
+    // 링크 카드는 한 번에 하나만 열고, 버튼 재클릭 시 닫히도록 토글 처리
+    if (cardPos !== null) {
+      editor
+        .chain()
+        .focus()
+        .deleteRange({ from: cardPos, to: cardPos + cardSize })
+        .run();
+      return;
     }
+
+    editor.chain().focus().insertContent({ type: 'linkCard' }).run();
   };
 
   const handleSubmit = async () => {
