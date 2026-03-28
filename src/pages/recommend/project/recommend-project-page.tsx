@@ -7,7 +7,7 @@ import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import { RecommendProjectCardSkeletonList } from '@components/common/RecommendProjectCardSkeleton';
 import { useBookmarks } from '@hooks/useBookmarks';
-import { useSkeletonOnlyWhileFirstLoading } from '@hooks/useSkeletonOnlyWhileFirstLoading';
+import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
 import { buildParams } from '@mappers/projectFilters';
 import { useFilterStore } from '@store/filter';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -18,7 +18,6 @@ import { PROJECT_FILTERS } from '@components/common/ProjectFilterBar';
 
 const RecommendProjectPage = () => {
   const { getToken, isSignedIn } = useAuth();
-  const { markFirstFetchSettled, shouldShowFetchingSkeleton } = useSkeletonOnlyWhileFirstLoading();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { recommendProject, setRecommendProject } = useFilterStore();
@@ -47,6 +46,10 @@ const RecommendProjectPage = () => {
   const [loading, setLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [page, setPage] = useState(1);
+
+  const showRecommendSkeleton = useInitialSkeletonGate(loading, {
+    sessionKey: 'recommend-project',
+  });
 
   const params = useMemo(
     () =>
@@ -85,9 +88,8 @@ const RecommendProjectPage = () => {
       setList([]);
     } finally {
       setLoading(false);
-      markFirstFetchSettled();
     }
-  }, [getToken, markFirstFetchSettled, params]);
+  }, [getToken, params]);
 
   const displayList = useMemo(
     () =>
@@ -217,29 +219,26 @@ const RecommendProjectPage = () => {
       />
 
       <div className="flex flex-col gap-6">
-        {shouldShowFetchingSkeleton(loading) && (
+        {showRecommendSkeleton && (
           <RecommendProjectCardSkeletonList count={3} className="py-2" />
         )}
 
-        {!loading && isError && <ProjectListState type="error" onRetry={handleRetry} />}
+        {!showRecommendSkeleton && isError && <ProjectListState type="error" onRetry={handleRetry} />}
 
-        {!loading && !isError && list.length === 0 && (
-          <div className="flex min-h-[36vh] flex-col items-center justify-center py-20 text-center">
-            <p className="text-2xl font-semibold text-[var(--ui-900)]">해당 개발자에 맞는 추천 프로젝트가 없습니다.</p>
-            {(projectTypes.length > 0 ||
-              domains.length > 0 ||
-              expectedPeriods.length > 0 ||
-              techStacks.length > 0) && (
-              <p className="mt-3 max-w-md text-lg text-[var(--ui-600)]">
-                선택한 필터에 맞는 추천이 없을 수 있어요. 조건을 바꿔 보세요.
-              </p>
-            )}
+        {!showRecommendSkeleton && !isError && list.length === 0 && (
+          <div className="flex min-h-[50vh] flex-col items-center justify-center py-12 text-center">
+            <p className="text-2xl font-semibold text-[var(--ui-900)]">
+              해당 개발자에 맞는 추천 프로젝트가 없습니다.
+            </p>
+            <p className="mt-2 text-lg text-[var(--ui-600)]">
+              필터 조건을 변경해 보거나 리포트 정보를 업데이트해 보세요.
+            </p>
           </div>
         )}
 
         {!isError &&
           displayList.length > 0 &&
-          !shouldShowFetchingSkeleton(loading) &&
+          !showRecommendSkeleton &&
           displayList.map((p) => (
             <RecommendProjectCard
               key={p.id}

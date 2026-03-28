@@ -38,7 +38,7 @@ export default function ProfileCardLg(props: ProfileCardProps) {
           : undefined
       }
       className={cn(
-        'rounded-2xl border border-card-border bg-card-bg transition-all duration-300',
+        'rounded-2xl border border-card-border bg-card-bg',
         'card-size-lg flex flex-col',
         header && 'card-size-lg--with-header',
         onClick && 'cursor-pointer recommend-card-hover-border',

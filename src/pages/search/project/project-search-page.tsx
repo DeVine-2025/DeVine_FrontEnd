@@ -13,6 +13,10 @@ import ProjectFiltersBar, {
 } from '@components/common/ProjectFilterBar';
 import ProjectLg from '@components/common/ProjectLg';
 import ProjectSm from '@components/common/ProjectSm';
+import RecommendProjectCardSkeleton, {
+  RecommendProjectCardSkeletonList,
+} from '@components/common/RecommendProjectCardSkeleton';
+import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
 import { useMyReportsExist } from '@hooks/useMyReportsExist';
 import { useProjectFilter } from '@hooks/useProjectFilters';
 import { useProjects } from '@hooks/useProjects';
@@ -112,6 +116,7 @@ export default function ProjectSearchPage() {
   const { bookmarkOverrides, setBookmarkOverrides } = useBookmarkHydration(getToken, true);
 
   const [recommendedPreview, setRecommendedPreview] = useState<RecommendPreviewItem[]>([]);
+  const [previewFetching, setPreviewFetching] = useState(false);
 
   const size = 10;
 
@@ -135,8 +140,18 @@ export default function ProjectSearchPage() {
     [applied, page],
   );
 
-  const { data, isLoading, isError } = useProjects(params);
+  const { data, isError, isPending } = useProjects(params);
   const totalPages = data?.totalPages ?? 0;
+
+  const topProjectLoadingRaw =
+    isReportsLoading || (hasReports === true && previewFetching);
+  const showTopProjectSkeleton = useInitialSkeletonGate(topProjectLoadingRaw, {
+    sessionKey: 'search-project-preview',
+  });
+  /** RQ v5 `isPending`: 첫 응답 전만 true(이후는 keepPreviousData로 스켈레톤 생략) */
+  const showProjectListSkeleton = useInitialSkeletonGate(isPending, {
+    sessionKey: 'search-project-list',
+  });
 
   const projects = useMemo<ProjectCardModel[]>(() => {
     const mapped = data?.content?.map(mapProjectItemToCard) ?? [];
@@ -217,14 +232,18 @@ export default function ProjectSearchPage() {
   useEffect(() => {
     let isActive = true;
 
-    // 1) 리포트 로딩 중이면 대기 (추천 호출 X)
-    if (isReportsLoading) return;
-
-    // 2) 리포트 없으면 추천 프리뷰 비우고 종료 (추천 호출 X)
-    if (hasReports !== true) {
-      setRecommendedPreview([]);
+    if (isReportsLoading) {
+      setPreviewFetching(false);
       return;
     }
+
+    if (hasReports !== true) {
+      setRecommendedPreview([]);
+      setPreviewFetching(false);
+      return;
+    }
+
+    setPreviewFetching(true);
 
     const fetchRecommendPreview = async () => {
       try {
@@ -248,6 +267,8 @@ export default function ProjectSearchPage() {
         setRecommendedPreview(mapped);
       } catch {
         if (isActive) setRecommendedPreview([]);
+      } finally {
+        if (isActive) setPreviewFetching(false);
       }
     };
 
@@ -287,15 +308,21 @@ export default function ProjectSearchPage() {
         )}
       </header>
 
-      {isReportsLoading ? (
-        <div className="py-10">
-          <ProjectListState type="loading" />
+      {showTopProjectSkeleton && (
+        <div className="scrollbar-hide flex gap-6 overflow-x-auto py-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="w-[260px] shrink-0">
+              <RecommendProjectCardSkeleton variant="compact" />
+            </div>
+          ))}
         </div>
-      ) : hasReports !== true ? (
+      )}
+      {!showTopProjectSkeleton && hasReports !== true && (
         <p className="py-15 text-center text-[15px] text-[var(--ui-500)]">
           리포트를 작성하면 추천 프로젝트를 볼 수 있어요
         </p>
-      ) : (
+      )}
+      {!showTopProjectSkeleton && hasReports === true && (
         <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
           {recommendedPreview.map((p) => {
             const ov = bookmarkOverrides[Number(p.id)];
@@ -344,13 +371,19 @@ export default function ProjectSearchPage() {
 
       {/* 프로젝트 리스트 */}
       <div className="flex flex-col gap-6">
-        {isLoading && <ProjectListState type="loading" />}
+        {showProjectListSkeleton && (
+          <RecommendProjectCardSkeletonList count={3} className="py-2" />
+        )}
 
-        {!isLoading && isError && <ProjectListState type="error" onRetry={handleRetry} />}
+        {!showProjectListSkeleton && isError && (
+          <ProjectListState type="error" onRetry={handleRetry} />
+        )}
 
-        {!isLoading && !isError && projects.length === 0 && <ProjectListState type="empty" />}
+        {!showProjectListSkeleton && !isError && projects.length === 0 && (
+          <ProjectListState type="empty" />
+        )}
 
-        {!isLoading &&
+        {!showProjectListSkeleton &&
           !isError &&
           projects.length > 0 &&
           projects.map((p) => (

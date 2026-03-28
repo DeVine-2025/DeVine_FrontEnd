@@ -6,6 +6,16 @@
     --skeleton-shimmer-bright: color-mix(in srgb, var(--ui-100) 48%, transparent);
 }
 
+/*
+ * 라이트: 다크와 달리 --ui-100 이 배경과 비슷해 color-mix 쉬머가 대비 없이 사라짐.
+ * 회색 베이스 위로 밝은 띠가 지나가도록 흰색 계열 하이라이트 사용.
+ */
+html[data-theme='light'] {
+    --skeleton-bg: color-mix(in srgb, var(--ui-200) 42%, var(--ui-50));
+    --skeleton-shimmer-soft: rgb(255 255 255 / 0.38);
+    --skeleton-shimmer-bright: rgb(255 255 255 / 0.92);
+}
+
 @keyframes ui-skeleton-shimmer {
     0% {
         transform: translateX(-100%);
@@ -25,7 +35,9 @@
     content: '';
     position: absolute;
     inset: 0;
+    z-index: 1;
     animation: ui-skeleton-shimmer var(--skeleton-shimmer-duration) linear infinite;
+    will-change: transform;
     background: linear-gradient(
         90deg,
         transparent 0%,

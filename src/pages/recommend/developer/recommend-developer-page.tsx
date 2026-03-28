@@ -7,7 +7,7 @@ import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import ReportRequiredCard from '@components/common/ReportRequiredCard';
 import { useBookmarks } from '@hooks/useBookmarks';
 import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
-import { useSkeletonOnlyWhileFirstLoading } from '@hooks/useSkeletonOnlyWhileFirstLoading';
+import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
 import { useFilterStore } from '@store/filter';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -52,7 +52,6 @@ function projectsToOptions(projects: { projectId: number; title: string }[]): My
 
 const RecommendDeveloperPage = () => {
   const { getToken } = useAuth();
-  const { markFirstFetchSettled, shouldShowFetchingSkeleton } = useSkeletonOnlyWhileFirstLoading();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const {
@@ -129,6 +128,12 @@ const RecommendDeveloperPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+
+  const recommendLoadingRaw = myProjectOptionsLoading || (myProjects.length > 0 && loading);
+  const showRecommendSkeleton = useInitialSkeletonGate(recommendLoadingRaw, {
+    sessionKey: 'recommend-developer',
+  });
+
   const listRef = useRef<RecommendDeveloperListItem[]>([]);
   listRef.current = list;
 
@@ -209,10 +214,9 @@ const RecommendDeveloperPage = () => {
         );
       } finally {
         setLoading(false);
-        markFirstFetchSettled();
       }
     },
-    [getToken, markFirstFetchSettled, myProjects, myProjectOptionsWithCacheFallback],
+    [getToken, myProjects, myProjectOptionsWithCacheFallback],
   );
 
   useEffect(() => {
@@ -344,8 +348,7 @@ const RecommendDeveloperPage = () => {
         }}
       />
 
-      {(myProjectOptionsLoading ||
-        shouldShowFetchingSkeleton(loading && myProjects.length > 0)) && (
+      {showRecommendSkeleton && (
         <RecommendDeveloperCardSkeletonList count={3} className="py-8" />
       )}
 
@@ -355,7 +358,8 @@ const RecommendDeveloperPage = () => {
         </p>
       )}
 
-      {!loading &&
+      {!showRecommendSkeleton &&
+        !loading &&
         !error &&
         myProjects.length > 0 &&
         list.length === 0 && (
@@ -377,31 +381,29 @@ const RecommendDeveloperPage = () => {
 
       {myProjects.length > 0 &&
         displayList.length > 0 &&
-        !shouldShowFetchingSkeleton(loading && myProjects.length > 0) && (
-        <>
-          <div className="flex flex-col gap-6">
-            {displayList.map((dev) => (
-              <RecommendDeveloperCard
-                key={dev.id}
-                role={dev.role}
-                roleTone={dev.roleTone}
-                nickname={dev.nickname}
-                profileImageUrl={dev.profileImageUrl}
-                introduction={dev.introduction}
-                domains={dev.domains}
-                techStack={dev.techStack}
-                matchedProjectName={myProjects.length > 0 ? myProjects.join(', ') : '선택한 프로젝트'}
-                matchedReason="프로젝트의 요구사항과 일치합니다."
-                bookmarked={dev.bookmarked ?? false}
-                memberId={dev.memberId ?? undefined}
-                bookmarkId={dev.bookmarkId}
-                listItemId={dev.id}
-                onBookmarkChangeById={handleBookmarkChangeById}
-                onNavigateToDeveloper={handleNavigateToDeveloper}
-              />
-            ))}
-          </div>
-        </>
+        !showRecommendSkeleton && (
+        <div className="flex flex-col gap-6">
+          {displayList.map((dev) => (
+            <RecommendDeveloperCard
+              key={dev.id}
+              role={dev.role}
+              roleTone={dev.roleTone}
+              nickname={dev.nickname}
+              profileImageUrl={dev.profileImageUrl}
+              introduction={dev.introduction}
+              domains={dev.domains}
+              techStack={dev.techStack}
+              matchedProjectName={myProjects.length > 0 ? myProjects.join(', ') : '선택한 프로젝트'}
+              matchedReason="프로젝트의 요구사항과 일치합니다."
+              bookmarked={dev.bookmarked ?? false}
+              memberId={dev.memberId ?? undefined}
+              bookmarkId={dev.bookmarkId}
+              listItemId={dev.id}
+              onBookmarkChangeById={handleBookmarkChangeById}
+              onNavigateToDeveloper={handleNavigateToDeveloper}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

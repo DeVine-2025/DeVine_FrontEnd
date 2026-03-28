@@ -365,7 +365,7 @@ export default function PositionTechStackDropdown({
         <button
           type="button"
           onClick={toggleAll}
-          className={`inline-flex items-center gap-[4px] transition-colors duration-150 ${
+          className={`inline-flex items-center gap-[4px] ${
             tabAllSelected
               ? 'text-[#4E49FF] [&_path]:!stroke-[#4E49FF]'
               : 'text-[var(--ui-500)] hover:text-[#4E49FF] hover:[&_path]:!stroke-[#4E49FF]'

@@ -7,8 +7,11 @@ import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/
 import ProjectListState from '@components/common/ListStateUI';
 import Pagination from '@components/common/Pagination';
 import ProfileCard from '@components/common/ProfileCard';
-import { ProfileCardSkeletonList } from '@components/common/ProfileCardSkeleton';
+import RecommendDeveloperCardSkeleton, {
+  RecommendDeveloperCardSkeletonList,
+} from '@components/common/RecommendDeveloperCardSkeleton';
 import { useDevelopers } from '@hooks/useDevelopers';
+import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
 import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
 import { useRecommendMembersPreview } from '@hooks/useRecommendMembersPreview';
 import { normalizeTechstackKey, TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
@@ -129,6 +132,14 @@ const DeveloperSearchPage = () => {
   const totalPages = Math.min(pageData?.totalPages ?? 0, 10);
 
   const previewQ = useRecommendMembersPreview(projectId, 4);
+
+  const topPreviewLoadingRaw = hasProjects === null || (hasProjects === true && previewQ.isPending);
+  const showTopPreviewSkeleton = useInitialSkeletonGate(topPreviewLoadingRaw, {
+    sessionKey: 'search-developer-preview',
+  });
+  const showSearchListSkeleton = useInitialSkeletonGate(developersQ.isLoading, {
+    sessionKey: 'search-developer-list',
+  });
 
   const profiles = useMemo<ProfileCardProps[]>(() => {
     const result = previewQ.data ?? [];
@@ -287,15 +298,21 @@ const DeveloperSearchPage = () => {
         )}
       </header>
 
-      {hasProjects === null ? (
-        <ProfileCardSkeletonList size="sm" count={4} className="py-6" />
-      ) : hasProjects !== true ? (
+      {showTopPreviewSkeleton && (
+        <div className="scrollbar-hide flex gap-6 overflow-x-auto py-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="w-[min(360px,88vw)] shrink-0">
+              <RecommendDeveloperCardSkeleton />
+            </div>
+          ))}
+        </div>
+      )}
+      {!showTopPreviewSkeleton && hasProjects !== true && (
         <p className="py-15 text-center text-[15px] text-[var(--ui-500)]">
           프로젝트를 등록하면 추천 개발자를 볼 수 있어요
         </p>
-      ) : previewQ.isPending ? (
-        <ProfileCardSkeletonList size="sm" count={4} className="py-6" />
-      ) : (
+      )}
+      {!showTopPreviewSkeleton && hasProjects === true && (
         <div className="scrollbar-hide flex justify-start gap-6 overflow-x-auto">
           {profiles.map((profile) => (
             <ProfileCard
@@ -330,19 +347,19 @@ const DeveloperSearchPage = () => {
       />
 
       <div className="flex flex-col gap-6">
-        {developersQ.isLoading && (
-          <ProfileCardSkeletonList size="lg" count={6} className="py-6" />
+        {showSearchListSkeleton && (
+          <RecommendDeveloperCardSkeletonList count={3} className="py-2" />
         )}
 
-        {!developersQ.isLoading && developersQ.isError && (
+        {!showSearchListSkeleton && developersQ.isError && (
           <ProjectListState type="error" onRetry={() => developersQ.refetch()} />
         )}
 
-        {!developersQ.isLoading && !developersQ.isError && searchedProfiles.length === 0 && (
+        {!showSearchListSkeleton && !developersQ.isError && searchedProfiles.length === 0 && (
           <ProjectListState type="empty" />
         )}
 
-        {!developersQ.isLoading &&
+        {!showSearchListSkeleton &&
           !developersQ.isError &&
           searchedProfiles.length > 0 &&
           searchedProfiles.map((profile) => (

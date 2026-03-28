@@ -1,11 +1,36 @@
 import Skeleton from '@components/common/Skeleton';
 
-export default function RecommendProjectCardSkeleton() {
+const cardShellClass =
+  'relative flex w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)]/90 bg-[var(--ui-bg)] shadow-[0_1px_2px_rgba(0,0,0,0.06)]';
+
+type RecommendProjectCardSkeletonProps = {
+  /** 좁은 가로 카드(캐러셀 등): 썸네일·텍스트 줄을 가운데 정렬 */
+  variant?: 'default' | 'compact';
+};
+
+export default function RecommendProjectCardSkeleton({
+  variant = 'default',
+}: RecommendProjectCardSkeletonProps) {
+  if (variant === 'compact') {
+    return (
+      <div className={`${cardShellClass} min-h-[200px]`} aria-hidden>
+        <div className="flex w-full flex-col items-center gap-4 px-4 py-5">
+          <Skeleton className="h-[120px] w-[200px] max-w-full shrink-0 rounded-2xl" />
+          <div className="flex w-full flex-col items-center gap-3">
+            <div className="flex flex-wrap justify-center gap-2">
+              <Skeleton className="h-6 w-[72px] rounded-lg" />
+              <Skeleton className="h-6 w-[88px] rounded-lg" />
+            </div>
+            <Skeleton className="h-[14px] w-full max-w-[220px] rounded-md" />
+            <Skeleton className="h-[12px] w-[min(180px,90%)] rounded-md" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className="relative flex h-[180px] w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)]/90 bg-[var(--ui-bg)] shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
-      aria-hidden
-    >
+    <div className={`${cardShellClass} h-[180px]`} aria-hidden>
       <div className="flex h-full w-full items-center gap-10 overflow-hidden px-8 py-6">
         <Skeleton className="h-[132px] w-[233px] shrink-0 rounded-2xl" />
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-4">
