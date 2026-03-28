@@ -1,0 +1,45 @@
+/* 전역 스켈레톤(.ui-skeleton): 좌우 쉬머, --skeleton-shimmer-duration 으로 속도 조절 */
+:root {
+    --skeleton-bg: color-mix(in srgb, var(--ui-200) 30%, var(--ui-bg));
+    --skeleton-shimmer-duration: 1.35s;
+    --skeleton-shimmer-soft: color-mix(in srgb, var(--ui-100) 22%, transparent);
+    --skeleton-shimmer-bright: color-mix(in srgb, var(--ui-100) 48%, transparent);
+}
+
+@keyframes ui-skeleton-shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.ui-skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--skeleton-bg);
+}
+
+.ui-skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    animation: ui-skeleton-shimmer var(--skeleton-shimmer-duration) linear infinite;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 35%,
+        var(--skeleton-shimmer-soft) 45%,
+        var(--skeleton-shimmer-bright) 50%,
+        var(--skeleton-shimmer-soft) 55%,
+        transparent 65%,
+        transparent 100%
+    );
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ui-skeleton::after {
+        animation: none;
+    }
+}

@@ -7,6 +7,7 @@ import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/
 import ProjectListState from '@components/common/ListStateUI';
 import Pagination from '@components/common/Pagination';
 import ProfileCard from '@components/common/ProfileCard';
+import { ProfileCardSkeletonList } from '@components/common/ProfileCardSkeleton';
 import { useDevelopers } from '@hooks/useDevelopers';
 import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
 import { useRecommendMembersPreview } from '@hooks/useRecommendMembersPreview';
@@ -107,7 +108,6 @@ const DeveloperSearchPage = () => {
     [page, categories, normalizedTechNames],
   );
 
-  // 내 프로젝트(등록 유무/프로젝트ID) - API + 캐시 fallback (등록 직후 반영)
   const myRecruitingQ = useMyRecruitingProjects();
   const cachedProjects = readMyProjectsCache();
   const apiProjects = myRecruitingQ.data ?? [];
@@ -118,7 +118,6 @@ const DeveloperSearchPage = () => {
   const projectId =
     apiProjects[0]?.projectId ?? cachedProjects[0]?.projectId ?? null;
 
-  // 개발자 검색 목록
   const developersQ = useDevelopers(params);
   const pageData = developersQ.data;
 
@@ -129,7 +128,6 @@ const DeveloperSearchPage = () => {
 
   const totalPages = Math.min(pageData?.totalPages ?? 0, 10);
 
-  // 추천 개발자 프리뷰 (projectId 있을 때만 enabled)
   const previewQ = useRecommendMembersPreview(projectId, 4);
 
   const profiles = useMemo<ProfileCardProps[]>(() => {
@@ -164,7 +162,6 @@ const DeveloperSearchPage = () => {
     });
   }, [previewQ.data, defaultProfileImage]);
 
-  // 새로고침 시에도 북마크 상태 유지: 내 북마크 목록 하이드레이션
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -275,7 +272,6 @@ const DeveloperSearchPage = () => {
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30">
-      {/* 추천 개발자 */}
       <header className="flex items-center justify-between">
         <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 개발자</h2>
 
@@ -291,13 +287,14 @@ const DeveloperSearchPage = () => {
         )}
       </header>
 
-      {/* 추천 개발자 카드 */}
       {hasProjects === null ? (
-        <p className="py-15 text-center text-[15px] text-[var(--ui-500)]">불러오는 중...</p>
+        <ProfileCardSkeletonList size="sm" count={4} className="py-6" />
       ) : hasProjects !== true ? (
         <p className="py-15 text-center text-[15px] text-[var(--ui-500)]">
           프로젝트를 등록하면 추천 개발자를 볼 수 있어요
         </p>
+      ) : previewQ.isPending ? (
+        <ProfileCardSkeletonList size="sm" count={4} className="py-6" />
       ) : (
         <div className="scrollbar-hide flex justify-start gap-6 overflow-x-auto">
           {profiles.map((profile) => (
@@ -313,12 +310,10 @@ const DeveloperSearchPage = () => {
         </div>
       )}
 
-      {/* 구분선 */}
       <div className="h-px w-full bg-card-border" />
 
       <div ref={listTopRef} />
 
-      {/* 필터 */}
       <DeveloperFilterBar
         filters={DEVELOPER_FILTERS}
         excludeFilters={['내 프로젝트 선택']}
@@ -334,9 +329,10 @@ const DeveloperSearchPage = () => {
         onReset={(key) => console.log('reset', key)}
       />
 
-      {/* 개발자 리스트 */}
       <div className="flex flex-col gap-6">
-        {developersQ.isLoading && <ProjectListState type="loading" />}
+        {developersQ.isLoading && (
+          <ProfileCardSkeletonList size="lg" count={6} className="py-6" />
+        )}
 
         {!developersQ.isLoading && developersQ.isError && (
           <ProjectListState type="error" onRetry={() => developersQ.refetch()} />

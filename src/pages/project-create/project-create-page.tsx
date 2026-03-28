@@ -666,7 +666,6 @@ const ProjectCreatePage = () => {
       return true;
     });
 
-    // 링크 카드는 한 번에 하나만 열고, 버튼 재클릭 시 닫히도록 토글 처리
     if (cardPos !== null) {
       editor
         .chain()
