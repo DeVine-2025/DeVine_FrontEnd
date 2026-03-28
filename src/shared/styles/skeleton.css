@@ -1,4 +1,3 @@
-/* 전역 스켈레톤(.ui-skeleton): 좌우 쉬머, --skeleton-shimmer-duration 으로 속도 조절 */
 :root {
     --skeleton-bg: color-mix(in srgb, var(--ui-200) 30%, var(--ui-bg));
     --skeleton-shimmer-duration: 1.35s;
@@ -6,10 +5,6 @@
     --skeleton-shimmer-bright: color-mix(in srgb, var(--ui-100) 48%, transparent);
 }
 
-/*
- * 라이트: 다크와 달리 --ui-100 이 배경과 비슷해 color-mix 쉬머가 대비 없이 사라짐.
- * 회색 베이스 위로 밝은 띠가 지나가도록 흰색 계열 하이라이트 사용.
- */
 html[data-theme='light'] {
     --skeleton-bg: color-mix(in srgb, var(--ui-200) 42%, var(--ui-50));
     --skeleton-shimmer-soft: rgb(255 255 255 / 0.38);

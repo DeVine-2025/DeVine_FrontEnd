@@ -4,7 +4,6 @@ const cardShellClass =
   'relative flex w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)]/90 bg-[var(--ui-bg)] shadow-[0_1px_2px_rgba(0,0,0,0.06)]';
 
 type RecommendProjectCardSkeletonProps = {
-  /** 좁은 가로 카드(캐러셀 등): 썸네일·텍스트 줄을 가운데 정렬 */
   variant?: 'default' | 'compact';
 };
 

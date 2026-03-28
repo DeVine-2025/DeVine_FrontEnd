@@ -126,7 +126,6 @@ const MainPage = () => {
   const showWeeklySkeleton = useInitialSkeletonGate(weeklyLoading, {
     sessionKey: 'main-weekly-projects',
   });
-  /** PM: 프로젝트 유무 판별 중(null) + 추천 개발자 fetch 중 — 제목만 보이던 빈 구간 제거 */
   const pmRecommendLoadingRaw =
     isLoggedIn &&
     isPm &&
@@ -134,10 +133,6 @@ const MainPage = () => {
   const pmRecommendSkeletonFromGate = useInitialSkeletonGate(pmRecommendLoadingRaw, {
     sessionKey: 'main-recommend-pm-developers',
   });
-  /**
-   * 이번 탭에서 한 번 스켈레톤 플로우가 끝나면(sessionStorage) 새로고침 후에도 강제 스켈레톤 OR를 쓰지 않음.
-   * (첫 방문·탭 새로 열기에서는 기존처럼 pmPreviewLoading / hasProjects null 동안 스켈레톤 유지)
-   */
   const showPmRecommendSkeleton =
     !pmRecommendSessionDone &&
     (pmPreviewLoading ||
@@ -367,7 +362,6 @@ const MainPage = () => {
     };
   }, []);
 
-  /** hasProjects가 true로 바뀐 직후 한 프레임이라도 raw 로딩이 꺼지면 스켈레톤·게이트가 끊김 → paint 전에 로딩 on */
   useLayoutEffect(() => {
     if (!isLoggedIn || !isPm || hasProjects !== true) return;
     setPmPreviewLoading(true);
