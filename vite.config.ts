@@ -9,6 +9,11 @@ import prerender from '@prerenderer/rollup-plugin';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   const apiBase = env.VITE_API_BASE_URL || 'https://dev.devine.kr';
+  // Vercel(및 대부분의 CI) 빌드 이미지에서 Puppeteer/Chromium prerender는 자주 실패합니다.
+  const prerenderEnabled =
+    mode === 'production' &&
+    process.env.VERCEL !== '1' &&
+    process.env.SKIP_PRERENDER !== 'true';
 
   return {
     plugins: [
@@ -16,7 +21,7 @@ export default defineConfig(({ mode }) => {
       svgr(),
       tailwindcss(),
       tsconfigPaths(),
-      mode === 'production' &&
+      prerenderEnabled &&
         prerender({
           routes: ['/', '/search/project', '/search/developer'],
           renderer: '@prerenderer/renderer-puppeteer',
