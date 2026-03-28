@@ -543,7 +543,7 @@ const MainPage = () => {
           <h2 className="Heading2 pt-5 font-semibold text-card-title">
             이번주 모두가 주목하는 프로젝트
           </h2>
-        <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-4 gap-6">
           {showWeeklySkeleton
             ? (
                 [
@@ -583,8 +583,8 @@ const MainPage = () => {
                   onClick={() => handleProjectClick(project)}
                 />
               ))}
-        </div>
-      </section>
+          </div>
+        </section>
 
       <section
         className={`flex flex-col gap-20 ${showGuestRecommendMask ? 'mb-96 pt-16' : 'mb-40'}`}
