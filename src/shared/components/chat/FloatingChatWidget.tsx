@@ -3,6 +3,7 @@ import ArrowDownIcon from '@assets/icons/arrow-down.svg?react';
 import ArrowUpIcon from '@assets/icons/arrow-up.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
 import { cn } from '@libs/cn';
+import { useThemeStore } from '@store/theme';
 import { useState } from 'react';
 
 type ChatRoom = {
@@ -25,14 +26,14 @@ const chatRooms: ChatRoom[] = [
   {
     id: 'pm-1',
     name: '닉네임',
-    preview: '메세지 내용이 들어가는 자리입니다. 메세지 내용이 들어가는 자리입니다.',
+    preview: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
     timeLabel: '1일 전',
     unreadCount: 3,
   },
   {
     id: 'dev-1',
     name: '닉네임',
-    preview: '메세지 내용이 들어가는 자리입니다. 메세지 내용이 들어가는 자리입니다.',
+    preview: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
     timeLabel: '3월 23일',
   },
 ];
@@ -46,13 +47,13 @@ const chatMessages: Record<string, { dateLabel: string; messages: ChatMessage[] 
         type: 'received',
         sender: '닉네임',
         time: '08:23',
-        text: '메세지 내용이 들어가는 자리입니다. 메세지 내용이 들어가는 자리입니다.',
+        text: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
       },
       {
         id: 'm2',
         type: 'sent',
         time: '08:23',
-        text: '메세지 내용이 들어가는 자리입니다. 메세지 내용이 들어가는 자리입니다.메세지 내용이 들어가는 자리입니다.메세지..',
+        text: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.메시지 내용이 들어가는 자리입니다.메시지..',
       },
     ],
   },
@@ -64,29 +65,94 @@ const chatMessages: Record<string, { dateLabel: string; messages: ChatMessage[] 
         type: 'received',
         sender: '닉네임',
         time: '08:23',
-        text: '메세지 내용이 들어가는 자리입니다. 메세지 내용이 들어가는 자리입니다.',
+        text: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
       },
     ],
   },
 };
 
-const avatarClassName =
-  'shrink-0 rounded-full border border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,#6B7280_0%,#4B5563_100%)]';
+const avatarBaseClassName =
+  'shrink-0 rounded-full border shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]';
 
 const FloatingChatWidget = () => {
+  const { theme } = useThemeStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [messageDraft, setMessageDraft] = useState('');
+  const isLightTheme = theme === 'light';
+
+  const avatarClassName = cn(
+    avatarBaseClassName,
+    isLightTheme
+      ? 'border-[rgba(212,218,231,0.95)] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,1)_0%,rgba(243,245,252,1)_38%,rgba(212,218,231,0.96)_100%)]'
+      : 'border-[rgba(255,255,255,0.08)] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22)_0%,rgba(158,166,186,0.18)_18%,rgba(96,102,115,0.95)_100%)]',
+  );
+  const widgetSurfaceClassName = cn(
+    'overflow-hidden rounded-t-[1.8rem] border border-b-0 backdrop-blur-[2rem]',
+    isLightTheme
+      ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(255,255,255,0.98)] shadow-[0_-1.2rem_3rem_rgba(15,23,42,0.08),0_-0.1rem_0.6rem_rgba(212,218,231,0.35)]'
+      : 'border-[rgba(127,133,150,0.28)] bg-[rgba(33,35,40,0.92)] shadow-[0_-1.8rem_4rem_rgba(0,0,0,0.28),0_-0.1rem_0.73rem_rgba(127,133,150,0.16)]',
+  );
+  const headerClassName = cn(
+    'flex h-[6.8rem] items-center border-b px-[1.6rem]',
+    isLightTheme
+      ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(248,249,251,0.96)]'
+      : 'border-[rgba(127,133,150,0.18)] bg-[rgba(255,255,255,0.02)]',
+  );
+  const iconButtonClassName = cn(
+    'flex size-[2.8rem] cursor-pointer items-center justify-center rounded-full transition-colors duration-200',
+    isLightTheme
+      ? 'text-[var(--ui-500)] hover:bg-[var(--ui-50)]'
+      : 'text-[var(--ui-500)] hover:bg-[rgba(255,255,255,0.05)]',
+  );
+  const datePillClassName = cn(
+    'inline-flex rounded-full border px-[1rem] py-[0.4rem] text-[1.1rem] font-medium leading-[1.334] tracking-[0.02em]',
+    isLightTheme
+      ? 'border-[rgba(212,218,231,0.95)] bg-white text-[var(--ui-500)]'
+      : 'border-[rgba(127,133,150,0.18)] bg-[rgba(255,255,255,0.04)] text-[var(--ui-400)]',
+  );
+  const receivedBubbleClassName = cn(
+    'rounded-[1.6rem] rounded-bl-[0.6rem] border px-[1.2rem] py-[0.9rem]',
+    isLightTheme
+      ? 'border-[rgba(212,218,231,0.95)] bg-white shadow-[0_0.8rem_1.8rem_rgba(15,23,42,0.06)]'
+      : 'border-[rgba(127,133,150,0.12)] bg-[rgba(255,255,255,0.05)] shadow-[0_0.8rem_1.8rem_rgba(0,0,0,0.12)]',
+  );
+  const footerClassName = cn(
+    'border-t px-[1.6rem] py-[1.4rem]',
+    isLightTheme
+      ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(248,249,251,0.96)]'
+      : 'border-[rgba(127,133,150,0.18)] bg-[rgba(255,255,255,0.02)]',
+  );
+  const inputFieldClassName = cn(
+    'flex h-[4rem] flex-1 items-center rounded-full border px-[1.6rem]',
+    isLightTheme
+      ? 'border-[rgba(212,218,231,0.95)] bg-white shadow-[0_0.6rem_1.4rem_rgba(15,23,42,0.05)]'
+      : 'border-[rgba(127,133,150,0.16)] bg-[rgba(25,27,30,0.95)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
+  );
+  const listItemClassName = cn(
+    'group relative flex h-[7.8rem] w-full items-start rounded-[1.4rem] px-[1.2rem] pt-[1.1rem] text-left',
+    isLightTheme ? 'bg-white hover:bg-[var(--ui-50)]' : 'bg-[var(--ui-50)] hover:bg-[var(--ui-100)]',
+  );
+  const listDividerClassName = cn(
+    'absolute right-[1.2rem] bottom-0 h-px w-[calc(100%-2.4rem)]',
+    isLightTheme
+      ? 'bg-[linear-gradient(90deg,rgba(212,218,231,0)_0%,rgba(212,218,231,0.95)_18%,rgba(212,218,231,0.95)_82%,rgba(212,218,231,0)_100%)]'
+      : 'bg-[linear-gradient(90deg,rgba(127,133,150,0)_0%,rgba(127,133,150,0.24)_18%,rgba(127,133,150,0.24)_82%,rgba(127,133,150,0)_100%)]',
+  );
 
   const selectedRoom = chatRooms.find((room) => room.id === selectedChatId) ?? null;
   const selectedChat = selectedChatId ? chatMessages[selectedChatId] : null;
+  const hasMessageDraft = messageDraft.trim().length > 0;
 
   const closeWidget = () => {
     setIsExpanded(false);
     setSelectedChatId(null);
+    setMessageDraft('');
   };
 
   const collapseToList = () => {
     setSelectedChatId(null);
+    setMessageDraft('');
   };
 
   return (
@@ -95,7 +161,7 @@ const FloatingChatWidget = () => {
         <section
           aria-label="전역 채팅 위젯"
           className={cn(
-            'pointer-events-auto absolute right-[8rem] bottom-0 w-[30.9rem] overflow-hidden rounded-t-[1.6rem] border border-b-0 border-[var(--ui-200)] bg-[var(--ui-50)] shadow-[0_-0.1rem_0.73rem_rgba(127,133,150,0.15)] transition-[height,width,right,left] duration-300 ease-out max-[743px]:right-[2.4rem] max-[743px]:w-[28rem] max-[389px]:right-[1.6rem] max-[389px]:left-[1.6rem] max-[389px]:w-auto',
+            'pointer-events-auto absolute right-[8rem] bottom-0 w-[32rem] transition-[height,width,right,left,transform,box-shadow] duration-300 ease-out max-[743px]:right-[2.4rem] max-[743px]:w-[28.8rem] max-[389px]:right-[1.6rem] max-[389px]:left-[1.6rem] max-[389px]:w-auto',
             isExpanded ? 'h-[45.8rem] max-[743px]:h-[42rem] max-[389px]:h-[40rem]' : 'h-[6.8rem]',
           )}
         >
@@ -105,74 +171,78 @@ const FloatingChatWidget = () => {
               aria-expanded={false}
               aria-controls="global-chat-panel"
               onClick={() => setIsExpanded(true)}
-              className="flex h-full w-full items-center px-[1.6rem] text-left"
+              className={cn(
+                'flex h-full w-full items-center px-[1.8rem] text-left',
+                isLightTheme ? 'hover:bg-[rgba(248,249,251,0.96)]' : 'hover:bg-[rgba(255,255,255,0.03)]',
+                widgetSurfaceClassName,
+              )}
             >
-              <span className="Heading2 flex-1 font-semibold text-[var(--ui-1000)]">
-                메세지
-              </span>
-              <span className="flex size-[2.4rem] items-center justify-center text-[var(--ui-400)]">
-                <ArrowUpIcon className="size-[2.4rem]" />
+              <span className="Heading2 flex-1 font-semibold text-[var(--ui-900)]">메시지</span>
+              <span
+                className="mr-[0.2rem] flex size-[2.8rem] items-center justify-center text-[var(--ui-500)]"
+              >
+                <ArrowUpIcon className="size-[2rem]" />
               </span>
             </button>
           ) : (
-            <div id="global-chat-panel" className="flex h-full min-h-0 flex-col">
+            <div id="global-chat-panel" className={cn('flex h-full min-h-0 flex-col', widgetSurfaceClassName)}>
               {selectedRoom && selectedChat ? (
                 <>
-                  <div className="flex h-[6.8rem] items-center border-b border-[var(--ui-200)] px-[1.6rem]">
+                  <div className={headerClassName}>
                     <button
                       type="button"
                       onClick={collapseToList}
-                      className="flex size-[2.4rem] items-center justify-center text-[var(--ui-500)]"
+                      className={iconButtonClassName}
                       aria-label="채팅 목록으로 돌아가기"
                     >
                       <ArrowLeftIcon className="size-[2.4rem]" />
                     </button>
-                    <span className={cn('ml-[0.7rem] size-[3.6rem]', avatarClassName)} />
-                    <span className="Body1 ml-[1.2rem] flex-1 font-semibold text-[var(--ui-1000)]">
-                      닉네임
-                    </span>
+                    <span className={cn('ml-[0.8rem] size-[3.6rem]', avatarClassName)} />
+                    <div className="ml-[1.2rem] flex-1">
+                      <span className="Body1 block font-semibold text-[var(--ui-900)]">닉네임</span>
+                    </div>
                     <button
                       type="button"
                       onClick={closeWidget}
-                      className="flex size-[2.4rem] items-center justify-center text-[var(--ui-500)]"
+                      className={iconButtonClassName}
                       aria-label="채팅창 닫기"
                     >
                       <CloseIcon className="size-[1.4rem]" />
                     </button>
                   </div>
 
-                  <div className=" py-[1.2rem] text-center">
-                    <span className="Caption1 text-[var(--ui-400)]">{selectedChat.dateLabel}</span>
+                  <div className="px-[1.6rem] py-[1rem] text-center">
+                    <span className={datePillClassName}>{selectedChat.dateLabel}</span>
                   </div>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto px-[1.6rem] py-[0.8rem]">
+                  <div className="min-h-0 flex-1 overflow-y-auto px-[1.6rem] py-[0.6rem]">
                     <div className="flex flex-col gap-[1.6rem]">
                       {selectedChat.messages.map((message) =>
                         message.type === 'received' ? (
-                          <div key={message.id} className="flex items-start gap-[0.6rem]">
-                            <span className={cn('mt-[0.8rem] size-[2.4rem]', avatarClassName)} />
-                            <div className="max-w-[21.8rem]">
-                              <p className="Caption1 mb-[0.8rem] font-medium text-[var(--ui-600)]">
+                          <div key={message.id} className="flex items-end gap-[0.8rem]">
+                            <span className={cn('mb-[0.2rem] size-[2.4rem]', avatarClassName)} />
+                            <div className="max-w-[21.6rem]">
+                              <p className="Caption1 mb-[0.6rem] font-medium text-[var(--ui-500)]">
                                 {message.sender}
                               </p>
-                              <div className="rounded-[1.2rem] bg-[var(--ui-100)] px-[1.2rem] py-[0.8rem]">
-                                <p className="text-[1.2rem] leading-[1.334] tracking-[0.0252em] text-[var(--ui-1000)]">
+                              <div className={receivedBubbleClassName}>
+                                <p className="text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-[var(--ui-900)]">
                                   {message.text}
                                 </p>
                               </div>
                             </div>
-                            <span className="self-end pb-[0.1rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
+                            <span className="pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
                               {message.time}
                             </span>
                           </div>
                         ) : (
                           <div key={message.id} className="flex justify-end">
-                            <div className="flex max-w-[25.7rem] items-end gap-[0.4rem]">
-                              <span className="pb-[0.1rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
+                            <div className="flex max-w-[25.7rem] items-end gap-[0.6rem]">
+                              <span className="pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
                                 {message.time}
                               </span>
-                              <div className="rounded-[1.2rem] bg-[#4E49FF] px-[1.2rem] py-[0.8rem]">
-                                <p className="text-[1.2rem] leading-[1.334] tracking-[0.0252em] text-white">
+                              <div className="rounded-[1.6rem] rounded-br-[0.6rem] bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_58%,#7C79FF_100%)] px-[1.2rem] py-[0.9rem] shadow-[0_1.2rem_2.4rem_rgba(78,73,255,0.22)]">
+                                <p className="text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-white">
                                   {message.text}
                                 </p>
                               </div>
@@ -183,23 +253,37 @@ const FloatingChatWidget = () => {
                     </div>
                   </div>
 
-                  <div className="border-t border-[var(--ui-200)] bg-[var(--ui-50)] px-[1.6rem] py-[1.5rem]">
+                  <div className={footerClassName}>
                     <div className="flex items-center gap-[0.8rem]">
-                      <div className="flex h-[3.2rem] flex-1 items-center rounded-[2rem] bg-[var(--ui-bg)] px-[1.6rem]">
-                        <span className="Label1 font-semibold text-[#AAAAAA]">메세지 보내기</span>
+                      <div className={inputFieldClassName}>
+                        <input
+                          type="text"
+                          value={messageDraft}
+                          onChange={(event) => setMessageDraft(event.target.value)}
+                          placeholder="메시지 보내기"
+                          className="Label1 w-full bg-transparent font-medium text-[var(--ui-900)] placeholder:text-[var(--ui-400)] outline-none"
+                        />
                       </div>
                       <button
                         type="button"
-                        className="flex size-[3.2rem] items-center justify-center rounded-full bg-[var(--ui-100)] text-[var(--ui-400)]"
+                        disabled={!hasMessageDraft}
+                        className={cn(
+                          'flex size-[3rem] cursor-pointer items-center justify-center rounded-full transition-[transform,box-shadow] duration-200 disabled:cursor-default',
+                          hasMessageDraft
+                            ? 'bg-[var(--color-primary)] text-[var(--ui-50)] shadow-[0_1rem_2rem_rgba(78,73,255,0.28)] hover:scale-[1.03]'
+                            : 'bg-[var(--ui-200)] text-[var(--ui-50)] shadow-none',
+                        )}
                         aria-label="메시지 전송"
                       >
-                        <svg viewBox="0 0 24 24" className="size-[2rem]" fill="none">
+                        <svg
+                          viewBox="10 9 12 13"
+                          className="size-[1.7rem]"
+                          fill="none"
+                          aria-hidden="true"
+                        >
                           <path
-                            d="M12 5v14m0-14 6 6m-6-6-6 6"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                            d="M20.7075 15.7075C20.6146 15.8005 20.5043 15.8742 20.3829 15.9246C20.2615 15.9749 20.1314 16.0008 20 16.0008C19.8686 16.0008 19.7385 15.9749 19.6171 15.9246C19.4957 15.8742 19.3854 15.8005 19.2925 15.7075L17 13.4137V21C17 21.2652 16.8946 21.5196 16.7071 21.7071C16.5196 21.8946 16.2652 22 16 22C15.7348 22 15.4804 21.8946 15.2929 21.7071C15.1054 21.5196 15 21.2652 15 21V13.4137L12.7075 15.7075C12.5199 15.8951 12.2654 16.0006 12 16.0006C11.7346 16.0006 11.4801 15.8951 11.2925 15.7075C11.1049 15.5199 10.9994 15.2654 10.9994 15C10.9994 14.7346 11.1049 14.4801 11.2925 14.2925L15.2925 10.2925C15.3854 10.1995 15.4957 10.1258 15.6171 10.0754C15.7385 10.0251 15.8686 9.99921 16 9.99921C16.1314 9.99921 16.2615 10.0251 16.3829 10.0754C16.5043 10.1258 16.6146 10.1995 16.7075 10.2925L20.7075 14.2925C20.8005 14.3854 20.8742 14.4957 20.9246 14.6171C20.9749 14.7385 21.0008 14.8686 21.0008 15C21.0008 15.1314 20.9749 15.2615 20.9246 15.3829C20.8742 15.5043 20.8005 15.6146 20.7075 15.7075Z"
+                            fill="currentColor"
                           />
                         </svg>
                       </button>
@@ -208,50 +292,67 @@ const FloatingChatWidget = () => {
                 </>
               ) : (
                 <>
-                  <div className="flex h-[6.8rem] items-center border-b border-[var(--ui-200)] px-[1.6rem]">
-                    <span className="Heading2 flex-1 font-semibold text-[var(--ui-1000)]">
-                      메세지
-                    </span>
+                  <div className={cn(headerClassName, 'px-[1.8rem]')}>
+                    <span className="Heading2 flex-1 font-semibold text-[var(--ui-900)]">메시지</span>
                     <button
                       type="button"
                       onClick={closeWidget}
-                      className="flex size-[2.4rem] items-center justify-center text-[var(--ui-400)]"
+                      className={iconButtonClassName}
                       aria-label="채팅 목록 접기"
                     >
-                      <ArrowDownIcon className="size-[2.4rem]" />
+                      <ArrowDownIcon className="size-[2rem]" />
                     </button>
                   </div>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto">
-                    {chatRooms.map((room) => (
-                      <button
-                        key={room.id}
-                        type="button"
-                        onClick={() => setSelectedChatId(room.id)}
-                        className="relative flex h-[7.2rem] w-full items-start px-[1.5rem] pt-[0.8rem] text-left"
-                      >
-                        <span className={cn('mt-0 size-[3.6rem]', avatarClassName)} />
-                        <div className="ml-[1.2rem] min-w-0 flex-1">
-                          <div className="flex items-start">
-                            <span className="Label1 font-semibold text-[var(--ui-900)]">
-                              {room.name}
-                            </span>
-                            <span className="ml-auto text-right text-[1.4rem] leading-[1.429] tracking-[0.0145em] text-[var(--ui-700)]">
-                              {room.timeLabel}
-                            </span>
+                  <div className="min-h-0 flex-1 overflow-y-auto px-[0.8rem] py-[0.8rem]">
+                    <div className="flex flex-col gap-[0.2rem]">
+                      {chatRooms.map((room) => (
+                        <button
+                          key={room.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedChatId(room.id);
+                            setMessageDraft('');
+                          }}
+                          className={listItemClassName}
+                        >
+                          <span
+                            className={cn(
+                              'size-[3.8rem] transition-transform duration-200 group-hover:scale-[1.03]',
+                              avatarClassName,
+                            )}
+                          />
+                          <div className="ml-[1.2rem] min-w-0 flex-1 pr-[4rem]">
+                            <div className="flex items-start">
+                              <span className="Label1 font-semibold text-[var(--ui-900)]">
+                                {room.name}
+                              </span>
+                              <span className="ml-auto text-right text-[1.3rem] leading-[1.429] tracking-[0.0145em] text-[var(--ui-600)]">
+                                {room.timeLabel}
+                              </span>
+                            </div>
+                            <p className="mt-[0.5rem] line-clamp-2 text-[1.2rem] leading-[1.45] tracking-[0.0252em] text-[var(--ui-500)]">
+                              {room.preview}
+                            </p>
                           </div>
-                          <p className="mt-[0.4rem] w-[17.6rem] text-[1.2rem] leading-[1.334] tracking-[0.0252em] text-[var(--ui-500)]">
-                            {room.preview}
-                          </p>
-                        </div>
-                        {room.unreadCount ? (
-                          <span className="absolute top-[3.7rem] right-[1.5rem] flex h-[2.2rem] w-[2.4rem] items-center justify-center rounded-full bg-[#4E49FF] text-[1.2rem] leading-[1.334] font-semibold tracking-[0.0252em] text-white">
-                            {room.unreadCount}
-                          </span>
-                        ) : null}
-                        <span className="absolute right-[1.6rem] bottom-0 h-px w-[27.7rem] bg-[var(--ui-100)]" />
-                      </button>
-                    ))}
+                          {room.unreadCount ? (
+                            <span className="absolute top-[3.8rem] right-[1.2rem] flex min-w-[2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_100%)] px-[0.7rem] py-[0.2rem] text-[1.1rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.8rem_1.6rem_rgba(78,73,255,0.25)]">
+                              {room.unreadCount}
+                            </span>
+                          ) : (
+                            <span
+                              className={cn(
+                                'absolute top-[1.8rem] right-[1.4rem] size-[0.7rem] rounded-full opacity-0 transition-opacity duration-200 group-hover:opacity-100',
+                                isLightTheme
+                                  ? 'bg-[rgba(158,166,186,0.6)]'
+                                  : 'bg-[rgba(127,133,150,0.35)]',
+                              )}
+                            />
+                          )}
+                          <span className={listDividerClassName} />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </>
               )}
