@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import {
   getRecommendProjectsPreview,
@@ -291,10 +292,22 @@ export default function ProjectSearchPage() {
   };
 
   return (
-    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30">
-      {/* 추천 프로젝트 */}
-      <header className="flex items-center justify-between">
-        <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 프로젝트</h2>
+    <>
+      <Helmet>
+        <title>프로젝트 찾기 | Devine - 사이드 프로젝트 팀원 매칭</title>
+        <meta
+          name="description"
+          content="사이드 프로젝트 팀원 구하기, 주니어 개발자 프로젝트 참여, PM 개발자 찾기. GitHub 분석 기반으로 딱 맞는 프로젝트를 찾아보세요."
+        />
+        <link rel="canonical" href="https://www.devine.kr/search/project" />
+        <meta property="og:title" content="프로젝트 찾기 | Devine - 사이드 프로젝트 팀원 매칭" />
+        <meta property="og:description" content="사이드 프로젝트 팀원 구하기, 주니어 개발자 프로젝트 참여, PM 개발자 찾기. GitHub 분석 기반으로 딱 맞는 프로젝트를 찾아보세요." />
+        <meta property="og:url" content="https://www.devine.kr/search/project" />
+      </Helmet>
+      <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30">
+        {/* 추천 프로젝트 */}
+        <header className="flex items-center justify-between">
+          <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 프로젝트</h2>
 
         {hasReports === true && !isReportsLoading && (
           <button
@@ -396,7 +409,8 @@ export default function ProjectSearchPage() {
           ))}
       </div>
 
-      <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
-    </section>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
+      </section>
+    </>
   );
 }

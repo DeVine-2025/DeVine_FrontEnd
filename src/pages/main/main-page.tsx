@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import {
   getRecommendProjectsPreview,
@@ -525,10 +526,19 @@ const MainPage = () => {
   };
 
   return (
-    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-14">
-      <section className="flex flex-col gap-6">
-        <h2 className="Heading2 pt-5 font-semibold text-card-title">
-          이번주 모두가 주목하는 프로젝트
+    <>
+      <Helmet>
+        <title>Devine | GitHub 분석 기반 개발자 · PM 매칭 플랫폼</title>
+        <meta
+          name="description"
+          content="GitHub 코드를 AI가 분석해 실력 검증된 개발자를 매칭합니다. 사이드 프로젝트 팀원 구하기, 개발자 구인, IT 외주, 프리랜서 개발자 매칭 플랫폼"
+        />
+        <link rel="canonical" href="https://www.devine.kr/" />
+      </Helmet>
+      <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-14">
+        <section className="flex flex-col gap-6">
+          <h2 className="Heading2 pt-5 font-semibold text-card-title">
+            이번주 모두가 주목하는 프로젝트
         </h2>
         <div className="grid grid-cols-4 gap-6">
           {showWeeklySkeleton
@@ -703,6 +713,7 @@ const MainPage = () => {
         </div>
       </section>
     </section>
+    </>
   );
 };
 

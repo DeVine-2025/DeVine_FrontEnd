@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import ProfileDefaultImage from '@assets/images/Profile.svg';
@@ -282,9 +283,21 @@ const DeveloperSearchPage = () => {
   );
 
   return (
-    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30">
-      <header className="flex items-center justify-between">
-        <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 개발자</h2>
+    <>
+      <Helmet>
+        <title>개발자 찾기 | Devine - GitHub 기반 개발자 매칭</title>
+        <meta
+          name="description"
+          content="개발자 구하기, 프리랜서 개발자 구인, IT 외주 개발자 매칭. GitHub 분석으로 실력 검증된 개발자를 찾아보세요."
+        />
+        <link rel="canonical" href="https://www.devine.kr/search/developer" />
+        <meta property="og:title" content="개발자 찾기 | Devine - GitHub 기반 개발자 매칭" />
+        <meta property="og:description" content="개발자 구하기, 프리랜서 개발자 구인, IT 외주 개발자 매칭. GitHub 분석으로 실력 검증된 개발자를 찾아보세요." />
+        <meta property="og:url" content="https://www.devine.kr/search/developer" />
+      </Helmet>
+      <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30">
+        <header className="flex items-center justify-between">
+          <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 개발자</h2>
 
         {hasProjects === true && (
           <button
@@ -379,8 +392,9 @@ const DeveloperSearchPage = () => {
           ))}
       </div>
 
-      <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
-    </section>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
+      </section>
+    </>
   );
 };
 

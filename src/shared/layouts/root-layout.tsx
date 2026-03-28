@@ -4,7 +4,7 @@ import Header from '@layouts/header';
 import { trackPageView } from '@libs/analytics';
 import { type UserRole, useAuthStore } from '@store/auth';
 import { getStoredUserRole, setCurrentUserId } from '@utils/storage';
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 export type RootLayoutOutletContext = {
@@ -138,6 +138,10 @@ const RootLayout = () => {
       navigate('/', { replace: true });
     }
   }, [isLoaded, location.pathname, navigate, user]);
+
+  useEffect(() => {
+    document.dispatchEvent(new Event('prerender-ready'));
+  }, []);
 
   const handleLogoClick = () => {
     if (logoClickHandler) {
