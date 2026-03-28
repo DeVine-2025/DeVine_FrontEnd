@@ -587,7 +587,7 @@ const MainPage = () => {
         </section>
 
       <section
-        className={`flex flex-col gap-20 ${showGuestRecommendMask ? 'mb-96 pt-16' : 'mb-40'}`}
+        className={`flex flex-col gap-6 ${showGuestRecommendMask ? 'mb-96 pt-16' : 'mb-40'}`}
       >
         <div className="flex items-center justify-between">
           <h2 className="Heading2 font-semibold text-card-title">{recommendTitle}</h2>

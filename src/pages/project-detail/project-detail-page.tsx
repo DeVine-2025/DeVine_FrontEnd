@@ -402,7 +402,11 @@ const canApply = appliedStatus == null || appliedStatus === 'CANCELLED';
       {isLoginModalOpen && (
         <LoginModal
           isDark={isDark}
-          onLogin={() => navigate('/login')}
+          onLogin={() =>
+            navigate('/login', {
+              state: { postLoginRedirectPath: `/project/${projectId}` },
+            })
+          }
           onClose={() => setIsLoginModalOpen(false)}
         />
       )}

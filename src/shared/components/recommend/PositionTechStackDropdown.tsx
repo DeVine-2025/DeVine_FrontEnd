@@ -1,72 +1,16 @@
+import SelectAllIcon from '@assets/icons/select-all.svg?react';
+import LoadingSpinner from '@components/common/LoadingSpinner';
+import { getTechBadgeByName } from '@constants/position-tech-stack';
 import {
-  AwsOff,
-  AwsOn,
-  COff,
-  COn,
-  DjangoOff,
-  DjangoOn,
-  DockerOff,
-  DockerOn,
-  ExpressOff,
-  ExpressOn,
-  FirebaseOff,
-  FirebaseOn,
-  FlutterOff,
-  FlutterOn,
-  GoOff,
-  GoOn,
-  InfraReactOff,
-  InfraReactOn,
-  JavaOff,
-  JavaOn,
-  JavascriptOff,
-  JavascriptOn,
-  KotlinOff,
-  KotlinOn,
-  KubernetesOff,
-  KubernetesOn,
-  MongodbOff,
-  MongodbOn,
-  MysqlOff,
-  MysqlOn,
-  NestjsOff,
-  NestjsOn,
-  NextjsOff,
-  NextjsOn,
-  NodejsOff,
-  NodejsOn,
-  PhpOff,
-  PhpOn,
-  PythonOff,
-  PythonOn,
-  ReactnativeOff,
-  ReactnativeOn,
-  ReactOff,
-  ReactOn,
-  SelectAllIcon,
-  SpringOff,
-  SpringOn,
-  SvelteOff,
-  SvelteOn,
-  SwiftOff,
-  SwiftOn,
-  TypescriptOff,
-  TypescriptOn,
-  VuejsOff,
-  VuejsOn,
-} from '@assets/stackBadge';
+  formatTechstackKey,
+  formatTechstackLabel,
+  normalizeTechstackName,
+  type TechstackGroup,
+  type TechstackItem,
+} from '@apis/techstacks';
+import { useTechstacks } from '@hooks/useTechstacks';
 import { useThemeStore } from '@store/theme';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import {
-  BACKEND_DATABASE,
-  BACKEND_FRAMEWORK,
-  BACKEND_LANGUAGE,
-  FRONTEND_LANGUAGE_FRAMEWORK,
-  FRONTEND_MOBILE,
-  INFRA_CLOUD,
-  INFRA_CONTAINER,
-  type TechStackChip,
-} from '@constants/position-tech-stack';
 
 type PositionTechStackDropdownProps = {
   open: boolean;
@@ -78,6 +22,84 @@ type PositionTechStackDropdownProps = {
   asModal?: boolean;
   title?: string;
   showCloseButton?: boolean;
+  valueType?: 'key' | 'id';
+};
+
+type TabKey = 'frontend' | 'backend' | 'infra';
+
+const TAB_LABEL: Record<TabKey, string> = {
+  frontend: '프론트엔드',
+  backend: '백엔드',
+  infra: '인프라',
+};
+
+const TAB_GROUP_NAME: Record<TabKey, string> = {
+  frontend: 'FRONTEND',
+  backend: 'BACKEND',
+  infra: 'INFRA',
+};
+
+const GENRE_LABEL_BY_TAB: Record<TabKey, Record<string, string>> = {
+  frontend: {
+    LANGUAGE: '언어/프레임워크',
+    FRAMEWORK: '언어/프레임워크',
+    LANGUAGE_FRAMEWORK: '언어/프레임워크',
+    MOBILE: '모바일',
+  },
+  backend: {
+    LANGUAGE: '언어',
+    FRAMEWORK: '프레임워크',
+    DATABASE: '데이터베이스',
+  },
+  infra: {
+    CLOUD: '클라우드',
+    CONTAINER: '컨테이너',
+  },
+};
+
+const GENRE_ORDER_BY_TAB: Record<TabKey, string[]> = {
+  frontend: ['LANGUAGE_FRAMEWORK', 'MOBILE'],
+  backend: ['LANGUAGE', 'FRAMEWORK', 'DATABASE'],
+  infra: ['CLOUD', 'CONTAINER'],
+};
+
+const buildGenreGroups = (tab: TabKey, group: TechstackGroup | undefined) => {
+  if (!group) return [] as Array<{ key: string; label: string; items: TechstackItem[] }>;
+
+  const genreMap = new Map<string, TechstackItem[]>();
+
+  group.list.forEach((item) => {
+    const rawGenre = normalizeTechstackName(item.genre);
+    const mergedGenre =
+      tab === 'frontend' && (rawGenre === 'LANGUAGE' || rawGenre === 'FRAMEWORK')
+        ? 'LANGUAGE_FRAMEWORK'
+        : rawGenre;
+
+    const current = genreMap.get(mergedGenre) ?? [];
+    current.push(item);
+    genreMap.set(mergedGenre, current);
+  });
+
+  const order = GENRE_ORDER_BY_TAB[tab];
+  const labelByGenre = GENRE_LABEL_BY_TAB[tab];
+
+  const knownGroups = order
+    .filter((genre) => (genreMap.get(genre)?.length ?? 0) > 0)
+    .map((genre) => ({
+      key: genre,
+      label: labelByGenre[genre] ?? genre,
+      items: genreMap.get(genre) ?? [],
+    }));
+
+  const customGroups = Array.from(genreMap.entries())
+    .filter(([genre]) => !order.includes(genre))
+    .map(([genre, items]) => ({
+      key: genre,
+      label: labelByGenre[genre] ?? genre,
+      items,
+    }));
+
+  return [...knownGroups, ...customGroups];
 };
 
 export default function PositionTechStackDropdown({
@@ -88,33 +110,27 @@ export default function PositionTechStackDropdown({
   onReset,
   onClose,
   asModal = false,
-  title = '포지션/기술스택',
+  title = '포지션 기술스택',
   showCloseButton = false,
+  valueType = 'key',
 }: PositionTechStackDropdownProps) {
   const { theme } = useThemeStore();
+  const { data: techstackGroups = [], isLoading } = useTechstacks();
   const ref = useRef<HTMLDivElement | null>(null);
   const selected = useMemo(() => new Set(value), [value]);
 
-  const [activeTab, setActiveTab] = useState<'frontend' | 'backend' | 'infra'>('frontend');
-  // 밑줄(전체 라인/활성 라인) 계산용 ref
+  const [activeTab, setActiveTab] = useState<TabKey>('frontend');
   const tabsContainerRef = useRef<HTMLDivElement | null>(null);
   const tabsRowRef = useRef<HTMLDivElement | null>(null);
-  const tabsAreaRef = useRef<HTMLDivElement | null>(null); // (active underline 기준)
+  const tabsAreaRef = useRef<HTMLDivElement | null>(null);
   const frontendTabRef = useRef<HTMLButtonElement | null>(null);
   const backendTabRef = useRef<HTMLButtonElement | null>(null);
   const infraTabRef = useRef<HTMLButtonElement | null>(null);
-  const [tabsTrack, setTabsTrack] = useState<{ left: number; width: number }>({
-    left: 0,
-    width: 0,
-  });
-  const [tabUnderline, setTabUnderline] = useState<{ left: number; width: number }>({
-    left: 0,
-    width: 0,
-  });
+  const [tabsTrack, setTabsTrack] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+  const [tabUnderline, setTabUnderline] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
 
   useEffect(() => {
-    if (!open) return;
-    if (asModal) return;
+    if (!open || asModal) return;
 
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as Node | null;
@@ -135,21 +151,29 @@ export default function PositionTechStackDropdown({
     };
   }, [open, onClose, asModal]);
 
-  const currentTabKeys = useMemo(() => {
-    const keys =
-      activeTab === 'frontend'
-        ? [...FRONTEND_LANGUAGE_FRAMEWORK, ...FRONTEND_MOBILE].map((b) => b.key)
-        : activeTab === 'backend'
-          ? [...BACKEND_LANGUAGE, ...BACKEND_FRAMEWORK, ...BACKEND_DATABASE].map((b) => b.key)
-          : [...INFRA_CLOUD, ...INFRA_CONTAINER].map((b) => b.key);
+  const groupByTab = useMemo(() => {
+    const map = new Map<string, TechstackGroup>();
+    techstackGroups.forEach((group) => {
+      map.set(normalizeTechstackName(group.name), group);
+    });
+    return map;
+  }, [techstackGroups]);
 
-    return Array.from(new Set(keys));
-  }, [activeTab]);
+  const currentGroup = groupByTab.get(TAB_GROUP_NAME[activeTab]);
+  const genreGroups = useMemo(() => buildGenreGroups(activeTab, currentGroup), [activeTab, currentGroup]);
 
+  const toValue = (item: TechstackItem) =>
+    valueType === 'id' ? String(item.techstackId) : formatTechstackKey(item.name);
+
+  const currentTabKeys = useMemo(
+    () => currentGroup?.list.map((item) => toValue(item)) ?? [],
+    [currentGroup, valueType],
+  );
   const currentTabKeySet = useMemo(() => new Set(currentTabKeys), [currentTabKeys]);
 
-  const toggle = (key: string) => {
+  const toggle = (item: TechstackItem) => {
     const next = new Set(value);
+    const key = toValue(item);
     if (next.has(key)) next.delete(key);
     else next.add(key);
     onChange(Array.from(next));
@@ -166,26 +190,29 @@ export default function PositionTechStackDropdown({
     }
 
     const next = new Set(value);
-    for (const k of currentTabKeys) next.add(k);
+    currentTabKeys.forEach((k) => next.add(k));
     onChange(Array.from(next));
   };
 
-  const renderChip = (b: TechStackChip) => {
-    const isOn = selected.has(b.key);
+  const renderChip = (item: TechstackItem) => {
+    const key = toValue(item);
+    const label = formatTechstackLabel(item.name);
+    const isOn = selected.has(key);
+    const badge = getTechBadgeByName(item.name);
 
-    const wrapperClass = [
-      'rounded-[999px] transition-transform duration-150 ease-out active:scale-[0.98]',
-      isOn ? 'ring-1 ring-[#4E49FF]' : 'ring-1 ring-[var(--ui-200)]',
-    ].join(' ');
-
-    if ('off' in b && 'on' in b) {
-      const offSrc = theme === 'dark' ? (b.offDark ?? b.off) : b.off;
-      const onSrc = theme === 'dark' ? (b.onDark ?? b.on) : b.on;
+    if (badge) {
+      const offSrc = theme === 'dark' ? badge.offDark ?? badge.off : badge.off;
+      const onSrc = theme === 'dark' ? badge.onDark ?? badge.on : badge.on;
       return (
-        <button key={b.key} type="button" onClick={() => toggle(b.key)} className={wrapperClass}>
+        <button
+          key={`${item.techstackId}-${key}`}
+          type="button"
+          onClick={() => toggle(item)}
+          className="rounded-[999px] transition-transform duration-150 ease-out active:scale-[0.98]"
+        >
           <img
             src={isOn ? onSrc : offSrc}
-            alt={b.label}
+            alt={label}
             className="h-[36px] w-auto select-none rounded-[999px]"
             draggable={false}
           />
@@ -195,27 +222,19 @@ export default function PositionTechStackDropdown({
 
     return (
       <button
-        key={b.key}
+        key={`${item.techstackId}-${key}`}
         type="button"
-        onClick={() => toggle(b.key)}
+        onClick={() => toggle(item)}
         className={[
           'inline-flex h-[36px] items-center gap-[8px] rounded-[24px] px-[12px] py-[8px] text-left transition-transform duration-150 ease-out active:scale-[0.98]',
           'bg-[var(--ui-100)]',
           isOn ? 'ring-[#4E49FF] ring-[1.5px]' : 'ring-[1.5px] ring-[var(--ui-200)]',
         ].join(' ')}
       >
-        <span className="Caption1 font-medium text-[var(--ui-800)]">{b.label}</span>
+        <span className="Caption1 font-medium text-[var(--ui-800)]">{label}</span>
       </button>
     );
   };
-
-  // 탭별로 footer 위치를 올린 만큼 전체 높이도 조정
-  const containerHeightClass =
-    activeTab === 'backend' ? 'h-[480px]' : activeTab === 'infra' ? 'h-[340px]' : 'h-[397px]';
-  const contentPaddingBottomClass =
-    activeTab === 'infra' ? 'pb-[72px]' : activeTab === 'backend' ? 'pb-[80px]' : 'pb-[72px]';
-  const footerBottomClass =
-    activeTab === 'infra' ? 'bottom-0' : activeTab === 'backend' ? 'bottom-[8px]' : 'bottom-0';
 
   const measureTabs = () => {
     const container = tabsContainerRef.current;
@@ -233,12 +252,9 @@ export default function PositionTechStackDropdown({
     const rowRect = row.getBoundingClientRect();
     const btnRect = btn.getBoundingClientRect();
 
-    // 전체 밑줄은 탭 텍스트 영역보다 "아주 살짝"만 더 길게
-    const trackExtra = 16; // px (좌/우 각각 8px)
+    const trackExtra = 16;
     let trackLeft = rowRect.left - containerRect.left - trackExtra / 2;
     let trackWidth = rowRect.width + trackExtra;
-
-    // 경계 보정(컨테이너 밖으로 나가지 않게)
     if (trackLeft < 0) {
       trackWidth += trackLeft;
       trackLeft = 0;
@@ -246,26 +262,19 @@ export default function PositionTechStackDropdown({
     const trackMaxWidth = containerRect.width - trackLeft;
     if (trackWidth > trackMaxWidth) trackWidth = trackMaxWidth;
 
-    // 활성 밑줄은 글자(버튼) 너비보다 살짝 더 길게
-    const extra = 8; // px (좌/우 각각 4px)
+    const extra = 8;
     const areaLeft = containerRect.left + trackLeft;
     const areaWidth = trackWidth;
 
     let left = btnRect.left - areaLeft - extra / 2;
     let width = btnRect.width + extra;
-
-    // 경계 보정(언더라인 컨테이너 밖으로 나가지 않게)
     if (left < 0) {
-      width += left; // left가 -면 width를 줄임
+      width += left;
       left = 0;
     }
     const maxWidth = areaWidth - left;
     if (width > maxWidth) width = maxWidth;
-
-    // 인프라(마지막 탭) 선택 시 오른쪽 끝까지 밑줄이 닿게
-    if (activeTab === 'infra') {
-      width = areaWidth - left;
-    }
+    if (activeTab === 'infra') width = areaWidth - left;
 
     setTabsTrack({ left: trackLeft, width: trackWidth });
     setTabUnderline({ left, width });
@@ -274,7 +283,6 @@ export default function PositionTechStackDropdown({
   useLayoutEffect(() => {
     if (!open) return;
     measureTabs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, activeTab]);
 
   useEffect(() => {
@@ -282,10 +290,13 @@ export default function PositionTechStackDropdown({
     const onResize = () => measureTabs();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, activeTab]);
 
   if (!open) return null;
+
+  const containerHeightClass = activeTab === 'backend' ? 'h-[480px]' : 'h-[420px]';
+  const contentPaddingBottomClass = activeTab === 'backend' ? 'pb-[80px]' : 'pb-[72px]';
+  const footerBottomClass = activeTab === 'backend' ? 'bottom-[8px]' : 'bottom-0';
 
   const dropdown = (
     <div
@@ -300,12 +311,11 @@ export default function PositionTechStackDropdown({
         <p className="Label1 font-medium text-[var(--ui-600)]">{title}</p>
         {showCloseButton && (
           <button type="button" onClick={onClose} className="text-[var(--ui-400)]" aria-label="닫기">
-            ✕
+            ×
           </button>
         )}
       </div>
 
-      {/* 탭 */}
       <div className="px-[16px] pt-[20px]">
         <div ref={tabsContainerRef} className="w-full">
           <div
@@ -318,7 +328,7 @@ export default function PositionTechStackDropdown({
               onClick={() => setActiveTab('frontend')}
               className={`cursor-pointer ${activeTab === 'frontend' ? 'text-[var(--ui-700)]' : 'text-[var(--ui-400)]'}`}
             >
-              프론트엔드
+              {TAB_LABEL.frontend}
             </button>
             <button
               ref={backendTabRef}
@@ -326,7 +336,7 @@ export default function PositionTechStackDropdown({
               onClick={() => setActiveTab('backend')}
               className={`cursor-pointer ${activeTab === 'backend' ? 'text-[var(--ui-700)]' : 'text-[var(--ui-400)]'}`}
             >
-              백엔드
+              {TAB_LABEL.backend}
             </button>
             <button
               ref={infraTabRef}
@@ -334,33 +344,25 @@ export default function PositionTechStackDropdown({
               onClick={() => setActiveTab('infra')}
               className={`cursor-pointer ${activeTab === 'infra' ? 'text-[var(--ui-700)]' : 'text-[var(--ui-400)]'}`}
             >
-              인프라
+              {TAB_LABEL.infra}
             </button>
           </div>
 
-          {/* 탭 밑줄: 글자 너비만큼 */}
           <div className="relative mt-[8px] h-px w-full">
             <div
               ref={tabsAreaRef}
               className="absolute top-0 left-0 h-px rounded-[24px] bg-[var(--ui-100)]"
-              style={{
-                width: `${tabsTrack.width}px`,
-                transform: `translateX(${tabsTrack.left}px)`,
-              }}
+              style={{ width: `${tabsTrack.width}px`, transform: `translateX(${tabsTrack.left}px)` }}
             >
               <div
                 className="absolute top-0 left-0 h-px rounded-[24px] bg-[var(--ui-300)] transition-[transform,width] duration-200 ease-out"
-                style={{
-                  width: `${tabUnderline.width}px`,
-                  transform: `translateX(${tabUnderline.left}px)`,
-                }}
+                style={{ width: `${tabUnderline.width}px`, transform: `translateX(${tabUnderline.left}px)` }}
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* 전체 선택 */}
       <div className="absolute top-[93px] right-[16px] flex items-center gap-[4px]">
         <button
           type="button"
@@ -378,66 +380,27 @@ export default function PositionTechStackDropdown({
         </button>
       </div>
 
-      {/* 내용 */}
       <div
-        className={`${asModal ? 'mx-0 px-[24px] w-full' : 'mx-auto w-[326px]'} mt-[33px] ${contentPaddingBottomClass}`}
+        className={`${asModal ? 'mx-0 px-[24px] w-full' : 'mx-auto w-[326px]'} mt-[33px] ${contentPaddingBottomClass} max-h-[320px] overflow-y-auto`}
       >
-        {activeTab === 'frontend' ? (
-          <div className="flex flex-col gap-[16px]">
-            <div className="flex flex-col gap-[12px]">
-              <p className="Label1 font-medium text-[var(--ui-700)]">언어/프레임워크</p>
-              <div className="flex flex-wrap gap-[4px]">
-                {FRONTEND_LANGUAGE_FRAMEWORK.map((b) => renderChip(b))}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-[12px]">
-              <p className="Label1 font-medium text-[var(--ui-700)]">모바일</p>
-              <div className="flex w-[305px] flex-wrap gap-x-[4px] gap-y-[6px]">
-                {FRONTEND_MOBILE.map((b) => renderChip(b))}
-              </div>
-            </div>
+        {isLoading ? (
+          <div className="flex justify-center py-10">
+            <LoadingSpinner size="md" />
           </div>
-        ) : activeTab === 'backend' ? (
-          <div className="flex flex-col gap-[16px]">
-            <div className="flex flex-col gap-[12px]">
-              <p className="Label1 font-medium text-[var(--ui-700)]">언어</p>
-              <div className="flex flex-wrap gap-[4px]">
-                {BACKEND_LANGUAGE.map((b) => renderChip(b))}
-              </div>
-            </div>
-            <div className="flex flex-col gap-[12px]">
-              <p className="Label1 font-medium text-[var(--ui-700)]">프레임워크</p>
-              <div className="flex flex-wrap gap-[4px]">
-                {BACKEND_FRAMEWORK.map((b) => renderChip(b))}
-              </div>
-            </div>
-            <div className="flex flex-col gap-[12px]">
-              <p className="Label1 font-medium text-[var(--ui-700)]">데이터베이스</p>
-              <div className="flex flex-wrap gap-[4px]">
-                {BACKEND_DATABASE.map((b) => renderChip(b))}
-              </div>
-            </div>
-          </div>
+        ) : genreGroups.length === 0 ? (
+          <p className="Caption1 text-[var(--ui-400)]">기술스택 목록이 없습니다.</p>
         ) : (
           <div className="flex flex-col gap-[16px]">
-            <div className="flex flex-col gap-[12px]">
-              <p className="Label1 font-medium text-[var(--ui-700)]">클라우드</p>
-              <div className="flex flex-wrap gap-[4px]">
-                {INFRA_CLOUD.map((b) => renderChip(b))}
+            {genreGroups.map((genreGroup) => (
+              <div key={genreGroup.key} className="flex flex-col gap-[12px]">
+                <p className="Label1 font-medium text-[var(--ui-700)]">{genreGroup.label}</p>
+                <div className="flex flex-wrap gap-[4px]">{genreGroup.items.map(renderChip)}</div>
               </div>
-            </div>
-            <div className="flex flex-col gap-[12px]">
-              <p className="Label1 font-medium text-[var(--ui-700)]">컨테이너</p>
-              <div className="flex flex-wrap gap-[4px]">
-                {INFRA_CONTAINER.map((b) => renderChip(b))}
-              </div>
-            </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* footer (우하단 정렬) */}
       <div
         className={`absolute right-0 flex h-[52px] w-[220px] items-center justify-end gap-[12px] px-[16px] ${footerBottomClass}`}
       >
@@ -447,7 +410,7 @@ export default function PositionTechStackDropdown({
             onReset?.();
             onChange([]);
           }}
-          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-transparent px-[10px] text-[var(--ui-500)] hover:text-[var(--ui-700)]"
+          className="Label1 flex h-[36px] w-[60px] cursor-pointer items-center justify-center rounded-[8px] bg-transparent px-[10px] text-[var(--ui-500)] hover:text-[var(--ui-700)]"
         >
           초기화
         </button>
@@ -457,7 +420,7 @@ export default function PositionTechStackDropdown({
             onApply?.();
             onClose();
           }}
-          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-[#4E49FF] px-[10px] text-white"
+          className="Label1 flex h-[36px] w-[60px] cursor-pointer items-center justify-center rounded-[8px] bg-[#4E49FF] px-[10px] text-white"
         >
           저장
         </button>
@@ -465,16 +428,12 @@ export default function PositionTechStackDropdown({
     </div>
   );
 
-  if (!asModal) {
-    return dropdown;
-  }
+  if (!asModal) return dropdown;
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-6"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-6" onClick={onClose}>
       <div onClick={(event) => event.stopPropagation()}>{dropdown}</div>
     </div>
   );
 }
+

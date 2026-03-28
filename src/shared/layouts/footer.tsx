@@ -24,7 +24,7 @@ const Footer = () => {
           </button>
           <div className="h-[1.2rem] w-[1px] bg-[var(--ui-600)] opacity-30" />
           <a
-            href="https://groovy-ixora-43f.notion.site/DeVine-305b559ef26f803fb8f7c75f524ad35e?source=copy_link"
+            href="/service"
             target="_blank"
             rel="noopener noreferrer"
             className="Label1 cursor-pointer text-[var(--ui-600)] transition-colors hover:text-[var(--ui-800)]"

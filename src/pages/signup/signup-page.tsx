@@ -4,6 +4,16 @@ import { useUser } from '@clerk/clerk-react';
 import AgreementList from './AgreementList';
 
 const LOGIN_PROVIDER_KEY = 'login_provider';
+const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect';
+
+const consumePostLoginRedirectPath = () => {
+  const path = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY);
+  sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+  if (typeof path === 'string' && path.startsWith('/')) {
+    return path;
+  }
+  return '/';
+};
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -27,10 +37,18 @@ const SignupPage = () => {
 
   useEffect(() => {
     if (!isLoaded) return;
-    if (user?.unsafeMetadata?.onboardingComplete) {
+    if (!user) {
       navigate('/', { replace: true });
+      return;
+    }
+    if (user?.unsafeMetadata?.onboardingComplete) {
+      navigate(consumePostLoginRedirectPath(), { replace: true });
     }
   }, [isLoaded, navigate, user]);
+
+  if (user?.unsafeMetadata?.onboardingComplete) {
+    return null;
+  }
 
   if (!isLoaded) {
     return null;
@@ -45,13 +63,10 @@ const SignupPage = () => {
         loginProvider,
       },
     });
-    // TODO: 백엔드에 회원 등록 API가 있으면 여기서 호출 필요 (예: POST /api/v1/members).
-    // 호출하지 않으면 프로젝트 등록 시 "가입되지 않은 사용자" 오류가 발생할 수 있음.
   };
 
   return (
     <AgreementList
-      onClose={() => navigate('/login')}
       onConfirm={handleConfirm}
       loginProvider={loginProvider}
     />

@@ -1,5 +1,6 @@
 import { useSignIn } from '@clerk/clerk-react';
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import GithubIcon from '@assets/icons/github.svg?react';
 import GoogleIcon from '@assets/icons/google.svg?react';
 import LogoDark from '@assets/icons/logo-dark.svg?react';
@@ -8,9 +9,16 @@ import { useThemeStore } from '@store/theme';
 
 const UNLOCK_TIMEOUT_MS = 10_000; // 10초 후 자동 해제(리다이렉트가 막힌 특이 케이스 대비)
 
+const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect';
+
+type LoginLocationState = {
+  postLoginRedirectPath?: string;
+};
+
 const LoginPage = () => {
   const { isLoaded, signIn } = useSignIn();
   const { theme } = useThemeStore();
+  const location = useLocation();
 
   // UI용: 어떤 provider로 진행 중인지
   const [loadingProvider, setLoadingProvider] = useState<'github' | 'google' | null>(null);
@@ -82,6 +90,18 @@ const LoginPage = () => {
     return () => clearUnlockTimer();
   }, []);
 
+  useEffect(() => {
+    const state = location.state as LoginLocationState | null;
+    const redirectPath = state?.postLoginRedirectPath;
+
+    if (typeof redirectPath === 'string' && redirectPath.startsWith('/')) {
+      sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, redirectPath);
+      return;
+    }
+
+    sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+  }, [location.state]);
+
   const isAnyLoading = loadingProvider !== null;
 
   return (
@@ -108,7 +128,7 @@ const LoginPage = () => {
             disabled={!isLoaded || isAnyLoading}
             aria-busy={loadingProvider === 'github'}
             className={`relative flex h-[48px] w-full items-center justify-center gap-4 rounded-[12px] px-4 overflow-visible whitespace-nowrap bg-[var(--color-auth-btn-dark-bg)] text-[var(--color-auth-btn-dark-text)]
-              ${isAnyLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              ${isAnyLoading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <span className="pointer-events-none absolute -top-16 left-[110%] -translate-x-1/2 rounded-full rounded-bl-[6px] bg-[var(--badge-bg-primary)] px-6 py-2 text-[14px] font-semibold text-[var(--badge-text-primary)] shadow-[0_3px_14px_rgba(78,73,255,0.1)]">
               깃허브 로그인 시 1회 무료 리포트 생성
@@ -123,7 +143,7 @@ const LoginPage = () => {
             disabled={!isLoaded || isAnyLoading}
             aria-busy={loadingProvider === 'google'}
             className={`flex h-[48px] w-full items-center justify-center gap-4 rounded-[12px] px-4 whitespace-nowrap bg-[var(--color-auth-btn-light-bg)] text-[var(--color-auth-btn-light-text)] border border-[var(--color-auth-btn-light-border)]
-              ${isAnyLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              ${isAnyLoading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <GoogleIcon className="h-7 w-7" aria-hidden="true" />
             {loadingProvider === 'google' ? '로그인 진행 중…' : '구글 계정으로 계속하기'}
