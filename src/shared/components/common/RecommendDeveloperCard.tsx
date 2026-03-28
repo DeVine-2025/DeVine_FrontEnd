@@ -150,7 +150,7 @@ function RecommendDeveloperCard({
           : undefined
       }
       className={cn(
-        'relative overflow-hidden rounded-[24px] border border-[var(--ui-200)] bg-[var(--ui-bg)] h-[196px] w-full max-w-[1280px] transition-all duration-300',
+        'relative h-[196px] w-full max-w-[1280px] overflow-hidden rounded-[24px] border border-[var(--ui-200)] bg-[var(--ui-bg)]',
         handleClick && 'cursor-pointer recommend-card-hover-border',
       )}
     >

@@ -24,7 +24,11 @@ export interface DatePickerPopoverProps {
   min?: string;
   placeholder?: string;
   inputClassName?: string;
+  error?: boolean;
 }
+
+const defaultInputClass =
+  'Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] pr-10 font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-400)] focus:border-[#4E49FF] focus:outline-none';
 
 export default function DatePickerPopover({
   value,
@@ -32,6 +36,7 @@ export default function DatePickerPopover({
   min,
   placeholder = '연도-월-일',
   inputClassName,
+  error,
 }: DatePickerPopoverProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -92,7 +97,9 @@ export default function DatePickerPopover({
           readOnly={false}
           className={
             inputClassName ??
-            'Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] pr-10 font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-400)] focus:border-[#4E49FF] focus:outline-none'
+            (error
+              ? `${defaultInputClass} !border-form-error focus:!border-[#4E49FF]`
+              : defaultInputClass)
           }
         />
         <button

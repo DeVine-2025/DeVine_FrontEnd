@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./font.css";
 @import "./theme.css";
+@import "./skeleton.css";
 @import "./custom-utilities.css";
 @import "./reset.css";
 @import "./tokens/common-card-theme.css";

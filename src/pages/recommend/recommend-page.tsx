@@ -4,12 +4,12 @@ import SearchTabs from '@components/tab/SearchTabs';
 import { Outlet, useLocation } from 'react-router-dom';
 
 const RecommendPage = () => {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const location = useLocation();
   const isRecommendProject =
     location.pathname === '/recommend' || location.pathname.endsWith('/recommend/project');
-  const isLoggedIn = Boolean(isSignedIn);
-  const showLoginOverlay = isRecommendProject && !isLoggedIn;
+  /** Clerk 복원 전에는 isSignedIn이 false로 잠깐 나오므로 isLoaded 이후에만 판단 */
+  const showLoginOverlay = isRecommendProject && isLoaded && !isSignedIn;
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-6">
