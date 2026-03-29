@@ -40,6 +40,7 @@
     --color-negative-bg: var(--negative-bg);
     --color-negative-text: var(--negative-text);
 
+    --color-form-error: var(--form-error);
 
     /* UI Dark */
     --ui-bg: #191B1E;
@@ -76,6 +77,8 @@
 
     --negative-bg: #3C1A1A;
     --negative-text: #FCA5A5;
+
+    --form-error: #E098A2;
 
     --font-weight-regular: 400;
     --font-weight-medium: 500;
@@ -122,6 +125,8 @@
 
     --negative-bg: #FFF1F0;
     --negative-text: #F87171;
+
+    --form-error: #C75F70;
 }
 
 @layer utilities {

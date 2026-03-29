@@ -4,10 +4,10 @@ import MyProjectTabs from '@components/tab/MyProjectTabs';
 import { Outlet } from 'react-router-dom';
 
 export default function MyProjectPage() {
-  const { isSignedIn } = useAuth();
-  const isLoggedIn = Boolean(isSignedIn);
+  const { isSignedIn, isLoaded } = useAuth();
+  const showLoginGate = isLoaded && !isSignedIn;
 
-  if (!isLoggedIn) {
+  if (showLoginGate) {
     return (
       <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-6">
         <div className="relative min-h-[calc(100vh-6rem)] w-full">

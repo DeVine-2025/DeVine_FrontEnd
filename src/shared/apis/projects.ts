@@ -228,11 +228,7 @@ export async function getMyRecruitingProjects(
   return fetchMyProjectsByPath('/api/v1/projects/my/recruiting', token, signal);
 }
 
-/**
- * 내 프로젝트 목록(상태 무관) - 추천 개발자에서 "프로젝트 등록 여부" 판별용
- * 백엔드에서 방금 만든 프로젝트가 RECRUITING으로 즉시 반영되지 않아도 잡히도록
- * recruiting / in-progress / completed를 합쳐서 반환합니다.
- */
+/** recruiting · in-progress · completed 합산(중복 projectId 제거). 추천/등록 여부 판별 등에 사용 */
 export async function getMyProjectsAllStatuses(
   token: string,
   signal?: AbortSignal,
@@ -252,6 +248,5 @@ export async function getMyProjectsAllStatuses(
     if (s.status === 'fulfilled') merged.push(...s.value);
   }
 
-  // projectId 기준 중복 제거
   return Array.from(new Map(merged.map((p) => [p.projectId, p])).values());
 }

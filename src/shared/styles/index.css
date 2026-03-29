@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./font.css";
 @import "./theme.css";
+@import "./skeleton.css";
 @import "./custom-utilities.css";
 @import "./reset.css";
 @import "./tokens/common-card-theme.css";
@@ -60,4 +61,55 @@
 .page-transition {
     animation: page-enter 0.2s ease-out forwards;
     width: 100%;
+}
+
+@layer utilities {
+    .scroll-reveal {
+        opacity: 0;
+        transform: translateY(24px) scale(0.985);
+        will-change: opacity, transform;
+        transition:
+            opacity 550ms ease,
+            transform 550ms ease;
+    }
+
+    .scroll-reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    .scroll-reveal-text {
+        opacity: 0;
+        will-change: opacity, transform;
+        transition:
+            opacity 550ms ease,
+            transform 550ms ease;
+    }
+
+    .scroll-reveal-text.from-left {
+        transform: translateX(-48px);
+    }
+
+    .scroll-reveal-text.from-right {
+        transform: translateX(48px);
+    }
+
+    .scroll-reveal-text.is-visible {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .scroll-reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .scroll-reveal-text {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
 }

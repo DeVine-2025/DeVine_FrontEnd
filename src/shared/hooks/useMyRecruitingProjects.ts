@@ -18,7 +18,7 @@ export function useMyRecruitingProjects(options?: { enabled?: boolean }) {
       return getMyProjectsAllStatuses(token, signal);
     },
     enabled: options?.enabled ?? isSignedIn ?? false,
-    staleTime: 60_000,
+    staleTime: 0,
   });
 }
 
