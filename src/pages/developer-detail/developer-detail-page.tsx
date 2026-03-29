@@ -53,10 +53,10 @@ const DeveloperDetailPage = () => {
   });
 
   const profile = profileRes?.result;
-  const techStackNames = useMemo(() => {
+  const techStackForProfile = useMemo(() => {
     const list = techStackRes?.result?.techstacks;
     if (!Array.isArray(list)) return [];
-    return list.map((item: { name: string }) => item.name);
+    return list as { name: string; genre?: string | null }[];
   }, [techStackRes]);
   const contributionsData = useMemo((): Contribution[] => {
     const result = contributionsRes?.result;
@@ -81,7 +81,7 @@ const DeveloperDetailPage = () => {
         <ProfileDetail
           type="개발자 상세"
           profile={profile}
-          techStack={techStackNames}
+          techStack={techStackForProfile}
           contributions={contributionsData}
           year={year}
           onYearChange={setYear}
