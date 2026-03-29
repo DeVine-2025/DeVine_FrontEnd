@@ -1,4 +1,5 @@
 import type { Contribution } from '@apis/myInfo/myInfo';
+import type { TechstackDto } from '@t/profileCard.types';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { projectQueries } from '@apis/project/project-queries';
 import { reportQueries } from '@apis/report/report-queries';
@@ -24,10 +25,7 @@ const MyInfoProfile = () => {
 
   const techStackForProfile = useMemo(() => {
     if (!techStack?.result?.techstacks) return [];
-    return techStack.result.techstacks as {
-      name: string;
-      genre?: string | null;
-    }[];
+    return techStack.result.techstacks as TechstackDto[];
   }, [techStack]);
 
   const contributionsData = useMemo((): Contribution[] => {

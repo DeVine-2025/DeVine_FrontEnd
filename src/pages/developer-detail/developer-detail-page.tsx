@@ -1,4 +1,5 @@
 import type { Contribution } from '@apis/myInfo/myInfo';
+import type { TechstackDto } from '@t/profileCard.types';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { reportQueries } from '@apis/report/report-queries';
 import TalkBalloonIcon from '@assets/icons/detail-page/talkBalloon.svg?react';
@@ -56,7 +57,7 @@ const DeveloperDetailPage = () => {
   const techStackForProfile = useMemo(() => {
     const list = techStackRes?.result?.techstacks;
     if (!Array.isArray(list)) return [];
-    return list as { name: string; genre?: string | null }[];
+    return list as TechstackDto[];
   }, [techStackRes]);
   const contributionsData = useMemo((): Contribution[] => {
     const result = contributionsRes?.result;
