@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import {
   getRecommendProjectsPreview,
@@ -5,22 +6,28 @@ import {
 } from '@apis/mainrecommendproject';
 import { getRecommendDevelopersPreview } from '@apis/members';
 import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-detail';
-import { getMyRecruitingProjects } from '@apis/projects';
+import { getMyProjectsAllStatuses } from '@apis/projects';
 import { getReports } from '@apis/report/report-queries';
-import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import LoginRequiredCard from '@components/common/LoginRequiredCard';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
+import { RecommendDeveloperCardSkeletonList } from '@components/common/RecommendDeveloperCardSkeleton';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
+import { RecommendProjectCardSkeletonList } from '@components/common/RecommendProjectCardSkeleton';
 import ReportRequiredCard from '@components/common/ReportRequiredCard';
+import Skeleton from '@components/common/Skeleton';
+import {
+  isInitialSkeletonSessionDone,
+  useInitialSkeletonGate,
+} from '@hooks/useInitialSkeletonGate';
+import LoginModal from '@pages/project-detail/components/LoginModal';
 import { useAuthStore } from '@store/auth';
+import { useThemeStore } from '@store/theme';
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDueLabel, mapPositionsToRoles, mapRecommendPositionsToRoles } from 'src/shared/mappers/project';
-import { getMyProjectsAllStatuses } from '@apis/projects';
-import { useAuthMe } from '@hooks/useAuthMe';
+import { getDueLabel, mapRecommendPositionsToRoles } from 'src/shared/mappers/project';
 
 type HighlightProject = ProjectCardProps & { id: number };
 
@@ -90,15 +97,16 @@ const mapWeeklyProject = (project: WeeklyBestProject): HighlightProject => ({
 });
 
 const MainPage = () => {
-  const { isSignedIn, getToken } = useAuth();
+  const { isSignedIn, isLoaded, getToken } = useAuth();
+  const { theme } = useThemeStore();
   const navigate = useNavigate();
   const userRole = useAuthStore((state) => state.role);
-  const isLoggedIn = Boolean(isSignedIn);
+  const isLoggedIn = isLoaded && Boolean(isSignedIn);
+  const showGuestRecommendMask = isLoaded && !isSignedIn;
   const isPm = userRole === 'pm';
   const isDev = userRole === 'dev';
   const isDevOrUnknown = isDev || userRole == null;
   const [weeklyProjects, setWeeklyProjects] = useState<HighlightProject[]>([]);
-  const fallbackRoles = useMemo<ProjectRole[]>(() => [], []);
   const [recommendedDevelopers, setRecommendedDevelopers] = useState<MainRecommendDeveloper[]>([]);
   const [hasReport, setHasReport] = useState<boolean | null>(null);
   const [hasProjects, setHasProjects] = useState<boolean | null>(null);
@@ -109,7 +117,35 @@ const MainPage = () => {
   const [developerBookmarkMap, setDeveloperBookmarkMap] = useState<Record<string | number, number>>(
     {},
   );
+  const [weeklyLoading, setWeeklyLoading] = useState(true);
+  const [pmPreviewLoading, setPmPreviewLoading] = useState(false);
+  const [devPreviewLoading, setDevPreviewLoading] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const MY_PROJECTS_CACHE_KEY = 'devine_my_projects_cache_v1';
+  const isDark = theme === 'dark';
+
+  const [pmRecommendSessionDone] = useState(() =>
+    isInitialSkeletonSessionDone('main-recommend-pm-developers'),
+  );
+
+  const showWeeklySkeleton = useInitialSkeletonGate(weeklyLoading, {
+    sessionKey: 'main-weekly-projects',
+  });
+  const pmRecommendLoadingRaw =
+    isLoggedIn &&
+    isPm &&
+    (hasProjects === null || (hasProjects === true && pmPreviewLoading));
+  const pmRecommendSkeletonFromGate = useInitialSkeletonGate(pmRecommendLoadingRaw, {
+    sessionKey: 'main-recommend-pm-developers',
+  });
+  const showPmRecommendSkeleton =
+    !pmRecommendSessionDone &&
+    (pmPreviewLoading ||
+      (isLoggedIn && isPm && hasProjects === null) ||
+      pmRecommendSkeletonFromGate);
+  const showDevRecommendSkeleton = useInitialSkeletonGate(devPreviewLoading, {
+    sessionKey: 'main-recommend-dev-projects',
+  });
 
   const readMyProjectsCache = useCallback(() => {
     try {
@@ -217,12 +253,11 @@ const MainPage = () => {
   const requireToken = useCallback(async () => {
     const token = await getToken();
     if (!token) {
-      alert('로그인이 필요합니다.');
-      navigate('/login');
+      setIsLoginModalOpen(true);
       return null;
     }
     return token;
-  }, [getToken, navigate]);
+  }, [getToken]);
 
   const handleProjectBookmarkChange = useCallback(
     async (targetId: number, next: boolean) => {
@@ -309,6 +344,7 @@ const MainPage = () => {
 
   useEffect(() => {
     let isActive = true;
+    setWeeklyLoading(true);
 
     const fetchWeeklyProjects = async () => {
       try {
@@ -319,6 +355,8 @@ const MainPage = () => {
         if (isActive) {
           setWeeklyProjects([]);
         }
+      } finally {
+        if (isActive) setWeeklyLoading(false);
       }
     };
 
@@ -328,10 +366,19 @@ const MainPage = () => {
     };
   }, []);
 
+  useLayoutEffect(() => {
+    if (!isLoggedIn || !isPm || hasProjects !== true) return;
+    setPmPreviewLoading(true);
+  }, [isLoggedIn, isPm, hasProjects]);
+
   // PM이면 추천 개발자 fetch (프로젝트 있을 때)
   useEffect(() => {
-    if (!isLoggedIn || !isPm || hasProjects !== true) return;
+    if (!isLoggedIn || !isPm || hasProjects !== true) {
+      setPmPreviewLoading(false);
+      return;
+    }
     let isActive = true;
+    setPmPreviewLoading(true);
 
     const fetchRecommendedDevelopers = async () => {
       try {
@@ -376,9 +423,11 @@ const MainPage = () => {
         setRecommendedDevelopers(mapped);
       } catch {
         if (isActive) {
-          setIsDeveloperPreviewEmpty(false);
+          setIsDeveloperPreviewEmpty(true);
           setRecommendedDevelopers([]);
         }
+      } finally {
+        if (isActive) setPmPreviewLoading(false);
       }
     };
 
@@ -386,11 +435,15 @@ const MainPage = () => {
     return () => {
       isActive = false;
     };
-  }, [getToken, isLoggedIn, isPm, hasProjects]);
+  }, [getToken, isLoggedIn, isPm, hasProjects, readMyProjectsCache]);
 
   useEffect(() => {
-    if (!isLoggedIn || !isDevOrUnknown || hasReport !== true) return;
+    if (!isLoggedIn || !isDevOrUnknown || hasReport !== true) {
+      setDevPreviewLoading(false);
+      return;
+    }
     let isActive = true;
+    setDevPreviewLoading(true);
 
     const fetchRecommendedProjects = async () => {
       try {
@@ -419,6 +472,8 @@ const MainPage = () => {
         setRecommendedProjects(mapped);
       } catch {
         if (isActive) setRecommendedProjects([]);
+      } finally {
+        if (isActive) setDevPreviewLoading(false);
       }
     };
 
@@ -443,14 +498,16 @@ const MainPage = () => {
   const recommendedProfiles = recommendedDevelopers;
   const recommendTitle = isLoggedIn
     ? isPm
-      ? hasProjects
-        ? '나에게 딱 맞는 추천 개발자'
-        : '나에게 딱 맞는 추천 프로젝트/개발자'
+      ? hasProjects === false
+        ? '나에게 딱 맞는 추천 프로젝트/개발자'
+        : '나에게 딱 맞는 추천 개발자'
       : hasReport
         ? '나에게 딱 맞는 추천 프로젝트'
         : '나에게 딱 맞는 추천 프로젝트/개발자'
     : '나에게 딱 맞는 추천 프로젝트/개발자';
-  const loginCtaLabel = !isLoggedIn ? '로그인해야 추천 프로젝트를 확인할 수 있어요' : null;
+  const loginCtaLabel = showGuestRecommendMask
+    ? '로그인해야 추천 프로젝트/개발자를 확인할 수 있어요'
+    : null;
   const handleProjectClick = (project: HighlightProject | MainRecommendProject) => {
     try {
       const payload = {
@@ -472,35 +529,65 @@ const MainPage = () => {
   };
 
   return (
-    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-14">
-      <section className="flex flex-col gap-6">
-        <h2 className="Heading2 pt-5 font-semibold text-card-title">
-          이번주 모두가 주목하는 프로젝트
-        </h2>
+    <>
+      <Helmet>
+        <title>Devine | GitHub 분석 기반 개발자 · PM 매칭 플랫폼</title>
+        <meta
+          name="description"
+          content="GitHub 코드를 AI가 분석해 실력 검증된 개발자를 매칭합니다. 사이드 프로젝트 팀원 구하기, 개발자 구인, IT 외주, 프리랜서 개발자 매칭 플랫폼"
+        />
+        <link rel="canonical" href="https://www.devine.kr/" />
+      </Helmet>
+      <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-14">
+        <section className="flex flex-col gap-6">
+          <h2 className="Heading2 pt-5 font-semibold text-card-title">
+            이번주 모두가 주목하는 프로젝트
+          </h2>
           <div className="grid grid-cols-4 gap-6">
-            {highlightProjects.map((project) => (
-              <MainProjectCard
-                key={project.id}
-                categoryLabel={project.categoryLabel}
-                deadlineLabel={project.deadlineLabel}
-                title={project.title}
-                location={project.location}
-                durationRangeName={project.durationRangeName}
-                mode={project.mode}
-                roles={project.roles}
-                bookmarked={
-                  projectBookmarkMap[project.id] != null ? true : (project.bookmarked ?? false)
-                }
-                onBookmarkChange={(next) => handleProjectBookmarkChange(project.id, next)}
-                thumbnailUrl={project.thumbnailUrl}
-                onClick={() => handleProjectClick(project)}
-              />
-            ))}
-        </div>
-      </section>
+          {showWeeklySkeleton
+            ? (
+                [
+                  'main-weekly-sk-a',
+                  'main-weekly-sk-b',
+                  'main-weekly-sk-c',
+                  'main-weekly-sk-d',
+                ] as const
+              ).map((skKey) => (
+                <div
+                  key={skKey}
+                  className="min-w-0 overflow-hidden rounded-3xl border border-[var(--ui-200)]/80 bg-[var(--ui-bg)]"
+                >
+                  <Skeleton className="h-[180px] w-full rounded-3xl" />
+                  <div className="flex flex-col gap-2 px-6 py-5">
+                    <Skeleton className="h-4 w-16 rounded-md" />
+                    <Skeleton className="h-5 w-full rounded-md" />
+                    <Skeleton className="h-4 w-[80%] max-w-[200px] rounded-md" />
+                  </div>
+                </div>
+              ))
+            : highlightProjects.map((project) => (
+                <MainProjectCard
+                  key={project.id}
+                  categoryLabel={project.categoryLabel}
+                  deadlineLabel={project.deadlineLabel}
+                  title={project.title}
+                  location={project.location}
+                  durationRangeName={project.durationRangeName}
+                  mode={project.mode}
+                  roles={project.roles}
+                  bookmarked={
+                    projectBookmarkMap[project.id] != null ? true : (project.bookmarked ?? false)
+                  }
+                  onBookmarkChange={(next) => handleProjectBookmarkChange(project.id, next)}
+                  thumbnailUrl={project.thumbnailUrl}
+                  onClick={() => handleProjectClick(project)}
+                />
+              ))}
+          </div>
+        </section>
 
       <section
-        className={`flex flex-col gap-20 ${!isLoggedIn ? 'mb-96 pt-16' : 'mb-40'}`}
+        className={`flex flex-col gap-6 ${showGuestRecommendMask ? 'mb-96 pt-16' : 'mb-40'}`}
       >
         <div className="flex items-center justify-between">
           <h2 className="Heading2 font-semibold text-card-title">{recommendTitle}</h2>
@@ -508,7 +595,7 @@ const MainPage = () => {
         <div className="relative">
           <div
             className={`flex flex-col gap-6 ${
-              isLoggedIn ? '' : 'pointer-events-none select-none blur-sm'
+              showGuestRecommendMask ? 'pointer-events-none select-none blur-sm' : ''
             }`}
           >
             {isLoggedIn && isPm && hasProjects === false ? (
@@ -529,12 +616,14 @@ const MainPage = () => {
                   linkTo="/report/create"
                 />
               </div>
-            ) : isLoggedIn && isPm && hasProjects === true ? (
-              isDeveloperPreviewEmpty ? (
+            ) : isLoggedIn && isPm && (hasProjects === null || hasProjects === true) ? (
+              showPmRecommendSkeleton ? (
+                <RecommendDeveloperCardSkeletonList count={3} className="py-2" />
+              ) : hasProjects === true && isDeveloperPreviewEmpty ? (
                 <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
                   나에게 딱 맞는 추천 개발자가 아직 없어요.
                 </div>
-              ) : (
+              ) : hasProjects === true ? (
                 recommendedProfiles.map((profile) => (
                   <RecommendDeveloperCard
                     key={profile.id}
@@ -561,60 +650,61 @@ const MainPage = () => {
                     onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
                   />
                 ))
-              )
+              ) : null
             ) : isLoggedIn && !isPm ? (
-              recommendedProjects.length === 0 ? (
+              showDevRecommendSkeleton ? (
+                <RecommendProjectCardSkeletonList count={3} className="py-2" />
+              ) : recommendedProjects.length === 0 ? (
                 <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
                   나에게 딱 맞는 추천 프로젝트가 아직 없어요.
                 </div>
               ) : (
                 recommendedProjects.map((project) =>
-                (() => {
-                  const targetId = Number(project.id);
-                  const hasNumericId = Number.isFinite(targetId) && targetId > 0;
-                  const isBookmarked = hasNumericId
-                    ? projectBookmarkMap[targetId] != null
-                    : (project.bookmarked ?? false);
-                  return (
-                    <RecommendProjectCard
-                      key={project.id}
-                      categoryLabel={project.categoryLabel}
-                      deadlineLabel={project.deadlineLabel}
-                      title={project.title}
-                      thumbnailUrl={project.thumbnailUrl}
-                      thumbnailAlt={project.title}
-                      location={project.location}
-                      period={project.period}
-                      mode={project.mode}
-                      roles={project.roles}
-                      dueLabel={project.dueLabel}
-                      bookmarked={isBookmarked}
-                      techstackScorePercent={project.techstackScorePercent}
-                      similarityScorePercent={project.similarityScorePercent}
-                      domainMatch={project.domainMatch}
-                      totalScore={project.totalScore}
-                      projectId={project.id}
-                      bookmarkId={project.bookmarkId}
-                      onBookmarkChange={(next) =>
-                        hasNumericId ? handleProjectBookmarkChange(targetId, next) : undefined
-                      }
-                      onBookmarkChangeById={
-                        hasNumericId
-                          ? (pid, next, bkid) =>
-                              handleProjectBookmarkChange(Number(pid), next)
-                          : undefined
-                      }
-                      onNavigateToProject={(pid) => navigate(`/project/${pid}`)}
-                      onClick={() => handleProjectClick(project)}
-                    />
-                  );
-                })(),
+                  (() => {
+                    const targetId = Number(project.id);
+                    const hasNumericId = Number.isFinite(targetId) && targetId > 0;
+                    const isBookmarked = hasNumericId
+                      ? projectBookmarkMap[targetId] != null
+                      : (project.bookmarked ?? false);
+                    return (
+                      <RecommendProjectCard
+                        key={project.id}
+                        categoryLabel={project.categoryLabel}
+                        deadlineLabel={project.deadlineLabel}
+                        title={project.title}
+                        thumbnailUrl={project.thumbnailUrl}
+                        thumbnailAlt={project.title}
+                        location={project.location}
+                        period={project.period}
+                        mode={project.mode}
+                        roles={project.roles}
+                        dueLabel={project.dueLabel}
+                        bookmarked={isBookmarked}
+                        techstackScorePercent={project.techstackScorePercent}
+                        similarityScorePercent={project.similarityScorePercent}
+                        domainMatch={project.domainMatch}
+                        totalScore={project.totalScore}
+                        projectId={project.id}
+                        bookmarkId={project.bookmarkId}
+                        onBookmarkChange={(next) =>
+                          hasNumericId ? handleProjectBookmarkChange(targetId, next) : undefined
+                        }
+                        onBookmarkChangeById={
+                          hasNumericId
+                            ? (pid, next, bkid) => handleProjectBookmarkChange(Number(pid), next)
+                            : undefined
+                        }
+                        onNavigateToProject={(pid) => navigate(`/project/${pid}`)}
+                        onClick={() => handleProjectClick(project)}
+                      />
+                    );
+                  })(),
+                )
               )
-            )
             ) : null}
           </div>
 
-          {!isLoggedIn && (
+          {isLoaded && !isSignedIn && (
             <div className="absolute inset-0 flex items-center justify-center pt-32">
               <LoginRequiredCard
                 description={
@@ -625,7 +715,19 @@ const MainPage = () => {
           )}
         </div>
       </section>
-    </section>
+      </section>
+
+      {isLoginModalOpen && (
+        <LoginModal
+          isDark={isDark}
+          onLogin={() => {
+            setIsLoginModalOpen(false);
+            navigate('/login');
+          }}
+          onClose={() => setIsLoginModalOpen(false)}
+        />
+      )}
+    </>
   );
 };
 

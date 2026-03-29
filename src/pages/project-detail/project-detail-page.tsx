@@ -123,7 +123,7 @@ const canApply = appliedStatus == null || appliedStatus === 'CANCELLED';
                     type="button"
                     key={`project-image-${index}`}
                     onClick={() => setImageLightboxIndex(index)}
-                    className={`group relative aspect-[4/3] max-h-[220px] min-h-[140px] w-full overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-card-section-bg text-left shadow-md transition-all duration-200 hover:border-[var(--ui-300)] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--ui-400)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] ${
+                    className={`group relative aspect-[4/3] max-h-[220px] min-h-[140px] w-full overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-card-section-bg text-left shadow-md transition-shadow duration-200 hover:border-[var(--ui-300)] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--ui-400)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] ${
                       project.imageUrls!.length === 1 ? 'max-h-[250px] max-w-[600px]' : ''
                     }`}
                   >
@@ -402,7 +402,11 @@ const canApply = appliedStatus == null || appliedStatus === 'CANCELLED';
       {isLoginModalOpen && (
         <LoginModal
           isDark={isDark}
-          onLogin={() => navigate('/login')}
+          onLogin={() =>
+            navigate('/login', {
+              state: { postLoginRedirectPath: `/project/${projectId}` },
+            })
+          }
           onClose={() => setIsLoginModalOpen(false)}
         />
       )}

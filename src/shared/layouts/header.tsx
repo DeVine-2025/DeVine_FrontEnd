@@ -49,19 +49,22 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const { user: clerkUser } = useUser();
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
+  const isSignupFlow = location.pathname.startsWith('/signup');
+  const isOnboardingComplete = clerkUser?.unsafeMetadata?.onboardingComplete === true;
+  const canUseMemberProtectedApis = isSignedIn === true && isOnboardingComplete && !isSignupFlow;
 
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
 
   const fetchUnreadCount = useCallback(() => {
-    if (isSignedIn !== true) return;
+    if (!canUseMemberProtectedApis) return;
     getToken().then((token) => {
       if (!token) return;
       getUnreadNotificationCount(token)
         .then((count) => setUnreadCount(count))
         .catch(() => setUnreadCount(0));
     });
-  }, [getToken, isSignedIn, setUnreadCount]);
+  }, [canUseMemberProtectedApis, getToken, setUnreadCount]);
 
   // 로그아웃 시 알림 개수 초기화
   useEffect(() => {
@@ -70,7 +73,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
 
   // 로그인한 경우에만 알림 SSE 구독 (비로그인 시 호출/연결하지 않음)
   useEffect(() => {
-    if (isSignedIn !== true) return;
+    if (!canUseMemberProtectedApis) return;
     const controller = new AbortController();
     getToken().then((token) => {
       if (!token) return;
@@ -84,7 +87,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
       );
     });
     return () => controller.abort();
-  }, [isSignedIn, getToken]);
+  }, [canUseMemberProtectedApis, getToken]);
 
   useEffect(() => {
     const syncProfileImage = () => {
@@ -99,7 +102,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
     syncProfileImage();
 
     // 서버에서 프로필 이미지를 가져와 localStorage 동기화 (새로고침 시 복원)
-    if (clerkUser?.id) {
+    if (clerkUser?.id && canUseMemberProtectedApis) {
       getToken().then((token) => {
         if (!token) return;
         const apiBase = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
@@ -139,15 +142,15 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('profile-image-updated', handleProfileUpdate as EventListener);
     };
-  }, [clerkUser?.id, getToken]);
+  }, [canUseMemberProtectedApis, clerkUser?.id, getToken]);
 
   useEffect(() => {
-    if (isSignedIn !== true) return;
+    if (!canUseMemberProtectedApis) return;
     fetchUnreadCount();
-  }, [isSignedIn, fetchUnreadCount]);
+  }, [canUseMemberProtectedApis, fetchUnreadCount]);
 
   useEffect(() => {
-    if (!isNotificationOpen) return;
+    if (!canUseMemberProtectedApis || !isNotificationOpen) return;
     let cancelled = false;
     setLoadingNotifications(true);
     getToken()

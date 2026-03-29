@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Allow: /search/project
+Allow: /search/developer
+
+Disallow: /login
+Disallow: /signup
+Disallow: /sso-callback
+Disallow: /my-info
+Disallow: /my-project
+Disallow: /matching
+Disallow: /profile-edit
+Disallow: /bookmark
+Disallow: /project/create
+Disallow: /report
+Disallow: /recommend
+
+Sitemap: https://www.devine.kr/sitemap.xml

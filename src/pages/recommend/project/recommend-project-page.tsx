@@ -5,7 +5,9 @@ import { useAuth } from '@clerk/clerk-react';
 import ProjectListState from '@components/common/ListStateUI';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
+import { RecommendProjectCardSkeletonList } from '@components/common/RecommendProjectCardSkeleton';
 import { useBookmarks } from '@hooks/useBookmarks';
+import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
 import { buildParams } from '@mappers/projectFilters';
 import { useFilterStore } from '@store/filter';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -45,6 +47,10 @@ const RecommendProjectPage = () => {
   const [isError, setIsError] = useState(false);
   const [page, setPage] = useState(1);
 
+  const showRecommendSkeleton = useInitialSkeletonGate(loading, {
+    sessionKey: 'recommend-project',
+  });
+
   const params = useMemo(
     () =>
       buildParams({
@@ -57,18 +63,17 @@ const RecommendProjectPage = () => {
   );
 
   const fetchList = useCallback(async () => {
-    const token = await getToken();
-    if (!token) {
-      setList([]);
-      setLoading(false);
-      setIsError(false);
-      return;
-    }
-
-    setLoading(true);
-    setIsError(false);
-
     try {
+      const token = await getToken();
+      if (!token) {
+        setList([]);
+        setIsError(false);
+        return;
+      }
+
+      setLoading(true);
+      setIsError(false);
+
       const result = await getRecommendProjects(token, params);
       const map = bookmarkMapRef.current;
       setList(
@@ -214,22 +219,26 @@ const RecommendProjectPage = () => {
       />
 
       <div className="flex flex-col gap-6">
-        {loading && <ProjectListState type="loading" />}
+        {showRecommendSkeleton && (
+          <RecommendProjectCardSkeletonList count={3} className="py-2" />
+        )}
 
-        {!loading && isError && <ProjectListState type="error" onRetry={handleRetry} />}
+        {!showRecommendSkeleton && isError && <ProjectListState type="error" onRetry={handleRetry} />}
 
-        {!loading &&
-          !isError &&
-          list.length === 0 &&
-          (projectTypes.length > 0 || domains.length > 0 || expectedPeriods.length > 0 || techStacks.length > 0) && (
-            <p className="py-30 text-center text-2xl text-[var(--ui-500)]">
-              선택하신 조건에 맞는 프로젝트가 없습니다.
+        {!showRecommendSkeleton && !isError && list.length === 0 && (
+          <div className="flex min-h-[50vh] flex-col items-center justify-center py-12 text-center">
+            <p className="text-2xl font-semibold text-[var(--ui-900)]">
+              해당 개발자에 맞는 추천 프로젝트가 없습니다.
             </p>
-          )}
+            <p className="mt-2 text-lg text-[var(--ui-600)]">
+              필터 조건을 변경해 보거나 리포트 정보를 업데이트해 보세요.
+            </p>
+          </div>
+        )}
 
-        {!loading &&
-          !isError &&
+        {!isError &&
           displayList.length > 0 &&
+          !showRecommendSkeleton &&
           displayList.map((p) => (
             <RecommendProjectCard
               key={p.id}

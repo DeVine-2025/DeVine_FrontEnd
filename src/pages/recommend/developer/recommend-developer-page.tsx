@@ -2,11 +2,12 @@ import { createBookmark, deleteBookmark } from '@apis/bookmarks';
 import { getRecommendMembers, type GetRecommendMembersParams, type RecommendDeveloperListItem } from '@apis/members';
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
-import LoadingSpinner from '@components/common/LoadingSpinner';
+import { RecommendDeveloperCardSkeletonList } from '@components/common/RecommendDeveloperCardSkeleton';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import ReportRequiredCard from '@components/common/ReportRequiredCard';
 import { useBookmarks } from '@hooks/useBookmarks';
 import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
+import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
 import { useFilterStore } from '@store/filter';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -72,27 +73,53 @@ const RecommendDeveloperPage = () => {
   const bookmarkMapRef = useRef(bookmarkMap);
   bookmarkMapRef.current = bookmarkMap;
 
-  const { data: projectsData, isLoading: myProjectOptionsLoading } = useMyRecruitingProjects();
-  const myProjectOptions = useMemo(() => (projectsData ? projectsToOptions(projectsData) : []), [projectsData]);
+  const {
+    data: projectsData,
+    isLoading: myProjectOptionsLoading,
+    isFetched: myProjectsFetched,
+  } = useMyRecruitingProjects();
 
-  // 서버 목록이 비어도(상태 반영 지연 등) 방금 생성한 프로젝트를 바로 쓸 수 있도록 로컬 캐시 fallback
+  // 내 프로젝트 드롭다운: 첫 페인트 전 localStorage 보조, fetch 후엔 서버 목록만(빈 배열이면 캐시 미사용·persist 선택 정리).
+  const myProjectOptions = useMemo(() => {
+    if (!myProjectsFetched || projectsData == null) return [];
+    return projectsToOptions(projectsData);
+  }, [myProjectsFetched, projectsData]);
+
   const myProjectOptionsWithCacheFallback = useMemo(() => {
-    if (myProjectOptions.length > 0) return myProjectOptions;
+    if (myProjectsFetched) return myProjectOptions;
     try {
       const raw = localStorage.getItem(MY_PROJECTS_CACHE_KEY);
       const parsed = raw ? (JSON.parse(raw) as unknown) : [];
-      if (!Array.isArray(parsed)) return myProjectOptions;
+      if (!Array.isArray(parsed)) return [];
       const cached = parsed
         .map((p: any) => ({ id: Number(p?.id), name: String(p?.name ?? '').trim() }))
         .filter((p: any) => Number.isFinite(p.id) && p.id > 0 && p.name.length > 0);
-      return cached.length > 0 ? (cached as MyProjectOption[]) : myProjectOptions;
+      return cached.length > 0 ? (cached as MyProjectOption[]) : [];
     } catch {
-      return myProjectOptions;
+      return [];
     }
-  }, [myProjectOptions]);
+  }, [myProjectsFetched, myProjectOptions]);
+
   useEffect(() => {
-    if (myProjectOptions.length > 0) writeMyProjectsCache(myProjectOptions);
-  }, [myProjectOptions]);
+    if (!myProjectsFetched || projectsData == null) return;
+    if (projectsData.length === 0) {
+      try {
+        localStorage.removeItem(MY_PROJECTS_CACHE_KEY);
+      } catch {}
+      return;
+    }
+    writeMyProjectsCache(projectsToOptions(projectsData));
+  }, [myProjectsFetched, projectsData]);
+
+  useEffect(() => {
+    if (!myProjectsFetched || projectsData == null) return;
+    const opts = projectsToOptions(projectsData);
+    const allowed = new Set(opts.map((o) => o.name));
+    const prev = useFilterStore.getState().recommendDeveloper.myProjects;
+    const next = prev.filter((n) => allowed.has(n));
+    if (next.length === prev.length) return;
+    setRecommendDeveloper({ myProjects: next });
+  }, [myProjectsFetched, projectsData, setRecommendDeveloper]);
 
   const [openFilter, setOpenFilter] = useState<DeveloperFilterKey | null>(null);
   const [autoSelectProject, setAutoSelectProject] = useState(true);
@@ -101,6 +128,12 @@ const RecommendDeveloperPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+
+  const recommendLoadingRaw = myProjectOptionsLoading || (myProjects.length > 0 && loading);
+  const showRecommendSkeleton = useInitialSkeletonGate(recommendLoadingRaw, {
+    sessionKey: 'recommend-developer',
+  });
+
   const listRef = useRef<RecommendDeveloperListItem[]>([]);
   listRef.current = list;
 
@@ -141,32 +174,31 @@ const RecommendDeveloperPage = () => {
 
   const fetchList = useCallback(
     async (pageNum: number = 1) => {
-      const token = await getToken();
-      if (!token) {
-        setList([]);
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      setError(null);
       try {
+        const token = await getToken();
+        if (!token) {
+          setList([]);
+          setTotalPages(0);
+          setError(null);
+          return;
+        }
+        setLoading(true);
+        setError(null);
         const params = buildApiParams(myProjects, pageNum, myProjectOptionsWithCacheFallback);
         if (!params) {
           setList([]);
           setTotalPages(0);
-          setLoading(false);
           return;
         }
         const result = await getRecommendMembers(token, params);
         const map = bookmarkMapRef.current;
-        setList(
-          result.list.map((d) => {
-            const key = d.memberId ?? d.nickname;
-            const hit = map[key];
-            if (hit === undefined || hit === null) return d;
-            return { ...d, bookmarked: true, bookmarkId: hit > 0 ? hit : undefined };
-          }),
-        );
+        const mapped = result.list.map((d) => {
+          const key = d.memberId ?? d.nickname;
+          const hit = map[key];
+          if (hit === undefined || hit === null) return d;
+          return { ...d, bookmarked: true, bookmarkId: hit > 0 ? hit : undefined };
+        });
+        setList(mapped);
         setTotalPages(result.totalPages);
       } catch (e) {
         const msg = e instanceof Error ? e.message : '추천 개발자를 불러오지 못했습니다.';
@@ -316,10 +348,8 @@ const RecommendDeveloperPage = () => {
         }}
       />
 
-      {(myProjectOptionsLoading || (loading && myProjects.length > 0)) && (
-        <div className="flex justify-center py-8">
-          <LoadingSpinner size="lg" />
-        </div>
+      {showRecommendSkeleton && (
+        <RecommendDeveloperCardSkeletonList count={3} className="py-8" />
       )}
 
       {error && (
@@ -328,7 +358,11 @@ const RecommendDeveloperPage = () => {
         </p>
       )}
 
-      {!loading && myProjects.length > 0 && list.length === 0 && (
+      {!showRecommendSkeleton &&
+        !loading &&
+        !error &&
+        myProjects.length > 0 &&
+        list.length === 0 && (
         <div className="flex min-h-[50vh] flex-1 flex-col items-center justify-center py-12 text-center">
           <p className="text-2xl font-semibold text-[var(--ui-900)]">해당 프로젝트에 맞는 추천 개발자가 없습니다.</p>
           <p className="mt-2 text-lg text-[var(--ui-600)]">다른 프로젝트를 선택하거나 필터 조건을 변경해 보세요.</p>
@@ -345,31 +379,31 @@ const RecommendDeveloperPage = () => {
         </div>
       )}
 
-      {!loading && myProjects.length > 0 && displayList.length > 0 && (
-        <>
-          <div className="flex flex-col gap-6">
-            {displayList.map((dev) => (
-              <RecommendDeveloperCard
-                key={dev.id}
-                role={dev.role}
-                roleTone={dev.roleTone}
-                nickname={dev.nickname}
-                profileImageUrl={dev.profileImageUrl}
-                introduction={dev.introduction}
-                domains={dev.domains}
-                techStack={dev.techStack}
-                matchedProjectName={myProjects.length > 0 ? myProjects.join(', ') : '선택한 프로젝트'}
-                matchedReason="프로젝트의 요구사항과 일치합니다."
-                bookmarked={dev.bookmarked ?? false}
-                memberId={dev.memberId ?? undefined}
-                bookmarkId={dev.bookmarkId}
-                listItemId={dev.id}
-                onBookmarkChangeById={handleBookmarkChangeById}
-                onNavigateToDeveloper={handleNavigateToDeveloper}
-              />
-            ))}
-          </div>
-        </>
+      {myProjects.length > 0 &&
+        displayList.length > 0 &&
+        !showRecommendSkeleton && (
+        <div className="flex flex-col gap-6">
+          {displayList.map((dev) => (
+            <RecommendDeveloperCard
+              key={dev.id}
+              role={dev.role}
+              roleTone={dev.roleTone}
+              nickname={dev.nickname}
+              profileImageUrl={dev.profileImageUrl}
+              introduction={dev.introduction}
+              domains={dev.domains}
+              techStack={dev.techStack}
+              matchedProjectName={myProjects.length > 0 ? myProjects.join(', ') : '선택한 프로젝트'}
+              matchedReason="프로젝트의 요구사항과 일치합니다."
+              bookmarked={dev.bookmarked ?? false}
+              memberId={dev.memberId ?? undefined}
+              bookmarkId={dev.bookmarkId}
+              listItemId={dev.id}
+              onBookmarkChangeById={handleBookmarkChangeById}
+              onNavigateToDeveloper={handleNavigateToDeveloper}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

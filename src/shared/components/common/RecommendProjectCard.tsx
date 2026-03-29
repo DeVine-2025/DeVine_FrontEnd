@@ -66,7 +66,7 @@ function RecommendProjectCard({
           : undefined
       }
       className={cn(
-        'group relative flex w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)] transition-all duration-300',
+        'group relative flex w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)]',
         handleClick && 'recommend-card-hover-border cursor-pointer',
       )}
       style={{ height: cardHeight }}

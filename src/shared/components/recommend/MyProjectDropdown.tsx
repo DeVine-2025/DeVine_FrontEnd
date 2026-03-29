@@ -5,7 +5,6 @@ type MyProjectDropdownProps = {
   open: boolean;
   value: string[];
   onChange: (next: string[]) => void;
-  /** 내 프로젝트 옵션 (API로 로드된 실제 목록) */
   options?: Array<{ id: number; name: string }>;
   loading?: boolean;
   onApply?: () => void;
@@ -48,10 +47,10 @@ export default function MyProjectDropdown({
 
   const displayOptions = useMemo(() => {
     if (options && options.length > 0) return options.map((o) => o.name);
-    // API에서 목록이 비어 와도, 이미 선택된 프로젝트가 있으면 그걸 보여줌 (등록한 프로젝트가 보이게)
+    if (!loading && Array.isArray(options) && options.length === 0) return [];
     if (value && value.length > 0) return Array.from(new Set(value));
     return [...PLACEHOLDER_OPTIONS];
-  }, [options, value]);
+  }, [options, value, loading]);
 
   const selected = useMemo(() => new Set(value), [value]);
 

@@ -46,7 +46,7 @@ export default function DeveloperFilterBar({
   onReset,
 }: Props) {
   const baseClass =
-    'inline-flex max-w-[260px] cursor-pointer items-center gap-[10px] rounded-full px-5 py-4 font-semibold text-xl transition-colors';
+    'inline-flex max-w-[260px] cursor-pointer items-center gap-[10px] rounded-full px-5 py-4 font-semibold text-xl';
   const appliedClass =
     'border border-[var(--badge-bg-primary)] bg-[var(--badge-bg-primary)] text-[var(--badge-text-primary)]';
   const defaultClass = 'border border-transparent bg-filter-bg text-filter-text';

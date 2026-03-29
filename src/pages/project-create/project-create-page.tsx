@@ -43,11 +43,12 @@ import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import type { ChangeEvent, ComponentType, SVGProps } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent, ComponentType, Ref, SVGProps } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { MY_RECRUITING_PROJECTS_QUERY_KEY } from '@hooks/useMyRecruitingProjects';
+import { cn } from '@libs/cn';
 
 type SvgIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -97,18 +98,28 @@ function InputField({
   placeholder,
   value,
   onChange,
+  error,
+  inputRef,
 }: {
   placeholder: string;
   value: string;
   onChange: (next: string) => void;
+  error?: boolean;
+  inputRef?: Ref<HTMLInputElement>;
 }) {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value);
   return (
     <input
+      ref={inputRef}
       value={value}
       placeholder={placeholder}
       onChange={handleChange}
-      className="Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:border-[#4E49FF] focus:outline-none"
+      className={cn(
+        'Caption1 h-[48px] w-full rounded-[12px] border bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:outline-none',
+        error
+          ? 'border-form-error focus:border-[#4E49FF]'
+          : 'border-[var(--ui-200)] focus:border-[#4E49FF]',
+      )}
     />
   );
 }
@@ -328,6 +339,29 @@ function toTechStacksEnum(keys: string[]): string[] {
     .filter(Boolean);
 }
 
+type ProjectFormFieldKey =
+  | 'projectType'
+  | 'domain'
+  | 'progressType'
+  | 'progressPeriod'
+  | 'location'
+  | 'deadline'
+  | 'recruitments'
+  | 'title'
+  | 'content';
+
+const PROJECT_FORM_FIELD_ORDER: ProjectFormFieldKey[] = [
+  'projectType',
+  'domain',
+  'progressType',
+  'progressPeriod',
+  'location',
+  'deadline',
+  'recruitments',
+  'title',
+  'content',
+];
+
 const ProjectCreatePage = () => {
   const isDev = Boolean((import.meta as any).env?.DEV);
   const { getToken } = useAuth();
@@ -370,13 +404,16 @@ const ProjectCreatePage = () => {
   } = useProjectCreateStore();
 
   const [techStackOpen, setTechStackOpen] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<ProjectFormFieldKey, string>>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const fieldRefs = useRef<Partial<Record<ProjectFormFieldKey, HTMLElement | null>>>({});
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const submitAreaRef = useRef<HTMLDivElement>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [imageUploadingSlot, setImageUploadingSlot] = useState<number | null>(null);
   const [editorImageUploading, setEditorImageUploading] = useState(false);
   const editorImageInputRef = useRef<HTMLInputElement | null>(null);
   const [, setEditorSelectionKey] = useState(0);
-  const linkCardOpen = false; // 링크 카드는 본문 노드로만 사용 (미사용 변수 제거 시 에러 방지)
-
   useEffect(() => {
     if (isEditMode) clearDraft();
   }, [isEditMode]);
@@ -384,6 +421,25 @@ const ProjectCreatePage = () => {
   const minDeadline = useMemo(() => {
     const t = new Date();
     return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  const fieldRefCallbacks = useMemo(() => {
+    const out = {} as Record<ProjectFormFieldKey, (el: HTMLElement | null) => void>;
+    for (const key of PROJECT_FORM_FIELD_ORDER) {
+      out[key] = (el: HTMLElement | null) => {
+        fieldRefs.current[key] = el;
+      };
+    }
+    return out;
+  }, []);
+
+  const clearFieldError = useCallback((key: ProjectFormFieldKey) => {
+    setFieldErrors((prev) => {
+      if (prev[key] == null) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   }, []);
 
   const onPickImage = useMemo(() => {
@@ -465,6 +521,13 @@ const ProjectCreatePage = () => {
       return same ? prev : [...prev, nextItem];
     });
 
+    setFieldErrors((prev) => {
+      if (!prev.recruitments) return prev;
+      const next = { ...prev };
+      delete next.recruitments;
+      return next;
+    });
+
     setTechStackOpen(false);
     setRecruitPosition(null);
     setRecruitCount(null);
@@ -505,6 +568,14 @@ const ProjectCreatePage = () => {
     content: projectContent || '',
     onUpdate: ({ editor }) => {
       setProjectContent(editor.getHTML());
+      if (editor.getText().trim().length > 0) {
+        setFieldErrors((prev) => {
+          if (!prev.content) return prev;
+          const next = { ...prev };
+          delete next.content;
+          return next;
+        });
+      }
     },
     editorProps: {
       attributes: {
@@ -654,42 +725,75 @@ const ProjectCreatePage = () => {
 
   const onToolbarLink = () => {
     if (!editor) return;
-    const { from, to } = editor.state.selection;
-    const hasSelection = to > from;
-    if (hasSelection) {
-      const prev = editor.getAttributes('link')?.href as string | undefined;
-      const url = window.prompt('링크 URL을 입력해주세요', prev ?? '');
-      if (url === null) return;
-      const next = url.trim();
-      if (!next) {
-        editor.chain().focus().extendMarkRange('link').unsetLink().run();
-        return;
+    const linkCardType = editor.schema.nodes.linkCard;
+    if (!linkCardType) return;
+
+    let cardPos: number | null = null;
+    let cardSize = 0;
+    editor.state.doc.descendants((node, pos) => {
+      if (node.type === linkCardType) {
+        cardPos = pos;
+        cardSize = node.nodeSize;
+        return false;
       }
-      const href = /^https?:\/\//i.test(next) ? next : `https://${next}`;
-      editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
-    } else {
-      editor.chain().focus().insertContent({ type: 'linkCard' }).run();
+      return true;
+    });
+
+    if (cardPos !== null) {
+      editor
+        .chain()
+        .focus()
+        .deleteRange({ from: cardPos, to: cardPos + cardSize })
+        .run();
+      return;
     }
+
+    editor.chain().focus().insertContent({ type: 'linkCard' }).run();
   };
 
   const handleSubmit = async () => {
     if (isDev) console.log('[project-create] handleSubmit called');
+    setSubmitError(null);
+
+    const nextErrors: Partial<Record<ProjectFormFieldKey, string>> = {};
+    if (!projectType) nextErrors.projectType = '프로젝트 유형을 선택해주세요.';
+    if (!domain) nextErrors.domain = '도메인을 선택해주세요.';
+    if (!progressType) nextErrors.progressType = '진행 방식을 선택해주세요.';
+    if (!progressPeriod) nextErrors.progressPeriod = '진행 기간을 선택해주세요.';
+    if (!locationText.trim()) nextErrors.location = '진행 장소를 입력해주세요.';
+    if (!deadlineText.trim()) nextErrors.deadline = '모집 마감일을 선택해주세요.';
+    if (recruitments.length === 0)
+      nextErrors.recruitments = '모집 분야를 1개 이상 등록해주세요.';
+    if (!projectTitle.trim()) nextErrors.title = '프로젝트 제목을 입력해주세요.';
+    const contentEmpty =
+      !editor ||
+      editor.isEmpty ||
+      editor.getText().replace(/\u00a0/g, ' ').trim().length === 0;
+    if (contentEmpty) nextErrors.content = '프로젝트 내용을 입력해주세요.';
+
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
+      const firstKey = PROJECT_FORM_FIELD_ORDER.find((k) => nextErrors[k]);
+      requestAnimationFrame(() => {
+        if (firstKey) fieldRefs.current[firstKey]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (firstKey === 'title') titleInputRef.current?.focus();
+        if (firstKey === 'content') editor?.chain().focus().run();
+      });
+      return;
+    }
+
+    setFieldErrors({});
+
     const token = await getToken();
     if (!token) {
       if (isDev) console.log('[project-create] blocked: no token');
-      alert('로그인이 필요합니다.');
+      setSubmitError('로그인이 필요합니다.');
+      requestAnimationFrame(() => {
+        submitAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
       return;
     }
-    if (!projectTitle.trim()) {
-      if (isDev) console.log('[project-create] blocked: empty title');
-      alert('프로젝트 제목을 입력해주세요.');
-      return;
-    }
-    if (recruitments.length === 0) {
-      if (isDev) console.log('[project-create] blocked: no recruitments');
-      alert('모집 분야를 1개 이상 등록해주세요.');
-      return;
-    }
+
     setSubmitLoading(true);
     try {
       if (isDev) {
@@ -787,12 +891,15 @@ const ProjectCreatePage = () => {
       const message = e instanceof Error ? e.message : '등록에 실패했습니다.';
       const needSignup = /가입|등록|미등록|사용자|member|unauthorized/i.test(message);
       const needPm = /PM|권한|프로젝트를 생성/i.test(message);
-      const alertMessage = needSignup
-        ? `${message}\n\n(백엔드에 회원으로 등록되어 있지 않을 수 있습니다. 회원가입 완료 후 다시 시도해 주세요.)`
+      const detail = needSignup
+        ? `${message} (백엔드에 회원으로 등록되어 있지 않을 수 있습니다. 회원가입 완료 후 다시 시도해 주세요.)`
         : needPm
-          ? `${message}\n\n(메인 권한을 PM으로 설정한 뒤 시도해 주세요.)`
+          ? `${message} (메인 권한을 PM으로 설정한 뒤 시도해 주세요.)`
           : message;
-      alert(alertMessage);
+      setSubmitError(detail);
+      requestAnimationFrame(() => {
+        submitAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
     } finally {
       if (isDev) console.groupEnd();
       setSubmitLoading(false);
@@ -830,12 +937,19 @@ const ProjectCreatePage = () => {
 
                 <div className="flex flex-col gap-[40px]">
                   <div className="grid w-full grid-cols-2 gap-x-[240px] gap-y-[32px] max-[1100px]:grid-cols-1 max-[1100px]:gap-x-0">
-                    <div className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full">
+                    <div
+                      ref={fieldRefCallbacks.projectType}
+                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                    >
                       <Label>프로젝트 유형</Label>
                       <SelectDropdown
                         placeholder="프로젝트 유형"
                         value={projectType}
-                        onChange={setProjectType}
+                        error={!!fieldErrors.projectType}
+                        onChange={(v) => {
+                          clearFieldError('projectType');
+                          setProjectType(v);
+                        }}
                         options={[
                           { label: '웹', value: '웹' },
                           { label: '모바일/앱', value: '모바일/앱' },
@@ -844,14 +958,24 @@ const ProjectCreatePage = () => {
                           { label: '기타', value: '기타' },
                         ]}
                       />
+                      {fieldErrors.projectType ? (
+                        <p className="Caption1 -mt-2 text-form-error">{fieldErrors.projectType}</p>
+                      ) : null}
                     </div>
 
-                    <div className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full">
+                    <div
+                      ref={fieldRefCallbacks.domain}
+                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                    >
                       <Label>도메인</Label>
                       <SelectDropdown
                         placeholder="도메인"
                         value={domain}
-                        onChange={setDomain}
+                        error={!!fieldErrors.domain}
+                        onChange={(v) => {
+                          clearFieldError('domain');
+                          setDomain(v);
+                        }}
                         options={[
                           { label: '헬스케어', value: '헬스케어' },
                           { label: '핀테크', value: '핀테크' },
@@ -863,28 +987,48 @@ const ProjectCreatePage = () => {
                           { label: '기타', value: '기타' },
                         ]}
                       />
+                      {fieldErrors.domain ? (
+                        <p className="Caption1 -mt-2 text-form-error">{fieldErrors.domain}</p>
+                      ) : null}
                     </div>
 
-                    <div className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full">
+                    <div
+                      ref={fieldRefCallbacks.progressType}
+                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                    >
                       <Label>진행 방식</Label>
                       <SelectDropdown
                         placeholder="진행 방식"
                         value={progressType}
-                        onChange={setProgressType}
+                        error={!!fieldErrors.progressType}
+                        onChange={(v) => {
+                          clearFieldError('progressType');
+                          setProgressType(v);
+                        }}
                         options={[
                           { label: '온/오프라인', value: '온/오프라인' },
                           { label: '온라인', value: '온라인' },
                           { label: '오프라인', value: '오프라인' },
                         ]}
                       />
+                      {fieldErrors.progressType ? (
+                        <p className="Caption1 -mt-2 text-form-error">{fieldErrors.progressType}</p>
+                      ) : null}
                     </div>
 
-                    <div className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full">
+                    <div
+                      ref={fieldRefCallbacks.progressPeriod}
+                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                    >
                       <Label>진행 기간</Label>
                       <SelectDropdown
                         placeholder="진행 기간"
                         value={progressPeriod}
-                        onChange={setProgressPeriod}
+                        error={!!fieldErrors.progressPeriod}
+                        onChange={(v) => {
+                          clearFieldError('progressPeriod');
+                          setProgressPeriod(v);
+                        }}
                         options={[
                           { label: '1개월 이하', value: '1개월 이하' },
                           { label: '1-3개월', value: '1-3개월' },
@@ -892,29 +1036,52 @@ const ProjectCreatePage = () => {
                           { label: '6개월 이상', value: '6개월 이상' },
                         ]}
                       />
+                      {fieldErrors.progressPeriod ? (
+                        <p className="Caption1 -mt-2 text-form-error">{fieldErrors.progressPeriod}</p>
+                      ) : null}
                     </div>
 
-                    <div className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full">
+                    <div
+                      ref={fieldRefCallbacks.location}
+                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                    >
                       <Label>진행 장소</Label>
                       <InputField
                         placeholder="서울시 중구"
                         value={locationText}
-                        onChange={setLocationText}
+                        error={!!fieldErrors.location}
+                        onChange={(v) => {
+                          clearFieldError('location');
+                          setLocationText(v);
+                        }}
                       />
+                      {fieldErrors.location ? (
+                        <p className="Caption1 -mt-2 text-form-error">{fieldErrors.location}</p>
+                      ) : null}
                     </div>
 
-                    <div className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full">
+                    <div
+                      ref={fieldRefCallbacks.deadline}
+                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                    >
                       <Label>모집 마감일</Label>
                       <DatePickerPopover
                         value={deadlineText}
-                        onChange={setDeadlineText}
+                        error={!!fieldErrors.deadline}
+                        onChange={(v) => {
+                          clearFieldError('deadline');
+                          setDeadlineText(v);
+                        }}
                         min={minDeadline}
                         placeholder="연도-월-일"
                       />
+                      {fieldErrors.deadline ? (
+                        <p className="Caption1 -mt-2 text-form-error">{fieldErrors.deadline}</p>
+                      ) : null}
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-[20px]">
+                  <div ref={fieldRefCallbacks.recruitments} className="flex flex-col gap-[20px]">
                     <Label>모집 분야</Label>
 
                     <div className="flex flex-col gap-[12px]">
@@ -1012,7 +1179,14 @@ const ProjectCreatePage = () => {
                         </button>
                       </div>
 
-                      <div className="h-[140px] w-full rounded-[16px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[14px]">
+                      <div
+                        className={cn(
+                          'h-[140px] w-full rounded-[16px] border bg-[var(--ui-bg)] p-[14px]',
+                          fieldErrors.recruitments
+                            ? 'border-form-error'
+                            : 'border-[var(--ui-200)]',
+                        )}
+                      >
                         {recruitments.length === 0 ? (
                           <p className="Caption1 text-[var(--ui-300)] tracking-[0.0912px]">
                             아직 등록된 모집 분야가 없습니다. 위에서 정보를 입력해 주세요.
@@ -1048,6 +1222,9 @@ const ProjectCreatePage = () => {
                           </div>
                         )}
                       </div>
+                      {fieldErrors.recruitments ? (
+                        <p className="Caption1 text-form-error">{fieldErrors.recruitments}</p>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -1089,19 +1266,36 @@ const ProjectCreatePage = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-[12px]">
+                  <div
+                    ref={fieldRefCallbacks.title}
+                    className="flex flex-col gap-[12px]"
+                  >
                     <Label>프로젝트 제목</Label>
                     <InputField
                       placeholder="프로젝트 제목을 입력해주세요."
                       value={projectTitle}
-                      onChange={setProjectTitle}
+                      error={!!fieldErrors.title}
+                      inputRef={titleInputRef}
+                      onChange={(v) => {
+                        clearFieldError('title');
+                        setProjectTitle(v);
+                      }}
                     />
+                    {fieldErrors.title ? (
+                      <p className="Caption1 text-form-error">{fieldErrors.title}</p>
+                    ) : null}
                   </div>
 
                   <div className="flex flex-col gap-[12px]">
                     <Label>프로젝트 내용</Label>
 
-                    <div className="w-full overflow-hidden rounded-[12px] bg-[var(--ui-50)]">
+                    <div
+                      ref={fieldRefCallbacks.content}
+                      className={cn(
+                        'w-full overflow-hidden rounded-[12px] bg-[var(--ui-50)]',
+                        fieldErrors.content && 'ring-2 ring-form-error ring-offset-0',
+                      )}
+                    >
                       <div className="flex h-[48px] items-center border-[var(--ui-300)] border-b px-[14px]">
                         <div className="flex items-center gap-[22px]">
                           <div className="flex items-center gap-[8px]">
@@ -1214,9 +1408,20 @@ const ProjectCreatePage = () => {
                         ) : null}
                       </div>
                     </div>
+                    {fieldErrors.content ? (
+                      <p className="Caption1 text-form-error">{fieldErrors.content}</p>
+                    ) : null}
                   </div>
 
-                  <div className="flex w-full justify-center">
+                  <div
+                    ref={submitAreaRef}
+                    className="flex w-full flex-col items-center justify-center gap-3"
+                  >
+                    {submitError ? (
+                      <p className="Caption1 max-w-[520px] text-center text-form-error">
+                        {submitError}
+                      </p>
+                    ) : null}
                     <button
                       type="button"
                       disabled={submitLoading}

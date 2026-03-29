@@ -4,8 +4,8 @@ import Header from '@layouts/header';
 import { trackPageView } from '@libs/analytics';
 import { type UserRole, useAuthStore } from '@store/auth';
 import { getStoredUserRole, setCurrentUserId } from '@utils/storage';
-import { useLayoutEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useLayoutEffect, useState } from 'react';
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 export type RootLayoutOutletContext = {
   setNavLocked: (value: boolean) => void;
@@ -23,8 +23,24 @@ const RootLayout = () => {
   const [navLocked, setNavLocked] = useState(false);
   const [onboardingIncomplete, setOnboardingIncomplete] = useState(false);
   const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
+  const isSsoCallbackRoute = location.pathname === '/sso-callback';
   const hideFooterPaths = ['/signup', '/terms/service', '/terms/privacy'];
   const shouldHideFooter = hideFooterPaths.includes(location.pathname);
+  const localOnboardingComplete = (() => {
+    try {
+      return user?.id ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true' : false;
+    } catch {
+      return false;
+    }
+  })();
+  const isOnboardingCompleteNow =
+    user?.unsafeMetadata?.onboardingComplete === true || localOnboardingComplete;
+  const shouldRedirectToSignupImmediately =
+    isLoaded &&
+    location.pathname === '/' &&
+    !!user &&
+    !isOnboardingCompleteNow &&
+    sessionStorage.getItem('login_provider') !== null;
 
   useLayoutEffect(() => {
     trackPageView(location.pathname + location.search);
@@ -139,6 +155,10 @@ const RootLayout = () => {
     }
   }, [isLoaded, location.pathname, navigate, user]);
 
+  useEffect(() => {
+    document.dispatchEvent(new Event('prerender-ready'));
+  }, []);
+
   const handleLogoClick = () => {
     if (logoClickHandler) {
       logoClickHandler();
@@ -154,9 +174,13 @@ const RootLayout = () => {
     navigate('/');
   };
 
+  if (shouldRedirectToSignupImmediately) {
+    return <Navigate to="/signup" replace />;
+  }
+
   return (
     <div className="flex min-h-[100vh] flex-col">
-      <Header navLocked={navLocked} onLogoClick={handleLogoClick} />
+      {!isSsoCallbackRoute && <Header navLocked={navLocked} onLogoClick={handleLogoClick} />}
       <main className="min-h-0 flex-1 py-12">
         <div key={location.key} className="page-transition">
           <Outlet
@@ -169,7 +193,7 @@ const RootLayout = () => {
           />
         </div>
       </main>
-      {!shouldHideFooter && <Footer />}
+      {!isSsoCallbackRoute && !shouldHideFooter && <Footer />}
 
       {showOnboardingModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">

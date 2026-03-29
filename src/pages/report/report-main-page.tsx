@@ -3,10 +3,10 @@ import LoginRequiredCard from '@components/common/LoginRequiredCard';
 import { Outlet } from 'react-router-dom';
 
 const ReportMainPage = () => {
-  const { isSignedIn } = useAuth();
-  const isLoggedIn = Boolean(isSignedIn);
+  const { isSignedIn, isLoaded } = useAuth();
+  const showLoginGate = isLoaded && !isSignedIn;
 
-  if (!isLoggedIn) {
+  if (showLoginGate) {
     return (
       <div className="flex h-full flex-col">
         <section className="mx-auto flex min-h-0 w-full max-w-[1180px] flex-1 flex-col gap-6">

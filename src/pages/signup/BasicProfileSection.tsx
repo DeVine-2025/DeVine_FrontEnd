@@ -21,13 +21,10 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
   const [nicknameCheckError, setNicknameCheckError] = useState<string | null>(null);
   const { getToken } = useAuth();
 
-  const hasWhitespace = useMemo(() => /\s/.test(nickname), [nickname]);
   const trimmedNickname = useMemo(() => nickname.trim(), [nickname]);
-
-  // 자음/모음만 입력했는지 체크
-  const isOnlyConsonantOrVowel = useMemo(
-    () => /^[ㄱ-ㅎㅏ-ㅣ]+$/.test(trimmedNickname),
-    [trimmedNickname],
+  const hasInvalidNicknameCharacters = useMemo(
+    () => trimmedNickname.length > 0 && !/^[가-힣A-Za-z0-9]+$/.test(nickname),
+    [nickname, trimmedNickname],
   );
 
   const isLengthValid = useMemo(
@@ -35,10 +32,10 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
     [trimmedNickname],
   );
 
-  // 닉네임 유효성에 "자음/모음만" 조건 추가
+  // 닉네임 유효성: 길이 + 허용 문자(한글/영어/숫자)
   const isNicknameValid = useMemo(
-    () => isLengthValid && !hasWhitespace && !isOnlyConsonantOrVowel,
-    [isLengthValid, hasWhitespace, isOnlyConsonantOrVowel],
+    () => isLengthValid && !hasInvalidNicknameCharacters,
+    [isLengthValid, hasInvalidNicknameCharacters],
   );
 
   useEffect(() => {
@@ -194,7 +191,7 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
               className={`h-[50px] w-full rounded-2xl border-2 bg-[var(--ui-50)] px-4 text-[14px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)] ${
                 canUseNickname
                   ? 'border-[#00BF40]'
-                  : hasWhitespace || isDuplicateNickname || isOnlyConsonantOrVowel
+                  : hasInvalidNicknameCharacters || isDuplicateNickname
                     ? 'border-[#FF4242]'
                     : 'border-[var(--ui-100)]'
               }`}
@@ -202,38 +199,29 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
               onChange={(event) => setNickname(event.target.value)}
             />
 
-            {hasWhitespace && (
-              <span className="Caption1 text-[#FF4242]">공백은 사용할 수 없어요.</span>
-            )}
-
-            {!hasWhitespace && !isLengthValid && (
+            {!isLengthValid && (
               <span className="Caption1 text-[#FF4242]">
                 닉네임은 2자 이상 20자 이하로 입력해주세요.
               </span>
             )}
 
-            {/* 자음/모음만 입력 경고 (요청 문구) */}
-            {!hasWhitespace && isLengthValid && isOnlyConsonantOrVowel && (
-              <span className="Caption1 text-[#FF4242]">
-                자음/모음만 입력할 수 없습니다.
-                <br />
-                한글, 영문, 숫자를 포함해 닉네임을 입력해주세요.
-              </span>
+            {isLengthValid && hasInvalidNicknameCharacters && (
+              <span className="Caption1 text-[#FF4242]">한글, 영어, 숫자만을 포함해 닉네임을 입력해주세요</span>
             )}
 
-            {!hasWhitespace && isDuplicateNickname && (
+            {!hasInvalidNicknameCharacters && isDuplicateNickname && (
               <span className="Caption1 text-[#FF4242]">이미 누군가가 사용 중인 닉네임이에요</span>
             )}
 
-            {!hasWhitespace && !isDuplicateNickname && isCheckingNickname && (
+            {!hasInvalidNicknameCharacters && !isDuplicateNickname && isCheckingNickname && (
               <span className="Caption1 text-[var(--ui-400)]">닉네임 중복 확인 중...</span>
             )}
 
-            {!hasWhitespace && nicknameCheckError && (
+            {!hasInvalidNicknameCharacters && nicknameCheckError && (
               <span className="Caption1 text-[#FF4242]">{nicknameCheckError}</span>
             )}
 
-            {!hasWhitespace && canUseNickname && (
+            {!hasInvalidNicknameCharacters && canUseNickname && (
               <span className="Caption1 text-[#00BF40]">사용 가능한 닉네임이에요!</span>
             )}
 
@@ -250,14 +238,18 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
           disabled={!canUseNickname || isUploading}
           className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
             canUseNickname && !isUploading
-              ? 'bg-[var(--color-primary)] text-white'
-              : 'bg-[var(--ui-100)] text-[var(--ui-400)]'
+              ? 'cursor-pointer bg-[var(--color-primary)] text-white'
+              : 'cursor-not-allowed bg-[var(--ui-100)] text-[var(--ui-400)]'
           }`}
         >
           다음
         </button>
-        <button type="button" onClick={onBack} className="Body1 text-[var(--ui-400)]">
-          돌아가기
+        <button
+          type="button"
+          onClick={onBack}
+          className="Body1 inline-flex w-fit self-center text-[var(--ui-400)]"
+        >
+          <span>돌아가기</span>
         </button>
       </div>
     </div>

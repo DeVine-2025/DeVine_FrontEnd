@@ -1,0 +1,52 @@
+:root {
+    --skeleton-bg: color-mix(in srgb, var(--ui-200) 30%, var(--ui-bg));
+    --skeleton-shimmer-duration: 1.35s;
+    --skeleton-shimmer-soft: color-mix(in srgb, var(--ui-100) 22%, transparent);
+    --skeleton-shimmer-bright: color-mix(in srgb, var(--ui-100) 48%, transparent);
+}
+
+html[data-theme='light'] {
+    --skeleton-bg: color-mix(in srgb, var(--ui-200) 42%, var(--ui-50));
+    --skeleton-shimmer-soft: rgb(255 255 255 / 0.38);
+    --skeleton-shimmer-bright: rgb(255 255 255 / 0.92);
+}
+
+@keyframes ui-skeleton-shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.ui-skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--skeleton-bg);
+}
+
+.ui-skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    animation: ui-skeleton-shimmer var(--skeleton-shimmer-duration) linear infinite;
+    will-change: transform;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 35%,
+        var(--skeleton-shimmer-soft) 45%,
+        var(--skeleton-shimmer-bright) 50%,
+        var(--skeleton-shimmer-soft) 55%,
+        transparent 65%,
+        transparent 100%
+    );
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ui-skeleton::after {
+        animation: none;
+    }
+}

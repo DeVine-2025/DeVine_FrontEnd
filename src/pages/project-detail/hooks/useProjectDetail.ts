@@ -1,18 +1,12 @@
 import { applyProject, getMyApplyStatus, updateMyApply } from '@apis/apply';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getMemberProfileByNickname } from '@apis/members';
-import {
-  getMYProjectCompleted,
-  getMYProjectInprogress,
-  getMYProjectRecruiting,
-} from '@apis/project/project-queries';
 import { cancelMyApply, getProjectDetail, type ProjectStatus, updateProjectStatus } from '@apis/project-detail';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   type ProjectDetailInfo,
-  toProjectDetailInfo,
   toProjectDetailInfoFromApi,
 } from '../project-detail-types';
 import { useAuthMe } from '@hooks/useAuthMe';
@@ -21,7 +15,7 @@ export type ApplyStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
 export function useProjectDetail() {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
   const { getToken } = useAuth();
 
   // ── State ──
@@ -30,12 +24,10 @@ export function useProjectDetail() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
-  const [appliedMatchingId, setAppliedMatchingId] = useState<number | undefined>(undefined);
   const [appliedPart, setAppliedPart] = useState<string | undefined>(undefined);
   const [appliedStatus, setAppliedStatus] = useState<ApplyStatus | null>(null);
   const [isApplying, setIsApplying] = useState(false);
   const [apiProject, setApiProject] = useState<ProjectDetailInfo | null>(null);
-  const [isOwnerByList, setIsOwnerByList] = useState(false);
   const [creatorProfileImage, setCreatorProfileImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [imageLightboxIndex, setImageLightboxIndex] = useState<number | null>(null);
@@ -145,7 +137,6 @@ export function useProjectDetail() {
             const applyStatus = await getMyApplyStatus(numericId, token); // 지원 상태 조회
             if (isActive) {
               setHasApplied(applyStatus.exists);
-              setAppliedMatchingId(applyStatus.matchingId);
               setAppliedPart(applyStatus.part);
               setAppliedStatus((applyStatus.status as ApplyStatus) ?? null);
             }
@@ -153,13 +144,11 @@ export function useProjectDetail() {
             console.error('[지원 상태] 조회 실패', e);
             if (isActive) {
               setHasApplied(false);
-              setAppliedMatchingId(undefined);
               setAppliedPart(undefined);
             }
           }
         } else if (isActive) {
           setHasApplied(false);
-          setAppliedMatchingId(undefined);
           setAppliedPart(undefined);
         }
 
@@ -188,9 +177,6 @@ export function useProjectDetail() {
     };
   }, [projectId]);
 
-  // ── Fallback / session project (mock 제거로 폴백 없음) ──
-  const fallbackProject = undefined;
-
   const sessionProject = useMemo(() => {
     if (!projectId) return undefined;
     try {
@@ -202,10 +188,7 @@ export function useProjectDetail() {
     }
   }, [projectId]);
 
-  const project =
-    apiProject ??
-    sessionProject ??
-    (fallbackProject ? toProjectDetailInfo(fallbackProject) : undefined);
+  const project = apiProject ?? sessionProject;
 
   // ── Owner check ──
   const creatorId = project?.creatorId == null ? null : Number(project.creatorId);
@@ -237,53 +220,6 @@ export function useProjectDetail() {
       });
     return () => controller.abort();
   }, [project, project?.creatorImage, project?.creatorName]);
-
-  // ── Owner check by recruiting projects ──
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn || !projectId) {
-      setIsOwnerByList(false);
-      return;
-    }
-    let isActive = true;
-    const numericId = Number(projectId);
-    if (!Number.isFinite(numericId)) {
-      setIsOwnerByList(false);
-      return;
-    }
-
-    const extractProjectIds = (data: unknown): number[] => {
-      const content =
-        (data as any)?.result?.projects?.content ??
-        (data as any)?.projects?.content ??
-        (data as any)?.result?.projectList ??
-        (data as any)?.projectList ??
-        [];
-      if (!Array.isArray(content)) return [];
-      return content
-        .map((p) => (p as any)?.projectId ?? (p as any)?.id)
-        .filter((id) => typeof id === 'number' && Number.isFinite(id));
-    };
-
-    Promise.allSettled([
-      getMYProjectRecruiting(),
-      getMYProjectInprogress(),
-      getMYProjectCompleted(),
-    ])
-      .then((results) => {
-        if (!isActive) return;
-        const ids = results.flatMap((r) =>
-          r.status === 'fulfilled' ? extractProjectIds(r.value) : [],
-        );
-        setIsOwnerByList(ids.includes(numericId));
-      })
-      .catch(() => {
-        if (isActive) setIsOwnerByList(false);
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [getToken, isLoaded, isSignedIn, projectId]);
 
   // ── Status menu outside click ──
   useEffect(() => {
@@ -394,7 +330,6 @@ export function useProjectDetail() {
     await cancelMyApply(Number(projectId), token);
 
     setHasApplied(false);
-    setAppliedMatchingId(undefined);
     setAppliedPart(undefined);
     setAppliedStatus(null);
   } catch (error) {

@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import ProfileDefaultImage from '@assets/images/Profile.svg';
@@ -7,7 +8,11 @@ import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/
 import ProjectListState from '@components/common/ListStateUI';
 import Pagination from '@components/common/Pagination';
 import ProfileCard from '@components/common/ProfileCard';
+import RecommendDeveloperCardSkeleton, {
+  RecommendDeveloperCardSkeletonList,
+} from '@components/common/RecommendDeveloperCardSkeleton';
 import { useDevelopers } from '@hooks/useDevelopers';
+import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
 import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
 import { useRecommendMembersPreview } from '@hooks/useRecommendMembersPreview';
 import { normalizeTechstackKey, TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
@@ -107,7 +112,6 @@ const DeveloperSearchPage = () => {
     [page, categories, normalizedTechNames],
   );
 
-  // 내 프로젝트(등록 유무/프로젝트ID) - API + 캐시 fallback (등록 직후 반영)
   const myRecruitingQ = useMyRecruitingProjects();
   const cachedProjects = readMyProjectsCache();
   const apiProjects = myRecruitingQ.data ?? [];
@@ -118,7 +122,6 @@ const DeveloperSearchPage = () => {
   const projectId =
     apiProjects[0]?.projectId ?? cachedProjects[0]?.projectId ?? null;
 
-  // 개발자 검색 목록
   const developersQ = useDevelopers(params);
   const pageData = developersQ.data;
 
@@ -129,8 +132,15 @@ const DeveloperSearchPage = () => {
 
   const totalPages = Math.min(pageData?.totalPages ?? 0, 10);
 
-  // 추천 개발자 프리뷰 (projectId 있을 때만 enabled)
   const previewQ = useRecommendMembersPreview(projectId, 4);
+
+  const topPreviewLoadingRaw = hasProjects === null || (hasProjects === true && previewQ.isPending);
+  const showTopPreviewSkeleton = useInitialSkeletonGate(topPreviewLoadingRaw, {
+    sessionKey: 'search-developer-preview',
+  });
+  const showSearchListSkeleton = useInitialSkeletonGate(developersQ.isLoading, {
+    sessionKey: 'search-developer-list',
+  });
 
   const profiles = useMemo<ProfileCardProps[]>(() => {
     const result = previewQ.data ?? [];
@@ -164,7 +174,6 @@ const DeveloperSearchPage = () => {
     });
   }, [previewQ.data, defaultProfileImage]);
 
-  // 새로고침 시에도 북마크 상태 유지: 내 북마크 목록 하이드레이션
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -274,10 +283,21 @@ const DeveloperSearchPage = () => {
   );
 
   return (
-    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30">
-      {/* 추천 개발자 */}
-      <header className="flex items-center justify-between">
-        <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 개발자</h2>
+    <>
+      <Helmet>
+        <title>개발자 찾기 | Devine - GitHub 기반 개발자 매칭</title>
+        <meta
+          name="description"
+          content="개발자 구하기, 프리랜서 개발자 구인, IT 외주 개발자 매칭. GitHub 분석으로 실력 검증된 개발자를 찾아보세요."
+        />
+        <link rel="canonical" href="https://www.devine.kr/search/developer" />
+        <meta property="og:title" content="개발자 찾기 | Devine - GitHub 기반 개발자 매칭" />
+        <meta property="og:description" content="개발자 구하기, 프리랜서 개발자 구인, IT 외주 개발자 매칭. GitHub 분석으로 실력 검증된 개발자를 찾아보세요." />
+        <meta property="og:url" content="https://www.devine.kr/search/developer" />
+      </Helmet>
+      <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30">
+        <header className="flex items-center justify-between">
+          <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 개발자</h2>
 
         {hasProjects === true && (
           <button
@@ -291,14 +311,21 @@ const DeveloperSearchPage = () => {
         )}
       </header>
 
-      {/* 추천 개발자 카드 */}
-      {hasProjects === null ? (
-        <p className="py-15 text-center text-[15px] text-[var(--ui-500)]">불러오는 중...</p>
-      ) : hasProjects !== true ? (
+      {showTopPreviewSkeleton && (
+        <div className="scrollbar-hide flex gap-6 overflow-x-auto py-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="w-[min(360px,88vw)] shrink-0">
+              <RecommendDeveloperCardSkeleton />
+            </div>
+          ))}
+        </div>
+      )}
+      {!showTopPreviewSkeleton && hasProjects !== true && (
         <p className="py-15 text-center text-[15px] text-[var(--ui-500)]">
           프로젝트를 등록하면 추천 개발자를 볼 수 있어요
         </p>
-      ) : (
+      )}
+      {!showTopPreviewSkeleton && hasProjects === true && (
         <div className="scrollbar-hide flex justify-start gap-6 overflow-x-auto">
           {profiles.map((profile) => (
             <ProfileCard
@@ -313,12 +340,10 @@ const DeveloperSearchPage = () => {
         </div>
       )}
 
-      {/* 구분선 */}
       <div className="h-px w-full bg-card-border" />
 
       <div ref={listTopRef} />
 
-      {/* 필터 */}
       <DeveloperFilterBar
         filters={DEVELOPER_FILTERS}
         excludeFilters={['내 프로젝트 선택']}
@@ -334,19 +359,20 @@ const DeveloperSearchPage = () => {
         onReset={(key) => console.log('reset', key)}
       />
 
-      {/* 개발자 리스트 */}
       <div className="flex flex-col gap-6">
-        {developersQ.isLoading && <ProjectListState type="loading" />}
+        {showSearchListSkeleton && (
+          <RecommendDeveloperCardSkeletonList count={3} className="py-2" />
+        )}
 
-        {!developersQ.isLoading && developersQ.isError && (
+        {!showSearchListSkeleton && developersQ.isError && (
           <ProjectListState type="error" onRetry={() => developersQ.refetch()} />
         )}
 
-        {!developersQ.isLoading && !developersQ.isError && searchedProfiles.length === 0 && (
+        {!showSearchListSkeleton && !developersQ.isError && searchedProfiles.length === 0 && (
           <ProjectListState type="empty" />
         )}
 
-        {!developersQ.isLoading &&
+        {!showSearchListSkeleton &&
           !developersQ.isError &&
           searchedProfiles.length > 0 &&
           searchedProfiles.map((profile) => (
@@ -366,8 +392,9 @@ const DeveloperSearchPage = () => {
           ))}
       </div>
 
-      <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
-    </section>
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} className="mt-6" />
+      </section>
+    </>
   );
 };
 

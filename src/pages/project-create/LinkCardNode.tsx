@@ -1,4 +1,4 @@
-import { Node } from '@tiptap/core';
+import { mergeAttributes, Node } from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import type { ReactNodeViewProps } from '@tiptap/react';
 import { NodeViewWrapper } from '@tiptap/react';
@@ -47,7 +47,8 @@ function LinkCardView({ editor, node, getPos, deleteNode }: ReactNodeViewProps) 
         <div className="flex items-center gap-3">
           <input
             ref={inputRef}
-            type="url"
+            type="text"
+            inputMode="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => {
@@ -77,6 +78,14 @@ export const LinkCardExtension = Node.create({
   name: 'linkCard',
   group: 'block',
   atom: true,
+  selectable: true,
+  draggable: false,
+  parseHTML() {
+    return [{ tag: 'div[data-type="link-card"]' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'link-card' })];
+  },
   addNodeView() {
     return ReactNodeViewRenderer(LinkCardView);
   },
