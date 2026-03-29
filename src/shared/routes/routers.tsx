@@ -22,6 +22,7 @@ import {
   ProjectDetailPage,
   ProjectSearchPage,
   ProposedPage,
+  PayPage,
   RecommendDeveloperPage,
   RecommendPage,
   RecommendProjectPage,
@@ -49,6 +50,7 @@ export const router = createBrowserRouter([
       { path: 'login', element: <LoginPage /> },
       { path: 'sso-callback', element: <SsoCallbackPage /> },
       { path: 'terms/:type', element: <TermsPage /> },
+      { path: 'pay', element: <PayPage /> },
       { path: 'project/:projectId', element: <ProjectDetailPage /> },
       {
         path: 'search',

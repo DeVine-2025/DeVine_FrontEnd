@@ -451,6 +451,8 @@ const MainPage = () => {
         : '나에게 딱 맞는 추천 프로젝트/개발자'
     : '나에게 딱 맞는 추천 프로젝트/개발자';
   const loginCtaLabel = !isLoggedIn ? '로그인해야 추천 프로젝트/개발자를 확인할 수 있어요' : null;
+  const isEmptyRecommendedProjectsState =
+    isLoggedIn && !isPm && hasReport === true && recommendedProjects.length === 0;
   const handleProjectClick = (project: HighlightProject | MainRecommendProject) => {
     try {
       const payload = {
@@ -500,130 +502,130 @@ const MainPage = () => {
       </section>
 
       <section
-        className={`flex flex-col gap-6 ${!isLoggedIn ? 'mb-96 pt-16' : 'mb-40'}`}
+        className={`flex flex-col gap-6 ${
+          !isLoggedIn ? 'mb-0 pt-8' : isEmptyRecommendedProjectsState ? 'mb-0' : 'mb-40'
+        }`}
       >
         <div className="flex items-center justify-between">
           <h2 className="Heading2 font-semibold text-card-title">{recommendTitle}</h2>
         </div>
-        <div className="relative">
-          <div
-            className={`flex flex-col gap-6 ${
-              isLoggedIn ? '' : 'pointer-events-none select-none blur-sm'
-            }`}
-          >
-            {isLoggedIn && isPm && hasProjects === false ? (
-              <div className="flex items-center justify-center py-6">
-                <ReportRequiredCard
-                  title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
-                  description="나에게 맞는 추천 개발자를 받아 보세요"
-                  linkLabel="프로젝트 등록하러 가기"
-                  linkTo="/project/create"
-                />
-              </div>
-            ) : isLoggedIn && !isPm && hasReport === false ? (
-              <div className="flex items-center justify-center py-6">
-                <ReportRequiredCard
-                  title="리포트를 등록하면 맞춤 추천을 받을 수 있어요"
-                  description="나에게 맞는 추천 프로젝트를 받아 보세요"
-                  linkLabel="리포트 등록하러 가기"
-                  linkTo="/report/create"
-                />
-              </div>
-            ) : isLoggedIn && isPm && hasProjects === true ? (
-              isDeveloperPreviewEmpty ? (
-                <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
-                  나에게 딱 맞는 추천 개발자가 아직 없어요.
-                </div>
-              ) : (
-                recommendedProfiles.map((profile) => (
-                  <RecommendDeveloperCard
-                    key={profile.id}
-                    role={profile.role}
-                    roleTone={profile.roleTone}
-                    nickname={profile.nickname}
-                    profileImageUrl={profile.profileImageUrl}
-                    introduction={profile.introduction}
-                    domains={profile.badges?.map((badge) => ({ label: badge.label }))}
-                    techStack={profile.techStack}
-                    bookmarked={
-                      developerBookmarkMap[profile.memberId ?? profile.nickname] != null ||
-                      (profile.bookmarked ?? false)
-                    }
-                    bookmarkId={(() => {
-                      const id = developerBookmarkMap[profile.memberId ?? profile.nickname];
-                      return id != null && id > 0 ? id : undefined;
-                    })()}
-                    onBookmarkChange={(next) =>
-                      handleDeveloperBookmarkChange(profile.memberId, profile.nickname, next)
-                    }
-                    matchedProjectName={matchedProjectName}
-                    matchedReason="프로젝트의 요구사항과 일치합니다."
-                    onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
+        {isLoggedIn ? (
+          <div className="relative">
+            <div className="flex flex-col gap-6">
+              {isPm && hasProjects === false ? (
+                <div className="flex items-center justify-center py-6">
+                  <ReportRequiredCard
+                    title="프로젝트를 등록하면 맞춤 추천을 받을 수 있어요"
+                    description="나에게 맞는 추천 개발자를 받아 보세요"
+                    linkLabel="프로젝트 등록하러 가기"
+                    linkTo="/project/create"
                   />
-                ))
-              )
-            ) : isLoggedIn && !isPm ? (
-              recommendedProjects.length === 0 ? (
-                <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
-                  나에게 딱 맞는 추천 프로젝트가 아직 없어요.
                 </div>
               ) : (
-                recommendedProjects.map((project) =>
-                (() => {
-                  const targetId = Number(project.id);
-                  const hasNumericId = Number.isFinite(targetId) && targetId > 0;
-                  const isBookmarked = hasNumericId
-                    ? projectBookmarkMap[targetId] != null
-                    : (project.bookmarked ?? false);
-                  return (
-                    <RecommendProjectCard
-                      key={project.id}
-                      categoryLabel={project.categoryLabel}
-                      deadlineLabel={project.deadlineLabel}
-                      title={project.title}
-                      thumbnailUrl={project.thumbnailUrl}
-                      thumbnailAlt={project.title}
-                      location={project.location}
-                      period={project.period}
-                      mode={project.mode}
-                      roles={project.roles}
-                      dueLabel={project.dueLabel}
-                      bookmarked={isBookmarked}
-                      techstackScorePercent={project.techstackScorePercent}
-                      similarityScorePercent={project.similarityScorePercent}
-                      domainMatch={project.domainMatch}
-                      totalScore={project.totalScore}
-                      projectId={project.id}
-                      bookmarkId={project.bookmarkId}
-                      onBookmarkChange={(next) =>
-                        hasNumericId ? handleProjectBookmarkChange(targetId, next) : undefined
-                      }
-                      onBookmarkChangeById={
-                        hasNumericId
-                          ? (pid, next, bkid) =>
-                              handleProjectBookmarkChange(Number(pid), next)
-                          : undefined
-                      }
-                      onNavigateToProject={(pid) => navigate(`/project/${pid}`)}
-                      onClick={() => handleProjectClick(project)}
+                isPm && hasProjects === true ? (
+                  isDeveloperPreviewEmpty ? (
+                    <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
+                      나에게 딱 맞는 추천 개발자가 아직 없어요.
+                    </div>
+                  ) : (
+                    recommendedProfiles.map((profile) => (
+                      <RecommendDeveloperCard
+                        key={profile.id}
+                        role={profile.role}
+                        roleTone={profile.roleTone}
+                        nickname={profile.nickname}
+                        profileImageUrl={profile.profileImageUrl}
+                        introduction={profile.introduction}
+                        domains={profile.badges?.map((badge) => ({ label: badge.label }))}
+                        techStack={profile.techStack}
+                        bookmarked={
+                          developerBookmarkMap[profile.memberId ?? profile.nickname] != null ||
+                          (profile.bookmarked ?? false)
+                        }
+                        bookmarkId={(() => {
+                          const id = developerBookmarkMap[profile.memberId ?? profile.nickname];
+                          return id != null && id > 0 ? id : undefined;
+                        })()}
+                        onBookmarkChange={(next) =>
+                          handleDeveloperBookmarkChange(profile.memberId, profile.nickname, next)
+                        }
+                        matchedProjectName={matchedProjectName}
+                        matchedReason="프로젝트의 요구사항과 일치합니다."
+                        onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
+                      />
+                    ))
+                  )
+                ) : !isPm && hasReport === false ? (
+                  <div className="flex items-center justify-center py-6">
+                    <ReportRequiredCard
+                      title="리포트를 등록하면 맞춤 추천을 받을 수 있어요"
+                      description="나에게 맞는 추천 프로젝트를 받아 보세요"
+                      linkLabel="리포트 등록하러 가기"
+                      linkTo="/report/create"
                     />
-                  );
-                })(),
-              )
-            )
-            ) : null}
-          </div>
-
-          {!isLoggedIn && (
-            <div className="absolute inset-0 flex items-center justify-center pt-32">
-              <LoginRequiredCard
-                description={
-                  loginCtaLabel ?? '나에게 딱 맞는 추천 프로젝트/개발자를 보려면 로그인해 주세요.'
-                }
-              />
+                  </div>
+                ) : !isPm ? (
+                  recommendedProjects.length === 0 ? (
+                    <div className="flex h-[180px] items-center justify-center rounded-2xl border border-card-border bg-card-bg text-card-muted">
+                      나에게 딱 맞는 추천 프로젝트가 아직 없어요.
+                    </div>
+                  ) : (
+                    recommendedProjects.map((project) =>
+                      (() => {
+                        const targetId = Number(project.id);
+                        const hasNumericId = Number.isFinite(targetId) && targetId > 0;
+                        const isBookmarked = hasNumericId
+                          ? projectBookmarkMap[targetId] != null
+                          : (project.bookmarked ?? false);
+                        return (
+                          <RecommendProjectCard
+                            key={project.id}
+                            categoryLabel={project.categoryLabel}
+                            deadlineLabel={project.deadlineLabel}
+                            title={project.title}
+                            thumbnailUrl={project.thumbnailUrl}
+                            thumbnailAlt={project.title}
+                            location={project.location}
+                            period={project.period}
+                            mode={project.mode}
+                            roles={project.roles}
+                            dueLabel={project.dueLabel}
+                            bookmarked={isBookmarked}
+                            techstackScorePercent={project.techstackScorePercent}
+                            similarityScorePercent={project.similarityScorePercent}
+                            domainMatch={project.domainMatch}
+                            totalScore={project.totalScore}
+                            projectId={project.id}
+                            bookmarkId={project.bookmarkId}
+                            onBookmarkChange={(next) =>
+                              hasNumericId ? handleProjectBookmarkChange(targetId, next) : undefined
+                            }
+                            onBookmarkChangeById={
+                              hasNumericId
+                                ? (pid, next, bkid) =>
+                                    handleProjectBookmarkChange(Number(pid), next)
+                                : undefined
+                            }
+                            onNavigateToProject={(pid) => navigate(`/project/${pid}`)}
+                            onClick={() => handleProjectClick(project)}
+                          />
+                        );
+                      })(),
+                    )
+                  )
+                ) : null
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="flex h-[220px] items-center justify-center">
+            <LoginRequiredCard
+              description={
+                loginCtaLabel ?? '나에게 딱 맞는 추천 프로젝트/개발자를 보려면 로그인해 주세요.'
+              }
+            />
+          </div>
+        )}
       </section>
 
       {isLoginModalOpen && (

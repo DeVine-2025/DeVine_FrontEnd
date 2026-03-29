@@ -27,7 +27,12 @@ export default function MainProjectCard(props: MainProjectCardProps) {
             restProps.className,
           )}
         >
-          <div className="group/thumb relative h-[180px] w-full overflow-hidden rounded-3xl border-0 bg-[#F3F5FC] shadow-none outline-none ring-0">
+          <div
+            className={cn(
+              'group/thumb relative h-[180px] w-full overflow-hidden rounded-3xl border-0 shadow-none outline-none ring-0',
+              hasThumbnail ? 'bg-[#F3F5FC]' : 'bg-[var(--ui-200)]',
+            )}
+          >
             {hasThumbnail ? (
               <img
                 src={restProps.thumbnailUrl}
@@ -35,7 +40,7 @@ export default function MainProjectCard(props: MainProjectCardProps) {
                 className="block h-full w-full object-cover transition-transform duration-300 ease-out group-hover/thumb:scale-105"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[var(--ui-200)]">
+              <div className="flex h-full w-full items-center justify-center">
                 <img
                   src={DevineLogo}
                   alt="Devine logo"
