@@ -35,4 +35,4 @@ export { default as SearchPage } from './search/search-page';
 export { default as SignupPage } from './signup/signup-page';
 export { default as TermsPage } from './terms/terms-page';
 export { default as ServicePage } from './landing/service-page'
-;
+;export { default as PayPage } from './pay/pay-page';

@@ -191,8 +191,7 @@ async function fetchMyProjectsByPath(
   token: string,
   signal?: AbortSignal,
 ): Promise<MyRecruitingProjectItem[]> {
-  const url = `${BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
-  const res = await fetch(url, {
+  const res = await fetch(`${BASE_URL}${path}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
