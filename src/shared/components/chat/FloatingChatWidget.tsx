@@ -94,7 +94,7 @@ const FloatingChatWidget = () => {
       : 'border-[rgba(127,133,150,0.28)] bg-[rgba(33,35,40,0.92)] shadow-[0_-1.8rem_4rem_rgba(0,0,0,0.28),0_-0.1rem_0.73rem_rgba(127,133,150,0.16)]',
   );
   const headerClassName = cn(
-    'flex h-[6.8rem] items-center border-b px-[1.6rem]',
+    'flex h-[6.8rem] items-center border-b px-[1.6rem] max-[389px]:px-[1.2rem]',
     isLightTheme
       ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(248,249,251,0.96)]'
       : 'border-[rgba(127,133,150,0.18)] bg-[rgba(255,255,255,0.02)]',
@@ -118,23 +118,23 @@ const FloatingChatWidget = () => {
       : 'border-[rgba(127,133,150,0.12)] bg-[rgba(255,255,255,0.05)] shadow-[0_0.8rem_1.8rem_rgba(0,0,0,0.12)]',
   );
   const footerClassName = cn(
-    'border-t px-[1.6rem] py-[1.4rem]',
+    'border-t px-[1.6rem] py-[1.4rem] max-[389px]:px-[1.2rem] max-[389px]:py-[1.2rem]',
     isLightTheme
       ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(248,249,251,0.96)]'
       : 'border-[rgba(127,133,150,0.18)] bg-[rgba(255,255,255,0.02)]',
   );
   const inputFieldClassName = cn(
-    'flex h-[4rem] flex-1 items-center rounded-full border px-[1.6rem]',
+    'flex h-[4rem] min-w-0 flex-1 items-center rounded-full border px-[1.6rem] max-[389px]:px-[1.2rem]',
     isLightTheme
       ? 'border-[rgba(212,218,231,0.95)] bg-white shadow-[0_0.6rem_1.4rem_rgba(15,23,42,0.05)]'
       : 'border-[rgba(127,133,150,0.16)] bg-[rgba(25,27,30,0.95)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
   );
   const listItemClassName = cn(
-    'group relative flex h-[7.8rem] w-full items-start rounded-[1.4rem] px-[1.2rem] pt-[1.1rem] text-left',
+    'group relative flex h-[7.8rem] w-full items-start rounded-[1.4rem] px-[1.2rem] pt-[1.1rem] text-left max-[389px]:h-[7.2rem] max-[389px]:px-[1rem] max-[389px]:pt-[1rem]',
     isLightTheme ? 'bg-white hover:bg-[var(--ui-50)]' : 'bg-[var(--ui-50)] hover:bg-[var(--ui-100)]',
   );
   const listDividerClassName = cn(
-    'absolute right-[1.2rem] bottom-0 h-px w-[calc(100%-2.4rem)]',
+    'absolute right-[1.2rem] bottom-0 h-px w-[calc(100%-2.4rem)] max-[389px]:right-[1rem] max-[389px]:w-[calc(100%-2rem)]',
     isLightTheme
       ? 'bg-[linear-gradient(90deg,rgba(212,218,231,0)_0%,rgba(212,218,231,0.95)_18%,rgba(212,218,231,0.95)_82%,rgba(212,218,231,0)_100%)]'
       : 'bg-[linear-gradient(90deg,rgba(127,133,150,0)_0%,rgba(127,133,150,0.24)_18%,rgba(127,133,150,0.24)_82%,rgba(127,133,150,0)_100%)]',
@@ -161,7 +161,7 @@ const FloatingChatWidget = () => {
         <section
           aria-label="전역 채팅 위젯"
           className={cn(
-            'pointer-events-auto absolute right-[8rem] bottom-0 w-[32rem] transition-[height,width,right,left,transform,box-shadow] duration-300 ease-out max-[743px]:right-[2.4rem] max-[743px]:w-[28.8rem] max-[389px]:right-[1.6rem] max-[389px]:left-[1.6rem] max-[389px]:w-auto',
+            'pointer-events-auto fixed right-[1rem] bottom-0 w-[31rem] transition-[height,width,right,left,transform,box-shadow] duration-300 ease-out max-[743px]:right-[1rem] max-[743px]:w-[28.8rem] max-[389px]:right-[1rem] max-[389px]:left-[1rem] max-[389px]:w-auto',
             isExpanded ? 'h-[45.8rem] max-[743px]:h-[42rem] max-[389px]:h-[40rem]' : 'h-[6.8rem]',
           )}
         >
@@ -172,7 +172,7 @@ const FloatingChatWidget = () => {
               aria-controls="global-chat-panel"
               onClick={() => setIsExpanded(true)}
               className={cn(
-                'flex h-full w-full items-center px-[1.8rem] text-left',
+                'flex h-full w-full items-center px-[1.8rem] text-left max-[389px]:px-[1.4rem]',
                 isLightTheme ? 'hover:bg-[rgba(248,249,251,0.96)]' : 'hover:bg-[rgba(255,255,255,0.03)]',
                 widgetSurfaceClassName,
               )}
@@ -195,11 +195,16 @@ const FloatingChatWidget = () => {
                       className={iconButtonClassName}
                       aria-label="채팅 목록으로 돌아가기"
                     >
-                      <ArrowLeftIcon className="size-[2.4rem]" />
+                      <ArrowLeftIcon className="size-[2.4rem] max-[389px]:size-[2.2rem]" />
                     </button>
-                    <span className={cn('ml-[0.8rem] size-[3.6rem]', avatarClassName)} />
-                    <div className="ml-[1.2rem] flex-1">
-                      <span className="Body1 block font-semibold text-[var(--ui-900)]">닉네임</span>
+                    <span
+                      className={cn(
+                        'ml-[0.8rem] size-[3.6rem] max-[389px]:ml-[0.6rem] max-[389px]:size-[3.2rem]',
+                        avatarClassName,
+                      )}
+                    />
+                    <div className="ml-[1.2rem] min-w-0 flex-1 max-[389px]:ml-[0.8rem]">
+                      <span className="Body1 block truncate font-semibold text-[var(--ui-900)]">닉네임</span>
                     </div>
                     <button
                       type="button"
@@ -211,17 +216,19 @@ const FloatingChatWidget = () => {
                     </button>
                   </div>
 
-                  <div className="px-[1.6rem] py-[1rem] text-center">
+                  <div className="px-[1.6rem] py-[1rem] text-center max-[389px]:px-[1.2rem]">
                     <span className={datePillClassName}>{selectedChat.dateLabel}</span>
                   </div>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto px-[1.6rem] py-[0.6rem]">
+                  <div className="min-h-0 flex-1 overflow-y-auto px-[1.6rem] py-[0.6rem] max-[389px]:px-[1.2rem]">
                     <div className="flex flex-col gap-[1.6rem]">
                       {selectedChat.messages.map((message) =>
                         message.type === 'received' ? (
-                          <div key={message.id} className="flex items-end gap-[0.8rem]">
-                            <span className={cn('mb-[0.2rem] size-[2.4rem]', avatarClassName)} />
-                            <div className="max-w-[21.6rem]">
+                          <div key={message.id} className="flex items-end gap-[0.8rem] max-[389px]:gap-[0.6rem]">
+                            <span
+                              className={cn('mb-[0.2rem] size-[2.4rem] max-[389px]:size-[2rem]', avatarClassName)}
+                            />
+                            <div className="min-w-0 max-w-[70%] max-[389px]:max-w-[68%]">
                               <p className="Caption1 mb-[0.6rem] font-medium text-[var(--ui-500)]">
                                 {message.sender}
                               </p>
@@ -231,17 +238,17 @@ const FloatingChatWidget = () => {
                                 </p>
                               </div>
                             </div>
-                            <span className="pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
+                            <span className="shrink-0 pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
                               {message.time}
                             </span>
                           </div>
                         ) : (
                           <div key={message.id} className="flex justify-end">
-                            <div className="flex max-w-[25.7rem] items-end gap-[0.6rem]">
-                              <span className="pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
+                            <div className="flex max-w-[82%] items-end gap-[0.6rem] max-[389px]:max-w-[86%] max-[389px]:gap-[0.5rem]">
+                              <span className="shrink-0 pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
                                 {message.time}
                               </span>
-                              <div className="rounded-[1.6rem] rounded-br-[0.6rem] bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_58%,#7C79FF_100%)] px-[1.2rem] py-[0.9rem] shadow-[0_1.2rem_2.4rem_rgba(78,73,255,0.22)]">
+                              <div className="rounded-[1.6rem] rounded-br-[0.6rem] bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_58%,#7C79FF_100%)] px-[1.2rem] py-[0.9rem] max-[389px]:px-[1rem] shadow-[0_1.2rem_2.4rem_rgba(78,73,255,0.22)]">
                                 <p className="text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-white">
                                   {message.text}
                                 </p>
@@ -254,7 +261,7 @@ const FloatingChatWidget = () => {
                   </div>
 
                   <div className={footerClassName}>
-                    <div className="flex items-center gap-[0.8rem]">
+                    <div className="flex items-center gap-[0.8rem] max-[389px]:gap-[0.6rem]">
                       <div className={inputFieldClassName}>
                         <input
                           type="text"
@@ -268,7 +275,7 @@ const FloatingChatWidget = () => {
                         type="button"
                         disabled={!hasMessageDraft}
                         className={cn(
-                          'flex size-[3rem] cursor-pointer items-center justify-center rounded-full transition-[transform,box-shadow] duration-200 disabled:cursor-default',
+                          'flex size-[3rem] cursor-pointer items-center justify-center rounded-full transition-[transform,box-shadow] duration-200 max-[389px]:size-[2.8rem] disabled:cursor-default',
                           hasMessageDraft
                             ? 'bg-[var(--color-primary)] text-[var(--ui-50)] shadow-[0_1rem_2rem_rgba(78,73,255,0.28)] hover:scale-[1.03]'
                             : 'bg-[var(--ui-200)] text-[var(--ui-50)] shadow-none',
@@ -277,7 +284,7 @@ const FloatingChatWidget = () => {
                       >
                         <svg
                           viewBox="10 9 12 13"
-                          className="size-[1.7rem]"
+                          className="size-[1.7rem] max-[389px]:size-[1.6rem]"
                           fill="none"
                           aria-hidden="true"
                         >
@@ -304,7 +311,7 @@ const FloatingChatWidget = () => {
                     </button>
                   </div>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto px-[0.8rem] py-[0.8rem]">
+                  <div className="min-h-0 flex-1 overflow-y-auto px-[0.8rem] py-[0.8rem] max-[389px]:px-[0.6rem]">
                     <div className="flex flex-col gap-[0.2rem]">
                       {chatRooms.map((room) => (
                         <button
@@ -318,16 +325,16 @@ const FloatingChatWidget = () => {
                         >
                           <span
                             className={cn(
-                              'size-[3.8rem] transition-transform duration-200 group-hover:scale-[1.03]',
+                              'size-[3.8rem] transition-transform duration-200 group-hover:scale-[1.03] max-[389px]:size-[3.4rem]',
                               avatarClassName,
                             )}
                           />
-                          <div className="ml-[1.2rem] min-w-0 flex-1 pr-[4rem]">
-                            <div className="flex items-start">
-                              <span className="Label1 font-semibold text-[var(--ui-900)]">
+                          <div className="ml-[1.2rem] min-w-0 flex-1 pr-[4rem] max-[389px]:ml-[0.8rem] max-[389px]:pr-[3.6rem]">
+                            <div className="flex items-start gap-[0.8rem] max-[389px]:gap-[0.6rem]">
+                              <span className="Label1 min-w-0 truncate font-semibold text-[var(--ui-900)]">
                                 {room.name}
                               </span>
-                              <span className="ml-auto text-right text-[1.3rem] leading-[1.429] tracking-[0.0145em] text-[var(--ui-600)]">
+                              <span className="ml-auto shrink-0 text-right text-[1.3rem] leading-[1.429] tracking-[0.0145em] text-[var(--ui-600)] max-[389px]:text-[1.2rem]">
                                 {room.timeLabel}
                               </span>
                             </div>
@@ -336,13 +343,13 @@ const FloatingChatWidget = () => {
                             </p>
                           </div>
                           {room.unreadCount ? (
-                            <span className="absolute top-[3.8rem] right-[1.2rem] flex min-w-[2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_100%)] px-[0.7rem] py-[0.2rem] text-[1.1rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.8rem_1.6rem_rgba(78,73,255,0.25)]">
+                            <span className="absolute top-[3.8rem] right-[1.2rem] flex min-w-[2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_100%)] px-[0.7rem] py-[0.2rem] text-[1.1rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.8rem_1.6rem_rgba(78,73,255,0.25)] max-[389px]:top-[3.5rem] max-[389px]:right-[1rem]">
                               {room.unreadCount}
                             </span>
                           ) : (
                             <span
                               className={cn(
-                                'absolute top-[1.8rem] right-[1.4rem] size-[0.7rem] rounded-full opacity-0 transition-opacity duration-200 group-hover:opacity-100',
+                                'absolute top-[1.8rem] right-[1.4rem] size-[0.7rem] rounded-full opacity-0 transition-opacity duration-200 group-hover:opacity-100 max-[389px]:top-[1.7rem] max-[389px]:right-[1.1rem]',
                                 isLightTheme
                                   ? 'bg-[rgba(158,166,186,0.6)]'
                                   : 'bg-[rgba(127,133,150,0.35)]',
