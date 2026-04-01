@@ -11,7 +11,9 @@ import DomainBadges from '@components/profileDetail/DomainBadges';
 import ImagePreview from '@components/profileDetail/ImagePreview';
 import NormalButton from '@components/profileDetail/NormalButton';
 import ReportCardSmall from '@components/profileDetail/ReportCardSmall';
-import TechStackChips from '@components/profileDetail/TechStackChips';
+import TechStackChips, {
+  type TechStackChipInput,
+} from '@components/profileDetail/TechStackChips';
 import { DOMAIN_REVERSE_MAP } from '@constants/domain';
 import type { InfiniteData } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -20,7 +22,7 @@ import { useNavigate } from 'react-router-dom';
 type ProfileDetailProps = {
   type: '내 정보' | '개발자 상세';
   profile?: MyProfile;
-  techStack?: string[];
+  techStack?: TechStackChipInput[];
   contributions?: Contribution[];
   year?: number;
   onYearChange?: (year: number) => void;

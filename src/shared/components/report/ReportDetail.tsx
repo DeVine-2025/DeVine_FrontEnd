@@ -1,5 +1,7 @@
 import type { CodeInsight, Improvement, NextStep, ReportDetailContent } from '@apis/report/report';
 import FileSmallIcon from '@assets/icons/detail-page/file-small.svg?react';
+import CheckLineIcon from '@assets/icons/check-line.svg?react';
+import CancelLineIcon from '@assets/icons/cancel-line.svg?react';
 import ContentBox from '@components/report/ContentBox';
 
 type ReportDetailProps = {
@@ -12,9 +14,9 @@ type FileCardItemProps = {
 
 const FileCardItem = ({ filePath }: FileCardItemProps) => {
   return (
-    <div className="relative flex h-12 w-96 items-center gap-2 rounded-lg border border-1 border-ui-100 bg-ui-bg px-[0.7rem] py-[1.2rem]">
+    <div className="relative flex items-start gap-2 rounded-lg border border-1 border-ui-100 bg-ui-bg px-[0.7rem] pr-[6rem] py-[0.8rem]">
       <FileSmallIcon />
-      <p className="font-normal text-sm text-ui-800">{filePath}</p>
+      <p className="font-normal text-sm text-ui-800 whitespace-pre-line break-all">{filePath}</p>
     </div>
   );
 };
@@ -74,10 +76,11 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
             <p className={subtTitleStyle}>프로젝트 규모</p>
             <ContentBox>
               <div className="flex px-[3rem] py-[1.5rem]">
+                <p className="text-ui-400 pr-[10.6rem]">프로젝트 규모</p>
                 <div className="gap-6">
                   {scaleItems.map((text) => (
                     <p key={text} className={listItemStyle}>
-                      <span>{text}</span>
+                      <span>• {text}</span>
                     </p>
                   ))}
                 </div>
@@ -146,71 +149,109 @@ const ReportDetail = ({ data }: ReportDetailProps) => {
         </div>
       </section>
 
-      {/* 코드 인사이트 + 개선 가능한 영역 (같은 페이지) */}
-      <div className="report-print-section report-print-same-page flex flex-col gap-[8rem]">
+      {/*프로젝트 분석 요약*/}
+      <div className="report-print-section report-print-implement">
         {/* 코드 인사이트 */}
         <section className="flex-col gap-[1rem]">
-          <p className={sectionTitleStyle}>코드 분석 인사이트</p>
+          <p className={sectionTitleStyle}>프로젝트 분석 요약</p>
           <hr className="border-ui-100" />
           <ContentBox>
-            <div className="flex-col gap-[3rem] p-[3.2rem]">
-              {data.codeInsights.map((item: CodeInsight, idx: number) => (
-                <div key={idx} className="report-print-block flex-col gap-[0.7rem]">
-                  <p className="pb-1 font-semibold text-ui-1000 text-xl">
-                    {item.number + ' . ' + item.title}
-                  </p>
-                  {item.points.map((description: string, pIdx: number) => (
-                    <p key={pIdx} className="text-lg text-ui-1000">
-                      • {description}
-                    </p>
+            <div className="flex p-[3.2rem] gap-[4.8rem]">
+              <div className="flex-1/2 flex-col gap-[2.4rem]">
+                <p className="w-fit rounded-[8px] bg-positive-bg px-[0.8rem] py-[0.4rem] text-bold text-positive-text">이 프로젝트에서
+                  구현한것</p>
+                <div className="flex-col gap-[1rem]">
+                  {data.projectSummary.implemented.map((item) => (
+                    <p key={item} className="flex items-center gap-[1.2rem] text-ui-900"><CheckLineIcon
+                      className="text-positive-text" />{item}</p>
                   ))}
+
                 </div>
-              ))}
+              </div>
+              <div className="flex-1/2 flex-col gap-[2.4rem]">
+                <p className="w-fit rounded-[8px] bg-negative-bg px-[0.8rem] py-[0.4rem] text-bold text-negative-text">이
+                  프로젝트에서
+                  구현하지 않은 것</p>
+                <div className="flex-col gap-[1rem]">
+                  {data.projectSummary.notImplemented.map((item) => (
+                    <p key={item} className="flex items-center gap-[1.2rem] text-ui-900"><CancelLineIcon
+                      className="text-negative-text" />{item}</p>
+                  ))}
+
+                </div>
+              </div>
             </div>
           </ContentBox>
         </section>
-
-        {/* 개선 가능한 영역 (인쇄 시 컴팩트) */}
-        <section className="report-print-compact flex-col gap-[1rem]">
-          <p className={sectionTitleStyle}>개선 가능한 영역</p>
-          <hr className="border-ui-100" />
-
-          {data.improvements.map((item: Improvement, idx: number) => (
-            <ContentBox key={idx}>
-              <div className="flex-col gap-10 p-[3rem] report-print-compact-inner">
-                <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
-              </div>
-            </ContentBox>
-          ))}
-        </section>
       </div>
 
-      {/* 다음 스텝 */}
-      <section className="report-print-section">
-        <div className="flex-col gap-[1rem]">
-          <p className={sectionTitleStyle}>다음 프로젝트에서 시도해볼 만한 것</p>
-          <hr className="border-ui-100" />
 
-          {data.nextSteps.map((item: NextStep, idx: number) => (
-            <ContentBox key={idx}>
-              <div className="flex-col gap-[0.7rem] p-[3rem]">
-                <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
-                <p className="text-lg text-ui-400">{item.description.join(', ')}</p>
-                <div className="mt-2 flex gap-2">
-                  <p className="flex w-fit items-center justify-center rounded border border-indigo-600/20 bg-indigo-600/10 px-2 py-1 font-bold text-primary">
-                    추천 기술
-                  </p>
-                  <p className="flex items-center gap-3 font-medium text-sm text-ui-1000">
-                    {item.recommendKeyword.join(' , ')}
-                  </p>
+      {/* 코드 인사이트 + 개선 가능한 영역 (같은 페이지) */}
+      <div className="report-print-section report-print-same-page flex flex-col gap-[8rem]">
+            {/* 코드 인사이트 */}
+            <section className="flex-col gap-[1rem]">
+              <p className={sectionTitleStyle}>코드 분석 인사이트</p>
+              <hr className="border-ui-100" />
+              <ContentBox>
+                <div className="flex-col gap-[3rem] p-[3.2rem]">
+                  {data.codeInsights.map((item: CodeInsight, idx: number) => (
+                    <div key={idx} className="report-print-block flex-col gap-[0.7rem]">
+                      <p className="pb-1 font-semibold text-ui-1000 text-xl">
+                        {item.number + ' . ' + item.title}
+                      </p>
+                      {item.points.map((description: string, pIdx: number) => (
+                        <p key={pIdx} className="text-lg text-ui-1000">
+                          • {description}
+                        </p>
+                      ))}
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </ContentBox>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
-};
+              </ContentBox>
+            </section>
 
-export default ReportDetail;
+            {/* 개선 가능한 영역 (인쇄 시 컴팩트) */}
+            <section className="report-print-compact flex-col gap-[1rem]">
+              <p className={sectionTitleStyle}>개선 가능한 영역</p>
+              <hr className="border-ui-100" />
+
+              {data.improvements.map((item: Improvement, idx: number) => (
+                <ContentBox key={idx}>
+                  <div className="flex-col gap-10 p-[3rem] report-print-compact-inner">
+                    <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
+                  </div>
+                </ContentBox>
+              ))}
+            </section>
+          </div>
+
+          {/* 다음 스텝 */}
+          <section className="report-print-section">
+            <div className="flex-col gap-[1rem]">
+              <p className={sectionTitleStyle}>다음 프로젝트에서 시도해볼 만한 것</p>
+              <hr className="border-ui-100" />
+
+              {data.nextSteps.map((item: NextStep, idx: number) => (
+                <ContentBox key={idx}>
+                  <div className="flex-col gap-[0.7rem] p-[3rem]">
+                    <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
+                    <p className="text-lg text-ui-400">{item.description.join(', ')}</p>
+                    <div className="mt-2 flex gap-2">
+                      <p
+                        className="flex w-fit items-center justify-center rounded border border-indigo-600/20 bg-indigo-600/10 px-2 py-1 font-bold text-primary">
+                        추천 기술
+                      </p>
+                      <p className="flex items-center gap-3 font-medium text-sm text-ui-1000">
+                        {item.recommendKeyword.join(' , ')}
+                      </p>
+                    </div>
+                  </div>
+                </ContentBox>
+              ))}
+            </div>
+          </section>
+      </div>
+      );
+      };
+
+      export default ReportDetail;

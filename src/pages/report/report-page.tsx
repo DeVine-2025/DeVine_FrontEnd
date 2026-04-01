@@ -19,8 +19,6 @@ const ReportPage = () => {
 
   const { data } = useQuery(reportQueries.report(type ? { type } : undefined));
 
-  console.log(data);
-
   const reportData = data?.result?.reports;
   const tabs = ['전체', '메인 리포트', '상세 리포트'];
 
