@@ -14,12 +14,12 @@ const Footer = () => {
 
       {/* ── 메인 푸터 영역 ── */}
       <div
-        className="mt-[50vh] w-full border-t"
+        className="mt-[65vh] w-full border-t"
         style={{
           borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
           background: isDark
             ? 'linear-gradient(180deg, #0d0d12 0%, #0b0b0f 100%)'
-            : 'var(--ui-bg)',
+            : 'linear-gradient(180deg, #f4f4f6 0%, #efefef 100%)',
         }}
       >
         <div className="mx-auto w-full max-w-[1180px] py-[5.6rem] pl-24 pr-4 md:pl-36 md:pr-6">
