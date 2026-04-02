@@ -14,6 +14,7 @@ const CheckBox = ({ title, description, isExist, isActive, onClick }: CheckboxPr
   return (
     <div className={cn('flex gap-[1.6rem] p-[1.2rem]', isExist && 'rounded-xl bg-[var(--ui-50)]')}>
       <button
+        disabled={isExist}
         type="button"
         onClick={onClick}
         className={cn(

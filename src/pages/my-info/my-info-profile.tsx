@@ -1,4 +1,5 @@
 import type { Contribution } from '@apis/myInfo/myInfo';
+import type { TechstackDto } from '@t/profileCard.types';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { projectQueries } from '@apis/project/project-queries';
 import { reportQueries } from '@apis/report/report-queries';
@@ -22,9 +23,9 @@ const MyInfoProfile = () => {
   const { data: projectCompleted } = useQuery(projectQueries.getMYProjectCompleted());
   const { data: reports } = useQuery(reportQueries.report());
 
-  const techStackNames = useMemo(() => {
+  const techStackForProfile = useMemo(() => {
     if (!techStack?.result?.techstacks) return [];
-    return techStack.result.techstacks.map((item: { name: string }) => item.name);
+    return techStack.result.techstacks as TechstackDto[];
   }, [techStack]);
 
   const contributionsData = useMemo((): Contribution[] => {
@@ -46,7 +47,7 @@ const MyInfoProfile = () => {
       <ProfileDetail
         type={'내 정보'}
         profile={data?.result}
-        techStack={techStackNames}
+        techStack={techStackForProfile}
         contributions={contributionsData}
         gitRepos={gitRepos}
         year={year}

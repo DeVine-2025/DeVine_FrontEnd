@@ -98,7 +98,7 @@ const ReportDetailPage = () => {
           type="button"
           onClick={() => handlePrint()}
           title="인쇄 창에서 '머리글 및 바닥글' 옵션을 끄면 날짜, URL이 출력되지 않습니다."
-          className="group absolute right-0 top-[80px] flex h-12 w-[150px] items-center justify-center gap-3 rounded-lg bg-[var(--ui-50)] text-ui-600 transition-[color,opacity] hover:opacity-90"
+          className="group absolute right-0 top-[70px] flex h-12 w-[150px] items-center justify-center gap-3 rounded-lg bg-[var(--ui-50)] text-ui-600 transition-[color,opacity] hover:opacity-90"
         >
           <PdfIcon className="h-6 w-5 shrink-0 [&_path]:stroke-[var(--ui-500)] group-hover:[&_path]:stroke-[var(--ui-1000)]" />
           <span className="text-base font-medium transition-colors group-hover:font-semibold group-hover:text-ui-1000">PDF로 출력하기</span>
@@ -117,12 +117,16 @@ const ReportDetailPage = () => {
               프로젝트 분석 리포트 | {title} 리포트
             </p>
           </div>
+          <hr className="border-ui-200 py-[0.6rem]"/>
           {report.reportType === 'MAIN' ? (
             <MainDetail data={content as unknown as ReportMainContent} />
           ) : (
             <ReportDetail data={content as unknown as ReportDetailContent} />
           )}
         </div>
+        <hr className="border-ui-300"/>
+        <p className="pt-[3.3rem] text-center text-ui-400">본 리포트는 Devine의 AI 코드 분석 시스템이 생성했습니다.<br/>
+          상세한 분석 내용은 상세 리포트를 확인하세요.</p>
       </section>
     </div>
   );

@@ -61,11 +61,13 @@ export type MemberSummaryDto = {
   createdAt: string;
 };
 
+export type TechStackSource = 'AUTO' | 'MANUAL';
+
 export type TechstackDto = {
   techstackId: number;
   name: string;
   genre: string | null;
-  source: string;
+  source: TechStackSource;
 };
 
 export type DeveloperSearchContentDto = {
