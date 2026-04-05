@@ -1,4 +1,4 @@
-﻿import {
+import {
   getNotifications,
   getUnreadNotificationCount,
   markAllNotificationsAsRead,
@@ -331,26 +331,28 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
           {/* 액션 버튼들 */}
           <div className="flex-items-center shrink-0 flex-nowrap gap-[1.2rem] phone:gap-[0.6rem] tablet:gap-[0.8rem]">
             <SignedIn>
-              <Link
-                to="/pay"
-                className="group relative h-[3.6rem] flex-row-center shrink-0 overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--badge-text-primary)] px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
-              >
-                <span
-                  className="absolute inset-0 rounded-[8px] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  style={{
-                    background: '#4E49FF',
-                  }}
-                />
-                <span
-                  className="-inset-[2px] -z-10 absolute rounded-[10px] opacity-0 blur-[8px] transition-opacity duration-300 group-hover:opacity-20"
-                  style={{
-                    background: '#7E7AFF',
-                  }}
-                />
-                <span className="Caption1 relative z-10 whitespace-nowrap font-semibold text-[#4E49FF] transition-colors duration-300 group-hover:text-white">
-                  이용권 구매
-                </span>
-              </Link>
+              {!isTermsPage && !isSignupFlow && (
+                <Link
+                  to="/pay"
+                  className="group relative h-[3.6rem] flex-row-center shrink-0 overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--badge-text-primary)] px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
+                >
+                  <span
+                    className="absolute inset-0 rounded-[8px] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                    style={{
+                      background: '#4E49FF',
+                    }}
+                  />
+                  <span
+                    className="-inset-[2px] -z-10 absolute rounded-[10px] opacity-0 blur-[8px] transition-opacity duration-300 group-hover:opacity-20"
+                    style={{
+                      background: '#7E7AFF',
+                    }}
+                  />
+                  <span className="Caption1 relative z-10 whitespace-nowrap font-semibold text-[#4E49FF] transition-colors duration-300 group-hover:text-white">
+                    이용권 구매
+                  </span>
+                </Link>
+              )}
               <Link
                 to="/project/create"
                 className="Caption1 relative h-[3.2rem] flex-row-center whitespace-nowrap rounded-[8px] bg-[#4E49FF] px-[1.0rem] py-[0.6rem] font-semibold text-white transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:translate-y-[1px] active:scale-[0.98]"
