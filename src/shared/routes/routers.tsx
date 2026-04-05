@@ -54,7 +54,7 @@ export const router = createBrowserRouter([
       { path: 'signup', element: <SignupPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'sso-callback', element: <SsoCallbackPage /> },
-      { path: 'terms/:type', element: <TermsPage /> },
+      { path: 'terms/:termsId', element: <TermsPage /> },
       { path: 'pay', element: <PayPage /> },
       { path: 'project/:projectId', element: <ProjectDetailPage /> },
       {
