@@ -109,7 +109,7 @@ const ReportCard = ({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={cn(
-        'group relative flex cursor-pointer flex-col gap-0 overflow-hidden rounded-[16px] border transition-all duration-200 hover:scale-[1.02]',
+        'group relative flex cursor-pointer flex-col gap-0 overflow-hidden rounded-[16px] border transition-all duration-200 hover:scale-[1.02] min-h-[14rem]',
         isLight
           ? 'border-[var(--ui-200)] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:border-[var(--ui-300)] hover:bg-[var(--ui-50)] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)]'
           : 'border-white/[0.07] bg-white/[0.03] hover:border-white/[0.12] hover:bg-white/[0.05]',

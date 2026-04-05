@@ -2,8 +2,8 @@ import type { ReportCardRequest } from '@apis/report/report';
 import { reportQueries } from '@apis/report/report-queries';
 import Blank from '@components/report/Blank';
 import ReportCard from '@components/report/ReportCard';
+import { ReportCardSkeletonList } from '@components/report/ReportCardSkeleton';
 import TabMenu from '@components/report/TabMenu';
-import { useThemeStore } from '@store/theme';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 
@@ -14,8 +14,6 @@ const TAB_TYPE_MAP: Record<string, ReportCardRequest['type'] | undefined> = {
 };
 
 const ReportPage = () => {
-  const { theme } = useThemeStore();
-  const isLight = theme === 'light';
   const [activeTab, setActiveTab] = useState('전체');
 
   const type = TAB_TYPE_MAP[activeTab];
@@ -46,16 +44,7 @@ const ReportPage = () => {
         {isPending ? (
           <div className="grid grid-cols-2 gap-[1.4rem] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             <ReportCard type="create" />
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className={
-                  isLight
-                    ? 'h-[14rem] animate-pulse rounded-[16px] border border-[var(--ui-200)] bg-[var(--ui-100)]'
-                    : 'h-[14rem] animate-pulse rounded-[16px] border border-white/[0.06] bg-white/[0.04]'
-                }
-              />
-            ))}
+            <ReportCardSkeletonList count={3} />
           </div>
         ) : hasReports ? (
           <div className="grid grid-cols-2 gap-[1.4rem] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -74,10 +63,7 @@ const ReportPage = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-[1.4rem] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            <ReportCard type="create" />
-            <Blank />
-          </div>
+          <Blank />
         )}
       </div>
     </div>
