@@ -1,4 +1,5 @@
-import CheckIcon from '@assets/icons/check.svg?react';
+import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
+import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import InformationIcon from '@assets/icons/information.svg?react';
 import { cn } from '@libs/cn';
 
@@ -12,17 +13,18 @@ type CheckboxProps = {
 
 const CheckBox = ({ title, description, isExist, isActive, onClick }: CheckboxProps) => {
   return (
-    <div className={cn('flex gap-[1.6rem] p-[1.2rem]', isExist && 'rounded-xl bg-[var(--ui-50)]')}>
+    <div className="flex gap-[1.6rem] rounded-xl p-[1.2rem] transition-colors duration-200 hover:bg-[var(--ui-50)]">
       <button
-        disabled={isExist}
         type="button"
         onClick={onClick}
-        className={cn(
-          'inline-block h-9 w-9 flex-row-center cursor-pointer rounded-lg',
-          isActive ? 'bg-primary' : 'bg-[var(--ui-100)]',
-        )}
+        className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg"
+        aria-pressed={isActive}
       >
-        <CheckIcon />
+        {isActive ? (
+          <CheckboxCheckedIcon className="h-9 w-9" aria-hidden />
+        ) : (
+          <CheckboxUncheckedIcon className="h-9 w-9" aria-hidden />
+        )}
       </button>
       <div className="flex-col gap-[0.4rem]">
         {isExist && (

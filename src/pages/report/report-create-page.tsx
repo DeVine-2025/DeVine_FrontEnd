@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import LoadingSpinner from '@components/common/LoadingSpinner';
 import CheckBox from '@components/report/CheckBox';
+import GithubRepoListSkeleton from '@components/report/GithubRepoListSkeleton';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { BeatLoader } from 'react-spinners';
 
@@ -63,42 +63,38 @@ const ReportCreatePage = () => {
           className="flex-col gap-[0.8rem] h-[320px] overflow-hidden overflow-y-scroll"
           onScroll={handleScroll}
         >
-          {/* 레포 리스트 */}
-          {!isLoading &&
-            repo.map((item) => (
-              <CheckBox
-                key={item.gitRepoId}
-                title={item.name}
-                description={item.description}
-                isExist={item.hasReport}
-                isActive={selectedId === item.gitRepoId}
-                onClick={() => toggleCheckbox(item.gitRepoId)}
-              />
-            ))}
+          {isLoading ? (
+            <GithubRepoListSkeleton count={6} variant="report-create" />
+          ) : (
+            <>
+              {repo.map((item) => (
+                <CheckBox
+                  key={item.gitRepoId}
+                  title={item.name}
+                  description={item.description}
+                  isExist={item.hasReport}
+                  isActive={selectedId === item.gitRepoId}
+                  onClick={() => toggleCheckbox(item.gitRepoId)}
+                />
+              ))}
 
-          {!isLoading && repo.length === 0 && (
-            <div className="flex h-full min-h-[200px] flex-col items-center justify-center gap-[1.2rem] rounded-2xl bg-[var(--ui-50)] py-[3rem]">
-              <p className="text-center text-2xl text-[var(--ui-600)]">
-                연동된 레포지토리가 없습니다.
-              </p>
-              <p className="text-center text-xl text-[var(--ui-500)]">
-                아래 버튼을 누르면 깃허브 연동 페이지로 이동합니다.
-              </p>
-            </div>
-          )}
+              {repo.length === 0 && (
+                <div className="flex h-full min-h-[200px] flex-col items-center justify-center gap-[1.2rem] rounded-2xl bg-[var(--ui-50)] py-[3rem]">
+                  <p className="text-center text-2xl text-[var(--ui-600)]">
+                    연동된 레포지토리가 없습니다.
+                  </p>
+                  <p className="text-center text-xl text-[var(--ui-500)]">
+                    아래 버튼을 누르면 깃허브 연동 페이지로 이동합니다.
+                  </p>
+                </div>
+              )}
 
-          {/* 최초 로딩 */}
-          {isLoading && (
-            <div className="flex h-full items-center justify-center gap-3">
-              <LoadingSpinner size="lg" />
-            </div>
-          )}
-
-          {/* 다음 페이지 로딩 */}
-          {isFetchingNextPage && (
-            <div className="flex justify-center py-4">
-              <BeatLoader size={8} />
-            </div>
+              {isFetchingNextPage && (
+                <div className="flex justify-center py-4">
+                  <BeatLoader size={8} />
+                </div>
+              )}
+            </>
           )}
         </div>
         <div className="mt-[4.7rem] flex-col-center gap-[1.4rem]">
