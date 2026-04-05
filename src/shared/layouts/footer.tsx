@@ -25,7 +25,6 @@ const Footer = () => {
           <div className="h-[1.2rem] w-[1px] bg-[var(--ui-600)] opacity-30" />
           <a
             href="/service"
-            target="_blank"
             rel="noopener noreferrer"
             className="Label1 cursor-pointer text-[var(--ui-600)] transition-colors hover:text-[var(--ui-800)]"
           >
