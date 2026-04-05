@@ -1,4 +1,4 @@
-import {
+﻿import {
   getNotifications,
   getUnreadNotificationCount,
   markAllNotificationsAsRead,
@@ -50,6 +50,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const { user: clerkUser } = useUser();
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
   const isSignupFlow = location.pathname.startsWith('/signup');
+  const isTermsPage = location.pathname.startsWith('/terms/');
   const isOnboardingComplete = clerkUser?.unsafeMetadata?.onboardingComplete === true;
   const canUseMemberProtectedApis = isSignedIn === true && isOnboardingComplete && !isSignupFlow;
 
