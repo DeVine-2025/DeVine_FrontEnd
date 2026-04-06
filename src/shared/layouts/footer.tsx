@@ -76,8 +76,8 @@ const Footer = () => {
               </p>
               <ul className="flex flex-col gap-[1.2rem]">
                 {[
-                  { label: '이용약관', path: '/terms/service' },
-                  { label: '개인정보처리방침', path: '/terms/privacy' },
+                  { label: '이용약관', path: '/terms/1' },
+                  { label: '개인정보처리방침', path: '/terms/2' },
                 ].map(({ label, path }) => (
                   <li key={path}>
                     <button
