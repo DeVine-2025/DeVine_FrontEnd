@@ -26,6 +26,7 @@ const RootLayout = () => {
   const isSsoCallbackRoute = location.pathname === '/sso-callback';
   const hideFooterPaths = ['/signup', '/terms/service', '/terms/privacy'];
   const shouldHideFooter = hideFooterPaths.includes(location.pathname);
+  const isReportPage = location.pathname === '/report' || location.pathname === '/';
   const localOnboardingComplete = (() => {
     try {
       return user?.id ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true' : false;
@@ -193,7 +194,11 @@ const RootLayout = () => {
           />
         </div>
       </main>
-      {!isSsoCallbackRoute && !shouldHideFooter && <Footer />}
+      {!isSsoCallbackRoute && !shouldHideFooter && (
+        <div className={isReportPage ? 'mt-[35vh]' : ''}>
+          <Footer />
+        </div>
+      )}
 
       {showOnboardingModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">
