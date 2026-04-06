@@ -10,11 +10,11 @@ const Footer = () => {
   const Logo = isDark ? LightLogo : DarkLogo;
 
   return (
-    <footer className="w-full">
+    <footer className="relative left-1/2 w-screen -translate-x-1/2">
 
       {/* ── 메인 푸터 영역 ── */}
       <div
-        className="mt-[65vh] w-full border-t"
+        className="w-full border-t"
         style={{
           borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
           background: isDark
@@ -76,8 +76,8 @@ const Footer = () => {
               </p>
               <ul className="flex flex-col gap-[1.2rem]">
                 {[
-                  { label: '이용약관', path: '/terms/service' },
-                  { label: '개인정보처리방침', path: '/terms/privacy' },
+                  { label: '이용약관', path: '/terms/1' },
+                  { label: '개인정보처리방침', path: '/terms/2' },
                 ].map(({ label, path }) => (
                   <li key={path}>
                     <button

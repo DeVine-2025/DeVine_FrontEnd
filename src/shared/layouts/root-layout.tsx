@@ -24,7 +24,9 @@ const RootLayout = () => {
   const [onboardingIncomplete, setOnboardingIncomplete] = useState(false);
   const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
   const isSsoCallbackRoute = location.pathname === '/sso-callback';
-  const shouldHideFooter = location.pathname === '/signup' || location.pathname.startsWith('/terms/');
+  const hideFooterPaths = ['/signup', '/terms/2', '/terms/1'];
+  const shouldHideFooter = hideFooterPaths.includes(location.pathname);
+  const isReportPage = location.pathname === '/report' || location.pathname === '/';
   const localOnboardingComplete = (() => {
     try {
       return user?.id ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true' : false;
@@ -192,7 +194,11 @@ const RootLayout = () => {
           />
         </div>
       </main>
-      {!isSsoCallbackRoute && !shouldHideFooter && <Footer />}
+      {!isSsoCallbackRoute && !shouldHideFooter && (
+        <div className={isReportPage ? 'mt-[35vh]' : ''}>
+          <Footer />
+        </div>
+      )}
 
       {showOnboardingModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">
