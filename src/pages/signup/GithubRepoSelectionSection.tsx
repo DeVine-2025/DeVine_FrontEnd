@@ -4,7 +4,7 @@ import Lottie from 'lottie-react';
 import reportAnimation from './Data _ Bundling.json';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
-import LoadingSpinner from '@components/common/LoadingSpinner';
+import GithubRepoListSkeleton from '@components/report/GithubRepoListSkeleton';
 import { useAuth } from '@clerk/clerk-react';
 import { getGitRepos } from '@apis/github-repos';
 import { createReportSync, getReportDetail, getReportMain } from '@apis/reports';
@@ -251,16 +251,15 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
           <span className="Body1 text-[15px] font-semibold text-[var(--ui-900)]">
             깃허브 레포지토리 목록
           </span>
-          {isLoading && (
-            <div className="flex justify-center py-4">
-              <LoadingSpinner size="md" />
-            </div>
-          )}
           {loadError && <span className="Caption1 text-[var(--ui-danger)]">{loadError}</span>}
           {createError && <span className="Caption1 text-[var(--ui-danger)]">{createError}</span>}
           <div className="scrollbar-hide max-h-[320px] overflow-y-auto pr-1">
             <div className="flex flex-col gap-4">
-              {repoOptions.map((repo) => {
+              {isLoading ? (
+                <GithubRepoListSkeleton count={6} variant="signup" />
+              ) : null}
+              {!isLoading &&
+                repoOptions.map((repo) => {
                 const selected = selectedRepo === repo.id;
                 return (
                   <button

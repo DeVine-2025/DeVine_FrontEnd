@@ -1,63 +1,128 @@
-import { getMemberTerms, type MemberTermsItem } from '@apis/terms';
-import { useEffect, useState } from 'react';
+import LightLogo from '@assets/icons/logo-light.svg?react';
+import DarkLogo from '@assets/icons/logo-dark.svg?react';
+import { useThemeStore } from '@store/theme';
 import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
   const navigate = useNavigate();
-  const [terms, setTerms] = useState<MemberTermsItem[]>([]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    void getMemberTerms(controller.signal)
-      .then((items) => {
-        setTerms(items);
-      })
-      .catch((error) => {
-        if ((error as Error)?.name !== 'AbortError') {
-          console.warn('[footer] API terms fetch failed', error);
-        }
-        setTerms([]);
-      });
-
-    return () => controller.abort();
-  }, []);
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
+  const Logo = isDark ? LightLogo : DarkLogo;
 
   return (
-    <footer className="-translate-x-1/2 relative left-1/2 w-screen bg-[var(--ui-bg)] py-[2rem]">
-      <div className="mx-auto max-w-[144rem] flex-col-center gap-[0.5rem] px-[6rem]">
-        <div className="mb-[0.8rem] flex-items-center gap-[2.4rem]">
-          {terms.map((term, index) => (
-            <div key={term.termsId} className="flex items-center gap-[2.4rem]">
-              <button
-                type="button"
-                onClick={() => navigate(`/terms/${term.termsId}`)}
-                className="Label1 cursor-pointer text-[var(--ui-600)] transition-colors hover:text-[var(--ui-800)]"
-              >
-                {term.title}
-              </button>
-              {index < terms.length - 1 ? (
-                <div className="h-[1.2rem] w-[1px] bg-[var(--ui-600)] opacity-30" />
-              ) : null}
+    <footer className="w-full">
+
+      {/* ── 메인 푸터 영역 ── */}
+      <div
+        className="mt-[65vh] w-full border-t"
+        style={{
+          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+          background: isDark
+            ? 'linear-gradient(180deg, #0d0d12 0%, #0b0b0f 100%)'
+            : 'linear-gradient(180deg, #f4f4f6 0%, #efefef 100%)',
+        }}
+      >
+        <div className="mx-auto w-full max-w-[1180px] py-[5.6rem] pl-24 pr-4 md:pl-36 md:pr-6">
+
+          {/* 3컬럼 그리드 */}
+          <div className="grid grid-cols-1 gap-[4rem] md:grid-cols-2 lg:grid-cols-3">
+
+            {/* 좌: 로고 + 설명 */}
+            <div className="flex flex-col gap-[1.6rem]">
+              <Logo className="h-[3rem] w-auto" style={{ maxWidth: '120px' }} />
+              <p className="text-[13px] leading-[1.8] text-[var(--ui-500)]">
+                GitHub 분석 기반 개발자 · PM 매칭 플랫폼<br />나에게 맞는 팀원을 만나보세요.
+              </p>
             </div>
-          ))}
 
-          {terms.length > 0 ? <div className="h-[1.2rem] w-[1px] bg-[var(--ui-600)] opacity-30" /> : null}
+            {/* 가운데: 서비스 링크 */}
+            <div className="flex flex-col gap-[1.6rem]">
+              <p
+                className="text-[11px] font-semibold uppercase tracking-[0.12em]"
+                style={{ color: isDark ? 'rgba(255,255,255,0.35)' : 'var(--ui-400)' }}
+              >
+                서비스
+              </p>
+              <ul className="flex flex-col gap-[1.2rem]">
+                {[
+                  { label: '프로젝트/개발자 보기', path: '/search' },
+                  { label: '추천 프로젝트/개발자', path: '/recommend' },
+                  { label: '리포트', path: '/report' },
+                  { label: '서비스 소개', path: '/service' },
+                ].map(({ label, path }) => (
+                  <li key={path}>
+                    <button
+                      type="button"
+                      onClick={() => navigate(path)}
+                      className="group text-[13px] transition-colors duration-200"
+                      style={{ color: isDark ? 'rgba(255,255,255,0.55)' : 'var(--ui-600)' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'rgba(140,136,255,0.85)')}
+                      onMouseLeave={e => (e.currentTarget.style.color = isDark ? 'rgba(255,255,255,0.55)' : 'var(--ui-600)')}
+                    >
+                      {label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <a
-            href="/service"
-            rel="noopener noreferrer"
-            className="Label1 cursor-pointer text-[var(--ui-600)] transition-colors hover:text-[var(--ui-800)]"
+            {/* 우: 정책 및 정보 */}
+            <div className="flex flex-col gap-[1.6rem]">
+              <p
+                className="text-[11px] font-semibold uppercase tracking-[0.12em]"
+                style={{ color: isDark ? 'rgba(255,255,255,0.35)' : 'var(--ui-400)' }}
+              >
+                정책
+              </p>
+              <ul className="flex flex-col gap-[1.2rem]">
+                {[
+                  { label: '이용약관', path: '/terms/service' },
+                  { label: '개인정보처리방침', path: '/terms/privacy' },
+                ].map(({ label, path }) => (
+                  <li key={path}>
+                    <button
+                      type="button"
+                      onClick={() => navigate(path)}
+                      className="text-[13px] transition-colors duration-200"
+                      style={{ color: isDark ? 'rgba(255,255,255,0.55)' : 'var(--ui-600)' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'rgba(140,136,255,0.85)')}
+                      onMouseLeave={e => (e.currentTarget.style.color = isDark ? 'rgba(255,255,255,0.55)' : 'var(--ui-600)')}
+                    >
+                      {label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* 하단 구분선 + 사업자 정보 */}
+          <div
+            className="mt-[4.8rem] border-t pt-[3.2rem]"
+            style={{ borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }}
           >
-            서비스 소개
-          </a>
-        </div>
+            <div className="flex flex-col gap-[0.8rem]">
+              <p
+                className="text-[11px] leading-[1.9]"
+                style={{ color: isDark ? 'rgba(255,255,255,0.25)' : 'var(--ui-400)' }}
+              >
+                사업체명 : 디바인(DeVine) &nbsp;|&nbsp; 대표자명 : 정우주 &nbsp;|&nbsp; 사업자 등록번호 : 743-57-01003
+              </p>
+              <p
+                className="text-[11px] leading-[1.9]"
+                style={{ color: isDark ? 'rgba(255,255,255,0.25)' : 'var(--ui-400)' }}
+              >
+                이메일 : projectdevine2025@gmail.com &nbsp;|&nbsp; 주소 : 서울특별시 마포구 와우산로 105, 5층-J433호 &nbsp;|&nbsp; 도메인: devine.kr
+              </p>
+              <p
+                className="mt-[0.4rem] text-[11px]"
+                style={{ color: isDark ? 'rgba(255,255,255,0.2)' : 'var(--ui-300)' }}
+              >
+                © 2025 DeVine. All rights reserved.
+              </p>
+            </div>
+          </div>
 
-        <div className="flex-col-center gap-[0.5rem]">
-          <p className="Caption1 font-medium text-[11px] text-[var(--ui-600)]">Contact</p>
-          <p className="Caption1 text-center font-medium text-[11px] text-[var(--ui-600)]">
-            Copyright Devine. All rights reserved
-          </p>
         </div>
       </div>
     </footer>
