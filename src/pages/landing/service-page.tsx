@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import {useNavigate} from 'react-router-dom';
 import { landingImages } from '@assets/images/landing';
 import {cn} from '@libs/cn';
 
@@ -52,7 +53,8 @@ const RevealText = ({ children, direction = 'left', className, delayMs = 0 }: Re
 
 const ServicePage = () => {
   const landingImage: string[] = Object.values(landingImages);
-  const textColor = "text-[#F8F9FB]"
+  const textColor = "text-[#F8F9FB]";
+  const navigate = useNavigate();
 
   useEffect(() => {
     const rootEl = document.getElementById('root') as HTMLElement | null;
@@ -205,9 +207,24 @@ const ServicePage = () => {
               코드로 증명하는 사이드 프로젝트 매칭, <span className="font-bold">DeVine</span>입니다.
             </p>
           </RevealText>
-          <div className="flex h-290 w-full justify-end">
+          <div className="flex h-180 w-full justify-end">
             <RevealImage src={landingImage[10]} className="h-200 w-200" alt="프로젝트 분석 리포트"/>
           </div>
+        </section>
+
+        <section className="mb-[20rem] h-150 flex-col-center gap-[5rem]">
+          <RevealText direction="left" className="flex-col items-center gap-[4rem]" delayMs={0}>
+            <div className="flex-col-center gap-[1.2rem]">
+              <p className="text-center text-4xl text-white">더 이상 불완전한 정보로 시간 낭비하지 마세요</p>
+              <p className="text-center text-4xl text-white">코드로 증명된 매칭을 지금 바로 경험해보세요.</p>
+            </div>
+          </RevealText>
+          <RevealText direction="right" delayMs={0}>
+            <button type="button" className="cursor-pointer rounded-full bg-primary px-[6rem] py-[1.6rem] font-bold text-2xl text-white" onClick={() => navigate("/")}>
+              Devine 시작하기
+            </button>
+          </RevealText>
+
         </section>
       </div>
     </div>
