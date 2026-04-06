@@ -27,11 +27,14 @@ export default function GithubRepoListSkeleton({
   }
 
   return (
-    <div className="flex flex-col gap-[0.8rem]">
+    <div className="flex flex-col gap-[0.6rem]">
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="flex gap-[1.6rem] p-[1.2rem]">
+        <div
+          key={i}
+          className="flex gap-[1.4rem] rounded-xl border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[1.4rem]"
+        >
           <Skeleton className="h-9 w-9 shrink-0 rounded-lg" />
-          <div className="flex min-w-0 flex-1 flex-col gap-[0.4rem]">
+          <div className="flex min-w-0 flex-1 flex-col gap-[0.45rem]">
             <Skeleton className="h-7 w-[min(60%,16rem)] rounded-md" />
             <Skeleton className="h-5 w-[min(95%,24rem)] rounded-md" />
           </div>

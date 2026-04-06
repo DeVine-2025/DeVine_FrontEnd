@@ -2,6 +2,7 @@ import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import InformationIcon from '@assets/icons/information.svg?react';
 import { cn } from '@libs/cn';
+import { useThemeStore } from '@store/theme';
 
 type CheckboxProps = {
   title: string;
@@ -12,31 +13,67 @@ type CheckboxProps = {
 };
 
 const CheckBox = ({ title, description, isExist, isActive, onClick }: CheckboxProps) => {
+  const { theme } = useThemeStore();
+  const isLight = theme === 'light';
+
   return (
-    <div className="flex gap-[1.6rem] rounded-xl p-[1.2rem] transition-colors duration-200 hover:bg-[var(--ui-50)]">
-      <button
-        type="button"
-        onClick={onClick}
-        className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg"
-        aria-pressed={isActive}
-      >
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex w-full items-start gap-[1.2rem] rounded-[16px] border px-[1.6rem] py-[1.4rem] text-left transition-all duration-200',
+        isActive
+          ? 'border-[rgba(78,73,255,0.5)] bg-[rgba(78,73,255,0.1)]'
+          : isLight
+            ? 'border-[var(--ui-200)] bg-white hover:border-[var(--ui-300)] hover:bg-[var(--ui-50)]'
+            : 'border-white/[0.07] bg-white/[0.03] hover:border-white/[0.12] hover:bg-white/[0.05]',
+      )}
+      aria-pressed={isActive}
+    >
+      <span className="mt-[0.15rem] inline-flex h-9 w-9 shrink-0 items-center justify-center">
         {isActive ? (
           <CheckboxCheckedIcon className="h-9 w-9" aria-hidden />
         ) : (
           <CheckboxUncheckedIcon className="h-9 w-9" aria-hidden />
         )}
-      </button>
-      <div className="flex-col gap-[0.4rem]">
-        {isExist && (
+      </span>
+
+      <div className="flex min-w-0 flex-1 flex-col gap-[0.5rem]">
+        {isExist ? (
           <div className="flex items-center gap-[0.4rem]">
             <InformationIcon />
-            <p className="Caption1 text-[var(--badge-text-primary)]">이미 생성된 리포트가 있어요</p>
+            <span
+              className={cn(
+                'text-[11px] font-semibold',
+                isLight ? 'text-[#4E49FF]' : 'text-[var(--badge-text-primary)]',
+              )}
+            >
+              이미 생성된 리포트가 있어요
+            </span>
           </div>
-        )}
-        <p className="text-3xl text-[var(--ui-900)]">{title}</p>
-        <p className="text-2xl text-[var(--ui-600)]">{description}</p>
+        ) : null}
+        <p
+          className={cn(
+            'truncate text-[1.5rem] font-semibold leading-snug',
+            isActive
+              ? isLight ? 'text-[#4E49FF]' : 'text-[rgba(140,136,255,1)]'
+              : isLight ? 'text-[var(--ui-900)]' : 'text-white/90',
+          )}
+        >
+          {title}
+        </p>
+        {description ? (
+          <p
+            className={cn(
+              'line-clamp-1 text-[1.3rem]',
+              isLight ? 'text-[var(--ui-500)]' : 'text-white/35',
+            )}
+          >
+            {description}
+          </p>
+        ) : null}
       </div>
-    </div>
+    </button>
   );
 };
 
