@@ -1,32 +1,61 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import TermsDetailScreen from '@pages/signup/TermsDetailScreen';
-import { TERMS_CONTENT } from '@pages/signup/terms-content';
+import { getMemberTerms, type MemberTermsItem } from '@apis/terms';
 
 const TermsPage = () => {
   const navigate = useNavigate();
-  const { type } = useParams();
-
-  const terms = useMemo(() => {
-    if (type === 'service' || type === 'privacy') {
-      return TERMS_CONTENT[type];
-    }
-    return null;
-  }, [type]);
+  const { termsId } = useParams();
+  const [selectedTerms, setSelectedTerms] = useState<MemberTermsItem | null>(null);
+  const [isTermsLoading, setIsTermsLoading] = useState(true);
 
   useEffect(() => {
-    if (!terms) {
+    const controller = new AbortController();
+    const parsedId = Number(termsId);
+    let active = true;
+    setIsTermsLoading(true);
+
+    if (!Number.isFinite(parsedId)) {
+      setSelectedTerms(null);
+      setIsTermsLoading(false);
+      return () => controller.abort();
+    }
+
+    void getMemberTerms(controller.signal)
+      .then((items) => {
+        if (!active) return;
+        const found = items.find((item) => item.termsId === parsedId) ?? null;
+        setSelectedTerms(found);
+      })
+      .catch((error) => {
+        if (!active || (error as Error)?.name === 'AbortError') return;
+        console.warn('[terms-page] API terms fetch failed', error);
+        setSelectedTerms(null);
+      })
+      .finally(() => {
+        if (!active) return;
+        setIsTermsLoading(false);
+      });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [termsId]);
+
+  useEffect(() => {
+    if (!isTermsLoading && !selectedTerms) {
       navigate('/', { replace: true });
     }
-  }, [navigate, terms]);
+  }, [isTermsLoading, navigate, selectedTerms]);
 
-  if (!terms) return null;
+  if (isTermsLoading || !selectedTerms) return null;
 
   return (
     <TermsDetailScreen
       open
-      title={terms.title}
-      content={terms.content}
+      title={selectedTerms.title}
+      content={selectedTerms.content}
       onClose={() => navigate(-1)}
     />
   );

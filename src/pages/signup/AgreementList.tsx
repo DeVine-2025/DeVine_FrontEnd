@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Lottie from 'lottie-react';
 import confettiAnimation from './Confetti.json';
 import LogoDark from '@assets/icons/logo-dark.svg?react';
@@ -15,7 +15,7 @@ import AdditionalProfileSection from './AdditionalProfileSection';
 import GithubRepoSelectionSection from './GithubRepoSelectionSection';
 import ProfilePage from '@pages/login/profile-page';
 import TermsDetailScreen from '@pages/signup/TermsDetailScreen';
-import { TERMS_CONTENT, TERMS_IDS } from './terms-content';
+import { getMemberTerms, type MemberTermsItem } from '@apis/terms';
 
 type BasicProfileData = {
   nickname: string;
@@ -39,9 +39,10 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
   const { user } = useUser();
   const onboardingConfirmedRef = useRef(false);
   const logoSubmitHandlerRef = useRef<null | (() => void)>(null);
-  const [serviceAgreed, setServiceAgreed] = useState(false);
-  const [privacyAgreed, setPrivacyAgreed] = useState(false);
-  const [activeTermsKey, setActiveTermsKey] = useState<keyof typeof TERMS_CONTENT | null>(null);
+  const [terms, setTerms] = useState<MemberTermsItem[]>([]);
+  const [agreedByTermsId, setAgreedByTermsId] = useState<Record<number, boolean>>({});
+  const [activeTermsId, setActiveTermsId] = useState<number | null>(null);
+  const [isTermsLoading, setIsTermsLoading] = useState(true);
   const [basicProfile, setBasicProfile] = useState<BasicProfileData>({
     nickname: '',
     imageUrl: null,
@@ -57,19 +58,50 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
     'agreements' | 'basicProfile' | 'profilePage' | 'additionalProfile' | 'signupComplete' | 'githubRepos'
   >('agreements');
 
+  const requiredTerms = useMemo(() => terms.filter((term) => term.required), [terms]);
   const requiredAgreed = useMemo(
-    () => serviceAgreed && privacyAgreed,
-    [serviceAgreed, privacyAgreed],
+    () =>
+      requiredTerms.length > 0 && requiredTerms.every((term) => agreedByTermsId[term.termsId] === true),
+    [agreedByTermsId, requiredTerms],
   );
-  const allChecked = useMemo(() => serviceAgreed && privacyAgreed, [serviceAgreed, privacyAgreed]);
+  const allChecked = useMemo(
+    () => terms.length > 0 && terms.every((term) => agreedByTermsId[term.termsId] === true),
+    [agreedByTermsId, terms],
+  );
+  const activeTerm = useMemo(
+    () => terms.find((term) => term.termsId === activeTermsId) ?? null,
+    [activeTermsId, terms],
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setIsTermsLoading(true);
+
+    void getMemberTerms(controller.signal)
+      .then((items) => {
+        setTerms(items);
+        setAgreedByTermsId(Object.fromEntries(items.map((item) => [item.termsId, false])));
+      })
+      .catch((error) => {
+        if ((error as Error)?.name !== 'AbortError') {
+          console.warn('[terms] API terms fetch failed', error);
+        }
+        setTerms([]);
+        setAgreedByTermsId({});
+      })
+      .finally(() => {
+        setIsTermsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
 
   const handleAllChange = (checked: boolean) => {
-    setServiceAgreed(checked);
-    setPrivacyAgreed(checked);
+    setAgreedByTermsId(Object.fromEntries(terms.map((term) => [term.termsId, checked])));
   };
 
   const handleConfirm = () => {
-    if (!requiredAgreed) {
+    if (!requiredAgreed || terms.length === 0) {
       return;
     }
     setStep('basicProfile');
@@ -211,28 +243,30 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
         </div>
       ) : step === 'additionalProfile' ? (
         <div className="mx-auto mt-[104px] w-full max-w-[632px]">
-          <AdditionalProfileSection
-            onBack={() => setStep('profilePage')}
-            setLogoSubmitHandler={setAdditionalLogoHandler}
-            signupData={{
-              agreements: [
-                { termsId: TERMS_IDS.service, agreed: serviceAgreed },
-                { termsId: TERMS_IDS.privacy, agreed: privacyAgreed },
-              ],
-              nickname: basicProfile.nickname,
-              imageUrl: basicProfile.imageUrl,
-              mainType: profileInfo.mainType,
-              categoryIds: profileInfo.categoryIds,
-            }}
-            onComplete={loginProvider === 'github' ? undefined : confirmOnboardingOnce}
-            onNext={() => {
-              if (loginProvider === 'github') {
-                setStep('signupComplete');
-              } else {
-                void confirmOnboardingOnce().then(() => navigate('/'));
-              }
-            }}
-          />
+          {terms.length > 0 ? (
+            <AdditionalProfileSection
+              onBack={() => setStep('profilePage')}
+              setLogoSubmitHandler={setAdditionalLogoHandler}
+              signupData={{
+                agreements: terms.map((term) => ({
+                  termsId: term.termsId,
+                  agreed: agreedByTermsId[term.termsId] === true,
+                })),
+                nickname: basicProfile.nickname,
+                imageUrl: basicProfile.imageUrl,
+                mainType: profileInfo.mainType,
+                categoryIds: profileInfo.categoryIds,
+              }}
+              onComplete={loginProvider === 'github' ? undefined : confirmOnboardingOnce}
+              onNext={() => {
+                if (loginProvider === 'github') {
+                  setStep('signupComplete');
+                } else {
+                  void confirmOnboardingOnce().then(() => navigate('/'));
+                }
+              }}
+            />
+          ) : null}
         </div>
       ) : (
       <div className="mx-auto mt-[104px] flex h-[660px] w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] px-8 pb-20 pt-8 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
@@ -262,65 +296,48 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
             </button>
 
             <div className="flex flex-col gap-4 rounded-2xl border border-[var(--ui-100)] px-6 py-5">
-              <div className="mt-1 flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  role="checkbox"
-                  aria-checked={serviceAgreed}
-                  onClick={() => setServiceAgreed((prev) => !prev)}
-                  className="flex items-center gap-3 text-left"
-                >
-                  {serviceAgreed ? (
-                    <CheckboxCheckedIcon
-                      className="h-8 w-8 shrink-0 text-[var(--color-primary)]"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <CheckboxUncheckedIcon className="h-8 w-8 shrink-0" aria-hidden="true" />
-                  )}
-                  <span className="text-[16px] font-semibold text-[var(--ui-900)]">
-                    서비스 이용약관 동의 (필수)
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTermsKey('service')}
-                  className="cursor-pointer text-[var(--ui-400)] hover:text-[var(--ui-600)]"
-                  aria-label="서비스 이용약관 보기"
-                >
-                  <ChevronLeftIcon className="h-5 w-5 rotate-180" aria-hidden="true" />
-                </button>
-              </div>
-              <div className="mt-4 flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  role="checkbox"
-                  aria-checked={privacyAgreed}
-                  onClick={() => setPrivacyAgreed((prev) => !prev)}
-                  className="flex items-center gap-3 text-left"
-                >
-                  {privacyAgreed ? (
-                    <CheckboxCheckedIcon
-                      className="h-8 w-8 shrink-0 text-[var(--color-primary)]"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <CheckboxUncheckedIcon className="h-8 w-8 shrink-0" aria-hidden="true" />
-                  )}
-                  <span className="text-[16px] font-semibold text-[var(--ui-900)]">
-                    개인정보 처리방침 동의 (필수)
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTermsKey('privacy')}
-                  className="cursor-pointer text-[var(--ui-400)] hover:text-[var(--ui-600)]"
-                  aria-label="개인정보 처리방침 보기"
-                >
-                  <ChevronLeftIcon className="h-5 w-5 rotate-180" aria-hidden="true" />
-                </button>
-              </div>
-
+              {terms.map((term, index) => {
+                const checked = agreedByTermsId[term.termsId] === true;
+                return (
+                  <div
+                    key={term.termsId}
+                    className={`${index === 0 ? 'mt-1' : 'mt-4'} flex items-center justify-between gap-3`}
+                  >
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={checked}
+                      onClick={() =>
+                        setAgreedByTermsId((prev) => ({
+                          ...prev,
+                          [term.termsId]: !checked,
+                        }))
+                      }
+                      className="flex items-center gap-3 text-left"
+                    >
+                      {checked ? (
+                        <CheckboxCheckedIcon
+                          className="h-8 w-8 shrink-0 text-[var(--color-primary)]"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <CheckboxUncheckedIcon className="h-8 w-8 shrink-0" aria-hidden="true" />
+                      )}
+                      <span className="text-[16px] font-semibold text-[var(--ui-900)]">
+                        {term.title} ({term.required ? '필수' : '선택'})
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTermsId(term.termsId)}
+                      className="cursor-pointer text-[var(--ui-400)] hover:text-[var(--ui-600)]"
+                      aria-label={`${term.title} 보기`}
+                    >
+                      <ChevronLeftIcon className="h-5 w-5 rotate-180" aria-hidden="true" />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -329,9 +346,9 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={!requiredAgreed}
+            disabled={!requiredAgreed || terms.length === 0 || isTermsLoading}
             className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
-              requiredAgreed
+              requiredAgreed && terms.length > 0 && !isTermsLoading
                 ? 'cursor-pointer bg-[var(--color-primary)] text-white'
                 : 'cursor-not-allowed bg-[var(--ui-50)] text-[var(--ui-300)]'
             }`}
@@ -382,10 +399,10 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
         </div>
       )}
       <TermsDetailScreen
-        open={activeTermsKey !== null}
-        title={activeTermsKey ? TERMS_CONTENT[activeTermsKey].title : ''}
-        content={activeTermsKey ? TERMS_CONTENT[activeTermsKey].content : ''}
-        onClose={() => setActiveTermsKey(null)}
+        open={activeTerm !== null}
+        title={activeTerm?.title ?? ''}
+        content={activeTerm?.content ?? ''}
+        onClose={() => setActiveTermsId(null)}
       />
     </div>
   );

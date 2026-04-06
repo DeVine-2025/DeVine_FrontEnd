@@ -24,8 +24,7 @@ const RootLayout = () => {
   const [onboardingIncomplete, setOnboardingIncomplete] = useState(false);
   const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
   const isSsoCallbackRoute = location.pathname === '/sso-callback';
-  const hideFooterPaths = ['/signup', '/terms/service', '/terms/privacy'];
-  const shouldHideFooter = hideFooterPaths.includes(location.pathname);
+  const shouldHideFooter = location.pathname === '/signup' || location.pathname.startsWith('/terms/');
   const localOnboardingComplete = (() => {
     try {
       return user?.id ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true' : false;
