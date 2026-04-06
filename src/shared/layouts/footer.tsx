@@ -10,11 +10,11 @@ const Footer = () => {
   const Logo = isDark ? LightLogo : DarkLogo;
 
   return (
-    <footer className="w-full">
+    <footer className="relative left-1/2 w-screen -translate-x-1/2">
 
       {/* ── 메인 푸터 영역 ── */}
       <div
-        className="mt-[65vh] w-full border-t"
+        className="w-full border-t"
         style={{
           borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
           background: isDark
