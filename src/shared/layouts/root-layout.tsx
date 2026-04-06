@@ -195,7 +195,7 @@ const RootLayout = () => {
         </div>
       </main>
       {!isSsoCallbackRoute && !shouldHideFooter && (
-        <div className={isReportPage ? 'mt-[35vh]' : ''}>
+        <div className={isReportPage ? 'mt-[45vh]' : ''}>
           <Footer />
         </div>
       )}
