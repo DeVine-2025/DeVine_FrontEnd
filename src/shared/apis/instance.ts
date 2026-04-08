@@ -9,9 +9,9 @@ export const setTokenGetter = (fn: TokenGetter) => {
   getToken = fn;
 };
 
-export const createAxiosInstance = (): AxiosInstance => {
+const createAuthenticatedInstance = (baseURL: string): AxiosInstance => {
   const instance = axios.create({
-    baseURL: BASE_URL,
+    baseURL,
     withCredentials: true,
   });
 
@@ -28,4 +28,12 @@ export const createAxiosInstance = (): AxiosInstance => {
   return instance;
 };
 
+export const createAxiosInstance = (): AxiosInstance => {
+  return createAuthenticatedInstance(BASE_URL);
+};
+
 export const axiosInstance = createAxiosInstance();
+
+export const chatAxiosInstance = import.meta.env.VITE_CHAT_API_BASE_URL
+  ? createAuthenticatedInstance(import.meta.env.VITE_CHAT_API_BASE_URL)
+  : createAuthenticatedInstance(BASE_URL);
