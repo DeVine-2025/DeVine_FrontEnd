@@ -5,6 +5,7 @@ import BookmarkButton from '@components/common/BookmarkButton';
 import LoadingSpinner from '@components/common/LoadingSpinner';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { useThemeStore } from '@store/theme';
+import { useEffect, useMemo } from 'react';
 import type { BadgeTone } from 'src/shared/types/badgeTone';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
 import ApplyModal from './components/ApplyModal';
@@ -69,7 +70,33 @@ const ProjectDetailPage = () => {
 
 const isApply = appliedStatus === 'PENDING' || appliedStatus === 'PROCESSING';
 const isAccepted = appliedStatus === 'COMPLETED';
-const canApply = appliedStatus == null || appliedStatus === 'CANCELLED';
+  const canApply = appliedStatus == null || appliedStatus === 'CANCELLED';
+
+  const techBadgeSources = useMemo(() => {
+    if (!project?.roles?.length) return [] as string[];
+
+    const sources = new Set<string>();
+    project.roles.forEach((role) => {
+      role.techStacks?.forEach((tech) => {
+        const badge = getTechBadgeByName(tech);
+        if (!badge) return;
+        sources.add(badge.off);
+        sources.add(badge.offDark ?? badge.off);
+      });
+    });
+
+    return Array.from(sources);
+  }, [project?.roles]);
+
+  useEffect(() => {
+    if (techBadgeSources.length === 0) return;
+
+    // Preload both light/dark badge assets to avoid perceived delay when theme switches.
+    techBadgeSources.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, [techBadgeSources]);
 
   const renderTechBadge = (tech: string, key: string) => {
     const badge = getTechBadgeByName(tech);
@@ -84,7 +111,7 @@ const canApply = appliedStatus == null || appliedStatus === 'CANCELLED';
       );
     }
     const src = isDark ? (badge.offDark ?? badge.off) : badge.off;
-    return <img key={key} src={src} alt={`${tech} 배지`} className="h-12 w-auto" loading="lazy" />;
+    return <img key={key} src={src} alt={`${tech} 배지`} className="h-12 w-auto" loading="eager" />;
   };
 
   // ── Early returns ──
