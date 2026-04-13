@@ -1,4 +1,7 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
+import { getChannelKey } from '@apis/payment/payment';
+import { useCompletePayment } from '@apis/payment/payment-queries';
+import { requestPayment, type PgProvider } from '@apis/payment/requestPayment';
 import PassProductButton from './components/PassProductButton';
 import QuantityStepper from './components/QuantityStepper';
 
@@ -6,34 +9,57 @@ const formatWon = (value: number) => `${Math.max(0, value).toLocaleString('ko-KR
 const getPassUnitPrice = (unitCount: 1 | 3) => (unitCount === 1 ? 4900 : 9900);
 const MIN_PASS_ORDER_QUANTITY = 1;
 const MAX_PASS_ORDER_QUANTITY = 99;
-const PAYMENT_PLATFORM_URL = import.meta.env.VITE_PAYMENT_PLATFORM_URL as string | undefined;
+const TICKET_PRODUCT_IDS: Record<1 | 3, number> = {
+  1: 4,
+  3: 5,
+};
 
 const PayPage = () => {
+  const { mutateAsync: completePayment, isPending } = useCompletePayment();
+
   const [selectedUnitCount, setSelectedUnitCount] = useState<1 | 3>(1);
   const [orderQuantity, setOrderQuantity] = useState<number>(MIN_PASS_ORDER_QUANTITY);
-  const selectedUnitPrice = useMemo(
-    () => getPassUnitPrice(selectedUnitCount),
-    [selectedUnitCount],
-  );
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
+  const selectedUnitPrice = useMemo(() => getPassUnitPrice(selectedUnitCount), [selectedUnitCount]);
   const expectedAmount = selectedUnitPrice * orderQuantity;
-  const handleProceedPayment = () => {
-    if (!PAYMENT_PLATFORM_URL) {
-      // TODO: 실제 결제 플랫폼 URL 확정 시 .env에 세팅
-      window.alert('결제 플랫폼 주소가 설정되지 않았어요.');
-      return;
+
+  const handleProceedPayment = async () => {
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+    setPaymentError(null);
+
+    try {
+      const pg: PgProvider = 'NHN_KCP';
+      const { channelKey, pgProvider } = await getChannelKey(pg);
+
+      const paymentId = `payment_${Date.now()}`;
+      const orderName = `이용권 ${selectedUnitCount}개 x${orderQuantity}`;
+
+      await requestPayment({
+        channelKey,
+        pgProvider,
+        paymentId,
+        orderName,
+        totalAmount: expectedAmount,
+      });
+
+      await completePayment({
+        paymentId,
+        orderName,
+        amount: expectedAmount,
+        items: [{ ticketProductId: TICKET_PRODUCT_IDS[selectedUnitCount], quantity: orderQuantity }],
+      });
+
+      window.alert('결제가 완료되었습니다.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '결제 중 오류가 발생했습니다.';
+      setPaymentError(message);
+    } finally {
+      setIsProcessing(false);
     }
-
-    const params = new URLSearchParams({
-      productType: 'REPORT_PASS',
-      passUnitCount: String(selectedUnitCount),
-      quantity: String(orderQuantity),
-      unitPrice: String(selectedUnitPrice),
-      totalAmount: String(expectedAmount),
-      currency: 'KRW',
-    });
-
-    window.location.assign(`${PAYMENT_PLATFORM_URL}?${params.toString()}`);
   };
 
   return (
@@ -77,9 +103,7 @@ const PayPage = () => {
                 </div>
 
                 <div className="flex items-end justify-between">
-                  <p className="Headline1 leading-6 font-semibold text-card-title">
-                    결제 예정 금액
-                  </p>
+                  <p className="Headline1 leading-6 font-semibold text-card-title">결제 예정 금액</p>
                   <p className="Title3 leading-10 font-bold text-[var(--color-primary)]">
                     {formatWon(expectedAmount)}
                   </p>
@@ -94,18 +118,20 @@ const PayPage = () => {
             </p>
           </div>
 
+          {paymentError && <p className="text-sm text-red-500">{paymentError}</p>}
+
           <div className="mt-30 flex justify-end">
             <button
               type="button"
               onClick={handleProceedPayment}
-              className="h-[42px] w-[240px] cursor-pointer rounded-[10px] bg-[var(--color-primary)] Headline1 text-[14px] text-white"
+              disabled={isProcessing || isPending}
+              className="Headline1 h-[42px] w-[240px] cursor-pointer rounded-[10px] bg-[var(--color-primary)] text-[14px] text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
-              결제하기
+              {isProcessing || isPending ? '처리 중...' : '결제하기'}
             </button>
           </div>
         </div>
 
-        {/* 우측 칸 자리 잡아두기 용 더미 div */}
         <div className="hidden lg:block" aria-hidden />
       </div>
     </section>

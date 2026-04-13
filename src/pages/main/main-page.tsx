@@ -496,15 +496,13 @@ const MainPage = () => {
     return [];
   }, [weeklyProjects]);
   const recommendedProfiles = recommendedDevelopers;
-  const recommendTitle = isLoggedIn
-    ? isPm
-      ? hasProjects === false
-        ? '나에게 딱 맞는 추천 프로젝트/개발자'
-        : '나에게 딱 맞는 추천 개발자'
-      : hasReport
+  const recommendTitle = !isLoggedIn
+    ? '나에게 딱 맞는 추천 프로젝트/개발자'
+    : isPm
+      ? '나에게 딱 맞는 추천 개발자'
+      : isDev
         ? '나에게 딱 맞는 추천 프로젝트'
-        : '나에게 딱 맞는 추천 프로젝트/개발자'
-    : '나에게 딱 맞는 추천 프로젝트/개발자';
+        : '나에게 딱 맞는 추천 프로젝트/개발자';
   const loginCtaLabel = !isLoggedIn ? '로그인해야 추천 프로젝트/개발자를 확인할 수 있어요' : null;
   const isEmptyRecommendedProjectsState =
     isLoggedIn && !isPm && hasReport === true && recommendedProjects.length === 0;
