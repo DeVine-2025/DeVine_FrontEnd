@@ -36,6 +36,7 @@ export type ChatRoomSummary = {
 
 export type ChatMessage = {
   messageId: number;
+  roomId?: number;
   senderClerkId: string;
   senderNickname: string;
   senderImage: string | null;
