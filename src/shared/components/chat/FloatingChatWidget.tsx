@@ -2,84 +2,52 @@ import ArrowLeftIcon from '@assets/icons/arrow-left.svg?react';
 import ArrowDownIcon from '@assets/icons/arrow-down.svg?react';
 import ArrowUpIcon from '@assets/icons/arrow-up.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
+import { useChatRoom } from '@hooks/useChatRoom';
+import { useChatRooms } from '@hooks/useChatRooms';
+import { useUnreadChatRoomCount } from '@hooks/useUnreadChatRoomCount';
 import { cn } from '@libs/cn';
 import { useThemeStore } from '@store/theme';
-import { useState } from 'react';
-
-type ChatRoom = {
-  id: string;
-  name: string;
-  preview: string;
-  timeLabel: string;
-  unreadCount?: number;
-};
-
-type ChatMessage = {
-  id: string;
-  type: 'received' | 'sent';
-  sender?: string;
-  time: string;
-  text: string;
-};
-
-const chatRooms: ChatRoom[] = [
-  {
-    id: 'pm-1',
-    name: '닉네임',
-    preview: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
-    timeLabel: '1일 전',
-    unreadCount: 3,
-  },
-  {
-    id: 'dev-1',
-    name: '닉네임',
-    preview: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
-    timeLabel: '3월 23일',
-  },
-];
-
-const chatMessages: Record<string, { dateLabel: string; messages: ChatMessage[] }> = {
-  'pm-1': {
-    dateLabel: '3월 23일 (월)',
-    messages: [
-      {
-        id: 'm1',
-        type: 'received',
-        sender: '닉네임',
-        time: '08:23',
-        text: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
-      },
-      {
-        id: 'm2',
-        type: 'sent',
-        time: '08:23',
-        text: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.메시지 내용이 들어가는 자리입니다.메시지..',
-      },
-    ],
-  },
-  'dev-1': {
-    dateLabel: '3월 23일 (월)',
-    messages: [
-      {
-        id: 'm3',
-        type: 'received',
-        sender: '닉네임',
-        time: '08:23',
-        text: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
-      },
-    ],
-  },
-};
+import { useAuth } from '@clerk/clerk-react';
+import { useMemo, useState } from 'react';
 
 const avatarBaseClassName =
   'shrink-0 rounded-full border shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]';
 
+const formatTime = (iso?: string | null): string => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+};
+
+const formatDateLabel = (iso?: string | null): string => {
+  if (!iso) return '오늘';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '오늘';
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+};
+
 const FloatingChatWidget = () => {
   const { theme } = useThemeStore();
+  const { userId } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const [messageDraft, setMessageDraft] = useState('');
   const isLightTheme = theme === 'light';
+  const { data: roomsData } = useChatRooms({ enabled: isExpanded });
+  const { data: unreadData } = useUnreadChatRoomCount({ enabled: isExpanded });
+  const rooms = roomsData?.rooms ?? [];
+  const selectedRoom = rooms.find((room) => room.roomId === selectedChatId) ?? null;
+  const selectedRoomId = selectedRoom?.roomId ?? 0;
+  const chatRoom = useChatRoom(selectedRoomId, {
+    enabled: isExpanded && selectedRoom != null,
+  });
+  const selectedMessages = chatRoom.messages;
+  const hasMessageDraft = messageDraft.trim().length > 0;
+  const unreadRoomCount = unreadData?.unreadRoomCount ?? 0;
+  const dateLabel = formatDateLabel(selectedMessages[0]?.createdAt ?? null);
+  const isRoomsEmpty = rooms.length === 0;
+  const sendingDisabled = !hasMessageDraft || selectedRoom == null;
 
   const avatarClassName = cn(
     avatarBaseClassName,
@@ -139,10 +107,14 @@ const FloatingChatWidget = () => {
       ? 'bg-[linear-gradient(90deg,rgba(212,218,231,0)_0%,rgba(212,218,231,0.95)_18%,rgba(212,218,231,0.95)_82%,rgba(212,218,231,0)_100%)]'
       : 'bg-[linear-gradient(90deg,rgba(127,133,150,0)_0%,rgba(127,133,150,0.24)_18%,rgba(127,133,150,0.24)_82%,rgba(127,133,150,0)_100%)]',
   );
-
-  const selectedRoom = chatRooms.find((room) => room.id === selectedChatId) ?? null;
-  const selectedChat = selectedChatId ? chatMessages[selectedChatId] : null;
-  const hasMessageDraft = messageDraft.trim().length > 0;
+  const messageRows = useMemo(
+    () =>
+      selectedMessages.map((message) => ({
+        ...message,
+        isMine: Boolean(userId) && message.senderClerkId === userId,
+      })),
+    [selectedMessages, userId],
+  );
 
   const closeWidget = () => {
     setIsExpanded(false);
@@ -152,6 +124,12 @@ const FloatingChatWidget = () => {
 
   const collapseToList = () => {
     setSelectedChatId(null);
+    setMessageDraft('');
+  };
+
+  const handleSend = async () => {
+    if (sendingDisabled) return;
+    await chatRoom.sendMessage(messageDraft);
     setMessageDraft('');
   };
 
@@ -178,6 +156,11 @@ const FloatingChatWidget = () => {
               )}
             >
               <span className="Heading2 flex-1 font-semibold text-[var(--ui-900)]">메시지</span>
+              {unreadRoomCount > 0 ? (
+                <span className="mr-[0.6rem] rounded-full bg-[var(--color-primary)] px-[0.8rem] py-[0.2rem] text-[1.1rem] font-semibold text-white">
+                  {unreadRoomCount}
+                </span>
+              ) : null}
               <span
                 className="mr-[0.2rem] flex size-[2.8rem] items-center justify-center text-[var(--ui-500)]"
               >
@@ -186,7 +169,7 @@ const FloatingChatWidget = () => {
             </button>
           ) : (
             <div id="global-chat-panel" className={cn('flex h-full min-h-0 flex-col', widgetSurfaceClassName)}>
-              {selectedRoom && selectedChat ? (
+              {selectedRoom ? (
                 <>
                   <div className={headerClassName}>
                     <button
@@ -204,7 +187,9 @@ const FloatingChatWidget = () => {
                       )}
                     />
                     <div className="ml-[1.2rem] min-w-0 flex-1 max-[389px]:ml-[0.8rem]">
-                      <span className="Body1 block truncate font-semibold text-[var(--ui-900)]">닉네임</span>
+                      <span className="Body1 block truncate font-semibold text-[var(--ui-900)]">
+                        {selectedRoom.otherMember.nickname}
+                      </span>
                     </div>
                     <button
                       type="button"
@@ -217,40 +202,43 @@ const FloatingChatWidget = () => {
                   </div>
 
                   <div className="px-[1.6rem] py-[1rem] text-center max-[389px]:px-[1.2rem]">
-                    <span className={datePillClassName}>{selectedChat.dateLabel}</span>
+                    <span className={datePillClassName}>{dateLabel}</span>
                   </div>
 
                   <div className="min-h-0 flex-1 overflow-y-auto px-[1.6rem] py-[0.6rem] max-[389px]:px-[1.2rem]">
                     <div className="flex flex-col gap-[1.6rem]">
-                      {selectedChat.messages.map((message) =>
-                        message.type === 'received' ? (
-                          <div key={message.id} className="flex items-end gap-[0.8rem] max-[389px]:gap-[0.6rem]">
+                      {messageRows.length === 0 ? (
+                        <p className="text-center text-[1.2rem] text-[var(--ui-500)]">대화를 시작해보세요.</p>
+                      ) : null}
+                      {messageRows.map((message) =>
+                        !message.isMine ? (
+                          <div key={message.messageId} className="flex items-end gap-[0.8rem] max-[389px]:gap-[0.6rem]">
                             <span
                               className={cn('mb-[0.2rem] size-[2.4rem] max-[389px]:size-[2rem]', avatarClassName)}
                             />
                             <div className="min-w-0 max-w-[70%] max-[389px]:max-w-[68%]">
                               <p className="Caption1 mb-[0.6rem] font-medium text-[var(--ui-500)]">
-                                {message.sender}
+                                {message.senderNickname}
                               </p>
                               <div className={receivedBubbleClassName}>
                                 <p className="text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-[var(--ui-900)]">
-                                  {message.text}
+                                  {message.content}
                                 </p>
                               </div>
                             </div>
                             <span className="shrink-0 pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
-                              {message.time}
+                              {formatTime(message.createdAt)}
                             </span>
                           </div>
                         ) : (
-                          <div key={message.id} className="flex justify-end">
+                          <div key={message.messageId} className="flex justify-end">
                             <div className="flex max-w-[82%] items-end gap-[0.6rem] max-[389px]:max-w-[86%] max-[389px]:gap-[0.5rem]">
                               <span className="shrink-0 pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
-                                {message.time}
+                                {formatTime(message.createdAt)}
                               </span>
                               <div className="rounded-[1.6rem] rounded-br-[0.6rem] bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_58%,#7C79FF_100%)] px-[1.2rem] py-[0.9rem] max-[389px]:px-[1rem] shadow-[0_1.2rem_2.4rem_rgba(78,73,255,0.22)]">
                                 <p className="text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-white">
-                                  {message.text}
+                                  {message.content}
                                 </p>
                               </div>
                             </div>
@@ -267,16 +255,24 @@ const FloatingChatWidget = () => {
                           type="text"
                           value={messageDraft}
                           onChange={(event) => setMessageDraft(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                              void handleSend();
+                            }
+                          }}
                           placeholder="메시지 보내기"
                           className="Label1 w-full bg-transparent font-medium text-[var(--ui-900)] placeholder:text-[var(--ui-400)] outline-none"
                         />
                       </div>
                       <button
                         type="button"
-                        disabled={!hasMessageDraft}
+                        onClick={() => {
+                          void handleSend();
+                        }}
+                        disabled={sendingDisabled}
                         className={cn(
                           'flex size-[3rem] cursor-pointer items-center justify-center rounded-full transition-[transform,box-shadow] duration-200 max-[389px]:size-[2.8rem] disabled:cursor-default',
-                          hasMessageDraft
+                          !sendingDisabled
                             ? 'bg-[var(--color-primary)] text-[var(--ui-50)] shadow-[0_1rem_2rem_rgba(78,73,255,0.28)] hover:scale-[1.03]'
                             : 'bg-[var(--ui-200)] text-[var(--ui-50)] shadow-none',
                         )}
@@ -313,12 +309,17 @@ const FloatingChatWidget = () => {
 
                   <div className="min-h-0 flex-1 overflow-y-auto px-[0.8rem] py-[0.8rem] max-[389px]:px-[0.6rem]">
                     <div className="flex flex-col gap-[0.2rem]">
-                      {chatRooms.map((room) => (
+                      {isRoomsEmpty ? (
+                        <p className="py-[2.4rem] text-center text-[1.2rem] text-[var(--ui-500)]">
+                          참여 중인 채팅방이 없습니다.
+                        </p>
+                      ) : null}
+                      {rooms.map((room) => (
                         <button
-                          key={room.id}
+                          key={room.roomId}
                           type="button"
                           onClick={() => {
-                            setSelectedChatId(room.id);
+                            setSelectedChatId(room.roomId);
                             setMessageDraft('');
                           }}
                           className={listItemClassName}
@@ -332,17 +333,17 @@ const FloatingChatWidget = () => {
                           <div className="ml-[1.2rem] min-w-0 flex-1 pr-[4rem] max-[389px]:ml-[0.8rem] max-[389px]:pr-[3.6rem]">
                             <div className="flex items-start gap-[0.8rem] max-[389px]:gap-[0.6rem]">
                               <span className="Label1 min-w-0 truncate font-semibold text-[var(--ui-900)]">
-                                {room.name}
+                                {room.otherMember.nickname}
                               </span>
                               <span className="ml-auto shrink-0 text-right text-[1.3rem] leading-[1.429] tracking-[0.0145em] text-[var(--ui-600)] max-[389px]:text-[1.2rem]">
-                                {room.timeLabel}
+                                {formatDateLabel(room.lastMessageAt)}
                               </span>
                             </div>
                             <p className="mt-[0.5rem] line-clamp-2 text-[1.2rem] leading-[1.45] tracking-[0.0252em] text-[var(--ui-500)]">
-                              {room.preview}
+                              {room.lastMessage ?? '메시지가 없습니다.'}
                             </p>
                           </div>
-                          {room.unreadCount ? (
+                          {room.unreadCount > 0 ? (
                             <span className="absolute top-[3.8rem] right-[1.2rem] flex min-w-[2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_100%)] px-[0.7rem] py-[0.2rem] text-[1.1rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.8rem_1.6rem_rgba(78,73,255,0.25)] max-[389px]:top-[3.5rem] max-[389px]:right-[1rem]">
                               {room.unreadCount}
                             </span>
