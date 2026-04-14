@@ -192,39 +192,39 @@ const MyInfoSetting = () => {
         <Switch isOn={isOnSecond} setIsOn={setIsOnSecond} />
       </div>
 
-      <div className="flex-col gap-[2.4rem]">
-        <div className="flex justify-between items-center">
-          <SettingMenu title={"계정 설정"} description={"연동된 계정"} />
-        </div>
-        <div className="flex justify-between gap-[20rem]">
-          <div className="flex flex-1 items-center justify-between">
-            <div className="flex items-center gap-[1.6rem]">
-              <GithubIcon className="w-11 h-11" />
-              <p className="text-ui-1000 text-2xl">GitHub</p>
-            </div>
-            <LabelButton
-              content={hasGithub ? '연동완료' : loadingProvider === 'github' ? '연동중' : '연동하기'}
-              isConnect={!!hasGithub}
-              disabled={loadingProvider !== null || !isLoaded}
-              onClick={() => void linkExternalAccount('github')}
-            />
-          </div>
-          <div className="flex flex-1 items-center justify-between">
-            <div className="flex items-center gap-[1.6rem]">
-              <div className="p-[1rem] border border-ui-100 rounded-full flex-col-center">
-                <GoogleIcon className="w-6 h-6 " />
-              </div>
-              <p className="text-ui-1000 text-2xl">Google</p>
-            </div>
-            <LabelButton
-              content={hasGoogle ? '연동완료' : loadingProvider === 'google' ? '연동중' : '연동하기'}
-              isConnect={!!hasGoogle}
-              disabled={loadingProvider !== null || !isLoaded}
-              onClick={() => void linkExternalAccount('google')}
-            />
-          </div>
-        </div>
-      </div>
+      {/*<div className="flex-col gap-[2.4rem]">*/}
+      {/*  <div className="flex justify-between items-center">*/}
+      {/*    <SettingMenu title={"계정 설정"} description={"연동된 계정"} />*/}
+      {/*  </div>*/}
+      {/*  <div className="flex justify-between gap-[20rem]">*/}
+      {/*    <div className="flex flex-1 items-center justify-between">*/}
+      {/*      <div className="flex items-center gap-[1.6rem]">*/}
+      {/*        <GithubIcon className="w-11 h-11" />*/}
+      {/*        <p className="text-ui-1000 text-2xl">GitHub</p>*/}
+      {/*      </div>*/}
+      {/*      <LabelButton*/}
+      {/*        content={hasGithub ? '연동완료' : loadingProvider === 'github' ? '연동중' : '연동하기'}*/}
+      {/*        isConnect={!!hasGithub}*/}
+      {/*        disabled={loadingProvider !== null || !isLoaded}*/}
+      {/*        onClick={() => void linkExternalAccount('github')}*/}
+      {/*      />*/}
+      {/*    </div>*/}
+      {/*    <div className="flex flex-1 items-center justify-between">*/}
+      {/*      <div className="flex items-center gap-[1.6rem]">*/}
+      {/*        <div className="p-[1rem] border border-ui-100 rounded-full flex-col-center">*/}
+      {/*          <GoogleIcon className="w-6 h-6 " />*/}
+      {/*        </div>*/}
+      {/*        <p className="text-ui-1000 text-2xl">Google</p>*/}
+      {/*      </div>*/}
+      {/*      <LabelButton*/}
+      {/*        content={hasGoogle ? '연동완료' : loadingProvider === 'google' ? '연동중' : '연동하기'}*/}
+      {/*        isConnect={!!hasGoogle}*/}
+      {/*        disabled={loadingProvider !== null || !isLoaded}*/}
+      {/*        onClick={() => void linkExternalAccount('google')}*/}
+      {/*      />*/}
+      {/*    </div>*/}
+      {/*  </div>*/}
+      {/*</div>*/}
     </div>
   );
 };
