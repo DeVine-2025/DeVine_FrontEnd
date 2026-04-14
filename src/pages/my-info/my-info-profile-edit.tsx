@@ -28,6 +28,7 @@ type MyInfoProfileItemProps = {
   text?: string;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
   setText?: (text: string) => void;
 };
 
@@ -36,13 +37,14 @@ const MyInfoProfileItem = ({
   title,
   text,
   setText,
+  disabled,
   placeholder,
   className,
 }: MyInfoProfileItemProps) => {
   return (
     <div className="flex-col gap-[1.6rem]">
       <p className={cn('font-bold text-2xl text-ui-900', className)}>{title}</p>
-      <MyInfoInput text={text} setText={setText} type={type} placeholder={placeholder} />
+      <MyInfoInput text={text} setText={setText} type={type} placeholder={placeholder} disabled={disabled} />
     </div>
   );
 };
@@ -471,6 +473,7 @@ const MyInfoProfileEdit = () => {
                 title={'닉네임'}
                 text={nickname}
                 setText={setNickname}
+                disabled={true}
               />
               <hr className="border-ui-200" />
               <div className="flex-col gap-[2.4rem]">
