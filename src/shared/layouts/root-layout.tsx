@@ -1,4 +1,5 @@
 import { useUser } from '@clerk/clerk-react';
+import FloatingChatWidget from '@components/chat/FloatingChatWidget';
 import Footer from '@layouts/footer';
 import Header from '@layouts/header';
 import { trackPageView } from '@libs/analytics';
@@ -36,6 +37,11 @@ const RootLayout = () => {
   })();
   const isOnboardingCompleteNow =
     user?.unsafeMetadata?.onboardingComplete === true || localOnboardingComplete;
+  const isAuthOnlyRoute =
+    location.pathname === '/signup' ||
+    location.pathname === '/login' ||
+    location.pathname === '/sso-callback';
+  const showFloatingChat = Boolean(user) && isOnboardingCompleteNow && !isAuthOnlyRoute;
   const shouldRedirectToSignupImmediately =
     isLoaded &&
     location.pathname === '/' &&
@@ -199,6 +205,8 @@ const RootLayout = () => {
           <Footer />
         </div>
       )}
+
+      {showFloatingChat ? <FloatingChatWidget /> : null}
 
       {showOnboardingModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">

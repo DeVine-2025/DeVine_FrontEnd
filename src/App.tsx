@@ -5,7 +5,6 @@ import { RouterProvider } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import { useEffect } from 'react';
 import { setTokenGetter } from '@apis/instance';
-import FloatingChatWidget from '@components/chat/FloatingChatWidget';
 
 function App() {
   const { getToken } = useAuth();
@@ -16,10 +15,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <>
-        <RouterProvider router={router} />
-        <FloatingChatWidget />
-      </>
+      <RouterProvider router={router} />
     </QueryClientProvider>
   );
 }

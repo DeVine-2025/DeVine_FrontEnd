@@ -12,10 +12,25 @@ import {
 
 const CHAT_PREFIX = '/api/v1/chat';
 
+/** 서버는 `data` 또는 `result`에 본문을 둘 수 있음 */
+function unwrapChatPayload<T>(body: unknown): T {
+  const raw = body as { data?: T; result?: T };
+  const payload = raw.data !== undefined ? raw.data : raw.result;
+  if (payload === undefined) {
+    throw new ChatApiError(
+      '채팅 API 응답 형식이 올바르지 않습니다. (data/result 필드 없음)',
+      0,
+      'INVALID_CHAT_ENVELOPE',
+      body,
+    );
+  }
+  return payload;
+}
+
 async function handleChatRequest<T>(request: Promise<{ data: ChatApiEnvelope<T> }>): Promise<T> {
   try {
     const { data } = await request;
-    return data.data;
+    return unwrapChatPayload<T>(data);
   } catch (e) {
     if (isAxiosError(e)) {
       const body = e.response?.data as Partial<ChatApiEnvelope<unknown>> | undefined;
