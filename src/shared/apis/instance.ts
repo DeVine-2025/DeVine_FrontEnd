@@ -38,7 +38,3 @@ export const createAxiosInstance = (): AxiosInstance => {
 };
 
 export const axiosInstance = createAxiosInstance();
-
-export const chatAxiosInstance = import.meta.env.VITE_CHAT_API_BASE_URL
-  ? createAuthenticatedInstance(import.meta.env.VITE_CHAT_API_BASE_URL)
-  : createAuthenticatedInstance(BASE_URL);

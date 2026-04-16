@@ -1,5 +1,5 @@
 import { isAxiosError } from 'axios';
-import { chatAxiosInstance } from '@apis/instance';
+import { axiosInstance } from '@apis/instance';
 import {
   ChatApiError,
   type ChatApiEnvelope,
@@ -37,14 +37,14 @@ export type CreateChatRoomBody = {
 /** POST /api/v1/chat/rooms — 방 생성 또는 기존 방 반환 */
 export async function createOrGetChatRoom(body: CreateChatRoomBody): Promise<CreateChatRoomData> {
   return handleChatRequest(
-    chatAxiosInstance.post<ChatApiEnvelope<CreateChatRoomData>>(`${CHAT_PREFIX}/rooms`, body),
+    axiosInstance.post<ChatApiEnvelope<CreateChatRoomData>>(`${CHAT_PREFIX}/rooms`, body),
   );
 }
 
 /** GET /api/v1/chat/rooms — 채팅방 목록 */
 export async function fetchChatRooms(): Promise<ChatRoomsListData> {
   return handleChatRequest(
-    chatAxiosInstance.get<ChatApiEnvelope<ChatRoomsListData>>(`${CHAT_PREFIX}/rooms`),
+    axiosInstance.get<ChatApiEnvelope<ChatRoomsListData>>(`${CHAT_PREFIX}/rooms`),
   );
 }
 
@@ -63,7 +63,7 @@ export async function fetchChatMessages(
   const size = params?.size ?? 50;
   const sort = params?.sort ?? 'createdAt,desc';
   return handleChatRequest(
-    chatAxiosInstance.get<ChatApiEnvelope<ChatMessageListData>>(
+    axiosInstance.get<ChatApiEnvelope<ChatMessageListData>>(
       `${CHAT_PREFIX}/rooms/${roomId}/messages`,
       { params: { page, size, sort } },
     ),
@@ -73,7 +73,7 @@ export async function fetchChatMessages(
 /** PATCH /api/v1/chat/rooms/{roomId}/read 메시지 읽음 처리 */
 export async function markChatRoomRead(roomId: number): Promise<MarkChatRoomReadData> {
   return handleChatRequest(
-    chatAxiosInstance.patch<ChatApiEnvelope<MarkChatRoomReadData>>(
+    axiosInstance.patch<ChatApiEnvelope<MarkChatRoomReadData>>(
       `${CHAT_PREFIX}/rooms/${roomId}/read`,
     ),
   );
@@ -82,14 +82,14 @@ export async function markChatRoomRead(roomId: number): Promise<MarkChatRoomRead
 /** DELETE /api/v1/chat/rooms/{roomId} 채팅방 나가기 */
 export async function leaveChatRoom(roomId: number): Promise<void> {
   await handleChatRequest(
-    chatAxiosInstance.delete<ChatApiEnvelope<null>>(`${CHAT_PREFIX}/rooms/${roomId}`),
+    axiosInstance.delete<ChatApiEnvelope<null>>(`${CHAT_PREFIX}/rooms/${roomId}`),
   );
 }
 
 /** GET /api/v1/chat/unread-count 안 읽은 채팅방 수 */
 export async function fetchUnreadChatRoomCount(): Promise<UnreadChatCountData> {
   return handleChatRequest(
-    chatAxiosInstance.get<ChatApiEnvelope<UnreadChatCountData>>(`${CHAT_PREFIX}/unread-count`),
+    axiosInstance.get<ChatApiEnvelope<UnreadChatCountData>>(`${CHAT_PREFIX}/unread-count`),
   );
 }
 
