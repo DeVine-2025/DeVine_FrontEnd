@@ -1,343 +1,67 @@
-# 📂 DeVine 프론트엔드 파일 구조 개편 계획서
+# 🏗️ DeVine 프로젝트 아키텍처 및 디렉토리 가이드
 
-> **작성일**: 2025-04-25  
-> **목적**: 코드를 처음 보는 팀원도 쉽게 파악할 수 있는 구조로 개선  
-> **원칙**: 화면·기능 변경 없이 파일 위치와 이름만 정리
+이 문서는 2025년 4월 진행된 대규모 파일 구조 리팩토링의 결과와 새롭게 정의된 아키텍처 구조를 설명합니다. 기존의 파편화된 구조를 개선하여 팀원 모두가 직관적으로 코드를 관리할 수 있도록 설계되었습니다.
 
 ---
 
-## 📌 왜 해야 하나요?
+## 🔍 기존 구조 대비 주요 개선점
 
-현재 구조에서 **"프로젝트 카드를 수정해 주세요"** 라고 하면 아래 7개 파일 중 어디를 고쳐야 하는지 알 수 없습니다:
-
-```
-shared/components/common/MainProjectCard.tsx      ← 메인 페이지 그리드
-shared/components/common/ProjectLg.tsx             ← 검색 리스트
-shared/components/common/ProjectMd.tsx             ← 미사용 ❌
-shared/components/common/ProjectSm.tsx             ← 검색 추천 미리보기
-shared/components/common/RecommendProjectCard.tsx  ← 추천 프로젝트ㅁ
-shared/components/common/RecommendProjectBase.tsx  ← 미사용 ❌
-pages/main/components/MainProjectLg.tsx            ← 미사용 ❌
-```
-
-또한 `shared/components/common/` 폴더 하나에 **31개 파일**이 섞여 있어서 원하는 컴포넌트를 찾기가 어렵습니다.
-
----
-
-## 🔍 현재 구조의 문제점 요약
-
-| # | 문제 | 영향 |
-|:--|:--|:--|
-| 1 | `common/` 폴더에 31개 파일 혼재 (범용 UI + 도메인 카드 + 필터바) | 파일 찾기 어려움 |
-| 2 | 같은 역할의 카드가 여러 이름으로 분산 (프로젝트 7개, 개발자 6개) | 어디를 수정해야 할지 혼란 |
-| 3 | `normalizeTechKey` 함수가 6곳에 복사-붙여넣기 | 수정 시 6곳 모두 변경 필요 |
-| 4 | 특정 페이지에서만 쓰는 컴포넌트가 `shared/`에 있음 | "공용"의 의미 상실 |
-| 5 | 폴더명·파일명 네이밍 규칙 불일치 (camelCase, kebab-case 혼용) | 일관성 부재 |
-| 6 | `image.ts`와 `images.ts`가 **같은 API를 2번 구현** | 어느 파일을 써야 하는지 혼란 |
-| 7 | `utils/`와 `libs/` 폴더 역할이 모호하게 분리됨 | 유틸을 어디에 넣어야 할지 불명확 |
-| 8 | 파일명에 공백 포함 (`Data _ Bundling.json`) | import 불편, 실수 유발 |
-
----
-
-## 🏗️ 개편 후 구조
-
-> 핵심: **"여러 페이지에서 쓰면 `shared/`, 한 페이지에서만 쓰면 해당 페이지 안의 `_components/`"**
-
-```
-src/
-├── app/                              # 앱 초기화
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── router.tsx
-│
-├── pages/                            # 페이지별 정리
-│   ├── main/
-│   │   ├── MainPage.tsx
-│   │   └── _components/              # ← 메인 전용 컴포넌트
-│   ├── auth/
-│   │   ├── LoginPage.tsx
-│   │   ├── SignupPage.tsx
-│   │   └── _components/              # ← 회원가입 Section 등
-│   ├── project/                       # 프로젝트 탐색/상세
-│   │   ├── ProjectSearchPage.tsx
-│   │   ├── ProjectDetailPage.tsx
-│   │   └── _components/              # ← ApplyModal, ImageLightbox 등
-│   │   └── _hooks/                   # ← useProjectDetail
-│   ├── project-create/                # 프로젝트 생성 (독립 분리)
-│   │   ├── ProjectCreatePage.tsx      # ← 59KB 거대 파일
-│   │   ├── ProjectCreateCompletePage.tsx
-│   │   └── _components/              # ← LinkCardNode, DatePicker, TechStackDropdown
-│   ├── developer/
-│   │   ├── DeveloperSearchPage.tsx
-│   │   ├── DeveloperDetailPage.tsx
-│   │   └── _components/              # ← 프로필 상세 컴포넌트
-│   ├── recommend/
-│   │   └── _components/              # ← 추천 드롭다운 등
-│   ├── report/
-│   │   └── _components/              # ← 리포트 카드, 체크박스 등
-│   ├── my-info/
-│   │   └── _components/
-│   ├── my-project/
-│   │   └── _components/
-│   ├── matching/
-│   ├── search/
-│   ├── pay/
-│   ├── terms/
-│   └── landing/
-│
-└── shared/                           # 💡 여러 페이지에서 공유하는 것만
-    ├── ui/                           # 순수 범용 UI
-    │   ├── Skeleton.tsx
-    │   ├── LoadingSpinner.tsx
-    │   ├── Pagination.tsx
-    │   ├── BookmarkButton.tsx
-    │   ├── LoginRequiredCard.tsx
-    │   └── ...
-    │
-    ├── components/
-    │   ├── project/                  # 프로젝트 카드 (통합)
-    │   │   ├── ProjectCard.tsx       # ← 7개 → 1개로 통합
-    │   │   ├── ProjectBase.tsx
-    │   │   └── ProjectFilterBar.tsx
-    │   ├── developer/                # 개발자 카드 (통합)
-    │   │   ├── DeveloperCard.tsx     # ← 6개 → 1개로 통합
-    │   │   ├── ProfileBase.tsx
-    │   │   └── DeveloperFilterBar.tsx
-    │   └── layout/
-    │       ├── Header.tsx
-    │       ├── Footer.tsx
-    │       └── RootLayout.tsx
-    │
-    ├── api/                          # API 함수
-    ├── hooks/                        # 커스텀 훅
-    ├── store/                        # Zustand 상태
-    ├── lib/                          # 유틸리티
-    │   ├── tech-stack-utils.ts       # ← 6곳 중복 코드 통합
-    │   └── storage.ts                # ← utils/ 폴더 해체 후 이동
-    ├── constants/
-    ├── types/
-    ├── mappers/
-    ├── styles/
-    └── assets/
-```
-
----
-
-## 🔄 Phase별 작업 내용
-
-### Phase 1. 중복 코드 제거
-> ⏱ 예상 시간: 30분 | 🔴 충돌 위험: 낮음 | 🖥️ 화면 변경: 없음
-
-**무엇을 하나요?**  
-6곳에 복사-붙여넣기 되어 있는 `normalizeTechKey`, `findBadge`, `ALL_TECH_STACK_BADGES` 코드를 `shared/lib/tech-stack-utils.ts` 한 곳으로 모읍니다.
-
-**변경 파일:**
-
-| 파일 | 변경 내용 |
-|:--|:--|
-| `shared/lib/tech-stack-utils.ts` | 🆕 신규 생성 (완료 ✅) |
-| `shared/components/common/RecommendDeveloperCard.tsx` | 중복 코드 → import로 교체 (완료 ✅) |
-| `shared/components/common/BookmarkDeveloperCard.tsx` | 중복 코드 → import로 교체 (완료 ✅) |
-| `shared/components/common/ProfileBase.tsx` | 중복 코드 → import로 교체 (완료 ✅) |
-| `shared/components/profileDetail/TechStackChips.tsx` | 중복 코드 → import로 교체 (완료 ✅) |
-| `pages/project-create/project-create-page.tsx` | 중복 코드 → import로 교체 (완료 ✅) |
-| `shared/apis/image.ts` + `images.ts` | 🔗 같은 API 2개를 `images.ts` 1개로 통합 (완료 ✅) |
-
-**효과:**
-- 기술스택 배지 로직 수정 시 **1곳만 고치면 전체 반영**
-- 이미지 업로드 API가 **1개 파일에서 관리**되어 혼란 제거
-
----
-
-### Phase 2. 미사용 파일 삭제
-> ⏱ 예상 시간: 5분 | 🔴 충돌 위험: 없음 | 🖥️ 화면 변경: 없음
-
-**무엇을 하나요?**  
-어디서도 import 하지 않는 파일 4개를 삭제합니다.
-
-| 삭제 파일 | 사유 |
-|:--|:--|
-| `shared/components/common/ProjectMd.tsx` | 어디서도 사용 안 됨 |
-| `shared/components/common/RecommendProjectBase.tsx` | 어디서도 사용 안 됨 |
-| `pages/main/components/MainProjectLg.tsx` | 어디서도 사용 안 됨 |
-| `shared/auth/useAuth.ts` | 개발용 mock 코드, 실제로는 Clerk `useAuth` 사용 중 |
-
----
-
-### Phase 3. 페이지 전용 컴포넌트 이동 (Colocation)
-> ⏱ 예상 시간: 1~2시간 | 🔴 충돌 위험: 중간 | 🖥️ 화면 변경: 없음
-
-**무엇을 하나요?** (완료 ✅)  
-특정 페이지에서만 사용하는 컴포넌트를 `shared/` 밖으로 빼서 해당 페이지 폴더의 `_components/`로 이동합니다.
-
-| 현재 위치 | 이동 위치 | 파일 수 |
-|:--|:--|:--:|
-| `shared/components/myInfo/*` | `pages/my-info/_components/` | 4 |
-| `shared/components/myProject/*` | `pages/my-project/_components/` | 3 |
-| `shared/components/recommend/*` | `pages/recommend/_components/` | 5 |
-| `shared/components/report/*` | `pages/report/_components/` | 9 |
-| `shared/components/profileDetail/*` | `pages/developer/_components/` | 8 |
-| `shared/components/tab/SearchTabs.tsx` | `pages/search/_components/` | 1 |
-| `shared/components/tab/MyProjectTabs.tsx` | `pages/my-project/_components/` | 1 |
-| `shared/components/common/DatePickerPopover.tsx` | `pages/project-create/_components/` | 1 |
-| `shared/components/common/PositionBasedTechStackDropdown.tsx` | `pages/project-create/_components/` | 1 |
-| `pages/project-create/LinkCardNode.tsx` | `pages/project-create/_components/` | 1 |
-| `shared/templates/profileDetail.tsx` | `shared/components/developer/ProfileDetail.tsx` | 1 |
-| `shared/utils/storage.ts` | `shared/lib/storage.ts` (utils 폴더 해체) | 1 |
-
-**변경되는 것:** 파일 위치 + import 경로 (코드 내용은 동일)
-
-> `templates/profileDetail.tsx`는 my-info와 developer-detail 2곳에서 쓰이므로 `shared/components/developer/`로 이동합니다.  
-> `utils/` 폴더는 `libs/`와 역할이 겹치므로 `lib/`로 합칩니다.
-
----
-
-### Phase 4. 공용 UI 분리
-> ⏱ 예상 시간: 30분 | 🔴 충돌 위험: 중간 | 🖥️ 화면 변경: 없음
-
-**무엇을 하나요?** (완료 ✅)  
-진짜 여러 페이지에서 공유하는 범용 UI 컴포넌트를 `shared/ui/` 폴더로 이동합니다.
-
-| 파일 | 사용 횟수 | 이동 위치 |
-|:--|:--:|:--|
-| `Skeleton.tsx` | 6곳 | `shared/ui/` |
-| `LoadingSpinner.tsx` | 7곳 | `shared/ui/` |
-| `Pagination.tsx` | 2곳 | `shared/ui/` |
-| `BookmarkButton.tsx` | 전역 | `shared/ui/` |
-| `LoginRequiredCard.tsx` | 4곳 | `shared/ui/` |
-| `ReportRequiredCard.tsx` | 3곳 | `shared/ui/` |
-| `ListStateUI.tsx` | 3곳 | `shared/ui/` |
-| `SelectDropdown.tsx` | 2곳 | `shared/ui/` |
-| `NotificationModal.tsx` | 레이아웃 | `shared/ui/` |
-| `Loading.tsx` | 1곳 | `shared/ui/` |
-
----
-
-### Phase 5. Card 컴포넌트 통합
-> ⏱ 예상 시간: 2~3시간 | 🔴 충돌 위험: 높음 | 🖥️ 화면 변경: 없음 (렌더링 JSX 동일)
-
-**무엇을 하나요?** (완료 ✅)  
-이름만 다르고 비슷한 역할의 카드 컴포넌트를 `variant` prop으로 통합합니다.
-
-#### 프로젝트 카드: 4개 → 1개
-
-```
-Before                              After
-──────────────                      ──────────────
-MainProjectCard.tsx     ──→   <ProjectCard variant="grid" />
-ProjectLg.tsx           ──→   <ProjectCard variant="list" />
-ProjectSm.tsx           ──→   <ProjectCard variant="compact" />
-RecommendProjectCard.tsx──→   <ProjectCard variant="recommend" />
-```
-
-#### 개발자 카드: 3개 → 1개
-
-```
-Before                              After
-──────────────                      ──────────────
-ProfileCard.tsx (Lg/Md/Sm) ──→  <DeveloperCard variant="search" size="lg|md|sm" />
-RecommendDeveloperCard.tsx ──→  <DeveloperCard variant="recommend" />
-BookmarkDeveloperCard.tsx  ──→  <DeveloperCard variant="bookmark" />
-```
-
-**사용 예시 (변경 전 → 변경 후):**
-
-```tsx
-// ❌ Before: 어떤 카드를 써야 하는지 헷갈림
-import MainProjectCard from '@components/common/MainProjectCard';
-import ProjectLg from '@components/common/ProjectLg';
-import RecommendProjectCard from '@components/common/RecommendProjectCard';
-
-// ✅ After: 하나만 import, variant로 구분
-import { ProjectCard } from '@shared/components/project/ProjectCard';
-
-<ProjectCard variant="grid" ... />      // 메인 페이지 그리드
-<ProjectCard variant="list" ... />      // 검색 리스트
-<ProjectCard variant="recommend" ... /> // 추천 (적합도 점수 포함)
-```
-
----
-
-### Phase 6. 진입점 및 네이밍 정리
-> ⏱ 예상 시간: 30분 | 🔴 충돌 위험: 중간 | 🖥️ 화면 변경: 없음
-
-**무엇을 하나요?** (완료 ✅)
-
-| 작업 | 내용 |
-|:--|:--|
-| 진입점 이동 | `src/App.tsx`, `main.tsx` → `src/app/` 폴더로 |
-| 라우터 이동 | `shared/routes/routers.tsx` → `app/router.tsx` |
-| 잘못된 위치 수정 | `pages/login/profile-page.tsx` → `pages/auth/` 아래로 |
-| 파일명 공백 수정 | `Data _ Bundling.json` → `report-loading.json` |
-| 네이밍 통일 | 아래 규칙으로 파일명 일괄 변경 |
-
-#### 네이밍 규칙
-
-| 종류 | 규칙 | 예시 |
-|:--|:--|:--|
-| 폴더 | kebab-case | `my-info/`, `project-detail/` |
-| React 컴포넌트 | PascalCase | `ProjectCard.tsx`, `Header.tsx` |
-| 훅 | kebab-case + `use-` | `use-bookmarks.ts` |
-| 스토어 | kebab-case + `.store` | `auth.store.ts` |
-| 타입 | kebab-case + `.types` | `project.types.ts` |
-| 페이지 | PascalCase + `Page` | `MainPage.tsx`, `LoginPage.tsx` |
-
----
-
-## ⚠️ 주의사항
-
-1. **화면·기능은 변경되지 않습니다.** 파일 위치와 이름만 바꾸는 작업입니다.
-2. **Phase 3~6은 파일 이동이 포함**되어 있어서, 다른 브랜치에서 같은 파일을 수정 중이면 merge 충돌이 발생할 수 있습니다. **팀원 모두 현재 작업을 develope에 merge한 후** 진행하는 것을 권장합니다.
-3. **Phase 1~2는 충돌 위험이 거의 없어서** 먼저 진행 가능합니다.
-
----
-
-## 📅 권장 일정
-
-| 시점 | 작업 | 비고 |
-|:--|:--|:--|
-| **즉시 가능** | Phase 1~2 (중복 제거 + 미사용 삭제) | 충돌 위험 거의 없음 |
-| **팀 조율 후** | Phase 3~6 (파일 이동 + 통합) | 일정 잡고 한 번에 처리 |
-
----
-
-## ✅ 최종 효과
-
-| Before | After |
-|:--|:--|
-| `common/` 폴더에 31개 파일 | 역할별로 분리 (ui/ project/ developer/) |
-| 프로젝트 카드 7개 파일 | `ProjectCard` 1개 (variant로 구분) |
-| 개발자 카드 6개 파일 | `DeveloperCard` 1개 (variant로 구분) |
-| 같은 함수 6곳 복사 | 유틸 1곳에서 관리 |
-| 같은 이미지 API 2개 파일 | `images.ts` 1개로 통합 |
-| 페이지 전용 컴포넌트가 shared에 | 해당 페이지 `_components/` 안으로 |
-| `utils/`와 `libs/` 분리 모호 | `lib/` 하나로 합침 |
-| 미사용 mock 코드 잔존 | 깔끔하게 삭제 |
-| 네이밍 규칙 혼재 | 전체 통일 |
-
----
-
-## 🏁 리팩토링 최종 결과 (2025-04-25 완료)
-
-리팩토링 계획에 따른 모든 Phase가 성공적으로 완료되었으며, 주요 변경 사항은 아래와 같습니다.
-
-### 1. 전/후 파일 구조 시각화 (Before vs After)
-
-| 구분 | 리팩토링 전 (Legacy) | 리팩토링 후 (Refactored) | 핵심 개선 사항 |
+| 구분 | 기존 구조 (Legacy) | 개선된 구조 (Refactored) | 개선 효과 |
 |:---|:---|:---|:---|
-| **진입점** | `src/` 최상위에 산재 | `src/app/` 폴더로 응집 | 앱 초기화 설정 분리 |
-| **순수 UI** | `shared/components/common/` | `shared/ui/` | 범용 UI(Atomic) 별도 관리 |
-| **카드 컴포넌트** | 13개 개별 파일 (Project 7, Profile 6) | **`ProjectCard`**, **`DeveloperCard`** | 단 2개 파일로 모든 케이스 통합 |
-| **도메인 컴포넌트** | 역할 구분 없이 혼재 | `shared/components/[domain]/` | 관심사 기반의 명확한 디렉토리 |
-| **페이지 전용** | `shared/` 폴더에 위치 | `pages/[page]/_components/` | "공용"과 "전용"의 완벽한 분리 |
-| **네이밍** | camelCase, kebab-case 혼용 | **kebab-case** 웹 표준 통일 | 일관된 파일 탐색 경험 |
+| **진입점** | `src/` 최상위에 설정 파일 산재 | **`src/app/`** 폴더로 모든 설정 응집 | 앱의 뼈대와 비즈니스 로직을 명확히 분리 |
+| **순수 UI** | `shared/components/common/`에 혼재 | **`src/shared/ui/`** | 프로젝트 의존성 없는 Atomic UI 독립 관리 |
+| **카드 컴포넌트** | 13개 개별 파일 (Project 7개, Profile 6개) | **`ProjectCard`**, **`DeveloperCard`** | 단 2개의 통합 컴포넌트로 모든 형태 제어 |
+| **컴포넌트 위치** | 거의 모든 컴포넌트가 `shared/`에 위치 | **Colocation (상황별 배치)** 적용 | 공용인 것만 `shared`, 전용인 것은 `pages/` 내부로 |
+| **네이밍** | camelCase, kebab-case 혼용 | **kebab-case** 로 전체 통일 | 일관된 파일 검색 및 리눅스/윈도우 환경 호환성 확보 |
+| **중복 로직** | 유틸리티 함수가 여러 곳에 복사됨 | **`src/shared/libs/`** 로 통합 | 유지보수 포인트 1개로 단축 |
 
-### 2. 컴포넌트 통합 명세
-- **DeveloperCard**: 기존 `ProfileCard` (Lg/Md/Sm), `RecommendDeveloperCard`, `BookmarkDeveloperCard`를 통합. `variant` prop으로 레이아웃 분기 처리.
-- **ProjectCard**: 기존 `MainProjectCard`, `ProjectLg`, `ProjectSm`, `RecommendProjectCard`를 통합.
+---
 
-### 3. 기술적 성과
-- **중복 로직 제거**: 6곳에 흩어져 있던 기술스택 파싱 로직을 `tech-stack-utils.ts` 하나로 통합하여 유지보수 포인트 1개로 단축.
-- **빌드 안정성**: `npx tsc --noEmit` 검증을 통해 파일 이동 및 이름 변경 후에도 타입 안정성 100% 확보.
-- **가독성 향상**: `utils/`를 `lib/`로 합치고, `Data _ Bundling.json`과 같은 비표준 파일명을 `report-loading.json`으로 정리하여 협업의 걸림돌 제거.
+## 📁 새로운 디렉토리 구조 및 역할
 
+### 1. `src/app/` (Global Config)
+애플리케이션의 설정 및 초기화를 담당합니다.
+- `main.tsx`: 앱 진입점
+- `App.tsx`: 전역 Provider 및 라우터 연결
+- `router.tsx`: 모든 페이지 경로 설정
+
+### 2. `src/pages/` (Feature/Domain Pages)
+각 화면을 담당하며, **해당 화면에서만 사용하는 유효한 로직**을 포함합니다.
+- `[page-name]/`: 페이지별 독립 폴더 (예: `auth`, `main`, `project-detail`)
+- `_components/`: 이 페이지에서만 쓰는 전용 컴포넌트 (Shared 오염 방지)
+- `_hooks/`: 이 페이지 전용 로직을 담은 훅
+
+### 3. `src/shared/` (Shared Assets)
+전체 프로젝트에서 공통으로 쓰이는 자산입니다.
+- **`ui/`**: 순수 UI 컴포넌트 (Button, Pagination, Skeleton 등)
+- **`components/`**: 도메인 성격이 가미된 공유 컴포넌트 (ProjectCard, FilterBar 등)
+- **`libs/`**: 유틸리티 함수, 전역 라이브러리 설정 (기존 `utils` 통합)
+- **`store/`**: Zustand 전역 상태 (`*.store.ts`)
+- **`types/`**: 전역 타입 정의 (`*.types.ts`)
+- **`hooks/`**: 전역 공용 훅 (`use-*.ts`)
+
+---
+
+## 🛠️ 핵심 변경 및 개발 규칙
+
+### 1. 통합 카드 컴포넌트 활용
+기존에 13개로 흩어져 있던 카드들을 `variant`와 `size` 속성으로 통합했습니다.
+- 예: `<ProjectCard variant="grid" />` (메인용), `<ProjectCard variant="list" />` (검색용)
+- 예: `<DeveloperCard variant="recommend" />` (추천용)
+
+### 2. 파일 네이밍 규칙 (Standard)
+- **React 컴포넌트/페이지**: `PascalCase.tsx`
+- **폴더/유틸/훅/스토어/타입**: `kebab-case.ts` (훅은 `use-` 프리픽스, 스토어는 `.store.ts`)
+
+### 3. 컴포넌트 배치 원칙
+- **"이 컴포넌트가 다른 페이지에서도 쓰이는가?"**
+  - **YES**: `src/shared/components/` 또는 `src/shared/ui/`
+  - **NO**: 해당 페이지 폴더 안의 `_components/`
+
+---
+
+## 🏁 구조 탐색 가이드
+- **UI 부품을 찾을 때**: `src/shared/ui/`
+- **특정 페이지의 기능을 수정할 때**: `src/pages/[페이지명]/`
+- **전역 상태나 유틸리티를 수정할 때**: `src/shared/store/` 또는 `src/shared/libs/`
+- **데이터 흐름/매핑 로직을 수정할 때**: `src/shared/mappers/`
