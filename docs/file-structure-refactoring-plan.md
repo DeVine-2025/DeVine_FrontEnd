@@ -15,7 +15,7 @@ shared/components/common/MainProjectCard.tsx      ← 메인 페이지 그리드
 shared/components/common/ProjectLg.tsx             ← 검색 리스트
 shared/components/common/ProjectMd.tsx             ← 미사용 ❌
 shared/components/common/ProjectSm.tsx             ← 검색 추천 미리보기
-shared/components/common/RecommendProjectCard.tsx  ← 추천 프로젝트
+shared/components/common/RecommendProjectCard.tsx  ← 추천 프로젝트ㅁ
 shared/components/common/RecommendProjectBase.tsx  ← 미사용 ❌
 pages/main/components/MainProjectLg.tsx            ← 미사용 ❌
 ```
