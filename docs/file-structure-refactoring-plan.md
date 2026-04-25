@@ -19,6 +19,45 @@
 
 ## 📁 새로운 디렉토리 구조 및 역할
 
+### 상세 디렉토리 맵
+
+```text
+src/
+├── app/                              # 앱 초기화 및 전역 설정
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── router.tsx
+│
+├── pages/                            # 페이지별 독립 폴더 (Colocation)
+│   ├── main/
+│   ├── auth/                         # login, profile-page 등 통합
+│   ├── project-detail/
+│   └── ...                           # 각 폴더 내 _components, _hooks 포함
+│
+└── shared/                           # 💡 여러 페이지에서 공유하는 자산
+    ├── ui/                           # 순수 범용 UI (Atomic)
+    │   ├── Skeleton.tsx
+    │   ├── LoadingSpinner.tsx
+    │   ├── Pagination.tsx
+    │   └── ...
+    │
+    ├── components/
+    │   ├── project/                  # 프로젝트 관련 공유 컴포넌트
+    │   │   ├── ProjectCard.tsx       # ← 통합 카드
+    │   │   └── ProjectFilterBar.tsx
+    │   ├── developer/                # 개발자 관련 공유 컴포넌트
+    │   │   ├── DeveloperCard.tsx     # ← 통합 카드
+    │   │   └── ProfileBase.tsx
+    │   └── layout/                   # Header, Footer 등
+    │
+    ├── libs/                         # 유틸리티 (기존 utils 통합)
+    ├── hooks/                        # 전역 공용 훅 (use-*.ts)
+    ├── store/                        # 전역 상태 (*.store.ts)
+    ├── types/                        # 전역 타입 (*.types.ts)
+    ├── api/                          # API 함수 호출 로직
+    └── ...
+```
+
 ### 1. `src/app/` (Global Config)
 애플리케이션의 설정 및 초기화를 담당합니다.
 - `main.tsx`: 앱 진입점
