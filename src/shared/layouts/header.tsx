@@ -20,13 +20,12 @@ import ModeLightIcon from '@assets/icons/mode-light.svg?react';
 import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
 import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
 import { SignedIn, SignedOut, useAuth as useClerkAuth, useUser } from '@clerk/clerk-react';
-import NotificationModal from '@components/common/NotificationModal';
-import { useNotificationStore } from '@store/notification';
-import { useThemeStore } from '@store/theme';
-import { getProfileImageKey, getStoredProfileImageUrl } from '@utils/storage';
+import NotificationModal from '@ui/NotificationModal';
+import { useNotificationStore } from '@store/notification.store';
+import { useThemeStore } from '@store/theme.store';
+import { getProfileImageKey, getStoredProfileImageUrl } from '@libs/storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/shared/auth/useAuth';
 
 type HeaderProps = {
   navLocked?: boolean;
@@ -35,7 +34,6 @@ type HeaderProps = {
 
 const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const { theme, toggleTheme } = useThemeStore();
-  const { isAuthed, user: devUser, setDevAuthed } = useAuth();
   const { getToken, isSignedIn } = useClerkAuth();
   const location = useLocation();
   const navigate = useNavigate();

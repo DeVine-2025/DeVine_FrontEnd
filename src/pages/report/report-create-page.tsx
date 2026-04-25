@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import CheckBox from '@components/report/CheckBox';
-import GithubRepoListSkeleton from '@components/report/GithubRepoListSkeleton';
+import CheckBox from './_components/CheckBox';
+import GithubRepoListSkeleton from './_components/GithubRepoListSkeleton';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
-import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import { useThemeStore } from '@store/theme.store';
+import { myInfoQueries } from '@apis/my-info/my-info-queries';
 import { BeatLoader } from 'react-spinners';
 
 const ReportCreatePage = () => {

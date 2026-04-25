@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { useAuth } from '@clerk/clerk-react';
 import { signupMember, type SignupPayload } from '@apis/signup';
 import { buildTechstackNameByIdMap, formatTechstackLabel } from '@apis/techstacks';
-import { useTechstacks } from '@hooks/useTechstacks';
+import { useTechstacks } from '@hooks/use-techstacks';
 import { useOutletContext } from 'react-router-dom';
 import type { RootLayoutOutletContext } from '@layouts/root-layout';
 

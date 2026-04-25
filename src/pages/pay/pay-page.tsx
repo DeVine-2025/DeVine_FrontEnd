@@ -2,8 +2,8 @@
 import { getChannelKey } from '@apis/payment/payment';
 import { useCompletePayment } from '@apis/payment/payment-queries';
 import { requestPayment, type PgProvider } from '@apis/payment/requestPayment';
-import PassProductButton from './components/PassProductButton';
-import QuantityStepper from './components/QuantityStepper';
+import PassProductButton from './_components/PassProductButton';
+import QuantityStepper from './_components/QuantityStepper';
 
 const formatWon = (value: number) => `${Math.max(0, value).toLocaleString('ko-KR')}원`;
 const getPassUnitPrice = (unitCount: 1 | 3) => (unitCount === 1 ? 4900 : 9900);

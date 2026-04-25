@@ -1,5 +1,5 @@
-import type { Position, ProjectItem, TechStack } from '@t/project/api';
-import type { BadgeTone } from 'src/shared/types/badgeTone';
+import type { Position, ProjectItem, TechStack } from '@t/project/api.types';
+import type { BadgeTone } from 'src/shared/types/badge-tone.types';
 
 /** toProjectDetailInfo 등에서 쓰는 폴백용 최소 형태 (mock 제거 후 로컬 정의) */
 export type FallbackProjectShape = {

@@ -1,12 +1,12 @@
-import type { UpdateProfileRequest } from '@apis/myInfo/myInfo';
-import { myInfoQueries, updateMyProfile } from '@apis/myInfo/myInfo-queries';
+import type { UpdateProfileRequest } from '@apis/my-info/my-info';
+import { myInfoQueries, updateMyProfile } from '@apis/my-info/my-info-queries';
 import GithubIcon from '@assets/icons/github.svg?react';
 import GoogleIcon from '@assets/icons/google.svg?react';
 import { useUser } from '@clerk/clerk-react';
-import Switch from '@components/myInfo/Switch';
-import TabMenu from '@components/myInfo/TabMenu';
+import Switch from './_components/Switch';
+import TabMenu from './_components/TabMenu';
 import { cn } from '@libs/cn';
-import { useAuthStore } from '@store/auth';
+import { useAuthStore } from '@store/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 

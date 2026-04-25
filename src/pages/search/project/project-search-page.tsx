@@ -6,24 +6,23 @@ import {
 } from '@apis/mainrecommendproject';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
-import ProjectListState from '@components/common/ListStateUI';
-import Pagination from '@components/common/Pagination';
+import ProjectListState from '@ui/ListStateUI';
+import Pagination from '@ui/Pagination';
 import ProjectFiltersBar, {
   PROJECT_FILTERS,
   type ProjectFilterKey,
-} from '@components/common/ProjectFilterBar';
-import ProjectLg from '@components/common/ProjectLg';
-import ProjectSm from '@components/common/ProjectSm';
-import RecommendProjectCardSkeleton, {
-  RecommendProjectCardSkeletonList,
-} from '@components/common/RecommendProjectCardSkeleton';
-import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
-import { useMyReportsExist } from '@hooks/useMyReportsExist';
-import { useProjectFilter } from '@hooks/useProjectFilters';
-import { useProjects } from '@hooks/useProjects';
+} from '@components/project/ProjectFilterBar';
+import { ProjectCard } from '@components/project/ProjectCard';
+import ProjectCardSkeleton, {
+  ProjectCardSkeletonList,
+} from '@components/project/ProjectCardSkeleton';
+import { useInitialSkeletonGate } from '@hooks/use-initial-skeleton-gate';
+import { useMyReportsExist } from '@hooks/use-my-reports-exist';
+import { useProjectFilter } from '@hooks/use-project-filters';
+import { useProjects } from '@hooks/use-projects';
 import { mapPositionsToRoles, mapProjectItemToCard, type ProjectCardModel } from '@mappers/project';
 import { buildParams } from '@mappers/projectFilters';
-import type { ProjectRole, RecommendPreviewItem } from '@t/project/ui';
+import type { ProjectRole, RecommendPreviewItem } from '@t/project/ui.types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -325,7 +324,7 @@ export default function ProjectSearchPage() {
         <div className="scrollbar-hide flex gap-6 overflow-x-auto py-2">
           {Array.from({ length: 4 }, (_, i) => (
             <div key={i} className="w-[260px] shrink-0">
-              <RecommendProjectCardSkeleton variant="compact" />
+              <ProjectCardSkeleton variant="compact" />
             </div>
           ))}
         </div>
@@ -340,7 +339,7 @@ export default function ProjectSearchPage() {
           {recommendedPreview.map((p) => {
             const ov = bookmarkOverrides[Number(p.id)];
             return (
-              <ProjectSm
+              <ProjectCard variant="compact"
                 key={p.id}
                 categoryLabel={p.categoryLabel}
                 deadlineLabel={p.deadlineLabel}
@@ -385,7 +384,7 @@ export default function ProjectSearchPage() {
       {/* 프로젝트 리스트 */}
       <div className="flex flex-col gap-6">
         {showProjectListSkeleton && (
-          <RecommendProjectCardSkeletonList count={3} className="py-2" />
+          <ProjectCardSkeletonList count={3} className="py-2" />
         )}
 
         {!showProjectListSkeleton && isError && (
@@ -400,7 +399,7 @@ export default function ProjectSearchPage() {
           !isError &&
           projects.length > 0 &&
           projects.map((p) => (
-            <ProjectLg
+            <ProjectCard variant="list"
               key={p.id}
               {...p}
               onClick={() => handleProjectClick(p.id)}

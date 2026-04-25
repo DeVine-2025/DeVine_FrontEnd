@@ -1,11 +1,11 @@
-import type { Contribution } from '@apis/myInfo/myInfo';
-import type { TechstackDto } from '@t/profileCard.types';
-import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import type { Contribution } from '@apis/my-info/my-info';
+import type { TechstackDto } from '@t/profile-card.types';
+import { myInfoQueries } from '@apis/my-info/my-info-queries';
 import { projectQueries } from '@apis/project/project-queries';
 import { reportQueries } from '@apis/report/report-queries';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import ProfileDetail from '../../shared/templates/profileDetail';
+import ProfileDetail from '@components/profile/ProfileDetail';
 
 const MyInfoProfile = () => {
   const [year, setYear] = useState(new Date().getFullYear());

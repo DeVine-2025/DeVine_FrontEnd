@@ -9,22 +9,21 @@ import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-det
 import { getMyProjectsAllStatuses } from '@apis/projects';
 import { getReports } from '@apis/report/report-queries';
 import { useAuth } from '@clerk/clerk-react';
-import LoginRequiredCard from '@components/common/LoginRequiredCard';
-import MainProjectCard from '@components/common/MainProjectCard';
-import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
-import { RecommendDeveloperCardSkeletonList } from '@components/common/RecommendDeveloperCardSkeleton';
-import RecommendProjectCard from '@components/common/RecommendProjectCard';
-import { RecommendProjectCardSkeletonList } from '@components/common/RecommendProjectCardSkeleton';
-import ReportRequiredCard from '@components/common/ReportRequiredCard';
-import Skeleton from '@components/common/Skeleton';
+import LoginRequiredCard from '@ui/LoginRequiredCard';
+import { ProjectCard } from '@components/project/ProjectCard';
+import { DeveloperCard } from '@components/developer/DeveloperCard';
+import { ProjectCardSkeletonList } from '@components/project/ProjectCardSkeleton';
+import { RecommendDeveloperCardSkeletonList } from '@components/developer/RecommendDeveloperCardSkeleton';
+import ReportRequiredCard from '@ui/ReportRequiredCard';
+import Skeleton from '@ui/Skeleton';
 import {
   isInitialSkeletonSessionDone,
   useInitialSkeletonGate,
-} from '@hooks/useInitialSkeletonGate';
-import LoginModal from '@pages/project-detail/components/LoginModal';
-import { useAuthStore } from '@store/auth';
-import { useThemeStore } from '@store/theme';
-import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
+} from '@hooks/use-initial-skeleton-gate';
+import LoginModal from '@components/LoginModal';
+import { useAuthStore } from '@store/auth.store';
+import { useThemeStore } from '@store/theme.store';
+import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui.types';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDueLabel, mapRecommendPositionsToRoles } from 'src/shared/mappers/project';
@@ -564,7 +563,7 @@ const MainPage = () => {
                 </div>
               ))
             : highlightProjects.map((project) => (
-                <MainProjectCard
+                <ProjectCard variant="grid"
                   key={project.id}
                   categoryLabel={project.categoryLabel}
                   deadlineLabel={project.deadlineLabel}
@@ -612,12 +611,13 @@ const MainPage = () => {
                     </div>
                   ) : (
                     recommendedProfiles.map((profile) => (
-                      <RecommendDeveloperCard
+                      <DeveloperCard
+                        variant="recommend"
                         key={profile.id}
                         role={profile.role}
                         roleTone={profile.roleTone}
-                        nickname={profile.nickname}
-                        profileImageUrl={profile.profileImageUrl}
+                        nickname={profile.nickname ?? ''}
+                        profileImageUrl={profile.profileImageUrl ?? ''}
                         introduction={profile.introduction}
                         domains={profile.badges?.map((badge) => ({ label: badge.label }))}
                         techStack={profile.techStack}
@@ -661,7 +661,7 @@ const MainPage = () => {
                           ? projectBookmarkMap[targetId] != null
                           : (project.bookmarked ?? false);
                         return (
-                          <RecommendProjectCard
+                          <ProjectCard variant="recommend"
                             key={project.id}
                             categoryLabel={project.categoryLabel}
                             deadlineLabel={project.deadlineLabel}

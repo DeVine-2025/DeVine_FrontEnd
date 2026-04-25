@@ -1,15 +1,15 @@
 import { createMemberProposal } from '@apis/apply';
-import type { MyProfile } from '@apis/myInfo/myInfo';
-import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import type { MyProfile } from '@apis/my-info/my-info';
+import { myInfoQueries } from '@apis/my-info/my-info-queries';
 import { getMyRecruitingProjects, type MyRecruitingProjectItem } from '@apis/projects';
 import { getMemberProposal } from '@apis/apply';
 
 import BackIcon from '@assets/icons/back.svg?react';
 import { useAuth } from '@clerk/clerk-react';
-import MainProjectCard from '@components/common/MainProjectCard';
-import SelectDropdown from '@components/common/SelectDropdown';
-import ImagePreview from '@components/profileDetail/ImagePreview';
-import RoleChips from '@components/profileDetail/RoleChips';
+import { ProjectCard } from '@components/project/ProjectCard';
+import ImagePreview from '@components/profile/ImagePreview';
+import SelectDropdown from '@ui/SelectDropdown';
+import RoleChips from './_components/RoleChips';
 import { DOMAIN_REVERSE_MAP } from '@constants/domain';
 import { cn } from '@libs/cn';
 import { useQuery } from '@tanstack/react-query';
@@ -197,7 +197,7 @@ const DeveloperSuggestPage = () => {
               const isSelected = selectedProjectId === project.projectId;
               return (
                 <div key={project.projectId} className="relative">
-                  <MainProjectCard
+                  <ProjectCard variant="grid"
                     title={project.title || `프로젝트 #${project.projectId}`}
                     thumbnailUrl={project.thumbnailUrl}
                     thumbnailAlt={project.title}

@@ -17,16 +17,16 @@
     "baseUrl": "./",
     "paths": {
       "@styles/*": ["src/shared/styles/*"],
-      "@routes/*": ["src/shared/routes/*"],
+      "@app/*": ["src/app/*"],
       "@mocks/*": ["src/shared/mocks/*"],
       "@libs/*": ["src/shared/libs/*"],
       "@layouts/*": ["src/shared/layouts/*"],
       "@hooks/*": ["src/shared/hooks/*"],
       "@constants/*": ["src/shared/constants/*"],
-      "@utils/*": ["src/shared/utils/*"],
       "@apis/*": ["src/shared/apis/*"],
       "@assets/*": ["src/shared/assets/*"],
       "@components/*": ["src/shared/components/*"],
+      "@ui/*": ["src/shared/ui/*"],
       "@store/*": ["src/shared/store/*"],
       "@t/*": ["src/shared/types/*"],
       "@contexts/*": ["src/shared/contexts/*"],
@@ -35,6 +35,6 @@
       "@mappers/*": ["src/shared/mappers/*"]
     }
   },
-  "include": ["src", "vite-env.d.ts"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }

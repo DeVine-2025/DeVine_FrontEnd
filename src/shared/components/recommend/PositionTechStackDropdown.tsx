@@ -1,5 +1,5 @@
 import SelectAllIcon from '@assets/icons/select-all.svg?react';
-import LoadingSpinner from '@components/common/LoadingSpinner';
+import LoadingSpinner from '@ui/LoadingSpinner';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import {
   formatTechstackKey,
@@ -8,8 +8,8 @@ import {
   type TechstackGroup,
   type TechstackItem,
 } from '@apis/techstacks';
-import { useTechstacks } from '@hooks/useTechstacks';
-import { useThemeStore } from '@store/theme';
+import { useTechstacks } from '@hooks/use-techstacks';
+import { useThemeStore } from '@store/theme.store';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 type PositionTechStackDropdownProps = {

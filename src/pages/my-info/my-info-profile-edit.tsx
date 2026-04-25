@@ -1,19 +1,19 @@
 import { confirmImageUpload, createPresignedUrl } from '@apis/image';
-import type { UpdateProfileRequest } from '@apis/myInfo/myInfo';
+import type { UpdateProfileRequest } from '@apis/my-info/my-info';
 import {
   addMyTechStacks,
   deleteMyTechStacks,
   myInfoQueries,
   updateMyProfile,
-} from '@apis/myInfo/myInfo-queries';
+} from '@apis/my-info/my-info-queries';
 import BackIcon from '@assets/icons/back.svg?react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import PlusNolineIcon from '@assets/icons/plus-noline.svg?react';
 import { useAuth } from '@clerk/clerk-react';
-import MyInfoInput from '@components/myInfo/MyInfoInput';
-import StackChips from '@components/myInfo/StackChips';
-import ImagePreview from '@components/profileDetail/ImagePreview';
+import ImagePreview from '@components/profile/ImagePreview';
+import MyInfoInput from './_components/MyInfoInput';
+import StackChips from './_components/StackChips';
 import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
 import { DOMAIN_MAP, DOMAIN_OPTIONS, DOMAIN_REVERSE_MAP } from '@constants/domain';
 import { getTechstackIdsByKeys } from '@constants/signup-mapping';

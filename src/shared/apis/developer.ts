@@ -3,7 +3,7 @@ import type {
   DeveloperSearchPage,
   DeveloperSearchResponse,
   GetDevelopersParams,
-} from '@t/profileCard.types';
+} from '@t/profile-card.types';
 
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
 

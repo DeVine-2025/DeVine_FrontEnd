@@ -1,4 +1,4 @@
-import type { AppliedFilters, Category, DurationRange, ProjectField } from '@t/project/api';
+import type { AppliedFilters, Category, DurationRange, ProjectField } from '@t/project/api.types';
 
 export const PROJECT_TYPE_TO_FIELD: Record<string, ProjectField | undefined> = {
   웹: 'WEB',

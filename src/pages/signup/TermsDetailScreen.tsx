@@ -2,8 +2,8 @@ import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
 import LogoDark from '@assets/icons/logo-dark.svg?react';
 import LogoLight from '@assets/icons/logo-light.svg?react';
 import { useAuth, useUser } from '@clerk/clerk-react';
-import { useThemeStore } from '@store/theme';
-import { getProfileImageKey, getUserRoleKey } from '@utils/storage';
+import { useThemeStore } from '@store/theme.store';
+import { getProfileImageKey, getUserRoleKey } from '@libs/storage';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 

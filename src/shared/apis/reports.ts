@@ -8,7 +8,7 @@ type CreateReportResponse = {
 };
 
 import type { Report } from '@apis/report/report';
-import type { MyReportItem, ReportResponse, ReportType } from '@t/report';
+import type { MyReportItem, ReportResponse, ReportType } from '@t/report.types';
 
 type GetMyReportsMeResponse = {
   isSuccess: boolean;

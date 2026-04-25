@@ -1,9 +1,9 @@
 import type { ReportCardRequest } from '@apis/report/report';
 import { reportQueries } from '@apis/report/report-queries';
-import Blank from '@components/report/Blank';
-import ReportCard from '@components/report/ReportCard';
-import { ReportCardSkeletonList } from '@components/report/ReportCardSkeleton';
-import TabMenu from '@components/report/TabMenu';
+import Blank from './_components/Blank';
+import ReportCard from './_components/ReportCard';
+import { ReportCardSkeletonList } from './_components/ReportCardSkeleton';
+import TabMenu from './_components/TabMenu';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 

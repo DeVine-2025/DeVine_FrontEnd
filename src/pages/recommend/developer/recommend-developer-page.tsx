@@ -1,14 +1,14 @@
 import { createBookmark, deleteBookmark } from '@apis/bookmarks';
 import { getRecommendMembers, type GetRecommendMembersParams, type RecommendDeveloperListItem } from '@apis/members';
 import { useAuth } from '@clerk/clerk-react';
-import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
-import { RecommendDeveloperCardSkeletonList } from '@components/common/RecommendDeveloperCardSkeleton';
-import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
-import ReportRequiredCard from '@components/common/ReportRequiredCard';
-import { useBookmarks } from '@hooks/useBookmarks';
-import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
-import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
-import { useFilterStore } from '@store/filter';
+import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/developer/DeveloperFilterBar';
+import { RecommendDeveloperCardSkeletonList } from '@components/developer/RecommendDeveloperCardSkeleton';
+import { DeveloperCard } from '@components/developer/DeveloperCard';
+import ReportRequiredCard from '@ui/ReportRequiredCard';
+import { useBookmarks } from '@hooks/use-bookmarks';
+import { useMyRecruitingProjects } from '@hooks/use-my-recruiting-projects';
+import { useInitialSkeletonGate } from '@hooks/use-initial-skeleton-gate';
+import { useFilterStore } from '@store/filter.store';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -239,7 +239,7 @@ const RecommendDeveloperPage = () => {
     [navigate],
   );
 
-  const handleApply = useCallback(
+  const handleFilterApply = useCallback(
     (key: DeveloperFilterKey) => {
       setOpenFilter(null);
       setPage(1);
@@ -297,7 +297,7 @@ const RecommendDeveloperPage = () => {
             setTechStacks={setTechStacks}
             interestDomains={interestDomains}
             setInterestDomains={setInterestDomains}
-            onApply={handleApply}
+            onApply={handleFilterApply}
             onReset={(key) => {
               if (key === '내 프로젝트 선택') {
                 setAutoSelectProject(false);
@@ -336,7 +336,7 @@ const RecommendDeveloperPage = () => {
         setTechStacks={setTechStacks}
         interestDomains={interestDomains}
         setInterestDomains={setInterestDomains}
-        onApply={handleApply}
+        onApply={handleFilterApply}
         onReset={(key) => {
           if (key === '내 프로젝트 선택') {
             setAutoSelectProject(false);
@@ -384,12 +384,13 @@ const RecommendDeveloperPage = () => {
         !showRecommendSkeleton && (
         <div className="flex flex-col gap-6">
           {displayList.map((dev) => (
-            <RecommendDeveloperCard
+            <DeveloperCard
+              variant="recommend"
               key={dev.id}
               role={dev.role}
               roleTone={dev.roleTone}
-              nickname={dev.nickname}
-              profileImageUrl={dev.profileImageUrl}
+              nickname={dev.nickname ?? ''}
+              profileImageUrl={dev.profileImageUrl ?? ''}
               introduction={dev.introduction}
               domains={dev.domains}
               techStack={dev.techStack}

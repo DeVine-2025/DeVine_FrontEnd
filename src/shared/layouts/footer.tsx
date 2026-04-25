@@ -1,6 +1,6 @@
 import LightLogo from '@assets/icons/logo-light.svg?react';
 import DarkLogo from '@assets/icons/logo-dark.svg?react';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {

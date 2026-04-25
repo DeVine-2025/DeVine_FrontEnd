@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react';
-import LoginRequiredCard from '@components/common/LoginRequiredCard';
+import LoginRequiredCard from '@ui/LoginRequiredCard';
 import { Outlet } from 'react-router-dom';
 
 const ReportMainPage = () => {

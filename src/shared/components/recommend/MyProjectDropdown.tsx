@@ -1,4 +1,4 @@
-import LoadingSpinner from '@components/common/LoadingSpinner';
+import LoadingSpinner from '@ui/LoadingSpinner';
 import { useEffect, useMemo, useRef } from 'react';
 
 type MyProjectDropdownProps = {
