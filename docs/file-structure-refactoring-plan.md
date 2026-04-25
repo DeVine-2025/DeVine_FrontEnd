@@ -19,35 +19,157 @@ src/
 └── vite-env.d.ts
 ```
 
-### `src/app`
+### 현재 전체 파일 구조 (요약 트리)
 
-앱이 실행되기 위해 필요한 전역 설정만 둡니다.
-
-- `main.tsx`: React 앱 진입점
-- `App.tsx`: 전역 Provider 연결
-- `router.tsx`: 전체 라우트 선언
-
-`app`에는 특정 페이지의 비즈니스 로직이나 UI 컴포넌트를 두지 않습니다.
-
-### `src/pages`
-
-사용자가 실제로 접근하는 화면 단위 코드입니다. URL, 라우트, 화면 흐름을 기준으로 폴더를 나눕니다.
-
-예시:
+아래 트리는 현재 코드베이스 기준의 주요 폴더 구조입니다. 세부 파일은 변할 수 있으므로, 폴더 배치 원칙 확인용으로 사용합니다.
 
 ```text
-pages/
-├── main/
-├── signup/
-├── search/
-├── project-create/
-├── project-detail/
-├── developer-detail/
-├── report/
-└── my-info/
+src/
+├── app/
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── router.tsx
+├── pages/
+│   ├── auth/
+│   ├── developer-detail/
+│   │   └── _components/
+│   ├── landing/
+│   ├── login/
+│   ├── main/
+│   │   └── _components/
+│   ├── matching/
+│   │   ├── applied/
+│   │   ├── completed/
+│   │   ├── in-progress/
+│   │   ├── pm/
+│   │   └── proposed/
+│   ├── my-info/
+│   │   └── _components/
+│   ├── my-project/
+│   │   ├── developer/
+│   │   ├── pm/
+│   │   └── _components/
+│   ├── pay/
+│   │   └── _components/
+│   ├── project-create/
+│   │   └── _components/
+│   ├── project-detail/
+│   │   └── _components/
+│   ├── recommend/
+│   │   ├── developer/
+│   │   └── project/
+│   ├── report/
+│   │   └── _components/
+│   ├── search/
+│   │   ├── developer/
+│   │   ├── project/
+│   │   └── _components/
+│   ├── signup/
+│   ├── terms/
+│   └── index.ts
+├── shared/
+│   ├── apis/
+│   │   ├── base/
+│   │   ├── member/
+│   │   ├── myInfo/
+│   │   ├── payment/
+│   │   ├── project/
+│   │   └── report/
+│   ├── assets/
+│   ├── auth/
+│   ├── components/
+│   │   ├── chat/
+│   │   ├── developer/
+│   │   ├── myInfo/
+│   │   ├── myProject/
+│   │   ├── profile/
+│   │   ├── project/
+│   │   ├── recommend/
+│   │   ├── report/
+│   │   └── tab/
+│   ├── constants/
+│   ├── hooks/
+│   ├── layouts/
+│   ├── libs/
+│   ├── mappers/
+│   ├── routes/
+│   ├── store/
+│   ├── styles/
+│   ├── types/
+│   ├── ui/
+│   └── ...
+└── vite-env.d.ts
 ```
 
-페이지 내부에 둘 수 있는 파일은 다음과 같습니다.
+#### 폴더별 역할 설명
+
+##### `src/app`
+
+- `App.tsx`: 전역 Provider를 연결하는 앱 셸
+- `main.tsx`: 브라우저 엔트리 포인트
+- `router.tsx`: 라우트 테이블과 중첩 라우팅 정의
+
+##### `src/pages`
+
+- `auth/`: 인증 콜백, 로그인 등 인증 진입 화면
+- `developer-detail/`: 개발자 상세/제안 화면
+- `landing/`: 서비스 소개/랜딩 화면
+- `login/`: 로그인 흐름 관련 화면
+- `main/`: 메인 홈 화면
+- `matching/`: 지원/제안/진행 상태 기반 매칭 화면
+- `my-info/`: 내 정보 조회/수정 화면
+- `my-project/`: 내 프로젝트 목록/상태 화면
+- `pay/`: 결제 및 이용권 관련 화면
+- `project-create/`: 프로젝트 생성/수정 화면
+- `project-detail/`: 프로젝트 상세 및 지원 화면
+- `recommend/`: 프로젝트/개발자 추천 화면
+- `report/`: 리포트 생성/조회/상세 화면
+- `search/`: 프로젝트/개발자 검색 화면
+- `signup/`: 회원가입 온보딩 화면
+- `terms/`: 약관 조회 화면
+- `index.ts`: 페이지 배럴 export
+
+##### `src/shared`
+
+- `apis/`: 서버 통신 함수, query/mutation, API 타입
+  - `base/`: 공통 응답 타입/유틸
+  - `member/`: 멤버 관련 API 묶음
+  - `myInfo/`: 내 정보 관련 API 묶음
+  - `payment/`: 결제 관련 API 묶음
+  - `project/`: 프로젝트 관련 API 묶음
+  - `report/`: 리포트 관련 API 묶음
+- `assets/`: 아이콘, 이미지, 배지, 정적 리소스
+- `auth/`: 인증 공통 로직/유틸
+- `components/`: 여러 화면에서 재사용하는 도메인 공용 컴포넌트
+  - `chat/`: 채팅 위젯 계열 컴포넌트
+  - `developer/`: 개발자 도메인 카드/필터 컴포넌트
+  - `myInfo/`: 내 정보 공용 컴포넌트
+  - `myProject/`: 내 프로젝트 공용 컴포넌트
+  - `profile/`: 프로필 상세 공용 컴포넌트
+  - `project/`: 프로젝트 도메인 카드/필터 컴포넌트
+  - `recommend/`: 추천 도메인 필터/드롭다운 컴포넌트
+  - `report/`: 리포트 도메인 공용 컴포넌트
+  - `tab/`: 탭 UI 공용 컴포넌트
+- `constants/`: 전역 상수와 고정 매핑 값
+- `hooks/`: 여러 화면에서 재사용하는 공용 훅
+- `layouts/`: 루트 레이아웃, 헤더, 푸터
+- `libs/`: 순수 함수 유틸과 라이브러리 래핑
+- `mappers/`: API 모델을 UI 모델로 변환하는 로직
+- `routes/`: 라우팅 보조 상수/유틸
+- `store/`: 전역 상태(Zustand) 관리
+- `styles/`: 전역 CSS, 토큰, 테마 스타일
+- `types/`: 전역/공용 타입 정의
+- `ui/`: 도메인 비의존 순수 UI 컴포넌트
+
+## 2. 파일을 어디에 둘지 결정하는 기준
+
+새 파일을 만들 때는 아래 순서로 판단합니다.
+
+### 1단계: 특정 페이지에서만 쓰는가?
+
+특정 페이지 또는 특정 라우트 묶음에서만 사용하면 `pages/[feature]/_components`, `pages/[feature]/_hooks` 등에 둡니다.
+
+페이지 내부에 둘 수 있는 기본 구조는 다음과 같습니다.
 
 ```text
 pages/[feature]/
@@ -58,36 +180,6 @@ pages/[feature]/
 ├── _types/                # 이 feature에서만 쓰는 타입
 └── index.ts               # 필요한 경우에만 export 정리
 ```
-
-신규 페이지 전용 폴더는 `_components`, `_hooks`, `_constants`, `_types`처럼 언더스코어 접두사를 사용합니다. 언더스코어는 “라우트가 아니라 내부 구현 폴더”라는 의미입니다.
-
-### `src/shared`
-
-두 개 이상의 화면에서 재사용되는 코드만 둡니다. 한 화면에서만 쓰는 코드를 미리 `shared`에 올리지 않습니다.
-
-```text
-shared/
-├── apis/          # 서버 통신 함수, API 타입, query/mutation
-├── assets/        # 이미지, 아이콘, Lottie, 정적 파일
-├── components/    # 도메인 의미가 있는 공용 컴포넌트
-├── constants/     # 여러 화면에서 쓰는 상수
-├── hooks/         # 여러 화면에서 쓰는 훅
-├── layouts/       # RootLayout, Header, Footer 등 레이아웃
-├── libs/          # 순수 유틸, 외부 라이브러리 설정
-├── mappers/       # API 데이터와 UI 데이터 간 변환
-├── store/         # Zustand 등 전역 상태
-├── styles/        # 전역 CSS, 디자인 토큰
-├── types/         # 여러 화면에서 공유하는 타입
-└── ui/            # 도메인에 의존하지 않는 순수 UI
-```
-
-## 2. 파일을 어디에 둘지 결정하는 기준
-
-새 파일을 만들 때는 아래 순서로 판단합니다.
-
-### 1단계: 특정 페이지에서만 쓰는가?
-
-특정 페이지 또는 특정 라우트 묶음에서만 사용하면 `pages/[feature]/_components`, `pages/[feature]/_hooks` 등에 둡니다.
 
 예시:
 
@@ -100,6 +192,26 @@ shared/
 두 개 이상의 feature에서 실제로 재사용되면 `shared`로 올립니다.
 
 단, “나중에 쓸 것 같아서” 미리 올리지 않습니다. 실제 재사용이 생겼을 때 이동합니다.
+
+이때 `shared`의 기본 배치는 아래를 따릅니다.
+
+```text
+shared/
+├── apis/
+├── assets/
+├── components/
+├── constants/
+├── hooks/
+├── layouts/
+├── libs/
+├── mappers/
+├── routes/
+├── store/
+├── styles/
+├── types/
+├── ui/
+└── ...
+```
 
 ### 3단계: 도메인 의미가 있는가?
 

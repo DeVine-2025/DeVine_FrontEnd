@@ -7,7 +7,7 @@ import ContactCard from '@components/profile/ContactCard';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import ProfileDetail from '../../shared/templates/profileDetail';
+import ProfileDetail from '@components/profile/ProfileDetail';
 import { useAuthMe } from '@hooks/use-auth-me';
 
 const DeveloperDetailPage = () => {
