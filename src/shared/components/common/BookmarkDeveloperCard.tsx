@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import BookmarkButton from '@components/common/BookmarkButton';
+import BookmarkButton from '@ui/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
 import { useThemeStore } from '@store/theme';
 import { normalizeTechKey, findTechBadge, SKIP_TECH_NAMES } from '@libs/tech-stack-utils';

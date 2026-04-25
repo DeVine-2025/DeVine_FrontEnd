@@ -5,8 +5,8 @@ import ProfileDefaultImage from '@assets/images/Profile.svg';
 import ProfileDefaultDark from '@assets/images/Profile_dark.svg';
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
-import ProjectListState from '@components/common/ListStateUI';
-import Pagination from '@components/common/Pagination';
+import ProjectListState from '@ui/ListStateUI';
+import Pagination from '@ui/Pagination';
 import ProfileCard from '@components/common/ProfileCard';
 import RecommendDeveloperCardSkeleton, {
   RecommendDeveloperCardSkeletonList,

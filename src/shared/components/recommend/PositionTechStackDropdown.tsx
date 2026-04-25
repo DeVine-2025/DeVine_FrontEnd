@@ -1,5 +1,5 @@
 import SelectAllIcon from '@assets/icons/select-all.svg?react';
-import LoadingSpinner from '@components/common/LoadingSpinner';
+import LoadingSpinner from '@ui/LoadingSpinner';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import {
   formatTechstackKey,

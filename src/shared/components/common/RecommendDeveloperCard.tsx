@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import BookmarkButton from '@components/common/BookmarkButton';
+import BookmarkButton from '@ui/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
 import { cn } from '@libs/cn';
 import type { BadgeTone } from '@t/badgeTone';

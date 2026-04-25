@@ -6,8 +6,8 @@ import {
 } from '@apis/mainrecommendproject';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import { useAuth } from '@clerk/clerk-react';
-import ProjectListState from '@components/common/ListStateUI';
-import Pagination from '@components/common/Pagination';
+import ProjectListState from '@ui/ListStateUI';
+import Pagination from '@ui/Pagination';
 import ProjectFiltersBar, {
   PROJECT_FILTERS,
   type ProjectFilterKey,

@@ -28,7 +28,7 @@ import XIcon from '@assets/icons/create-project/x.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import DatePickerPopover from './_components/DatePickerPopover';
 import PositionBasedTechStackDropdown from './_components/PositionBasedTechStackDropdown';
-import SelectDropdown from '@components/common/SelectDropdown';
+import SelectDropdown from '@ui/SelectDropdown';
 import {
   getKeysByPosition,
   type PositionKey,

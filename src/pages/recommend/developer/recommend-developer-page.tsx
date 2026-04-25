@@ -4,7 +4,7 @@ import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
 import { RecommendDeveloperCardSkeletonList } from '@components/common/RecommendDeveloperCardSkeleton';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
-import ReportRequiredCard from '@components/common/ReportRequiredCard';
+import ReportRequiredCard from '@ui/ReportRequiredCard';
 import { useBookmarks } from '@hooks/useBookmarks';
 import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
 import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';

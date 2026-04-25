@@ -7,7 +7,7 @@ import { getMemberProposal } from '@apis/apply';
 import BackIcon from '@assets/icons/back.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import MainProjectCard from '@components/common/MainProjectCard';
-import SelectDropdown from '@components/common/SelectDropdown';
+import SelectDropdown from '@ui/SelectDropdown';
 import ImagePreview from './_components/ImagePreview';
 import RoleChips from './_components/RoleChips';
 import { DOMAIN_REVERSE_MAP } from '@constants/domain';

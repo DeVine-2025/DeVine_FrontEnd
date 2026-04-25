@@ -6,7 +6,7 @@ import BackIcon from '@assets/icons/back.svg?react';
 import profileDefaultIconUrl from '@assets/icons/profile-default.svg?url';
 import { useAuth } from '@clerk/clerk-react';
 import BookmarkDeveloperCard from '@components/common/BookmarkDeveloperCard';
-import LoadingSpinner from '@components/common/LoadingSpinner';
+import LoadingSpinner from '@ui/LoadingSpinner';
 import ProjectLg from '@components/common/ProjectLg';
 import { mapProjectItemToCard } from '@mappers/project';
 import type { ProjectItem } from '@t/project/api';

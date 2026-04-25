@@ -9,14 +9,14 @@ import { getWeeklyBestProjects, type WeeklyBestProject } from '@apis/project-det
 import { getMyProjectsAllStatuses } from '@apis/projects';
 import { getReports } from '@apis/report/report-queries';
 import { useAuth } from '@clerk/clerk-react';
-import LoginRequiredCard from '@components/common/LoginRequiredCard';
+import LoginRequiredCard from '@ui/LoginRequiredCard';
 import MainProjectCard from '@components/common/MainProjectCard';
 import RecommendDeveloperCard from '@components/common/RecommendDeveloperCard';
 import { RecommendDeveloperCardSkeletonList } from '@components/common/RecommendDeveloperCardSkeleton';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import { RecommendProjectCardSkeletonList } from '@components/common/RecommendProjectCardSkeleton';
-import ReportRequiredCard from '@components/common/ReportRequiredCard';
-import Skeleton from '@components/common/Skeleton';
+import ReportRequiredCard from '@ui/ReportRequiredCard';
+import Skeleton from '@ui/Skeleton';
 import {
   isInitialSkeletonSessionDone,
   useInitialSkeletonGate,

@@ -1,6 +1,6 @@
 import { useCreateReportMutation } from '@apis/report/report-mutation';
 import { useAuth } from '@clerk/clerk-react';
-import Loading from '@components/common/Loading';
+import Loading from '@ui/Loading';
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 

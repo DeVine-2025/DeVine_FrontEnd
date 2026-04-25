@@ -20,7 +20,7 @@ import ModeLightIcon from '@assets/icons/mode-light.svg?react';
 import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
 import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
 import { SignedIn, SignedOut, useAuth as useClerkAuth, useUser } from '@clerk/clerk-react';
-import NotificationModal from '@components/common/NotificationModal';
+import NotificationModal from '@ui/NotificationModal';
 import { useNotificationStore } from '@store/notification';
 import { useThemeStore } from '@store/theme';
 import { getProfileImageKey, getStoredProfileImageUrl } from '@utils/storage';

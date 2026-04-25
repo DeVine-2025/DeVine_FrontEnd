@@ -1,4 +1,4 @@
-import LoadingSpinner from '@components/common/LoadingSpinner';
+import LoadingSpinner from '@ui/LoadingSpinner';
 
 type Props = {
   type: 'loading' | 'error' | 'empty';

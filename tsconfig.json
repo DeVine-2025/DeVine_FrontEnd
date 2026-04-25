@@ -27,6 +27,7 @@
       "@apis/*": ["src/shared/apis/*"],
       "@assets/*": ["src/shared/assets/*"],
       "@components/*": ["src/shared/components/*"],
+      "@ui/*": ["src/shared/ui/*"],
       "@store/*": ["src/shared/store/*"],
       "@t/*": ["src/shared/types/*"],
       "@contexts/*": ["src/shared/contexts/*"],

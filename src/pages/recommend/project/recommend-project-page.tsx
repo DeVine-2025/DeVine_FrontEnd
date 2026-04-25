@@ -2,7 +2,7 @@ import { createBookmark, deleteBookmark } from '@apis/bookmarks';
 import { getRecommendProjects, type ProjectListItem } from '@apis/recommend';
 import { reportQueries } from '@apis/report/report-queries';
 import { useAuth } from '@clerk/clerk-react';
-import ProjectListState from '@components/common/ListStateUI';
+import ProjectListState from '@ui/ListStateUI';
 import ProjectFiltersBar from '@components/common/ProjectFilterBar';
 import RecommendProjectCard from '@components/common/RecommendProjectCard';
 import { RecommendProjectCardSkeletonList } from '@components/common/RecommendProjectCardSkeleton';
@@ -12,7 +12,7 @@ import { buildParams } from '@mappers/projectFilters';
 import { useFilterStore } from '@store/filter';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ReportRequiredCard from '@components/common/ReportRequiredCard';
+import ReportRequiredCard from '@ui/ReportRequiredCard';
 import { useNavigate } from 'react-router-dom';
 import { PROJECT_FILTERS } from '@components/common/ProjectFilterBar';
 

@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react';
-import LoginRequiredCard from '@components/common/LoginRequiredCard';
+import LoginRequiredCard from '@ui/LoginRequiredCard';
 import SearchTabs from '../search/_components/SearchTabs';
 import { Outlet, useLocation } from 'react-router-dom';
 

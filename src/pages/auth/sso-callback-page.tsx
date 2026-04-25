@@ -1,5 +1,5 @@
 import { AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
-import LoadingSpinner from '@components/common/LoadingSpinner';
+import LoadingSpinner from '@ui/LoadingSpinner';
 import { Navigate } from 'react-router-dom';
 
 const LOGIN_PROVIDER_KEY = 'login_provider';

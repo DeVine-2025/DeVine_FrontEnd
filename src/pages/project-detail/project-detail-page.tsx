@@ -1,8 +1,8 @@
 import type { ProjectStatus } from '@apis/project-detail';
 import PersonIcon from '@assets/icons/person.svg?react';
 import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
-import BookmarkButton from '@components/common/BookmarkButton';
-import LoadingSpinner from '@components/common/LoadingSpinner';
+import BookmarkButton from '@ui/BookmarkButton';
+import LoadingSpinner from '@ui/LoadingSpinner';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { useThemeStore } from '@store/theme';
 import type { BadgeTone } from 'src/shared/types/badgeTone';

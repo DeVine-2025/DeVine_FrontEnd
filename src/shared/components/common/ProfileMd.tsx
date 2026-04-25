@@ -1,4 +1,4 @@
-import BookmarkButton from '@components/common/BookmarkButton';
+import BookmarkButton from '@ui/BookmarkButton';
 import { cn } from '@libs/cn';
 import type { ProfileCardProps } from '../../types/profileCard.types';
 import { BadgeList, Intro, TechChips } from './ProfileBase';

@@ -1,6 +1,6 @@
 import AlarmIcon from '@assets/icons/alarm.svg?react';
 import AlarmLightIcon from '@assets/icons/alarm-light.svg?react';
-import LoadingSpinner from '@components/common/LoadingSpinner';
+import LoadingSpinner from '@ui/LoadingSpinner';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useThemeStore } from '@store/theme';
 

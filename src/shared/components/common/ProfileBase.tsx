@@ -1,4 +1,4 @@
-import BookmarkButton from '@components/common/BookmarkButton';
+import BookmarkButton from '@ui/BookmarkButton';
 import { cn } from '@libs/cn';
 import { useThemeStore } from '@store/theme';
 import { findTechBadge } from '@libs/tech-stack-utils';

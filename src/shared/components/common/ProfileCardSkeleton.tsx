@@ -1,4 +1,4 @@
-import Skeleton from '@components/common/Skeleton';
+import Skeleton from '@ui/Skeleton';
 import { cn } from '@libs/cn';
 
 type Props = {
