@@ -3,9 +3,9 @@ import { getRecommendProjects, type ProjectListItem } from '@apis/recommend';
 import { reportQueries } from '@apis/report/report-queries';
 import { useAuth } from '@clerk/clerk-react';
 import ProjectListState from '@ui/ListStateUI';
-import ProjectFiltersBar from '@components/common/ProjectFilterBar';
-import RecommendProjectCard from '@components/common/RecommendProjectCard';
-import { RecommendProjectCardSkeletonList } from '@components/common/RecommendProjectCardSkeleton';
+import ProjectFiltersBar from '@components/project/ProjectFilterBar';
+import { ProjectCard } from '@components/project/ProjectCard';
+import { ProjectCardSkeletonList } from '@components/project/ProjectCardSkeleton';
 import { useBookmarks } from '@hooks/useBookmarks';
 import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
 import { buildParams } from '@mappers/projectFilters';
@@ -14,7 +14,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReportRequiredCard from '@ui/ReportRequiredCard';
 import { useNavigate } from 'react-router-dom';
-import { PROJECT_FILTERS } from '@components/common/ProjectFilterBar';
+import {
+  PROJECT_FILTERS,
+  type ProjectFilterKey,
+} from '@components/project/ProjectFilterBar';
 
 const RecommendProjectPage = () => {
   const { getToken, isSignedIn } = useAuth();
@@ -220,7 +223,7 @@ const RecommendProjectPage = () => {
 
       <div className="flex flex-col gap-6">
         {showRecommendSkeleton && (
-          <RecommendProjectCardSkeletonList count={3} className="py-2" />
+          <ProjectCardSkeletonList count={3} className="py-2" />
         )}
 
         {!showRecommendSkeleton && isError && <ProjectListState type="error" onRetry={handleRetry} />}
@@ -240,7 +243,7 @@ const RecommendProjectPage = () => {
           displayList.length > 0 &&
           !showRecommendSkeleton &&
           displayList.map((p) => (
-            <RecommendProjectCard
+            <ProjectCard variant="recommend"
               key={p.id}
               categoryLabel={p.categoryLabel}
               deadlineLabel={p.deadlineLabel}

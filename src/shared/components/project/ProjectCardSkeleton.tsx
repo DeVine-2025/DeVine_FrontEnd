@@ -3,13 +3,13 @@ import Skeleton from '@ui/Skeleton';
 const cardShellClass =
   'relative flex w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)]/90 bg-[var(--ui-bg)] shadow-[0_1px_2px_rgba(0,0,0,0.06)]';
 
-type RecommendProjectCardSkeletonProps = {
+type ProjectCardSkeletonProps = {
   variant?: 'default' | 'compact';
 };
 
-export default function RecommendProjectCardSkeleton({
+export default function ProjectCardSkeleton({
   variant = 'default',
-}: RecommendProjectCardSkeletonProps) {
+}: ProjectCardSkeletonProps) {
   if (variant === 'compact') {
     return (
       <div className={`${cardShellClass} min-h-[200px]`} aria-hidden>
@@ -58,12 +58,12 @@ type ListProps = {
   className?: string;
 };
 
-export function RecommendProjectCardSkeletonList({ count = 3, className }: ListProps) {
+export function ProjectCardSkeletonList({ count = 3, className }: ListProps) {
   return (
     <div className={className} aria-busy="true" aria-label="추천 프로젝트 로딩 중">
       <div className="flex flex-col gap-6">
         {Array.from({ length: count }, (_, i) => (
-          <RecommendProjectCardSkeleton key={i} />
+          <ProjectCardSkeleton key={i} />
         ))}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import ProjectLg from '@components/common/ProjectLg';
+import { ProjectCard } from '@components/project/ProjectCard';
 import Tabs from '../../../shared/components/tab/CommonTabs';
 import { type DevTab, useDevProjects } from '@hooks/useDevProjects';
 import { useRespondProposal } from '@hooks/useRespondProposal';
@@ -123,7 +123,7 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
             const projectProps = toProjectLgProps(m);
 
             return (
-              <ProjectLg
+              <ProjectCard variant="list"
                 key={m.matchingId}
                 {...projectProps}
                 roles={[]}

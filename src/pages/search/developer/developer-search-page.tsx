@@ -4,13 +4,13 @@ import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
 import ProfileDefaultImage from '@assets/images/Profile.svg';
 import ProfileDefaultDark from '@assets/images/Profile_dark.svg';
 import { useAuth } from '@clerk/clerk-react';
-import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
+import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/developer/DeveloperFilterBar';
 import ProjectListState from '@ui/ListStateUI';
 import Pagination from '@ui/Pagination';
-import ProfileCard from '@components/common/ProfileCard';
+import { DeveloperCard } from '@components/developer/DeveloperCard';
 import RecommendDeveloperCardSkeleton, {
   RecommendDeveloperCardSkeletonList,
-} from '@components/common/RecommendDeveloperCardSkeleton';
+} from '@components/developer/RecommendDeveloperCardSkeleton';
 import { useDevelopers } from '@hooks/useDevelopers';
 import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
 import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
@@ -20,7 +20,8 @@ import { useFilterStore } from '@store/filter';
 import { useThemeStore } from '@store/theme';
 import type { BadgeTone } from '@t/badgeTone';
 import { DOMAIN_CODE_TO_LABEL, DOMAIN_LABEL_TO_CODE, ROLE_LABEL, ROLE_PRIORITY } from '@t/member';
-import type { MemberSearchCategory, ProfileCardProps } from '@t/profileCard.types';
+import type { MemberSearchCategory } from '@t/profileCard.types';
+import type { DeveloperCardProps } from '@components/developer/DeveloperCard';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -142,7 +143,7 @@ const DeveloperSearchPage = () => {
     sessionKey: 'search-developer-list',
   });
 
-  const profiles = useMemo<ProfileCardProps[]>(() => {
+  const profiles = useMemo(() => {
     const result = previewQ.data ?? [];
     return result.map((x, index) => {
       const isPm = x.member?.mainType === 'PM';
@@ -328,12 +329,15 @@ const DeveloperSearchPage = () => {
       {!showTopPreviewSkeleton && hasProjects === true && (
         <div className="scrollbar-hide flex justify-start gap-6 overflow-x-auto">
           {profiles.map((profile) => (
-            <ProfileCard
+            <DeveloperCard
               key={profile.id}
               {...profile}
+              nickname={profile.nickname ?? ''}
+              profileImageUrl={profile.profileImageUrl ?? ''}
               size="sm"
-              bookmarked={bookmarkMap[profile.nickname] != null || (profile.bookmarked ?? false)}
-              onBookmarkChange={(next) => handleBookmarkChange(undefined, profile.nickname, next)}
+              variant="search"
+              bookmarked={bookmarkMap[profile.nickname ?? ''] != null || (profile.bookmarked ?? false)}
+              onBookmarkChange={(next) => handleBookmarkChange(undefined, profile.nickname ?? '', next)}
               onClick={() => navigate(`/developer-detail/${profile.nickname}`)}
             />
           ))}
@@ -376,10 +380,13 @@ const DeveloperSearchPage = () => {
           !developersQ.isError &&
           searchedProfiles.length > 0 &&
           searchedProfiles.map((profile) => (
-            <ProfileCard
+            <DeveloperCard
               key={profile.id}
               {...profile}
+              nickname={profile.nickname ?? ''}
+              profileImageUrl={profile.profileImageUrl ?? ''}
               size="lg"
+              variant="search"
               bookmarked={
                 bookmarkMap[profile.memberId ?? profile.nickname] != null ||
                 (profile.bookmarked ?? false)

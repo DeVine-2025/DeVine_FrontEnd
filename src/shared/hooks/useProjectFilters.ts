@@ -1,4 +1,4 @@
-import type { ProjectFilterKey } from '@components/common/ProjectFilterBar';
+import type { ProjectFilterKey } from '@components/project/ProjectFilterBar';
 import { useFilterStore } from '@store/filter';
 import { useState } from 'react';
 

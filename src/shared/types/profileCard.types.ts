@@ -8,7 +8,7 @@ export type TechStackItem = {
 };
 
 export type ProfileCardProps = {
-  role: string;
+  role?: string;
   roleTone?: BadgeTone;
   nickname: string;
   profileImageUrl: string;

@@ -5,9 +5,10 @@ import { getProjectDetail } from '@apis/project-detail';
 import BackIcon from '@assets/icons/back.svg?react';
 import profileDefaultIconUrl from '@assets/icons/profile-default.svg?url';
 import { useAuth } from '@clerk/clerk-react';
-import BookmarkDeveloperCard from '@components/common/BookmarkDeveloperCard';
+import { DeveloperCard } from '@components/developer/DeveloperCard';
+import DeveloperFilterBar from '@components/developer/DeveloperFilterBar';
 import LoadingSpinner from '@ui/LoadingSpinner';
-import ProjectLg from '@components/common/ProjectLg';
+import { ProjectCard } from '@components/project/ProjectCard';
 import { mapProjectItemToCard } from '@mappers/project';
 import type { ProjectItem } from '@t/project/api';
 import { useCallback, useEffect, useState } from 'react';
@@ -243,7 +244,7 @@ const MyInfoBookmark = () => {
                 project.images?.[0]?.url;
               const thumbnailUrl = resolveThumbnailUrl(firstImage);
               return (
-                <ProjectLg
+                <ProjectCard variant="list"
                   key={bookmarkId}
                   categoryLabel={card.categoryLabel}
                   deadlineLabel={card.deadlineLabel}
@@ -280,7 +281,8 @@ const MyInfoBookmark = () => {
                 navigate(`/developer-detail/${targetNickname}`);
               };
               return (
-                <BookmarkDeveloperCard
+                <DeveloperCard
+                  variant="bookmark"
                   key={bookmarkId}
                   nickname={nickname}
                   profileImageUrl={profileImageUrl}

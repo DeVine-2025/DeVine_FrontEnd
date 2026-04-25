@@ -6,7 +6,7 @@ import { getMemberProposal } from '@apis/apply';
 
 import BackIcon from '@assets/icons/back.svg?react';
 import { useAuth } from '@clerk/clerk-react';
-import MainProjectCard from '@components/common/MainProjectCard';
+import { ProjectCard } from '@components/project/ProjectCard';
 import SelectDropdown from '@ui/SelectDropdown';
 import ImagePreview from './_components/ImagePreview';
 import RoleChips from './_components/RoleChips';
@@ -197,7 +197,7 @@ const DeveloperSuggestPage = () => {
               const isSelected = selectedProjectId === project.projectId;
               return (
                 <div key={project.projectId} className="relative">
-                  <MainProjectCard
+                  <ProjectCard variant="grid"
                     title={project.title || `프로젝트 #${project.projectId}`}
                     thumbnailUrl={project.thumbnailUrl}
                     thumbnailAlt={project.title}

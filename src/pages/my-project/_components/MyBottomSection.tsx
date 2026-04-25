@@ -1,5 +1,5 @@
 import { projectQueries } from '@apis/project/project-queries';
-import MainProjectCard from '@components/common/MainProjectCard';
+import { ProjectCard } from '@components/project/ProjectCard';
 import Tabs from '../../../shared/components/tab/CommonTabs';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
@@ -100,7 +100,7 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) 
       <div className="mt-6 grid grid-cols-1 gap-[1.6rem] sm:grid-cols-2 lg:grid-cols-3">
         {currentProjects.length > 0 ? (
           currentProjects.map((project: any) => (
-            <MainProjectCard
+            <ProjectCard variant="grid"
               key={project.projectId ?? project.id}
               categoryLabel={project.projectFieldName ?? project.projectField}
               deadlineLabel={project.categoryName ?? project.category?.name}

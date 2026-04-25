@@ -1,4 +1,4 @@
-import ProfileCard from '@components/common/ProfileCard';
+import { DeveloperCard } from '@components/developer/DeveloperCard';
 import Tabs from '../../../shared/components/tab/CommonTabs';
 import { type DevTab, type MatchingDeveloper, usePmDevelopers } from '@hooks/usePmDevelopers';
 import { useRespondApplication } from '@hooks/useRespondApplication';
@@ -183,7 +183,7 @@ const MyPMTopSection = ({ devTab, onChangeDevTab }: Props) => {
             const isPending = decision === 'PENDING';
 
             return (
-              <ProfileCard
+              <DeveloperCard variant="search" size="md"
                 key={d.matchingId}
                 {...cardProps}
                 onClick={() => navigate(`/developer-detail/${d.developerNickname}`)}
