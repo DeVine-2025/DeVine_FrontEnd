@@ -1,16 +1,7 @@
 import BookmarkButton from '@components/common/BookmarkButton';
-import {
-  BACKEND_DATABASE,
-  BACKEND_FRAMEWORK,
-  BACKEND_LANGUAGE,
-  FRONTEND_LANGUAGE_FRAMEWORK,
-  FRONTEND_MOBILE,
-  INFRA_CLOUD,
-  INFRA_CONTAINER,
-  type TechStackChip,
-} from '@constants/position-tech-stack';
 import { cn } from '@libs/cn';
 import { useThemeStore } from '@store/theme';
+import { findTechBadge } from '@libs/tech-stack-utils';
 import { badgeToneToClass } from '../../types/badgeTone';
 import type { ProfileCardProps, TechStackItem } from '../../types/profileCard.types';
 
@@ -118,47 +109,6 @@ export function TechChips({ techStack, max }: { techStack?: TechStackItem[]; max
 
   if (!techStack?.length) return null;
 
-  const normalizeTechKey = (v: unknown): string => {
-    const s = typeof v === 'string' ? v : v != null ? String(v) : '';
-    return s
-      .trim()
-      .toLowerCase()
-      .replace(/\s/g, '')
-      .replace(/\./g, '')
-      .replace(/-/g, '')
-      .replace(/_/g, '');
-  };
-
-  const ALL_TECH_STACK_BADGES: Array<Extract<TechStackChip, { off: string; on: string }>> = [
-    ...FRONTEND_LANGUAGE_FRAMEWORK,
-    ...FRONTEND_MOBILE,
-    ...BACKEND_LANGUAGE,
-    ...BACKEND_FRAMEWORK,
-    ...BACKEND_DATABASE,
-    ...INFRA_CLOUD,
-    ...INFRA_CONTAINER,
-  ].filter(
-    (b): b is Extract<TechStackChip, { off: string; on: string }> => 'off' in b && 'on' in b,
-  );
-
-  const TECH_BADGE_BY_NAME = new Map(
-    ALL_TECH_STACK_BADGES.flatMap((b) => [
-      [normalizeTechKey(b.key), b],
-      [normalizeTechKey(b.label), b],
-    ]),
-  );
-
-  const findBadge = (name: unknown) => {
-    const normalized = normalizeTechKey(name);
-    const alias = normalized
-      .replace(/^spring$/g, 'springboot')
-      .replace(/typescript/g, 'typescript')
-      .replace(/nextjs/g, 'nextjs')
-      .replace(/nodejs/g, 'nodejs')
-      .replace(/reactnative/g, 'reactnative');
-    return TECH_BADGE_BY_NAME.get(alias) ?? TECH_BADGE_BY_NAME.get(normalized) ?? null;
-  };
-
   const shown = techStack.slice(0, max);
   const rest = Math.max(techStack.length - max, 0);
 
@@ -168,7 +118,7 @@ export function TechChips({ techStack, max }: { techStack?: TechStackItem[]; max
         const label = typeof s.name === 'string' ? s.name : '';
         const key = String(s.id ?? index);
 
-        const badge = label ? findBadge(label) : null;
+        const badge = label ? findTechBadge(label) : null;
 
         if (badge) {
           const offSrc = theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off;

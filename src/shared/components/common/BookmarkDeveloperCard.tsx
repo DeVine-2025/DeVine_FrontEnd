@@ -2,16 +2,7 @@ import { memo } from 'react';
 import BookmarkButton from '@components/common/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
 import { useThemeStore } from '@store/theme';
-import {
-  BACKEND_DATABASE,
-  BACKEND_FRAMEWORK,
-  BACKEND_LANGUAGE,
-  FRONTEND_LANGUAGE_FRAMEWORK,
-  FRONTEND_MOBILE,
-  INFRA_CLOUD,
-  INFRA_CONTAINER,
-  type TechStackChip,
-} from '@constants/position-tech-stack';
+import { normalizeTechKey, findTechBadge, SKIP_TECH_NAMES } from '@libs/tech-stack-utils';
 
 type BookmarkDeveloperTech = {
   id: string;
@@ -42,54 +33,7 @@ function BookmarkDeveloperCard({
 }: BookmarkDeveloperCardProps) {
   const { theme } = useThemeStore();
   const maxChips = 5;
-  const normalizeTechKey = (v: unknown): string => {
-    const s = typeof v === 'string' ? v : v != null ? String(v) : '';
-    return s
-      .trim()
-      .toLowerCase()
-      .replace(/\s/g, '')
-      .replace(/\./g, '')
-      .replace(/-/g, '')
-      .replace(/_/g, '');
-  };
 
-  const ALL_TECH_STACK_BADGES: Array<Extract<TechStackChip, { off: string; on: string }>> = [
-    ...FRONTEND_LANGUAGE_FRAMEWORK,
-    ...FRONTEND_MOBILE,
-    ...BACKEND_LANGUAGE,
-    ...BACKEND_FRAMEWORK,
-    ...BACKEND_DATABASE,
-    ...INFRA_CLOUD,
-    ...INFRA_CONTAINER,
-  ].filter((b): b is Extract<TechStackChip, { off: string; on: string }> => 'off' in b && 'on' in b);
-
-  const TECH_BADGE_BY_NAME = new Map<string, Extract<TechStackChip, { off: string; on: string }>>(
-    ALL_TECH_STACK_BADGES.flatMap((b: Extract<TechStackChip, { off: string; on: string }>) => [
-      [normalizeTechKey(b.key), b],
-      [normalizeTechKey(b.label), b],
-    ]),
-  );
-
-  const findBadge = (name: unknown) => {
-    const normalized = normalizeTechKey(name);
-    const alias = normalized
-      .replace(/^spring$/g, 'springboot')
-      .replace(/typescript/g, 'typescript')
-      .replace(/nextjs/g, 'nextjs')
-      .replace(/nodejs/g, 'nodejs')
-      .replace(/reactnative/g, 'reactnative');
-    return TECH_BADGE_BY_NAME.get(alias) ?? TECH_BADGE_BY_NAME.get(normalized) ?? null;
-  };
-
-  const SKIP_TECH_NAMES = new Set([
-    'backend',
-    'frontend',
-    'infra',
-    '백엔드',
-    '프론트엔드',
-    '프런트엔드',
-    '인프라',
-  ]);
   const filteredTechStack =
     techStack?.filter((t) => !SKIP_TECH_NAMES.has(normalizeTechKey(t.name))) ?? [];
   const chips = filteredTechStack.slice(0, maxChips);
@@ -149,7 +93,7 @@ function BookmarkDeveloperCard({
         {chips.map((t) => (
           <span key={t.id} className="inline-flex items-center">
             {(() => {
-              const badge = findBadge(t.name);
+              const badge = findTechBadge(t.name);
               if (badge) {
                 const offSrc = theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off;
                 return (

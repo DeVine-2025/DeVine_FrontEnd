@@ -26,7 +26,6 @@ import { useThemeStore } from '@store/theme';
 import { getProfileImageKey, getStoredProfileImageUrl } from '@utils/storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/shared/auth/useAuth';
 
 type HeaderProps = {
   navLocked?: boolean;
@@ -35,7 +34,6 @@ type HeaderProps = {
 
 const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const { theme, toggleTheme } = useThemeStore();
-  const { isAuthed, user: devUser, setDevAuthed } = useAuth();
   const { getToken, isSignedIn } = useClerkAuth();
   const location = useLocation();
   const navigate = useNavigate();
