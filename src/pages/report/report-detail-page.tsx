@@ -1,8 +1,8 @@
 import type { Report, ReportDetailContent, ReportMainContent } from '@apis/report/report';
 import { reportQueries } from '@apis/report/report-queries';
 import { useAuth } from '@clerk/clerk-react';
-import MainDetail from '@components/report/MainDetail';
-import ReportDetail from '@components/report/ReportDetail';
+import MainDetail from './_components/MainDetail';
+import ReportDetail from './_components/ReportDetail';
 import { useQuery } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';

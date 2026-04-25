@@ -1,4 +1,4 @@
-import MyDevTopSection, { type DevTab } from '@components/myProject/MyDevTopSection';
+import MyDevTopSection, { type DevTab } from '../_components/MyDevTopSection';
 import { useState } from 'react';
 
 const MyDeveloperPage = () => {

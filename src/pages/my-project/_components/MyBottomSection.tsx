@@ -1,6 +1,6 @@
 import { projectQueries } from '@apis/project/project-queries';
 import MainProjectCard from '@components/common/MainProjectCard';
-import Tabs from '@components/tab/CommonTabs';
+import Tabs from '../../../shared/components/tab/CommonTabs';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';

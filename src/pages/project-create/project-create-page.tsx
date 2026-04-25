@@ -26,8 +26,8 @@ import TablerIconUnderlineHover from '@assets/icons/create-project/tabler-icon-u
 import UnderVectorIcon from '@assets/icons/create-project/under-vector.svg?react';
 import XIcon from '@assets/icons/create-project/x.svg?react';
 import { useAuth } from '@clerk/clerk-react';
-import DatePickerPopover from '@components/common/DatePickerPopover';
-import PositionBasedTechStackDropdown from '@components/common/PositionBasedTechStackDropdown';
+import DatePickerPopover from './_components/DatePickerPopover';
+import PositionBasedTechStackDropdown from './_components/PositionBasedTechStackDropdown';
 import SelectDropdown from '@components/common/SelectDropdown';
 import {
   getKeysByPosition,

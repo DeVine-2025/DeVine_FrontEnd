@@ -4,7 +4,7 @@ import Lottie from 'lottie-react';
 import reportAnimation from './Data _ Bundling.json';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
-import GithubRepoListSkeleton from '@components/report/GithubRepoListSkeleton';
+import GithubRepoListSkeleton from '../report/_components/GithubRepoListSkeleton';
 import { useAuth } from '@clerk/clerk-react';
 import { getGitRepos } from '@apis/github-repos';
 import { createReportSync, getReportDetail, getReportMain } from '@apis/reports';

@@ -3,7 +3,7 @@ import CheckGreenIcon from '@assets/icons/detail-page/check-green.svg?react';
 import CodeIcon from '@assets/icons/detail-page/code.svg?react';
 import FileIcon from '@assets/icons/detail-page/file.svg?react';
 import TimeIcon from '@assets/icons/detail-page/time.svg?react';
-import ContentBox from '@components/report/ContentBox';
+import ContentBox from './ContentBox';
 import { cn } from '@libs/cn';
 
 type MainDetailProps = {

@@ -1,4 +1,4 @@
-import MyPMTopSection, { type DevTab } from '@components/myProject/MyPMTopSection';
+import MyPMTopSection, { type DevTab } from '../_components/MyPMTopSection';
 import { useState } from 'react';
 
 const MyPMPage = () => {

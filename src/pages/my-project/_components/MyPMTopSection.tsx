@@ -1,5 +1,5 @@
 import ProfileCard from '@components/common/ProfileCard';
-import Tabs from '@components/tab/CommonTabs';
+import Tabs from '../../../shared/components/tab/CommonTabs';
 import { type DevTab, type MatchingDeveloper, usePmDevelopers } from '@hooks/usePmDevelopers';
 import { useRespondApplication } from '@hooks/useRespondApplication';
 import { useThemeStore } from '@store/theme';

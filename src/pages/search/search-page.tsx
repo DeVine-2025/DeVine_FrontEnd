@@ -1,4 +1,4 @@
-import SearchTabs from '@components/tab/SearchTabs';
+import SearchTabs from './_components/SearchTabs';
 import { Outlet } from 'react-router-dom';
 
 export default function SearchPage() {

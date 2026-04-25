@@ -1,5 +1,5 @@
 import ProjectLg from '@components/common/ProjectLg';
-import Tabs from '@components/tab/CommonTabs';
+import Tabs from '../../../shared/components/tab/CommonTabs';
 import { type DevTab, useDevProjects } from '@hooks/useDevProjects';
 import { useRespondProposal } from '@hooks/useRespondProposal';
 import type { ProjectCardProps } from '@t/project/ui';

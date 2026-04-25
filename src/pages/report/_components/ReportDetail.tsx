@@ -2,7 +2,7 @@ import type { CodeInsight, Improvement, NextStep, ReportDetailContent } from '@a
 import FileSmallIcon from '@assets/icons/detail-page/file-small.svg?react';
 import CheckLineIcon from '@assets/icons/check-line.svg?react';
 import CancelLineIcon from '@assets/icons/cancel-line.svg?react';
-import ContentBox from '@components/report/ContentBox';
+import ContentBox from './ContentBox';
 
 type ReportDetailProps = {
   data: ReportDetailContent;

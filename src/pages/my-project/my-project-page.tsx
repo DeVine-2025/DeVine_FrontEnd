@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/clerk-react';
 import LoginRequiredCard from '@components/common/LoginRequiredCard';
-import MyProjectTabs from '@components/tab/MyProjectTabs';
+import MyProjectTabs from './_components/MyProjectTabs';
 import { Outlet } from 'react-router-dom';
 
 export default function MyProjectPage() {
