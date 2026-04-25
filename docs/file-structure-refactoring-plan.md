@@ -1,106 +1,369 @@
-# 🏗️ DeVine 프로젝트 아키텍처 및 디렉토리 가이드
+# DeVine 파일 구조 및 컨벤션 가이드
 
-이 문서는 2025년 4월 진행된 대규모 파일 구조 리팩토링의 결과와 새롭게 정의된 아키텍처 구조를 설명합니다. 기존의 파편화된 구조를 개선하여 팀원 모두가 직관적으로 코드를 관리할 수 있도록 설계되었습니다.
+이 문서는 DeVine 프론트엔드에서 파일을 어디에 두고, 어떤 이름으로 만들고, 어떤 방향으로 import해야 하는지 정리한 팀 컨벤션입니다.
 
----
+목표는 단순합니다.
 
-## 🔍 기존 구조 대비 주요 개선점
+- 처음 보는 팀원도 파일 위치를 예측할 수 있어야 합니다.
+- 한 화면에서만 쓰는 코드는 해당 화면 근처에 두고, 여러 화면에서 쓰는 코드만 `shared`로 올립니다.
+- API, 상태, UI, 유틸의 역할을 섞지 않습니다.
+- 새 파일을 만들 때 “어디에 둬야 하지?”라는 고민을 최소화합니다.
 
-| 구분 | 기존 구조 (Legacy) | 개선된 구조 (Refactored) | 개선 효과 |
-|:---|:---|:---|:---|
-| **진입점** | `src/` 최상위에 설정 파일 산재 | **`src/app/`** 폴더로 모든 설정 응집 | 앱의 뼈대와 비즈니스 로직을 명확히 분리 |
-| **순수 UI** | `shared/components/common/`에 혼재 | **`src/shared/ui/`** | 프로젝트 의존성 없는 Atomic UI 독립 관리 |
-| **카드 컴포넌트** | 13개 개별 파일 (Project 7개, Profile 6개) | **`ProjectCard`**, **`DeveloperCard`** | 단 2개의 통합 컴포넌트로 모든 형태 제어 |
-| **컴포넌트 위치** | 거의 모든 컴포넌트가 `shared/`에 위치 | **Colocation (상황별 배치)** 적용 | 공용인 것만 `shared`, 전용인 것은 `pages/` 내부로 |
-| **네이밍** | camelCase, kebab-case 혼용 | **kebab-case** 로 전체 통일 | 일관된 파일 검색 및 리눅스/윈도우 환경 호환성 확보 |
-| **중복 로직** | 유틸리티 함수가 여러 곳에 복사됨 | **`src/shared/libs/`** 로 통합 | 유지보수 포인트 1개로 단축 |
-
----
-
-## 📁 새로운 디렉토리 구조 및 역할
-
-### 상세 디렉토리 맵
+## 1. 최상위 구조
 
 ```text
 src/
-├── app/                              # 앱 초기화 및 전역 설정
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── router.tsx
-│
-├── pages/                            # 페이지별 독립 폴더 (Colocation)
-│   ├── main/
-│   ├── auth/                         # login, profile-page 등 통합
-│   ├── project-detail/
-│   └── ...                           # 각 폴더 내 _components, _hooks 포함
-│
-└── shared/                           # 💡 여러 페이지에서 공유하는 자산
-    ├── ui/                           # 순수 범용 UI (Atomic)
-    │   ├── Skeleton.tsx
-    │   ├── LoadingSpinner.tsx
-    │   ├── Pagination.tsx
-    │   └── ...
-    │
-    ├── components/
-    │   ├── project/                  # 프로젝트 관련 공유 컴포넌트
-    │   │   ├── ProjectCard.tsx       # ← 통합 카드
-    │   │   └── ProjectFilterBar.tsx
-    │   ├── developer/                # 개발자 관련 공유 컴포넌트
-    │   │   ├── DeveloperCard.tsx     # ← 통합 카드
-    │   │   └── ProfileBase.tsx
-    │   └── layout/                   # Header, Footer 등
-    │
-    ├── libs/                         # 유틸리티 (기존 utils 통합)
-    ├── hooks/                        # 전역 공용 훅 (use-*.ts)
-    ├── store/                        # 전역 상태 (*.store.ts)
-    ├── types/                        # 전역 타입 (*.types.ts)
-    ├── api/                          # API 함수 호출 로직
-    └── ...
+├── app/          # 앱 실행, 전역 Provider, 라우터
+├── pages/        # 라우트 단위 화면
+├── shared/       # 여러 화면에서 공유하는 코드와 자산
+└── vite-env.d.ts
 ```
 
-### 1. `src/app/` (Global Config)
-애플리케이션의 설정 및 초기화를 담당합니다.
-- `main.tsx`: 앱 진입점
-- `App.tsx`: 전역 Provider 및 라우터 연결
-- `router.tsx`: 모든 페이지 경로 설정
+### `src/app`
 
-### 2. `src/pages/` (Feature/Domain Pages)
-각 화면을 담당하며, **해당 화면에서만 사용하는 유효한 로직**을 포함합니다.
-- `[page-name]/`: 페이지별 독립 폴더 (예: `auth`, `main`, `project-detail`)
-- `_components/`: 이 페이지에서만 쓰는 전용 컴포넌트 (Shared 오염 방지)
-- `_hooks/`: 이 페이지 전용 로직을 담은 훅
+앱이 실행되기 위해 필요한 전역 설정만 둡니다.
 
-### 3. `src/shared/` (Shared Assets)
-전체 프로젝트에서 공통으로 쓰이는 자산입니다.
-- **`ui/`**: 순수 UI 컴포넌트 (Button, Pagination, Skeleton 등)
-- **`components/`**: 도메인 성격이 가미된 공유 컴포넌트 (ProjectCard, FilterBar 등)
-- **`libs/`**: 유틸리티 함수, 전역 라이브러리 설정 (기존 `utils` 통합)
-- **`store/`**: Zustand 전역 상태 (`*.store.ts`)
-- **`types/`**: 전역 타입 정의 (`*.types.ts`)
-- **`hooks/`**: 전역 공용 훅 (`use-*.ts`)
+- `main.tsx`: React 앱 진입점
+- `App.tsx`: 전역 Provider 연결
+- `router.tsx`: 전체 라우트 선언
 
----
+`app`에는 특정 페이지의 비즈니스 로직이나 UI 컴포넌트를 두지 않습니다.
 
-## 🛠️ 핵심 변경 및 개발 규칙
+### `src/pages`
 
-### 1. 통합 카드 컴포넌트 활용
-기존에 13개로 흩어져 있던 카드들을 `variant`와 `size` 속성으로 통합했습니다.
-- 예: `<ProjectCard variant="grid" />` (메인용), `<ProjectCard variant="list" />` (검색용)
-- 예: `<DeveloperCard variant="recommend" />` (추천용)
+사용자가 실제로 접근하는 화면 단위 코드입니다. URL, 라우트, 화면 흐름을 기준으로 폴더를 나눕니다.
 
-### 2. 파일 네이밍 규칙 (Standard)
-- **React 컴포넌트/페이지**: `PascalCase.tsx`
-- **폴더/유틸/훅/스토어/타입**: `kebab-case.ts` (훅은 `use-` 프리픽스, 스토어는 `.store.ts`)
+예시:
 
-### 3. 컴포넌트 배치 원칙
-- **"이 컴포넌트가 다른 페이지에서도 쓰이는가?"**
-  - **YES**: `src/shared/components/` 또는 `src/shared/ui/`
-  - **NO**: 해당 페이지 폴더 안의 `_components/`
+```text
+pages/
+├── main/
+├── signup/
+├── search/
+├── project-create/
+├── project-detail/
+├── developer-detail/
+├── report/
+└── my-info/
+```
 
----
+페이지 내부에 둘 수 있는 파일은 다음과 같습니다.
 
-## 🏁 구조 탐색 가이드
-- **UI 부품을 찾을 때**: `src/shared/ui/`
-- **특정 페이지의 기능을 수정할 때**: `src/pages/[페이지명]/`
-- **전역 상태나 유틸리티를 수정할 때**: `src/shared/store/` 또는 `src/shared/libs/`
-- **데이터 흐름/매핑 로직을 수정할 때**: `src/shared/mappers/`
+```text
+pages/[feature]/
+├── [feature]-page.tsx     # 라우트에 직접 연결되는 페이지
+├── _components/           # 이 feature에서만 쓰는 컴포넌트
+├── _hooks/                # 이 feature에서만 쓰는 훅
+├── _constants/            # 이 feature에서만 쓰는 상수
+├── _types/                # 이 feature에서만 쓰는 타입
+└── index.ts               # 필요한 경우에만 export 정리
+```
+
+신규 페이지 전용 폴더는 `_components`, `_hooks`, `_constants`, `_types`처럼 언더스코어 접두사를 사용합니다. 언더스코어는 “라우트가 아니라 내부 구현 폴더”라는 의미입니다.
+
+### `src/shared`
+
+두 개 이상의 화면에서 재사용되는 코드만 둡니다. 한 화면에서만 쓰는 코드를 미리 `shared`에 올리지 않습니다.
+
+```text
+shared/
+├── apis/          # 서버 통신 함수, API 타입, query/mutation
+├── assets/        # 이미지, 아이콘, Lottie, 정적 파일
+├── components/    # 도메인 의미가 있는 공용 컴포넌트
+├── constants/     # 여러 화면에서 쓰는 상수
+├── hooks/         # 여러 화면에서 쓰는 훅
+├── layouts/       # RootLayout, Header, Footer 등 레이아웃
+├── libs/          # 순수 유틸, 외부 라이브러리 설정
+├── mappers/       # API 데이터와 UI 데이터 간 변환
+├── store/         # Zustand 등 전역 상태
+├── styles/        # 전역 CSS, 디자인 토큰
+├── types/         # 여러 화면에서 공유하는 타입
+└── ui/            # 도메인에 의존하지 않는 순수 UI
+```
+
+## 2. 파일을 어디에 둘지 결정하는 기준
+
+새 파일을 만들 때는 아래 순서로 판단합니다.
+
+### 1단계: 특정 페이지에서만 쓰는가?
+
+특정 페이지 또는 특정 라우트 묶음에서만 사용하면 `pages/[feature]/_components`, `pages/[feature]/_hooks` 등에 둡니다.
+
+예시:
+
+- 회원가입 단계 안에서만 쓰는 입력 섹션
+- 프로젝트 생성 화면에서만 쓰는 에디터 버튼
+- 리포트 화면 내부에서만 쓰는 카드 스켈레톤
+
+### 2단계: 여러 페이지에서 쓰는가?
+
+두 개 이상의 feature에서 실제로 재사용되면 `shared`로 올립니다.
+
+단, “나중에 쓸 것 같아서” 미리 올리지 않습니다. 실제 재사용이 생겼을 때 이동합니다.
+
+### 3단계: 도메인 의미가 있는가?
+
+도메인 의미가 없으면 `shared/ui`에 둡니다.
+
+예시:
+
+- `Button`
+- `Modal`
+- `Skeleton`
+- `Pagination`
+- `Loading`
+
+프로젝트, 개발자, 리포트, 북마크처럼 서비스 도메인을 알고 있으면 `shared/components`에 둡니다.
+
+예시:
+
+- `ProjectCard`
+- `DeveloperCard`
+- `BookmarkButton`
+- `ReportRequiredCard`
+
+## 3. 네이밍 컨벤션
+
+### 폴더명
+
+폴더명은 `kebab-case`를 사용합니다.
+
+```text
+project-create/
+developer-detail/
+my-info/
+```
+
+페이지 내부 구현 폴더는 언더스코어 접두사를 사용합니다.
+
+```text
+_components/
+_hooks/
+_constants/
+_types/
+```
+
+### 페이지 파일
+
+라우트에 직접 연결되는 페이지 파일은 `kebab-case` + `-page.tsx`를 사용합니다.
+
+```text
+main-page.tsx
+project-create-page.tsx
+developer-detail-page.tsx
+report-detail-page.tsx
+```
+
+### 컴포넌트 파일
+
+React 컴포넌트 파일은 `PascalCase.tsx`를 사용합니다.
+
+```text
+ProjectCard.tsx
+DeveloperCard.tsx
+SearchTabs.tsx
+BasicProfileSection.tsx
+```
+
+### 훅, 스토어, 타입, 유틸 파일
+
+```text
+use-projects.ts          # hook
+theme.store.ts           # Zustand store
+project.types.ts         # type
+storage.ts               # utility
+query-string.ts          # utility
+```
+
+### API 파일
+
+API 파일은 도메인 기준 `kebab-case.ts`를 사용합니다.
+
+```text
+projects.ts
+project-detail.ts
+github-repos.ts
+nickname-check.ts
+```
+
+도메인이 커지면 폴더로 분리합니다.
+
+```text
+apis/report/
+├── report.ts
+├── report-queries.ts
+└── report-mutation.ts
+```
+
+## 4. Import 규칙
+
+프로젝트 내부 import는 가능한 alias를 사용합니다.
+
+```ts
+import { axiosInstance } from '@apis/instance';
+import { cn } from '@libs/cn';
+import ProjectCard from '@components/project/ProjectCard';
+import Loading from '@ui/Loading';
+```
+
+가까운 같은 폴더 내부 파일은 상대경로를 허용합니다.
+
+```ts
+import SearchTabs from './_components/SearchTabs';
+import useProjectCreateForm from './_hooks/useProjectCreateForm';
+```
+
+### 의존 방향
+
+허용되는 방향:
+
+```text
+app -> pages -> shared
+app -> shared
+pages -> shared
+```
+
+금지되는 방향:
+
+```text
+shared -> pages
+shared -> app
+```
+
+`shared`는 전역 공용 레이어이므로 특정 페이지를 import하면 안 됩니다. `shared`에서 페이지 코드가 필요해지는 경우, 해당 코드가 정말 공용인지 다시 판단하고 `shared` 내부로 분리합니다.
+
+페이지끼리 직접 import하는 것도 최소화합니다. 다른 페이지에서도 필요한 컴포넌트라면 `shared/components` 또는 `shared/ui`로 옮깁니다.
+
+## 5. API 계층 컨벤션
+
+API 코드는 `src/shared/apis` 아래에 둡니다.
+
+기본 원칙:
+
+- 서버 통신 함수는 `shared/apis`에 둡니다.
+- 화면 컴포넌트 안에서 URL 문자열을 직접 만들지 않습니다.
+- 인증 토큰, base URL, 에러 처리 방식은 가능한 공통 인스턴스에서 관리합니다.
+- 신규 API는 기존 패턴을 확인한 뒤 같은 도메인 근처에 추가합니다.
+
+권장 구조:
+
+```text
+apis/
+├── instance.ts           # axios 인스턴스, 공통 인증 처리
+├── base/                 # 공통 응답 타입, 공통 API 유틸
+├── projects.ts           # 프로젝트 API
+├── members.ts            # 회원 API
+├── github-repos.ts       # 깃허브 레포 API
+└── report/               # 리포트처럼 커진 도메인
+    ├── report.ts
+    ├── report-queries.ts
+    └── report-mutation.ts
+```
+
+### API 추가 기준
+
+작은 도메인은 단일 파일로 시작합니다.
+
+```text
+apis/bookmarks.ts
+apis/terms.ts
+apis/nickname-check.ts
+```
+
+아래 조건 중 하나라도 해당하면 폴더로 분리합니다.
+
+- query와 mutation이 함께 있다.
+- 타입, mapper, 여러 endpoint가 섞여 파일이 길어진다.
+- 같은 도메인을 여러 페이지에서 사용한다.
+- React Query key를 별도로 관리해야 한다.
+
+## 6. 상태와 데이터 변환
+
+### `shared/store`
+
+여러 화면에서 공유하는 상태만 둡니다.
+
+예시:
+
+- 로그인/회원 상태
+- 테마
+- 알림
+- 전역 필터
+
+한 페이지에서만 쓰는 상태는 해당 페이지 컴포넌트 또는 페이지 전용 훅에 둡니다.
+
+### `shared/mappers`
+
+API 응답을 UI에서 쓰기 좋은 형태로 바꾸는 로직을 둡니다.
+
+컴포넌트 안에서 복잡한 데이터 변환을 직접 하지 않습니다. 같은 변환이 두 번 이상 필요하면 mapper로 분리합니다.
+
+### `shared/libs`
+
+순수 함수 또는 외부 라이브러리 설정을 둡니다.
+
+예시:
+
+- `cn.ts`
+- `storage.ts`
+- `query-client.ts`
+- `query-string.ts`
+
+React 상태나 DOM에 의존하는 코드는 `libs`가 아니라 `hooks` 또는 컴포넌트에 둡니다.
+
+## 7. Assets 규칙
+
+정적 자산은 기본적으로 `shared/assets`에 둡니다.
+
+```text
+assets/
+├── icons/
+├── images/
+├── stackBadge/
+└── lottie/
+```
+
+특정 페이지에서만 쓰고 다른 곳에서 재사용할 가능성이 낮은 JSON/Lottie 파일은 페이지 옆에 둘 수 있습니다. 다만 같은 성격의 자산이 늘어나면 `shared/assets`로 이동합니다.
+
+SVG를 React 컴포넌트처럼 사용할 때는 SVGR import를 사용합니다.
+
+```ts
+import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
+```
+
+## 8. 라우트와 페이지 export
+
+라우트 등록은 `src/app/router.tsx`에서 관리합니다.
+
+페이지 export는 `src/pages/index.ts`에서 정리합니다. 새 페이지를 라우터에 연결할 때는 다음 순서를 지킵니다.
+
+1. `src/pages/[feature]/[feature]-page.tsx`를 만든다.
+2. `src/pages/index.ts`에 export를 추가한다.
+3. `src/app/router.tsx`에 route를 추가한다.
+
+`pages/index.ts`는 라우터에서 페이지를 모아 가져오기 위한 진입점입니다. 일반 컴포넌트 재사용 목적으로 `@pages`를 남용하지 않습니다.
+
+## 9. 리팩터링 체크리스트
+
+파일을 옮기거나 새로 만들 때 아래를 확인합니다.
+
+- 이 파일이 한 페이지에서만 쓰이면 `pages/[feature]` 내부에 있는가?
+- 두 개 이상의 페이지에서 쓰이면 `shared`에 있는가?
+- 도메인 없는 UI는 `shared/ui`, 도메인 있는 공용 UI는 `shared/components`에 있는가?
+- `shared`에서 `pages`를 import하지 않는가?
+- API 호출 URL과 인증 처리가 컴포넌트에 직접 흩어져 있지 않은가?
+- 파일명과 폴더명이 이 문서의 네이밍 규칙을 따르는가?
+- 문서와 실제 구조가 달라졌다면 이 문서도 함께 수정했는가?
+
+## 10. 현재 구조에서 정리하면 좋은 항목
+
+아래 항목은 신규 코드 작성 시 우선적으로 맞춰가야 할 부분입니다.
+
+- 페이지 전용 컴포넌트 폴더명을 `_components`로 통일합니다.
+- 페이지 전용 훅 폴더명을 `_hooks`로 통일합니다.
+- 신규 API는 `shared/apis/instance.ts`의 공통 인증/base URL 정책을 우선 사용합니다.
+- 같은 도메인의 API가 루트 파일과 하위 폴더에 나뉘어 있으면 한쪽으로 모읍니다.
+- `image.ts`와 `images.ts`처럼 이름만 다른 유사 API 파일은 역할을 분리하거나 통합합니다.
+- 여러 페이지에서 쓰는 페이지 내부 컴포넌트는 `shared/components` 또는 `shared/ui`로 이동합니다.
+
+이 문서는 “완료된 상태”를 설명하는 문서가 아니라, 앞으로 코드가 커질 때 구조가 흔들리지 않도록 기준을 제공하는 문서입니다.

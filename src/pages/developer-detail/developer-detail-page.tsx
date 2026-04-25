@@ -3,7 +3,7 @@ import type { TechstackDto } from '@t/profile-card.types';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { reportQueries } from '@apis/report/report-queries';
 import TalkBalloonIcon from '@assets/icons/detail-page/talkBalloon.svg?react';
-import ContactCard from './_components/ContactCard';
+import ContactCard from '@components/profile/ContactCard';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';

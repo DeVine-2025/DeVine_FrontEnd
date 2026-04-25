@@ -4,16 +4,16 @@ import type { ReportCard } from '@apis/report/report';
 import HeartIcon from '@assets/icons/heart.svg?react';
 import QuestionIcon from '@assets/icons/question.svg?react';
 import { useAuth } from '@clerk/clerk-react';
-import MyPMBottomSection, { type ProjectTab } from '../../pages/my-project/_components/MyBottomSection';
-import ContactCard from '../../pages/developer-detail/_components/ContactCard';
-import CustomGithubCalendar from '../../pages/developer-detail/_components/CustomGithubCalendar';
-import DomainBadges from '../../pages/developer-detail/_components/DomainBadges';
-import ImagePreview from '../../pages/developer-detail/_components/ImagePreview';
-import NormalButton from '../../pages/developer-detail/_components/NormalButton';
-import ReportCardSmall from '../../pages/developer-detail/_components/ReportCardSmall';
+import ContactCard from '@components/profile/ContactCard';
+import CustomGithubCalendar from '@components/profile/CustomGithubCalendar';
+import DomainBadges from '@components/profile/DomainBadges';
+import ImagePreview from '@components/profile/ImagePreview';
+import MyPMBottomSection, { type ProjectTab } from '@components/profile/MyBottomSection';
+import NormalButton from '@components/profile/NormalButton';
+import ReportCardSmall from '@components/profile/ReportCardSmall';
 import TechStackChips, {
   type TechStackChipInput,
-} from '../../pages/developer-detail/_components/TechStackChips';
+} from '@components/profile/TechStackChips';
 import { DOMAIN_REVERSE_MAP } from '@constants/domain';
 import type { InfiniteData } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';

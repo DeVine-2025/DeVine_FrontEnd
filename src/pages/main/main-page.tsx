@@ -20,7 +20,7 @@ import {
   isInitialSkeletonSessionDone,
   useInitialSkeletonGate,
 } from '@hooks/use-initial-skeleton-gate';
-import LoginModal from '@pages/project-detail/components/LoginModal';
+import LoginModal from '@components/LoginModal';
 import { useAuthStore } from '@store/auth.store';
 import { useThemeStore } from '@store/theme.store';
 import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui.types';

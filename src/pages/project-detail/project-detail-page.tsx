@@ -7,9 +7,9 @@ import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { useThemeStore } from '@store/theme.store';
 import type { BadgeTone } from 'src/shared/types/badge-tone.types';
 import { badgeToneToClass } from 'src/shared/types/badge-tone.types';
-import ApplyModal from './components/ApplyModal';
-import ImageLightbox from './components/ImageLightbox';
-import LoginModal from './components/LoginModal';
+import ApplyModal from './_components/ApplyModal';
+import ImageLightbox from './_components/ImageLightbox';
+import LoginModal from '@components/LoginModal';
 import { useProjectDetail } from './hooks/useProjectDetail';
 
 // ── Small components ──

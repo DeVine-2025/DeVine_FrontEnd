@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
+import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityCalendar, type Activity, type ThemeInput } from 'react-activity-calendar';
-import ChevronRightIcon from "@assets/icons/chevron-right.svg?react";
-import ChevronLeftIcon from "@assets/icons/chevron-left.svg?react";
 
 export interface Contribution {
   date: string;
@@ -40,7 +40,7 @@ const generateFullYearData = (apiData: Contribution[] | undefined, year: number)
     const count = dataMap.get(dateStr) || 0;
     fullData.push({
       date: dateStr,
-      count: count,
+      count,
       level: calculateLevel(count),
     });
   }
@@ -51,14 +51,11 @@ const CustomGithubCalendar = ({
   data = [],
   initialYear = new Date().getFullYear(),
   year: yearProp,
-  onYearChange
+  onYearChange,
 }: CustomGithubCalendarProps) => {
-
   const [internalYear, setInternalYear] = useState(initialYear);
-  // year prop이 있으면 prop을 사용하고, 없으면 내부 상태 사용
   const year = yearProp !== undefined ? yearProp : internalYear;
 
-  // year prop이 변경되면 내부 상태도 동기화
   useEffect(() => {
     if (yearProp !== undefined) {
       setInternalYear(yearProp);
@@ -69,22 +66,24 @@ const CustomGithubCalendar = ({
     return generateFullYearData(data, year);
   }, [data, year]);
 
-  const moveYear = useCallback((diff: number) => {
-    const newYear = year + diff;
-    // year prop이 없으면 내부 상태 업데이트
-    if (yearProp === undefined) {
-      setInternalYear(newYear);
-    }
-    if (onYearChange) {
-      onYearChange(newYear);
-    }
-  }, [year, yearProp, onYearChange]);
+  const moveYear = useCallback(
+    (diff: number) => {
+      const newYear = year + diff;
+      if (yearProp === undefined) {
+        setInternalYear(newYear);
+      }
+      if (onYearChange) {
+        onYearChange(newYear);
+      }
+    },
+    [year, yearProp, onYearChange],
+  );
 
   const chevronStyle = 'w-7 h-7 text-ui-500';
   const chevronButtonStyle = 'cursor-pointer p-[0.4rem] bg-ui-100 rounded-full';
 
   return (
-    <div className="p-[2rem] border border-ui-200 rounded-xl w-full">
+    <div className="w-full rounded-xl border border-ui-200 p-[2rem]">
       <style>{`
         .calendar-container > * > :not(:first-child) {
           display: none !important;
@@ -102,20 +101,15 @@ const CustomGithubCalendar = ({
         }
       `}</style>
 
-      {/* 헤더 */}
-      <div className="flex items-center gap-[1.6rem] mb-[2rem]">
-        <button
-          onClick={() => moveYear(-1)}
-          className={chevronButtonStyle}
-        >
+      <div className="mb-[2rem] flex items-center gap-[1.6rem]">
+        <button type="button" onClick={() => moveYear(-1)} className={chevronButtonStyle}>
           <ChevronLeftIcon className={chevronStyle} />
         </button>
 
-        <span className="font-bold text-ui-1000 text-2xl select-none">
-          {year}년
-        </span>
+        <span className="select-none font-bold text-2xl text-ui-1000">{year}년</span>
 
         <button
+          type="button"
           onClick={() => moveYear(1)}
           className={chevronButtonStyle}
           disabled={year >= new Date().getFullYear()}
@@ -124,7 +118,6 @@ const CustomGithubCalendar = ({
         </button>
       </div>
 
-      {/* 캘린더 컨테이너 */}
       <div className="calendar-container">
         <ActivityCalendar
           data={calendarData}
@@ -134,12 +127,20 @@ const CustomGithubCalendar = ({
           blockMargin={4}
           labels={{
             months: [
-              '1월', '2월', '3월', '4월', '5월', '6월',
-              '7월', '8월', '9월', '10월', '11월', '12월'
+              '1월',
+              '2월',
+              '3월',
+              '4월',
+              '5월',
+              '6월',
+              '7월',
+              '8월',
+              '9월',
+              '10월',
+              '11월',
+              '12월',
             ],
-            weekdays: [
-              '일', '월', '화', '수', '목', '금', '토'
-            ],
+            weekdays: ['일', '월', '화', '수', '목', '금', '토'],
           }}
         />
       </div>

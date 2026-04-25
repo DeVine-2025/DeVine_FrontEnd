@@ -1,6 +1,6 @@
 import { projectQueries } from '@apis/project/project-queries';
 import { ProjectCard } from '@components/project/ProjectCard';
-import Tabs from '../../../shared/components/tab/CommonTabs';
+import Tabs from '@components/tab/CommonTabs';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -43,17 +43,17 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) 
   const { data: inProgressData } = useQuery(
     useMemberProjects
       ? projectQueries.getMemberProjectInprogress(memberNick!)
-      : projectQueries.getMYProjectInprogress()
+      : projectQueries.getMYProjectInprogress(),
   );
   const { data: recruitingData } = useQuery(
     useMemberProjects
       ? projectQueries.getMemberProjectRecruiting(memberNick!)
-      : projectQueries.getMYProjectRecruiting()
+      : projectQueries.getMYProjectRecruiting(),
   );
   const { data: completedData } = useQuery(
     useMemberProjects
       ? projectQueries.getMemberProjectCompleted(memberNick!)
-      : projectQueries.getMYProjectCompleted()
+      : projectQueries.getMYProjectCompleted(),
   );
 
   const currentProjects = useMemo(() => {
@@ -100,7 +100,8 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) 
       <div className="mt-6 grid grid-cols-1 gap-[1.6rem] sm:grid-cols-2 lg:grid-cols-3">
         {currentProjects.length > 0 ? (
           currentProjects.map((project: any) => (
-            <ProjectCard variant="grid"
+            <ProjectCard
+              variant="grid"
               key={project.projectId ?? project.id}
               categoryLabel={project.projectFieldName ?? project.projectField}
               deadlineLabel={project.categoryName ?? project.category?.name}
@@ -118,8 +119,8 @@ const MyBottomSection = ({ projectTab, onChangeProjectTab, memberNick }: Props) 
               {projectTab === 'ongoing'
                 ? '진행 중인 프로젝트가 없습니다.'
                 : projectTab === 'recruiting'
-                ? '모집중인 프로젝트가 없습니다.'
-                : '완료된 프로젝트가 없습니다.'}
+                  ? '모집중인 프로젝트가 없습니다.'
+                  : '완료된 프로젝트가 없습니다.'}
             </p>
           </div>
         )}
