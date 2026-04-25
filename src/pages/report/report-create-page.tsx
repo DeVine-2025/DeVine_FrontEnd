@@ -5,7 +5,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import CheckBox from './_components/CheckBox';
 import GithubRepoListSkeleton from './_components/GithubRepoListSkeleton';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { BeatLoader } from 'react-spinners';
 

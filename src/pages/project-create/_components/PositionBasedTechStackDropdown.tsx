@@ -1,6 +1,6 @@
 import SelectAllIcon from '@assets/icons/select-all.svg?react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 
 import {
   BACKEND_DATABASE,

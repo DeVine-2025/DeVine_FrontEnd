@@ -1,5 +1,5 @@
 import queryClient from '@libs/query-client';
-import { router } from '@routes/routers';
+import { router } from './router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';

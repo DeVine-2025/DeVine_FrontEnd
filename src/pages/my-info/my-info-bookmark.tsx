@@ -10,7 +10,7 @@ import DeveloperFilterBar from '@components/developer/DeveloperFilterBar';
 import LoadingSpinner from '@ui/LoadingSpinner';
 import { ProjectCard } from '@components/project/ProjectCard';
 import { mapProjectItemToCard } from '@mappers/project';
-import type { ProjectItem } from '@t/project/api';
+import type { ProjectItem } from '@t/project/api.types';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 

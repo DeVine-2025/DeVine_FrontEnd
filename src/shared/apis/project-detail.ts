@@ -1,4 +1,4 @@
-import type { ProjectItem } from '@t/project/api';
+import type { ProjectItem } from '@t/project/api.types';
 
 export type WeeklyBestProjectPosition = {
   position: string;

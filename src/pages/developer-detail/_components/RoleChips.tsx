@@ -1,4 +1,4 @@
-import { badgeToneToClass } from 'src/shared/types/badgeTone';
+import { badgeToneToClass } from 'src/shared/types/badge-tone.types';
 
 type ChipsProps = {
   role: string;

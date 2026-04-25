@@ -1,8 +1,8 @@
 import PersonIcon from '@assets/icons/person.svg?react';
 import DevineLogo from '@assets/images/Devine.svg';
 import BookmarkButton from '@ui/BookmarkButton';
-import { badgeToneToClass } from '@t/badgeTone';
-import type { ProjectCardBaseProps } from '@t/project/ui';
+import { badgeToneToClass } from '@t/badge-tone.types';
+import type { ProjectCardBaseProps } from '@t/project/ui.types';
 import type { KeyboardEvent } from 'react';
 
 export default function ProjectBase(props: ProjectCardBaseProps) {

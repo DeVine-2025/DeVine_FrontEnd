@@ -1,5 +1,5 @@
 import type { ProjectFilterKey } from '@components/project/ProjectFilterBar';
-import { useFilterStore } from '@store/filter';
+import { useFilterStore } from '@store/filter.store';
 import { useState } from 'react';
 
 export function useProjectFilter() {

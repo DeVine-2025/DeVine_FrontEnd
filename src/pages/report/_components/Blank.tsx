@@ -1,6 +1,6 @@
 import ReportDark from '@assets/icons/report-dark.svg?react';
 import ReportLight from '@assets/icons/report-light.svg?react';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 import { useNavigate } from 'react-router-dom';
 
 const Blank = () => {

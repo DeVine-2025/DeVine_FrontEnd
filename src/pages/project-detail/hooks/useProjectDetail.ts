@@ -9,7 +9,7 @@ import {
   type ProjectDetailInfo,
   toProjectDetailInfoFromApi,
 } from '../project-detail-types';
-import { useAuthMe } from '@hooks/useAuthMe';
+import { useAuthMe } from '@hooks/use-auth-me';
 export type ApplyStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
 
 export function useProjectDetail() {

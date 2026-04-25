@@ -1,9 +1,9 @@
 import BookmarkButton from '@ui/BookmarkButton';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 import { findTechBadge } from '@libs/tech-stack-utils';
-import { badgeToneToClass } from '../../types/badgeTone';
-import type { ProfileCardProps, TechStackItem } from '../../types/profileCard.types';
+import { badgeToneToClass } from '../../types/badge-tone.types';
+import type { ProfileCardProps, TechStackItem } from '../../types/profile-card.types';
 
 type BadgeListProps = {
   badges?: ProfileCardProps['badges'];

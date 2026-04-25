@@ -1,9 +1,9 @@
 import { DeveloperCard } from '@components/developer/DeveloperCard';
 import Tabs from '../../../shared/components/tab/CommonTabs';
-import { type DevTab, type MatchingDeveloper, usePmDevelopers } from '@hooks/usePmDevelopers';
-import { useRespondApplication } from '@hooks/useRespondApplication';
-import { useThemeStore } from '@store/theme';
-import type { ProfileCardProps, TechStackItem } from '@t/profileCard.types';
+import { type DevTab, type MatchingDeveloper, usePmDevelopers } from '@hooks/use-pm-developers';
+import { useRespondApplication } from '@hooks/use-respond-application';
+import { useThemeStore } from '@store/theme.store';
+import type { ProfileCardProps, TechStackItem } from '@t/profile-card.types';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileDefaultLight from '@assets/images/Profile.svg?url';

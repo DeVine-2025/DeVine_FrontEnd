@@ -2,7 +2,7 @@ import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import InformationIcon from '@assets/icons/information.svg?react';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 
 type CheckboxProps = {
   title: string;

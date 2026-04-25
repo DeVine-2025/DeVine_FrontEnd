@@ -3,7 +3,7 @@ import ArrowDownIcon from '@assets/icons/arrow-down.svg?react';
 import ArrowUpIcon from '@assets/icons/arrow-up.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 import { useState } from 'react';
 
 type ChatRoom = {

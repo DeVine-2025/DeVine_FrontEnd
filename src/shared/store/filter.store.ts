@@ -1,4 +1,4 @@
-import type { AppliedFilters } from '@t/project/api';
+import type { AppliedFilters } from '@t/project/api.types';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 

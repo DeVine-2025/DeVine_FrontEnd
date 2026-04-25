@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { BadgeTone } from './project/ui';
+import type { BadgeTone } from './project/ui.types';
 
 export type TechStackItem = {
   id: string;

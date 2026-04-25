@@ -2,7 +2,7 @@ import { usePatchReportVisibility } from '@apis/report/report-mutation';
 import LockCloseIcon from '@assets/icons/lock-close.svg?react';
 import LockOpenIcon from '@assets/icons/lock-open.svg?react';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 

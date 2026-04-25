@@ -17,7 +17,7 @@
     "baseUrl": "./",
     "paths": {
       "@styles/*": ["src/shared/styles/*"],
-      "@routes/*": ["src/shared/routes/*"],
+      "@app/*": ["src/app/*"],
       "@mocks/*": ["src/shared/mocks/*"],
       "@libs/*": ["src/shared/libs/*"],
       "@layouts/*": ["src/shared/layouts/*"],

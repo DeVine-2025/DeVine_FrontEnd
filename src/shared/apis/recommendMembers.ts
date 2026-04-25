@@ -1,4 +1,4 @@
-import type { TechStackSource } from '@t/profileCard.types';
+import type { TechStackSource } from '@t/profile-card.types';
 
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
 

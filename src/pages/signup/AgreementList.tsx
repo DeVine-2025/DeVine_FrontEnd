@@ -8,12 +8,12 @@ import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
-import { useThemeStore } from '@store/theme';
-import { getProfileImageKey } from '@utils/storage';
+import { useThemeStore } from '@store/theme.store';
+import { getProfileImageKey } from '@libs/storage';
 import BasicProfileSection from './BasicProfileSection';
 import AdditionalProfileSection from './AdditionalProfileSection';
 import GithubRepoSelectionSection from './GithubRepoSelectionSection';
-import ProfilePage from '@pages/login/profile-page';
+import ProfilePage from '@pages/auth/profile-page';
 import TermsDetailScreen from '@pages/signup/TermsDetailScreen';
 import { getMemberTerms, type MemberTermsItem } from '@apis/terms';
 

@@ -1,5 +1,5 @@
 import type { Contribution } from '@apis/myInfo/myInfo';
-import type { TechstackDto } from '@t/profileCard.types';
+import type { TechstackDto } from '@t/profile-card.types';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { reportQueries } from '@apis/report/report-queries';
 import TalkBalloonIcon from '@assets/icons/detail-page/talkBalloon.svg?react';
@@ -8,7 +8,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ProfileDetail from '../../shared/templates/profileDetail';
-import { useAuthMe } from '@hooks/useAuthMe';
+import { useAuthMe } from '@hooks/use-auth-me';
 
 const DeveloperDetailPage = () => {
   const { memberNick } = useParams<{ memberNick: string }>();

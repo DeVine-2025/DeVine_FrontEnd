@@ -1,6 +1,6 @@
 import ReportCard from './_components/ReportCard';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const ReportResultPage = () => {

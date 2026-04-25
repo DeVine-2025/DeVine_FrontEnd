@@ -3,8 +3,8 @@ import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import { useUser } from '@clerk/clerk-react';
 import { getCategoryIdsByLabels } from '@constants/signup-mapping';
-import { useAuthStore } from '@store/auth';
-import { getStoredUserRole } from '@utils/storage';
+import { useAuthStore } from '@store/auth.store';
+import { getStoredUserRole } from '@libs/storage';
 
 type ProfilePageProps = {
   onBack: () => void;

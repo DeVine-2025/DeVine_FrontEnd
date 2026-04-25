@@ -1,6 +1,6 @@
 import Skeleton from '@ui/Skeleton';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 
 export default function ReportCardSkeleton() {
   const { theme } = useThemeStore();

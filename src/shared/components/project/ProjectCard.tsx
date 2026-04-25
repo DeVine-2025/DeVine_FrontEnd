@@ -2,8 +2,8 @@ import type { ReactNode, KeyboardEvent } from 'react';
 import ProjectBase from './ProjectBase';
 import DevineLogo from '@assets/images/Devine.svg';
 import { cn } from '@libs/cn';
-import type { ProjectCardProps } from '@t/project/ui';
-import type { RecommendProjectCardProps } from '../../types/recommendProjectCard.types';
+import type { ProjectCardProps } from '@t/project/ui.types';
+import type { RecommendProjectCardProps } from '../../types/recommend-project-card.types';
 
 export type IntegratedProjectCardProps = ProjectCardProps &
   Partial<RecommendProjectCardProps> & {

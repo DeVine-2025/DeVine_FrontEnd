@@ -1,7 +1,7 @@
 import { type RespondDecision, respondProposal } from '@apis/matching';
 import { useAuth } from '@clerk/clerk-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { DevTab } from './useDevProjects';
+import type { DevTab } from './use-dev-projects';
 
 export function useRespondProposal() {
   const { getToken } = useAuth();

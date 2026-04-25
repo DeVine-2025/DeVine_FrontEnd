@@ -1,6 +1,6 @@
 import { getMyReportsMe } from '@apis/reports';
 import { useAuth } from '@clerk/clerk-react';
-import type { ReportType } from '@t/report';
+import type { ReportType } from '@t/report.types';
 import { useQuery } from '@tanstack/react-query';
 
 export function useMyReportsExist(type?: ReportType) {

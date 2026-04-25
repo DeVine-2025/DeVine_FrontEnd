@@ -6,7 +6,7 @@ import { useUser } from '@clerk/clerk-react';
 import Switch from './_components/Switch';
 import TabMenu from './_components/TabMenu';
 import { cn } from '@libs/cn';
-import { useAuthStore } from '@store/auth';
+import { useAuthStore } from '@store/auth.store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 

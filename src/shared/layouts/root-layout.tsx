@@ -2,8 +2,8 @@ import { useUser } from '@clerk/clerk-react';
 import Footer from '@layouts/footer';
 import Header from '@layouts/header';
 import { trackPageView } from '@libs/analytics';
-import { type UserRole, useAuthStore } from '@store/auth';
-import { getStoredUserRole, setCurrentUserId } from '@utils/storage';
+import { type UserRole, useAuthStore } from '@store/auth.store';
+import { getStoredUserRole, setCurrentUserId } from '@libs/storage';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 

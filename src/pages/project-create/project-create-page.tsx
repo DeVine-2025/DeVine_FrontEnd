@@ -36,8 +36,8 @@ import {
 } from '@constants/position-tech-stack';
 import { TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
 import { LinkCardExtension } from '@pages/project-create/LinkCardNode';
-import { type SlotImage, useProjectCreateStore } from '@store/projectCreate';
-import { useThemeStore } from '@store/theme';
+import { type SlotImage, useProjectCreateStore } from '@store/project-create.store';
+import { useThemeStore } from '@store/theme.store';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
@@ -47,7 +47,7 @@ import type { ChangeEvent, ComponentType, Ref, SVGProps } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { MY_RECRUITING_PROJECTS_QUERY_KEY } from '@hooks/useMyRecruitingProjects';
+import { MY_RECRUITING_PROJECTS_QUERY_KEY } from '@hooks/use-my-recruiting-projects';
 import { cn } from '@libs/cn';
 
 type SvgIcon = ComponentType<SVGProps<SVGSVGElement>>;

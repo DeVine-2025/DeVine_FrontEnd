@@ -8,8 +8,8 @@ import {
   type TechstackGroup,
   type TechstackItem,
 } from '@apis/techstacks';
-import { useTechstacks } from '@hooks/useTechstacks';
-import { useThemeStore } from '@store/theme';
+import { useTechstacks } from '@hooks/use-techstacks';
+import { useThemeStore } from '@store/theme.store';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 type PositionTechStackDropdownProps = {

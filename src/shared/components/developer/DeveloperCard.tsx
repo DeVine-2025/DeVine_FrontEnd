@@ -2,9 +2,9 @@ import { memo } from 'react';
 import BookmarkButton from '@ui/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 import { normalizeTechKey, findTechBadge, SKIP_TECH_NAMES } from '@libs/tech-stack-utils';
-import type { ProfileCardProps } from '../../types/profileCard.types';
+import type { ProfileCardProps } from '../../types/profile-card.types';
 import { BadgeList, Intro, TechChips, HeaderBlock } from './ProfileBase';
 
 export type DeveloperTech = { id: string; name: string; icon?: React.ReactNode };

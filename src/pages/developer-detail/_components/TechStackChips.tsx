@@ -1,7 +1,7 @@
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 import {cn} from '@libs/cn';
 import { findTechBadge } from '@libs/tech-stack-utils';
-import type { TechStackSource } from '@t/profileCard.types';
+import type { TechStackSource } from '@t/profile-card.types';
 import CheckFillIcon from "@assets/icons/check-fill.svg?react";
 
 export type TechStackChipInput =

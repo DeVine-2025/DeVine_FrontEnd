@@ -1,5 +1,5 @@
 import { getTechBadgeByName, TECH_STACK_LABEL_BY_KEY } from '@constants/position-tech-stack';
-import { useThemeStore } from '@store/theme';
+import { useThemeStore } from '@store/theme.store';
 
 type StackChipsProps = {
   stacks: string[];

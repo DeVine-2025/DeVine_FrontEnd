@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getCurrentUserId, getStoredUserRole, getUserRoleKey } from '@utils/storage';
+import { getCurrentUserId, getStoredUserRole, getUserRoleKey } from '@libs/storage';
 
 export type UserRole = 'pm' | 'dev' | null;
 

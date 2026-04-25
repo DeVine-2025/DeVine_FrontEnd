@@ -1,8 +1,8 @@
 import { ProjectCard } from '@components/project/ProjectCard';
 import Tabs from '../../../shared/components/tab/CommonTabs';
-import { type DevTab, useDevProjects } from '@hooks/useDevProjects';
-import { useRespondProposal } from '@hooks/useRespondProposal';
-import type { ProjectCardProps } from '@t/project/ui';
+import { type DevTab, useDevProjects } from '@hooks/use-dev-projects';
+import { useRespondProposal } from '@hooks/use-respond-proposal';
+import type { ProjectCardProps } from '@t/project/ui.types';
 import { useNavigate } from 'react-router-dom';
 
 type Props = {

@@ -1,6 +1,6 @@
 import { getDevelopers } from '@apis/developer';
 import { useAuth } from '@clerk/clerk-react';
-import type { GetDevelopersParams } from '@t/profileCard.types';
+import type { GetDevelopersParams } from '@t/profile-card.types';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 export function useDevelopers(params: GetDevelopersParams) {

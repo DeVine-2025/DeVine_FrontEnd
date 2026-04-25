@@ -11,16 +11,16 @@ import { DeveloperCard } from '@components/developer/DeveloperCard';
 import RecommendDeveloperCardSkeleton, {
   RecommendDeveloperCardSkeletonList,
 } from '@components/developer/RecommendDeveloperCardSkeleton';
-import { useDevelopers } from '@hooks/useDevelopers';
-import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
-import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
-import { useRecommendMembersPreview } from '@hooks/useRecommendMembersPreview';
+import { useDevelopers } from '@hooks/use-developers';
+import { useInitialSkeletonGate } from '@hooks/use-initial-skeleton-gate';
+import { useMyRecruitingProjects } from '@hooks/use-my-recruiting-projects';
+import { useRecommendMembersPreview } from '@hooks/use-recommend-members-preview';
 import { normalizeTechstackKey, TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
-import { useFilterStore } from '@store/filter';
-import { useThemeStore } from '@store/theme';
-import type { BadgeTone } from '@t/badgeTone';
-import { DOMAIN_CODE_TO_LABEL, DOMAIN_LABEL_TO_CODE, ROLE_LABEL, ROLE_PRIORITY } from '@t/member';
-import type { MemberSearchCategory } from '@t/profileCard.types';
+import { useFilterStore } from '@store/filter.store';
+import { useThemeStore } from '@store/theme.store';
+import type { BadgeTone } from '@t/badge-tone.types';
+import { DOMAIN_CODE_TO_LABEL, DOMAIN_LABEL_TO_CODE, ROLE_LABEL, ROLE_PRIORITY } from '@t/member.types';
+import type { MemberSearchCategory } from '@t/profile-card.types';
 import type { DeveloperCardProps } from '@components/developer/DeveloperCard';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';

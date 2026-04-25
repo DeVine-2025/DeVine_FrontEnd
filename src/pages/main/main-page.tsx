@@ -19,11 +19,11 @@ import Skeleton from '@ui/Skeleton';
 import {
   isInitialSkeletonSessionDone,
   useInitialSkeletonGate,
-} from '@hooks/useInitialSkeletonGate';
+} from '@hooks/use-initial-skeleton-gate';
 import LoginModal from '@pages/project-detail/components/LoginModal';
-import { useAuthStore } from '@store/auth';
-import { useThemeStore } from '@store/theme';
-import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui';
+import { useAuthStore } from '@store/auth.store';
+import { useThemeStore } from '@store/theme.store';
+import type { BadgeTone, ProjectCardProps, ProjectRole } from '@t/project/ui.types';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDueLabel, mapRecommendPositionsToRoles } from 'src/shared/mappers/project';

@@ -16,13 +16,13 @@ import { ProjectCard } from '@components/project/ProjectCard';
 import ProjectCardSkeleton, {
   ProjectCardSkeletonList,
 } from '@components/project/ProjectCardSkeleton';
-import { useInitialSkeletonGate } from '@hooks/useInitialSkeletonGate';
-import { useMyReportsExist } from '@hooks/useMyReportsExist';
-import { useProjectFilter } from '@hooks/useProjectFilters';
-import { useProjects } from '@hooks/useProjects';
+import { useInitialSkeletonGate } from '@hooks/use-initial-skeleton-gate';
+import { useMyReportsExist } from '@hooks/use-my-reports-exist';
+import { useProjectFilter } from '@hooks/use-project-filters';
+import { useProjects } from '@hooks/use-projects';
 import { mapPositionsToRoles, mapProjectItemToCard, type ProjectCardModel } from '@mappers/project';
 import { buildParams } from '@mappers/projectFilters';
-import type { ProjectRole, RecommendPreviewItem } from '@t/project/ui';
+import type { ProjectRole, RecommendPreviewItem } from '@t/project/ui.types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 

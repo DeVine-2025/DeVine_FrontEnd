@@ -1,5 +1,5 @@
 import type { Contribution } from '@apis/myInfo/myInfo';
-import type { TechstackDto } from '@t/profileCard.types';
+import type { TechstackDto } from '@t/profile-card.types';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { projectQueries } from '@apis/project/project-queries';
 import { reportQueries } from '@apis/report/report-queries';
