@@ -1,11 +1,11 @@
 import { confirmImageUpload, createPresignedUrl } from '@apis/image';
-import type { UpdateProfileRequest } from '@apis/myInfo/myInfo';
+import type { UpdateProfileRequest } from '@apis/my-info/my-info';
 import {
   addMyTechStacks,
   deleteMyTechStacks,
   myInfoQueries,
   updateMyProfile,
-} from '@apis/myInfo/myInfo-queries';
+} from '@apis/my-info/my-info-queries';
 import BackIcon from '@assets/icons/back.svg?react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';

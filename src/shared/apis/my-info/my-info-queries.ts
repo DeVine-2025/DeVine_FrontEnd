@@ -1,5 +1,11 @@
 import { axiosInstance } from '@apis/instance';
-import { GitRepoRequest, MyProfileResponse, MyReposResponse, MyContributionsResponse, UpdateProfileRequest } from '@apis/myInfo/myInfo';
+import {
+  GitRepoRequest,
+  MyProfileResponse,
+  MyReposResponse,
+  MyContributionsResponse,
+  UpdateProfileRequest,
+} from '@apis/my-info/my-info';
 
 export const getMyProfile = async (): Promise<MyProfileResponse> => {
   const { data } = await axiosInstance.get('/api/v1/members/me');
@@ -9,8 +15,10 @@ export const getMyProfile = async (): Promise<MyProfileResponse> => {
 export const getMemberProfile = async (nickname: string) => {
   const { data } = await axiosInstance.get(`/api/v1/members/${nickname}`);
   return data;
-}
-export const updateMyProfile = async (profileData: UpdateProfileRequest): Promise<MyProfileResponse> => {
+};
+export const updateMyProfile = async (
+  profileData: UpdateProfileRequest,
+): Promise<MyProfileResponse> => {
   const { data } = await axiosInstance.patch('/api/v1/members/me', profileData);
   return data;
 };
@@ -18,7 +26,7 @@ export const updateMyProfile = async (profileData: UpdateProfileRequest): Promis
 // 보유 기술 추가
 export const addMyTechStacks = async (techstackIds: number[]) => {
   const { data } = await axiosInstance.post('/api/v1/members/me/techstacks', {
-    techstackIds
+    techstackIds,
   });
   return data;
 };
@@ -28,26 +36,20 @@ export const deleteMyTechStacks = async (techstackIds: number[], source?: 'AUTO'
   const { data } = await axiosInstance.delete('/api/v1/members/me/techstacks', {
     data: {
       techstackIds,
-      ...(source && { source })
-    }
+      ...(source && { source }),
+    },
   });
   return data;
 };
 
-export const getMyRepo = async (
-  params?: GitRepoRequest
-): Promise<MyReposResponse> => {
-  const { data } = await axiosInstance.post(
-    '/api/v1/members/me/git-repos',
-    null,
-    { params }
-  );
+export const getMyRepo = async (params?: GitRepoRequest): Promise<MyReposResponse> => {
+  const { data } = await axiosInstance.post('/api/v1/members/me/git-repos', null, { params });
   return data;
 };
 
 export const getMemberRepo = async (
   nickname: string,
-  params?: GitRepoRequest
+  params?: GitRepoRequest,
 ): Promise<MyReposResponse> => {
   const { data } = await axiosInstance.get(`/api/v1/members/${nickname}/git-repos`, {
     params,
@@ -58,31 +60,31 @@ export const getMemberRepo = async (
 export const getMyTechStacks = async () => {
   const { data } = await axiosInstance.get('/api/v1/members/me/techstacks');
   return data;
-}
+};
 
 export const getMemberTechStacks = async (nickname: string) => {
   const { data } = await axiosInstance.get(`/api/v1/members/${nickname}/techstacks`);
   return data;
-}
+};
 export const getMyGitContributions = async (
   from: string,
-  to: string
+  to: string,
 ): Promise<MyContributionsResponse> => {
   const { data } = await axiosInstance.get('/api/v1/members/me/contributions', {
-    params: { from, to }
+    params: { from, to },
   });
   return data;
-}
+};
 export const getMemberGitContributions = async (
   nickname: string,
   from: string,
-  to: string
+  to: string,
 ): Promise<MyContributionsResponse> => {
   const { data } = await axiosInstance.get(`/api/v1/members/${nickname}/contributions`, {
-    params: { from, to }
+    params: { from, to },
   });
   return data;
-}
+};
 
 export const myInfoQueries = {
   profile: () => ({
@@ -125,15 +127,12 @@ export const myInfoQueries = {
 
   reposInfinite: () => ({
     queryKey: ['repos'],
-    queryFn: ({ pageParam = 1 }: { pageParam?: number }) =>
-      getMyRepo({ page: pageParam, size: 10 }),
+    queryFn: ({ pageParam = 1 }: { pageParam?: number }) => getMyRepo({ page: pageParam, size: 10 }),
 
     initialPageParam: 1,
 
-
     getNextPageParam: (lastPage: MyReposResponse) => {
       const currentPage = lastPage.result.page;
-      const totalPages = lastPage.result.totalPages;
       const isLast = lastPage.result.last;
 
       if (isLast) return undefined;
@@ -149,7 +148,6 @@ export const myInfoQueries = {
     initialPageParam: 1,
     getNextPageParam: (lastPage: MyReposResponse) => {
       const currentPage = lastPage.result.page;
-      const totalPages = lastPage.result.totalPages;
       const isLast = lastPage.result.last;
 
       if (isLast) return undefined;

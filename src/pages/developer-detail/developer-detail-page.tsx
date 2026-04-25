@@ -1,6 +1,6 @@
-import type { Contribution } from '@apis/myInfo/myInfo';
+import type { Contribution } from '@apis/my-info/my-info';
 import type { TechstackDto } from '@t/profile-card.types';
-import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import { myInfoQueries } from '@apis/my-info/my-info-queries';
 import { reportQueries } from '@apis/report/report-queries';
 import TalkBalloonIcon from '@assets/icons/detail-page/talkBalloon.svg?react';
 import ContactCard from '@components/profile/ContactCard';

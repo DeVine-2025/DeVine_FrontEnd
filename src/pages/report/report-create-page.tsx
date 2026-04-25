@@ -6,7 +6,7 @@ import CheckBox from './_components/CheckBox';
 import GithubRepoListSkeleton from './_components/GithubRepoListSkeleton';
 import { cn } from '@libs/cn';
 import { useThemeStore } from '@store/theme.store';
-import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import { myInfoQueries } from '@apis/my-info/my-info-queries';
 import { BeatLoader } from 'react-spinners';
 
 const ReportCreatePage = () => {

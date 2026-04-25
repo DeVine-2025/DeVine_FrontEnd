@@ -1,5 +1,5 @@
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
-import type { Contribution, MyProfile, MyReposResponse } from '@apis/myInfo/myInfo';
+import type { Contribution, MyProfile, MyReposResponse } from '@apis/my-info/my-info';
 import type { ReportCard } from '@apis/report/report';
 import HeartIcon from '@assets/icons/heart.svg?react';
 import QuestionIcon from '@assets/icons/question.svg?react';

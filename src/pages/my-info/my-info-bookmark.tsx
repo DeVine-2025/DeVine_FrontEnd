@@ -1,6 +1,6 @@
 import { deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getMemberProfileByNickname } from '@apis/members';
-import { getMemberTechStacks } from '@apis/myInfo/myInfo-queries';
+import { getMemberTechStacks } from '@apis/my-info/my-info-queries';
 import { getProjectDetail } from '@apis/project-detail';
 import BackIcon from '@assets/icons/back.svg?react';
 import profileDefaultIconUrl from '@assets/icons/profile-default.svg?url';

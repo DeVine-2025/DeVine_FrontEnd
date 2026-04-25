@@ -1,6 +1,6 @@
 import { createMemberProposal } from '@apis/apply';
-import type { MyProfile } from '@apis/myInfo/myInfo';
-import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import type { MyProfile } from '@apis/my-info/my-info';
+import { myInfoQueries } from '@apis/my-info/my-info-queries';
 import { getMyRecruitingProjects, type MyRecruitingProjectItem } from '@apis/projects';
 import { getMemberProposal } from '@apis/apply';
 

@@ -71,7 +71,7 @@ src/
 │   ├── apis/
 │   │   ├── base/
 │   │   ├── member/
-│   │   ├── myInfo/
+│   │   ├── my-info/
 │   │   ├── payment/
 │   │   ├── project/
 │   │   └── report/
@@ -80,12 +80,9 @@ src/
 │   ├── components/
 │   │   ├── chat/
 │   │   ├── developer/
-│   │   ├── myInfo/
-│   │   ├── myProject/
 │   │   ├── profile/
 │   │   ├── project/
 │   │   ├── recommend/
-│   │   ├── report/
 │   │   └── tab/
 │   ├── constants/
 │   ├── hooks/
@@ -134,7 +131,7 @@ src/
 - `apis/`: 서버 통신 함수, query/mutation, API 타입
   - `base/`: 공통 응답 타입/유틸
   - `member/`: 멤버 관련 API 묶음
-  - `myInfo/`: 내 정보 관련 API 묶음
+  - `my-info/`: 내 정보 관련 API 묶음
   - `payment/`: 결제 관련 API 묶음
   - `project/`: 프로젝트 관련 API 묶음
   - `report/`: 리포트 관련 API 묶음
@@ -143,12 +140,9 @@ src/
 - `components/`: 여러 화면에서 재사용하는 도메인 공용 컴포넌트
   - `chat/`: 채팅 위젯 계열 컴포넌트
   - `developer/`: 개발자 도메인 카드/필터 컴포넌트
-  - `myInfo/`: 내 정보 공용 컴포넌트
-  - `myProject/`: 내 프로젝트 공용 컴포넌트
   - `profile/`: 프로필 상세 공용 컴포넌트
   - `project/`: 프로젝트 도메인 카드/필터 컴포넌트
   - `recommend/`: 추천 도메인 필터/드롭다운 컴포넌트
-  - `report/`: 리포트 도메인 공용 컴포넌트
   - `tab/`: 탭 UI 공용 컴포넌트
 - `constants/`: 전역 상수와 고정 매핑 값
 - `hooks/`: 여러 화면에서 재사용하는 공용 훅
