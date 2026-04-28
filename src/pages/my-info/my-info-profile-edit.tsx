@@ -22,6 +22,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+type StackItem = {
+  key: string;
+  source: 'AUTO' | 'MANUAL';
+};
+
 type MyInfoProfileItemProps = {
   type: 'text' | 'search';
   title: string;
@@ -67,7 +72,7 @@ const MyInfoProfileEdit = () => {
   const [address, setAddress] = useState<string>('');
   const [imageUrl, setImageUrl] = useState<string>('');
   const [domains, setDomains] = useState<string[]>([]);
-  const [stack, setStack] = useState<string[]>([]); // 기술 스택 키 배열 (예: ['React', 'Typescript'])
+  const [stack, setStack] = useState<StackItem[]>([]); // 기술 스택 배열 (예: [{ key: 'React', source: 'MANUAL' }])
   const [mainType, setMainType] = useState<'DEVELOPER' | 'PM'>('DEVELOPER');
   const [disclosure, setDisclosure] = useState<boolean>(true);
   const [isStackDropdownOpen, setIsStackDropdownOpen] = useState(false);
@@ -86,7 +91,7 @@ const MyInfoProfileEdit = () => {
     address: '',
     imageUrl: '',
     domains: [] as string[],
-    stack: [] as string[],
+    stack: [] as StackItem[],
     mainType: 'DEVELOPER' as 'DEVELOPER' | 'PM',
     disclosure: true,
   });
@@ -159,19 +164,15 @@ const MyInfoProfileEdit = () => {
 
   // 기술 스택 데이터가 로드되면 상태 업데이트
   useEffect(() => {
-
     if (techStackData?.result?.techstacks) {
-      const stackKeys = techStackData.result.techstacks.map((item: { name: string }) =>
-        convertApiNameToKey(item.name),
+      const stackItems: StackItem[] = techStackData.result.techstacks.map(
+        (item: { name: string; source: 'AUTO' | 'MANUAL' }) => ({
+          key: convertApiNameToKey(item.name),
+          source: item.source,
+        }),
       );
-      console.log("원본 데이터", techStackData?.result?.techstacks);
-      console.log(
-        'API에서 받은 기술 스택 (원본):',
-        techStackData.result.techstacks.map((item: { name: string }) => item.name),
-      );
-      console.log('변환된 기술 스택 키:', stackKeys);
-      setStack(stackKeys);
-      setOriginalData((prev) => ({ ...prev, stack: stackKeys }));
+      setStack(stackItems);
+      setOriginalData((prev) => ({ ...prev, stack: stackItems }));
     }
   }, [techStackData]);
 
@@ -191,7 +192,6 @@ const MyInfoProfileEdit = () => {
 
   // 데이터 변경 여부 확인
   const hasChanges = () => {
-    // 배열 비교 함수
     const arraysEqual = (a: string[], b: string[]) => {
       if (a.length !== b.length) return false;
       const sortedA = [...a].sort();
@@ -210,7 +210,10 @@ const MyInfoProfileEdit = () => {
       mainType !== originalData.mainType ||
       disclosure !== originalData.disclosure ||
       !arraysEqual(domains, originalData.domains) ||
-      !arraysEqual(stack, originalData.stack)
+      !arraysEqual(
+        stack.map((s) => s.key),
+        originalData.stack.map((s) => s.key),
+      )
     );
   };
 
@@ -228,23 +231,19 @@ const MyInfoProfileEdit = () => {
     });
   };
 
-  const handleDeleteStack = async (stackName: string) => {
+  const handleDeleteStack = async (stackKey: string) => {
+    const item = stack.find((s) => s.key === stackKey);
     try {
-      // ID로 변환
-      const stackIds = getTechstackIdsByKeys([stackName]);
+      const stackIds = getTechstackIdsByKeys([stackKey]);
       if (stackIds.length > 0) {
-        // 삭제 API 호출
-        await deleteMyTechStacks(stackIds, 'MANUAL');
-        console.log('기술 스택 삭제 성공:', stackName);
+        await deleteMyTechStacks(stackIds, item?.source ?? 'MANUAL');
 
-        // 상태 업데이트
-        setStack((prev) => prev.filter((item) => item !== stackName));
+        setStack((prev) => prev.filter((s) => s.key !== stackKey));
         setOriginalData((prev) => ({
           ...prev,
-          stack: prev.stack.filter((item) => item !== stackName),
+          stack: prev.stack.filter((s) => s.key !== stackKey),
         }));
 
-        // 기술 스택 쿼리 무효화
         queryClient.invalidateQueries({ queryKey: ['member/techstacks'] });
       }
     } catch (error) {
@@ -254,36 +253,41 @@ const MyInfoProfileEdit = () => {
   };
 
   const handleStackChange = (selectedStacks: string[]) => {
-    setStack(selectedStacks);
+    setStack((prev) =>
+      selectedStacks.map((key) => {
+        const existing = prev.find((s) => s.key === key);
+        return existing ?? { key, source: 'MANUAL' as const };
+      }),
+    );
   };
 
   const handleStackApply = async () => {
     try {
       // 원본 스택과 현재 선택된 스택 비교
-      const originalStackSet = new Set(originalData.stack);
-      const currentStackSet = new Set(stack);
+      const originalKeySet = new Set(originalData.stack.map((s) => s.key));
+      const currentKeySet = new Set(stack.map((s) => s.key));
 
       // 추가된 스택 (현재에는 있지만 원본에는 없는 것)
-      const addedStacks = stack.filter((s) => !originalStackSet.has(s));
+      const addedKeys = stack.filter((s) => !originalKeySet.has(s.key)).map((s) => s.key);
 
       // 삭제된 스택 (원본에는 있지만 현재에는 없는 것)
-      const deletedStacks = originalData.stack.filter((s) => !currentStackSet.has(s));
+      const deletedKeys = originalData.stack.filter((s) => !currentKeySet.has(s.key)).map((s) => s.key);
 
       // 추가할 스택이 있으면 추가 API 호출
-      if (addedStacks.length > 0) {
-        const addedIds = getTechstackIdsByKeys(addedStacks);
+      if (addedKeys.length > 0) {
+        const addedIds = getTechstackIdsByKeys(addedKeys);
         if (addedIds.length > 0) {
           await addMyTechStacks(addedIds);
-          console.log('기술 스택 추가 성공:', addedStacks);
+          console.log('기술 스택 추가 성공:', addedKeys);
         }
       }
 
       // 삭제할 스택이 있으면 삭제 API 호출
-      if (deletedStacks.length > 0) {
-        const deletedIds = getTechstackIdsByKeys(deletedStacks);
+      if (deletedKeys.length > 0) {
+        const deletedIds = getTechstackIdsByKeys(deletedKeys);
         if (deletedIds.length > 0) {
           await deleteMyTechStacks(deletedIds, 'MANUAL');
-          console.log('기술 스택 삭제 성공:', deletedStacks);
+          console.log('기술 스택 삭제 성공:', deletedKeys);
         }
       }
 
@@ -423,6 +427,7 @@ const MyInfoProfileEdit = () => {
       contacts,
       mainType,
       disclosure,
+      proposalAlarm: profileData?.result?.member?.proposalAlarm ?? false,
     };
 
     updateMutation.mutate(updateData);
@@ -574,10 +579,10 @@ const MyInfoProfileEdit = () => {
       {/* 보유 스택 드롭다운 모달 */}
       {isStackDropdownOpen && (
         <>
-          {console.log('모달 열림 - 현재 스택:', stack)}
+          {console.log('모달 열림 - 현재 스택:', stack.map((s) => s.key))}
           <PositionTechStackDropdown
             open={isStackDropdownOpen}
-            value={stack}
+            value={stack.map((s) => s.key)}
             onChange={handleStackChange}
             onApply={handleStackApply}
             onReset={() => setStack([])}
