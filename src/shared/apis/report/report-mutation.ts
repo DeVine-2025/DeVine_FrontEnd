@@ -13,7 +13,7 @@ export const patchReportVisibility = async ({ reportId, visibility }: ReportPatc
 
 export const useCreateReportMutation = () => {
   return useMutation({
-    mutationFn: ({ gitRepoId, token }: ReportDetailRequest) =>
+    mutationFn: ({ gitRepoId, token }: ReportDetailRequest & { token: string }) =>
       createReportSync(gitRepoId, token),
   });
 };
