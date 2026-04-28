@@ -1,9 +1,11 @@
 import { useAuth } from '@clerk/clerk-react';
 import LoginRequiredCard from '@components/common/LoginRequiredCard';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 const ReportMainPage = () => {
   const { isSignedIn, isLoaded } = useAuth();
+  const { search } = useLocation();
+  const isOthersReport = search.includes('isOwner=others');
   const showLoginGate = isLoaded && !isSignedIn;
 
   if (showLoginGate) {

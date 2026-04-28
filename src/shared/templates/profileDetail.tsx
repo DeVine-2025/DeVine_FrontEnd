@@ -163,7 +163,7 @@ const ProfileDetail = ({
                 aria-pressed={isBookmarked}
                 className="flex items-center gap-[0.4rem] font-medium text-lg text-ui-400 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <HeartIcon className={isBookmarked ? 'text-primary' : 'text-ui-400'} />
+                <HeartIcon className='text-ui-400' />
                 관심 도메인
               </button>
               <div className="flex flex-wrap gap-[0.8rem]">

@@ -35,7 +35,6 @@ const StackChips = ({ stacks, onRemove }: StackChipsProps) => {
           <button
             key={key}
             type="button"
-            onClick={() => removeStack(key)}
             className="relative inline-flex items-center"
           >
             {iconSrc ? (
@@ -46,6 +45,7 @@ const StackChips = ({ stacks, onRemove }: StackChipsProps) => {
               </div>
             )}
             {item.source === "MANUAL" && <span
+              onClick={() => removeStack(key)}
               aria-hidden
               className="-right-[4px] -top-[4px] absolute flex h-[18px] w-[18px] cursor-pointer items-center justify-center rounded-full bg-[var(--ui-50)] text-[11px] text-[var(--ui-400)]"
             >

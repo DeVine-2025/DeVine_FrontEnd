@@ -14,7 +14,7 @@ const ReportCardSmall = ({gitRepoId,reportType, label, title, description, isOwn
 
   const handleReportCard = () => {
     if(reportType === "") return;
-    else navigate(`/report/detail/${gitRepoId}?type=${reportType}?isOwner=${isOwner}`);
+    else navigate(`/report/detail/${gitRepoId}?type=${reportType}&isOwner=${isOwner}`);
   }
   return (
     <div className="min-w-64 w-fit cursor-pointer rounded-3xl border border-ui-200 p-[2.4rem] gap-[0.8rem] flex-col w-full" onClick={handleReportCard}>
