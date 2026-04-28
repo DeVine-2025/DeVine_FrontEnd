@@ -31,6 +31,7 @@ type ProfileDetailProps = {
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
   reports?: ReportCard[];
+  isOwner?: string;
   memberNick?: string;
 };
 
@@ -45,6 +46,7 @@ const ProfileDetail = ({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  isOwner,
   reports = [],
   memberNick,
 }: ProfileDetailProps) => {
@@ -256,6 +258,7 @@ const ProfileDetail = ({
                         title={report.repoName}
                         description={report.repoDescription}
                         reportType={report.reportType}
+                        isOwner={isOwner}
                       />
                     </div>
                   ))

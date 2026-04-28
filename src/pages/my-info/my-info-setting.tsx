@@ -82,6 +82,17 @@ const MyInfoSetting = () => {
     },
   });
 
+  const proposalAlarmMutation = useMutation({
+    mutationFn: updateMyProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['member'] });
+    },
+    onError: () => {
+      setIsOnSecond((prev) => !prev);
+      alert('프로젝트 제안 알림 설정 변경에 실패했습니다.');
+    },
+  });
+
   useEffect(() => {
     const mainType = profileData?.result?.member?.mainType;
     if (mainType === 'PM' || mainType === 'DEVELOPER') {
@@ -96,6 +107,13 @@ const MyInfoSetting = () => {
     }
   }, [profileData?.result?.member?.disclosure]);
 
+  useEffect(() => {
+    const proposalAlarm = profileData?.result?.member?.proposalAlarm;
+    if (typeof proposalAlarm === 'boolean') {
+      setIsOnSecond(proposalAlarm);
+    }
+  }, [profileData?.result?.member?.proposalAlarm]);
+
   const handleDisclosureChange = (next: boolean) => {
     const profile = profileData?.result;
     if (!profile) return;
@@ -108,9 +126,28 @@ const MyInfoSetting = () => {
       contacts: profile.contacts ?? [],
       mainType: (profile.member?.mainType === 'PM' ? 'PM' : 'DEVELOPER') as 'PM' | 'DEVELOPER',
       disclosure: next,
+      proposalAlarm: profile.member?.proposalAlarm ?? false,
       ...(profile.member?.imageUrl && { imageUrl: profile.member.imageUrl }),
     };
     disclosureMutation.mutate(payload);
+  };
+
+  const handleProposalAlarmChange = (next: boolean) => {
+    const profile = profileData?.result;
+    if (!profile) return;
+    setIsOnSecond(next);
+    const payload: UpdateProfileRequest = {
+      nickname: profile.member?.nickname ?? '',
+      address: profile.member?.address ?? '',
+      body: profile.member?.body ?? '',
+      domains: profile.domains ?? [],
+      contacts: profile.contacts ?? [],
+      mainType: (profile.member?.mainType === 'PM' ? 'PM' : 'DEVELOPER') as 'PM' | 'DEVELOPER',
+      disclosure: profile.member?.disclosure ?? false,
+      proposalAlarm: next,
+      ...(profile.member?.imageUrl && { imageUrl: profile.member.imageUrl }),
+    };
+    proposalAlarmMutation.mutate(payload);
   };
 
   const handleMainTypeChange = (tab: string) => {
@@ -127,6 +164,7 @@ const MyInfoSetting = () => {
       contacts: profile.contacts ?? [],
       mainType: newMainType,
       disclosure: profile.member?.disclosure ?? true,
+      proposalAlarm: profile.member?.proposalAlarm ?? false,
       ...(profile.member?.imageUrl && { imageUrl: profile.member.imageUrl }),
     };
     setActiveTab(tab);
@@ -189,7 +227,13 @@ const MyInfoSetting = () => {
           title={'프로젝트 제안 알림'}
           description={'PM이 제안하는 프로젝트 알림을 받을 수 있습니다.'}
         />
-        <Switch isOn={isOnSecond} setIsOn={setIsOnSecond} />
+        <Switch
+          isOn={isOnSecond}
+          setIsOn={(updater) => {
+            const next = typeof updater === 'function' ? updater(isOnSecond) : updater;
+            handleProposalAlarmChange(next);
+          }}
+        />
       </div>
 
       {/*<div className="flex-col gap-[2.4rem]">*/}

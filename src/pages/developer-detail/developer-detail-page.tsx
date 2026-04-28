@@ -76,6 +76,7 @@ const DeveloperDetailPage = () => {
   useEffect(() => {
     // if(me?.memberId == profileRes)
   }, []);
+
   return (
     <div className="flex">
       <div className="mx-auto flex w-full max-w-[1180px] justify-between px-5 pb-20">
@@ -86,6 +87,7 @@ const DeveloperDetailPage = () => {
           contributions={contributionsData}
           year={year}
           onYearChange={setYear}
+          isOwner={"others"}
           gitRepos={gitRepos}
           fetchNextPage={fetchNextPage}
           hasNextPage={hasNextPage}

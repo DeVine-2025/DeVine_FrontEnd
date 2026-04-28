@@ -159,10 +159,12 @@ const MyInfoProfileEdit = () => {
 
   // 기술 스택 데이터가 로드되면 상태 업데이트
   useEffect(() => {
+
     if (techStackData?.result?.techstacks) {
       const stackKeys = techStackData.result.techstacks.map((item: { name: string }) =>
         convertApiNameToKey(item.name),
       );
+      console.log("원본 데이터", techStackData?.result?.techstacks);
       console.log(
         'API에서 받은 기술 스택 (원본):',
         techStackData.result.techstacks.map((item: { name: string }) => item.name),
