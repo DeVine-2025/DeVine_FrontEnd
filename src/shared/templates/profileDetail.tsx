@@ -11,6 +11,7 @@ import DomainBadges from '@components/profileDetail/DomainBadges';
 import ImagePreview from '@components/profileDetail/ImagePreview';
 import NormalButton from '@components/profileDetail/NormalButton';
 import ReportCardSmall from '@components/profileDetail/ReportCardSmall';
+import BookmarkButton from '@components/common/BookmarkButton';
 import TechStackChips, {
   type TechStackChipInput,
 } from '@components/profileDetail/TechStackChips';
@@ -153,19 +154,16 @@ const ProfileDetail = ({
         {/*Section 1*/}
         <div className="flex gap-[2.4rem]">
           <ImagePreview isExist={hasImage} imageUrl={imageUrl} />
-          <div className="flex w-full flex-col gap-6">
-            <p className="font-bold text-4xl text-ui-1000">{nickname}</p>
+          <div className="w-full">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-4xl text-ui-1000">{nickname}</p>
+              <BookmarkButton bookmarked={isBookmarked} onBookmarkChange={handleBookmarkChange} className="h-[5.2rem] w-[5.2rem] cursor-pointer"/>
+            </div>
             <div className="flex-col gap-3">
-              <button
-                type="button"
-                onClick={handleBookmarkChange}
-                disabled={!targetNickname}
-                aria-pressed={isBookmarked}
-                className="flex items-center gap-[0.4rem] font-medium text-lg text-ui-400 disabled:cursor-not-allowed disabled:opacity-60"
-              >
+              <p className="flex items-center gap-[0.4rem] font-medium text-lg text-ui-400">
                 <HeartIcon className='text-ui-400' />
                 관심 도메인
-              </button>
+              </p>
               <div className="flex flex-wrap gap-[0.8rem]">
                 {domainBadges.map((domain) => (
                   <DomainBadges key={domain} label={domain} />
