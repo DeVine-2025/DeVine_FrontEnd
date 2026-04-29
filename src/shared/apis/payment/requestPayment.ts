@@ -32,7 +32,9 @@ export async function requestPayment(params: RequestPaymentParams) {
 
   // response.code가 있으면 결제 실패 또는 사용자 취소
   if (response?.code !== undefined) {
-    throw new Error(response.message ?? '결제에 실패했습니다.');
+    const error = new Error(response.message ?? '결제에 실패했습니다.');
+    (error as any).code = response.code;
+    throw error;
   }
 
   return response;

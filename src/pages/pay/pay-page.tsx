@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { getChannelKey } from '@apis/payment/payment';
 import { useCompletePayment } from '@apis/payment/payment-queries';
 import { requestPayment, type PgProvider } from '@apis/payment/requestPayment';
@@ -19,7 +19,9 @@ const PayPage = () => {
 
   const [selectedUnitCount, setSelectedUnitCount] = useState<1 | 3>(1);
   const [orderQuantity, setOrderQuantity] = useState<number>(MIN_PASS_ORDER_QUANTITY);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<{ message: string; isCancel?: boolean } | null>(
+    null,
+  );
   const [isProcessing, setIsProcessing] = useState(false);
 
   const selectedUnitPrice = useMemo(() => getPassUnitPrice(selectedUnitCount), [selectedUnitCount]);
@@ -54,16 +56,23 @@ const PayPage = () => {
       });
 
       window.alert('결제가 완료되었습니다.');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : '결제 중 오류가 발생했습니다.';
-      setPaymentError(message);
+      setPaymentError(null);
+    } catch (err: any) {
+      // PortOne V2에서 사용자 취소인 경우 (보통 code가 존재함)
+      const isCancel = err.code === 'FAILURE_TYPE.PAYMENT_CANCELED' || err.message?.includes('취소');
+      const message = isCancel ? '결제가 취소되었습니다.' : (err.message || '결제 중 오류가 발생했습니다.');
+      
+      setPaymentError({
+        message,
+        isCancel: !!isCancel,
+      });
     } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pt-10 pb-20">
+    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pt-10 pb-20 px-6 lg:px-0">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
         <div className="flex min-w-0 flex-col">
           <h1 className="Title2 font-bold text-card-title">이용권 관리</h1>
@@ -118,14 +127,25 @@ const PayPage = () => {
             </p>
           </div>
 
-          {paymentError && <p className="text-sm text-red-500">{paymentError}</p>}
+          {paymentError && (
+            <div className={`mt-30 flex items-center gap-3 rounded-2xl border px-6 py-4 ${
+              paymentError.isCancel 
+                ? 'border-[var(--ui-200)] bg-[var(--ui-50)] text-[var(--ui-600)]' 
+                : 'border-[var(--negative-text)]/20 bg-[var(--negative-bg)] text-[var(--negative-text)]'
+            }`}>
+              <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-current opacity-20`}>
+                <span className="text-white font-bold">!</span>
+              </div>
+              <p className="Label2 font-medium">{paymentError.message}</p>
+            </div>
+          )}
 
           <div className="mt-30 flex justify-end">
             <button
               type="button"
               onClick={handleProceedPayment}
               disabled={isProcessing || isPending}
-              className="Headline1 h-[42px] w-[240px] cursor-pointer rounded-[10px] bg-[var(--color-primary)] text-[14px] text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="Headline1 flex items-center justify-center h-[48px] w-[240px] cursor-pointer rounded-[12px] bg-[var(--color-primary)] text-[15px] font-semibold text-white shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isProcessing || isPending ? '처리 중...' : '결제하기'}
             </button>
