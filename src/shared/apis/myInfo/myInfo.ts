@@ -2,6 +2,8 @@ import { ApiResponse } from '@apis/base/api';
 
 export interface MyProfile {
   member: {
+    /** 채팅 등 Clerk 연동 시 서버가 내려줄 수 있음 */
+    clerkId?: string;
     name: string;
     nickname: string;
     address: string;

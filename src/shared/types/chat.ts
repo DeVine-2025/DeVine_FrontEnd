@@ -1,9 +1,6 @@
-export type ChatApiEnvelope<T> = {
-  status: number;
-  code: string;
-  message: string;
-  data: T;
-};
+import type { ApiResponse } from '@apis/base/api';
+
+export type ChatApiEnvelope<T> = ApiResponse<T>;
 
 export class ChatApiError extends Error {
   readonly status: number;
@@ -26,14 +23,6 @@ export type ChatOtherMember = {
   mainType: string;
 };
 
-export type ChatRoomSummary = {
-  roomId: number;
-  lastMessage: string | null;
-  lastMessageAt: string;
-  unreadCount: number;
-  otherMember: ChatOtherMember;
-};
-
 export type ChatMessage = {
   messageId: number;
   roomId?: number;
@@ -43,6 +32,21 @@ export type ChatMessage = {
   content: string;
   isRead: boolean;
   createdAt: string;
+};
+
+export type ChatMessageEvent = ChatMessage;
+
+export type ChatReadEvent = {
+  roomId: number;
+  readerClerkId: string;
+};
+
+export type ChatRoomSummary = {
+  roomId: number;
+  lastMessage: string | null;
+  lastMessageAt: string;
+  unreadCount: number;
+  otherMember: ChatOtherMember;
 };
 
 export type CreateChatRoomData = {

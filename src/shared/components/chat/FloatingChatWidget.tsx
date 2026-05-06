@@ -6,9 +6,10 @@ import { useChatRoom } from '@hooks/useChatRoom';
 import { useChatRooms } from '@hooks/useChatRooms';
 import { useUnreadChatRoomCount } from '@hooks/useUnreadChatRoomCount';
 import { cn } from '@libs/cn';
+import { useChatWidgetStore } from '@store/chatWidget';
 import { useThemeStore } from '@store/theme';
 import { useAuth } from '@clerk/clerk-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const avatarBaseClassName =
   'shrink-0 rounded-full border shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]';
@@ -34,20 +35,31 @@ const FloatingChatWidget = () => {
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const [messageDraft, setMessageDraft] = useState('');
   const isLightTheme = theme === 'light';
+  const focusRoomId = useChatWidgetStore((s) => s.focusRoomId);
+  const clearFocusRoom = useChatWidgetStore((s) => s.clearFocusRoom);
+
   const { data: roomsData } = useChatRooms({ enabled: isExpanded });
   const { data: unreadData } = useUnreadChatRoomCount({ enabled: isExpanded });
   const rooms = roomsData?.rooms ?? [];
   const selectedRoom = rooms.find((room) => room.roomId === selectedChatId) ?? null;
-  const selectedRoomId = selectedRoom?.roomId ?? 0;
-  const chatRoom = useChatRoom(selectedRoomId, {
-    enabled: isExpanded && selectedRoom != null,
+  const activeRoomId = selectedChatId ?? 0;
+  const chatRoom = useChatRoom(activeRoomId, {
+    enabled: isExpanded && activeRoomId > 0,
   });
   const selectedMessages = chatRoom.messages;
   const hasMessageDraft = messageDraft.trim().length > 0;
   const unreadRoomCount = unreadData?.unreadRoomCount ?? 0;
   const dateLabel = formatDateLabel(selectedMessages[0]?.createdAt ?? null);
   const isRoomsEmpty = rooms.length === 0;
-  const sendingDisabled = !hasMessageDraft || selectedRoom == null;
+  const sendingDisabled = !hasMessageDraft || activeRoomId <= 0;
+
+  useEffect(() => {
+    if (focusRoomId == null) return;
+    setIsExpanded(true);
+    setSelectedChatId(focusRoomId);
+    setMessageDraft('');
+    clearFocusRoom();
+  }, [focusRoomId, clearFocusRoom]);
 
   const avatarClassName = cn(
     avatarBaseClassName,
@@ -169,7 +181,7 @@ const FloatingChatWidget = () => {
             </button>
           ) : (
             <div id="global-chat-panel" className={cn('flex h-full min-h-0 flex-col', widgetSurfaceClassName)}>
-              {selectedRoom ? (
+              {activeRoomId > 0 ? (
                 <>
                   <div className={headerClassName}>
                     <button
@@ -188,7 +200,7 @@ const FloatingChatWidget = () => {
                     />
                     <div className="ml-[1.2rem] min-w-0 flex-1 max-[389px]:ml-[0.8rem]">
                       <span className="Body1 block truncate font-semibold text-[var(--ui-900)]">
-                        {selectedRoom.otherMember.nickname}
+                        {selectedRoom?.otherMember.nickname ?? '채팅'}
                       </span>
                     </div>
                     <button
