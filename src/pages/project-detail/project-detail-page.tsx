@@ -1,10 +1,20 @@
+import { isChatApiError } from '@apis/chat';
 import type { ProjectStatus } from '@apis/project-detail';
+import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import PersonIcon from '@assets/icons/person.svg?react';
 import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
+import TalkBalloonIcon from '@assets/icons/detail-page/talkBalloon.svg?react';
 import BookmarkButton from '@components/common/BookmarkButton';
 import LoadingSpinner from '@components/common/LoadingSpinner';
+import { useAuth } from '@clerk/clerk-react';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
+import { CHAT_ROOMS_QUERY_KEY } from '@hooks/useChatRooms';
+import { useCreateOrGetChatRoom } from '@hooks/useCreateOrGetChatRoom';
 import { useThemeStore } from '@store/theme';
+import { useChatWidgetStore } from '@store/chatWidget';
+import type { ChatRoomsListData } from '@t/chat';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import type { BadgeTone } from 'src/shared/types/badgeTone';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
 import ApplyModal from './components/ApplyModal';
@@ -23,7 +33,6 @@ const RoleBadge = ({ label, tone }: { label: string; tone: BadgeTone }) => (
 );
 
 // ── Main ──
-type ApplyStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
 
 const ProjectDetailPage = () => {
   const { theme } = useThemeStore();
@@ -66,6 +75,53 @@ const ProjectDetailPage = () => {
     currentStatusLabel,
     handleStatusChange,
   } = useProjectDetail();
+
+  const { isSignedIn } = useAuth();
+  const queryClient = useQueryClient();
+  const createRoomMutation = useCreateOrGetChatRoom();
+
+  const creatorNick = project?.creatorName?.trim() ?? '';
+  const { data: creatorProfileRes } = useQuery({
+    ...myInfoQueries.memberProfile(creatorNick),
+    enabled: Boolean(creatorNick && !isOwner),
+  });
+  const creatorProfile = creatorProfileRes?.result;
+
+  const handleContactClick = useCallback(async () => {
+    if (!isSignedIn) {
+      window.alert('로그인 후 이용해 주세요.');
+      return;
+    }
+    const clerkId = creatorProfile?.member?.clerkId?.trim();
+    if (!clerkId) {
+      window.alert('채팅을 시작할 수 없어요. 회원 정보가 아직 연결되지 않았습니다.');
+      return;
+    }
+    try {
+      const room = await createRoomMutation.mutateAsync({ targetClerkId: clerkId });
+      queryClient.setQueryData<ChatRoomsListData>(CHAT_ROOMS_QUERY_KEY, (prev) => {
+        const rooms = prev?.rooms ?? [];
+        const summary = {
+          roomId: room.roomId,
+          lastMessage: null,
+          lastMessageAt: new Date().toISOString(),
+          unreadCount: 0,
+          otherMember: room.otherMember,
+        };
+        return {
+          rooms: [summary, ...rooms.filter((r) => r.roomId !== summary.roomId)],
+        };
+      });
+      useChatWidgetStore.getState().requestOpenRoom(room.roomId);
+    } catch (e) {
+      const msg = isChatApiError(e)
+        ? e.message
+        : e instanceof Error
+          ? e.message
+          : '채팅방을 열 수 없어요.';
+      window.alert(msg);
+    }
+  }, [createRoomMutation, isSignedIn, creatorProfile?.member?.clerkId, queryClient]);
 
 const isApply = appliedStatus === 'PENDING' || appliedStatus === 'PROCESSING';
 const isAccepted = appliedStatus === 'COMPLETED';
@@ -255,36 +311,50 @@ const canApply = appliedStatus == null || appliedStatus === 'CANCELLED';
           {/* 우측 버튼 */}
           <div>
             {!isOwner && (
-            <>
-              {/* PENDING/미지원/취소됨 → 지원하기 */}
-              {canApply && (
+              <div className="flex w-[200px] flex-col gap-2">
                 <button
                   type="button"
-                  onClick={openApplyModal}
-                  className="h-[42px] w-[200px] cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
+                  disabled={createRoomMutation.isPending}
+                  onClick={() => {
+                    void handleContactClick();
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-ui-100 py-[1.4rem] text-xl font-medium text-ui-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  지원하기
+                  <TalkBalloonIcon /> {createRoomMutation.isPending ? '연결 중…' : '연락하기'}
                 </button>
-              )}
+                {/* PENDING/미지원/취소됨 → 지원하기 */}
+                {canApply && (
+                  <button
+                    type="button"
+                    onClick={openApplyModal}
+                    className="h-[42px] w-full cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
+                  >
+                    지원하기
+                  </button>
+                )}
 
-              {/* PROCESSING → 취소하기 */}
-              {isApply && (
-                <button type="button" onClick={handleCancelApply}
-                className="h-[42px] w-[200px] cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
-                >
-                  지원 취소하기
-                </button>
-              )}
+                {/* PROCESSING → 취소하기 */}
+                {isApply && (
+                  <button
+                    type="button"
+                    onClick={handleCancelApply}
+                    className="h-[42px] w-full cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
+                  >
+                    지원 취소하기
+                  </button>
+                )}
 
-              {/* COMPLETED → 수락 완료 */}
-              {isAccepted && (
-                <button type="button" disabled
-                  className="h-[42px] w-[200px] cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
-                >
-                  수락 완료
-                </button>
-              )}
-            </>
+                {/* COMPLETED → 수락 완료 */}
+                {isAccepted && (
+                  <button
+                    type="button"
+                    disabled
+                    className="h-[42px] w-full cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
+                  >
+                    수락 완료
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
