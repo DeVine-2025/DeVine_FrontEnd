@@ -106,7 +106,7 @@ const Footer = () => {
                 className="text-[11px] leading-[1.85]"
                 style={{ color: isDark ? 'rgba(255,255,255,0.25)' : 'var(--ui-400)' }}
               >
-                사업체명 : 디바인(DeVine) &nbsp;|&nbsp; 대표자명 : 정우주 &nbsp;|&nbsp; 대표전화 : 010-5349-7050 &nbsp;|&nbsp; 사업자 등록번호 : 743-57-01003
+                사업체명 : 디바인(DeVine) &nbsp;|&nbsp; 대표자명 : 정우주 &nbsp;|&nbsp; 대표전화 : 070-8064-1295 &nbsp;|&nbsp; 사업자 등록번호 : 743-57-01003
               </p>
               <p
                 className="text-[11px] leading-[1.85]"
