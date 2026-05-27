@@ -116,7 +116,8 @@ const RootLayout = () => {
     const isSignupRoute = pathname.startsWith('/signup');
     const isLoginRoute = pathname === '/login';
     const isCallbackRoute = pathname === '/sso-callback';
-    if (isSignupRoute || isLoginRoute || isCallbackRoute) return;
+    const isTermsRoute = pathname.startsWith('/terms/');
+    if (isSignupRoute || isLoginRoute || isCallbackRoute || isTermsRoute) return;
 
     const loginProvider = sessionStorage.getItem('login_provider');
     if (pathname === '/' && loginProvider) {
