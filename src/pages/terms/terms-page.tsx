@@ -1,7 +1,7 @@
+import { getMemberTerms, type MemberTermsItem } from '@apis/terms';
+import TermsDetailScreen from '@pages/signup/TermsDetailScreen';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import TermsDetailScreen from '@pages/signup/TermsDetailScreen';
-import { getMemberTerms, type MemberTermsItem } from '@apis/terms';
 
 const TermsPage = () => {
   const navigate = useNavigate();
@@ -57,6 +57,7 @@ const TermsPage = () => {
       title={selectedTerms.title}
       content={selectedTerms.content}
       onClose={() => navigate(-1)}
+      onLogoClick={() => navigate('/')}
     />
   );
 };

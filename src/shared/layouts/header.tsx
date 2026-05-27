@@ -441,26 +441,28 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
 
             <SignedOut>
               {/* 회원가입/로그인 버튼 */}
-              <Link
-                to="/login"
-                className="group relative h-[3.6rem] flex-row-center shrink-0 overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--badge-text-primary)] px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
-              >
-                <span
-                  className="absolute inset-0 rounded-[8px] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  style={{
-                    background: '#4E49FF',
-                  }}
-                />
-                <span
-                  className="-inset-[2px] -z-10 absolute rounded-[10px] opacity-0 blur-[8px] transition-opacity duration-300 group-hover:opacity-20"
-                  style={{
-                    background: '#7E7AFF',
-                  }}
-                />
-                <span className="Caption1 relative z-10 whitespace-nowrap text-[var(--ui-900)] transition-colors duration-300 group-hover:text-[var(--ui-1000)]">
-                  회원가입/로그인
-                </span>
-              </Link>
+              {!isTermsPage && (
+                <Link
+                  to="/login"
+                  className="group relative h-[3.6rem] flex-row-center shrink-0 overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--badge-text-primary)] px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
+                >
+                  <span
+                    className="absolute inset-0 rounded-[8px] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                    style={{
+                      background: '#4E49FF',
+                    }}
+                  />
+                  <span
+                    className="-inset-[2px] -z-10 absolute rounded-[10px] opacity-0 blur-[8px] transition-opacity duration-300 group-hover:opacity-20"
+                    style={{
+                      background: '#7E7AFF',
+                    }}
+                  />
+                  <span className="Caption1 relative z-10 whitespace-nowrap text-[var(--ui-900)] transition-colors duration-300 group-hover:text-[var(--ui-1000)]">
+                    회원가입/로그인
+                  </span>
+                </Link>
+              )}
             </SignedOut>
 
             {/* 햄버거 메뉴 */}

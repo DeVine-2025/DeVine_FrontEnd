@@ -12,6 +12,7 @@ type TermsDetailScreenProps = {
   title: string;
   content: string;
   onClose: () => void;
+  onLogoClick?: () => void;
 };
 
 const SECTION_TITLES = new Set([
@@ -133,7 +134,13 @@ const parseTermsContent = (content: string): ReactNode[] => {
   return parsedContent;
 };
 
-const TermsDetailScreen = ({ open, title, content, onClose }: TermsDetailScreenProps) => {
+const TermsDetailScreen = ({
+  open,
+  title,
+  content,
+  onClose,
+  onLogoClick,
+}: TermsDetailScreenProps) => {
   const { theme } = useThemeStore();
   const { signOut } = useAuth();
   const { user } = useUser();
@@ -162,6 +169,10 @@ const TermsDetailScreen = ({ open, title, content, onClose }: TermsDetailScreenP
           <button
             type="button"
             onClick={() => {
+              if (onLogoClick) {
+                onLogoClick();
+                return;
+              }
               sessionStorage.setItem('show_onboarding_modal', 'true');
               localStorage.removeItem(getUserRoleKey(user?.id ?? null));
               localStorage.removeItem(getUserRoleKey());

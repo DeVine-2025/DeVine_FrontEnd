@@ -15,12 +15,9 @@ type MemberTermsResponse = {
 };
 
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
-const TERMS_BASE_URL = import.meta.env.VITE_TERMS_API_BASE_URL ?? 'https://api.devine.kr';
 
 export async function getMemberTerms(signal?: AbortSignal): Promise<MemberTermsItem[]> {
-  const url = import.meta.env.DEV
-    ? `${TERMS_BASE_URL}/api/v1/members/terms`
-    : `${BASE_URL}/api/v1/members/terms`;
+  const url = `${BASE_URL}/api/v1/members/terms`;
 
   const res = await fetch(url, {
     method: 'GET',
