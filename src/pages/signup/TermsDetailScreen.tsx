@@ -182,7 +182,7 @@ const TermsDetailScreen = ({
               sessionStorage.removeItem('allow_main_once');
               void signOut().finally(() => navigate('/'));
             }}
-            className="flex-items-center gap-[0.4rem]"
+            className="flex-items-center cursor-pointer gap-[0.4rem]"
             aria-label="메인으로 이동"
           >
             {theme === 'dark' ? <LogoLight aria-hidden="true" /> : <LogoDark aria-hidden="true" />}
