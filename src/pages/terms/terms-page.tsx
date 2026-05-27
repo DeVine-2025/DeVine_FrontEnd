@@ -1,4 +1,4 @@
-import { getMemberTerms, type MemberTermsItem } from '@apis/terms';
+import { getMemberTerm, type MemberTermsItem } from '@apis/terms';
 import TermsDetailScreen from '@pages/signup/TermsDetailScreen';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -10,7 +10,6 @@ const TermsPage = () => {
   const [isTermsLoading, setIsTermsLoading] = useState(true);
 
   useEffect(() => {
-    const controller = new AbortController();
     const parsedId = Number(termsId);
     let active = true;
     setIsTermsLoading(true);
@@ -18,17 +17,18 @@ const TermsPage = () => {
     if (!Number.isFinite(parsedId)) {
       setSelectedTerms(null);
       setIsTermsLoading(false);
-      return () => controller.abort();
+      return () => {
+        active = false;
+      };
     }
 
-    void getMemberTerms(controller.signal)
-      .then((items) => {
+    void getMemberTerm(parsedId)
+      .then((item) => {
         if (!active) return;
-        const found = items.find((item) => item.termsId === parsedId) ?? null;
-        setSelectedTerms(found);
+        setSelectedTerms(item);
       })
       .catch((error) => {
-        if (!active || (error as Error)?.name === 'AbortError') return;
+        if (!active) return;
         console.warn('[terms-page] API terms fetch failed', error);
         setSelectedTerms(null);
       })
@@ -39,7 +39,6 @@ const TermsPage = () => {
 
     return () => {
       active = false;
-      controller.abort();
     };
   }, [termsId]);
 

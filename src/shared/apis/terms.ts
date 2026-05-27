@@ -5,13 +5,11 @@ export type MemberTermsItem = {
   required: boolean;
 };
 
-type MemberTermsResponse = {
+type ApiResponse<T> = {
   isSuccess?: boolean;
   code?: string;
   message?: string;
-  result?: {
-    terms?: MemberTermsItem[];
-  };
+  result?: T;
 };
 
 const BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL ?? '');
@@ -27,10 +25,28 @@ export async function getMemberTerms(signal?: AbortSignal): Promise<MemberTermsI
     signal,
   });
 
-  const json = (await res.json().catch(() => null)) as MemberTermsResponse | null;
+  const json = (await res.json().catch(() => null)) as ApiResponse<{
+    terms?: MemberTermsItem[];
+  }> | null;
   if (!res.ok) {
     throw new Error(json?.message ?? `terms fetch failed: ${res.status}`);
   }
 
   return Array.isArray(json?.result?.terms) ? json.result.terms : [];
+}
+
+export async function getMemberTerm(termsId: number): Promise<MemberTermsItem | null> {
+  const res = await fetch(`${BASE_URL}/api/v1/members/terms/${termsId}`, {
+    method: 'GET',
+    headers: {
+      accept: '*/*',
+    },
+  });
+
+  const json = (await res.json().catch(() => null)) as ApiResponse<MemberTermsItem> | null;
+  if (!res.ok) {
+    throw new Error(json?.message ?? `terms fetch failed: ${res.status}`);
+  }
+
+  return json?.result ?? null;
 }
