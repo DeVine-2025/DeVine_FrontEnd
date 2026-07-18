@@ -1,7 +1,7 @@
 // src/shared/apis/payment/requestPayment.ts
 import * as PortOne from '@portone/browser-sdk/v2';
 
-export type PgProvider = 'NHN_KCP' | 'KG_INICIS' | 'KAKAOPAY';
+export type PgProvider = 'NHN_KCP' | 'KG_INICIS' | 'KAKAOPAY' | 'TOSS_PAYMENTS';
 
 interface RequestPaymentParams {
   channelKey: string;

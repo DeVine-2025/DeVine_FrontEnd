@@ -34,7 +34,7 @@ const PayPage = () => {
     setPaymentError(null);
 
     try {
-      const pg: PgProvider = 'NHN_KCP';
+      const pg: PgProvider = 'TOSS_PAYMENTS';
       const { channelKey, pgProvider } = await getChannelKey(pg);
 
       const paymentId = `payment_${Date.now()}`;
