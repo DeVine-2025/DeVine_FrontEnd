@@ -2,6 +2,9 @@ import { useMemo, useState } from 'react';
 import { getChannelKey } from '@apis/payment/payment';
 import { useCompletePayment } from '@apis/payment/payment-queries';
 import { requestPayment, type PgProvider } from '@apis/payment/requestPayment';
+import TossPaymentsDark from '@assets/icons/tosspayments-dark.png';
+import TossPaymentsLight from '@assets/icons/tosspayments-light.png';
+import { useThemeStore } from '@store/theme';
 import PassProductButton from './components/PassProductButton';
 import QuantityStepper from './components/QuantityStepper';
 
@@ -16,6 +19,7 @@ const TICKET_PRODUCT_IDS: Record<1 | 3, number> = {
 
 const PayPage = () => {
   const { mutateAsync: completePayment, isPending } = useCompletePayment();
+  const { theme } = useThemeStore();
 
   const [selectedUnitCount, setSelectedUnitCount] = useState<1 | 3>(1);
   const [orderQuantity, setOrderQuantity] = useState<number>(MIN_PASS_ORDER_QUANTITY);
@@ -145,9 +149,20 @@ const PayPage = () => {
               type="button"
               onClick={handleProceedPayment}
               disabled={isProcessing || isPending}
-              className="Headline1 flex items-center justify-center h-[48px] w-[240px] cursor-pointer rounded-[12px] bg-[var(--color-primary)] text-[15px] font-semibold text-white shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={isProcessing || isPending ? '결제 처리 중' : '토스페이먼츠로 결제하기'}
+              className={`flex h-[48px] w-[240px] cursor-pointer items-center justify-center rounded-[12px] shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 ${
+                theme === 'dark' ? 'bg-[#FFFFFF]' : 'bg-[#202532]'
+              }`}
             >
-              {isProcessing || isPending ? '처리 중...' : '결제하기'}
+              {isProcessing || isPending ? (
+                <span className="Label1 font-semibold text-card-title">처리 중...</span>
+              ) : (
+                <img
+                  src={theme === 'dark' ? TossPaymentsDark : TossPaymentsLight}
+                  alt=""
+                  className="h-[60px] w-[180px] object-contain"
+                />
+              )}
             </button>
           </div>
         </div>
