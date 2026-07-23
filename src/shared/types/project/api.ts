@@ -61,6 +61,8 @@ export type ProjectItem = {
   creatorName: string | null;
   creatorNickname?: string | null;
   creatorImage?: string | null;
+  /** 프로젝트 상세 — 작성자 Clerk ID (채팅방 생성용) */
+  creatorClerkId?: string | null;
   bookmarked?: boolean;
   bookmarkId?: number;
 };

@@ -9,9 +9,14 @@ export const setTokenGetter = (fn: TokenGetter) => {
   getToken = fn;
 };
 
-export const createAxiosInstance = (): AxiosInstance => {
+export const getAuthToken = (): Promise<string | null> => {
+  if (!getToken) return Promise.resolve(null);
+  return getToken();
+};
+
+const createAuthenticatedInstance = (baseURL: string): AxiosInstance => {
   const instance = axios.create({
-    baseURL: BASE_URL,
+    baseURL,
     withCredentials: true,
   });
 
@@ -26,6 +31,10 @@ export const createAxiosInstance = (): AxiosInstance => {
   });
 
   return instance;
+};
+
+export const createAxiosInstance = (): AxiosInstance => {
+  return createAuthenticatedInstance(BASE_URL);
 };
 
 export const axiosInstance = createAxiosInstance();

@@ -1,6 +1,8 @@
 import { ApiResponse } from '@apis/base/api';
 
 export interface MyProfile {
+  /** MemberProfileDTO 최상위 — 채팅방 생성용 (개발자 상세) */
+  clerkId?: string;
   member: {
     name: string;
     nickname: string;

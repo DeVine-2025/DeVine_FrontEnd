@@ -2,84 +2,170 @@ import ArrowLeftIcon from '@assets/icons/arrow-left.svg?react';
 import ArrowDownIcon from '@assets/icons/arrow-down.svg?react';
 import ArrowUpIcon from '@assets/icons/arrow-up.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
+import { useChatRoom } from '@hooks/useChatRoom';
+import { useChatRooms } from '@hooks/useChatRooms';
+import { useLeaveChatRoom } from '@hooks/useLeaveChatRoom';
+import { useUnreadChatRoomCount } from '@hooks/useUnreadChatRoomCount';
 import { cn } from '@libs/cn';
+import { useChatWidgetStore } from '@store/chatWidget';
 import { useThemeStore } from '@store/theme';
-import { useState } from 'react';
-
-type ChatRoom = {
-  id: string;
-  name: string;
-  preview: string;
-  timeLabel: string;
-  unreadCount?: number;
-};
-
-type ChatMessage = {
-  id: string;
-  type: 'received' | 'sent';
-  sender?: string;
-  time: string;
-  text: string;
-};
-
-const chatRooms: ChatRoom[] = [
-  {
-    id: 'pm-1',
-    name: '닉네임',
-    preview: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
-    timeLabel: '1일 전',
-    unreadCount: 3,
-  },
-  {
-    id: 'dev-1',
-    name: '닉네임',
-    preview: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
-    timeLabel: '3월 23일',
-  },
-];
-
-const chatMessages: Record<string, { dateLabel: string; messages: ChatMessage[] }> = {
-  'pm-1': {
-    dateLabel: '3월 23일 (월)',
-    messages: [
-      {
-        id: 'm1',
-        type: 'received',
-        sender: '닉네임',
-        time: '08:23',
-        text: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
-      },
-      {
-        id: 'm2',
-        type: 'sent',
-        time: '08:23',
-        text: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.메시지 내용이 들어가는 자리입니다.메시지..',
-      },
-    ],
-  },
-  'dev-1': {
-    dateLabel: '3월 23일 (월)',
-    messages: [
-      {
-        id: 'm3',
-        type: 'received',
-        sender: '닉네임',
-        time: '08:23',
-        text: '메시지 내용이 들어가는 자리입니다. 메시지 내용이 들어가는 자리입니다.',
-      },
-    ],
-  },
-};
+import { useAuth } from '@clerk/clerk-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 const avatarBaseClassName =
   'shrink-0 rounded-full border shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]';
 
+const formatTime = (iso?: string | null): string => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+};
+
+const formatDateLabel = (iso?: string | null): string => {
+  if (!iso) return '오늘';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '오늘';
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+};
+
+/* 목록 우측 메타: 마지막 연락 시각 (오늘이면 시:분, 아니면 날짜) */
+const formatListLastContactLabel = (iso?: string | null): string => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const now = new Date();
+  const isToday =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+  if (isToday) return formatTime(iso);
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+};
+
 const FloatingChatWidget = () => {
   const { theme } = useThemeStore();
+  const { userId } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const [messageDraft, setMessageDraft] = useState('');
+  const [failedActionMessageId, setFailedActionMessageId] = useState<number | null>(null);
+  const [isRoomMenuOpen, setIsRoomMenuOpen] = useState(false);
+  const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
+  const [leaveErrorMessage, setLeaveErrorMessage] = useState<string | null>(null);
+  const failedMenuRef = useRef<HTMLDivElement | null>(null);
+  const roomMenuRef = useRef<HTMLDivElement | null>(null);
+  const messageListRef = useRef<HTMLDivElement | null>(null);
+  const prevRoomIdForScrollRef = useRef<number | null>(null);
+  const prevLastMessageIdForScrollRef = useRef<number | null>(null);
+  const isLoadingOlderRef = useRef(false);
   const isLightTheme = theme === 'light';
+  const focusRoomId = useChatWidgetStore((s) => s.focusRoomId);
+  const clearFocusRoom = useChatWidgetStore((s) => s.clearFocusRoom);
+  const leaveChatRoomMutation = useLeaveChatRoom();
+
+  const { data: roomsData, refetch: refetchRooms } = useChatRooms({
+    enabled: isExpanded,
+    refetchIntervalMs: isExpanded ? 30_000 : false,
+  });
+  // 접힌 상태에서도 배지용으로 unread 조회
+  const { data: unreadData } = useUnreadChatRoomCount({
+    enabled: true,
+    refetchIntervalMs: 30_000,
+  });
+  const rooms = roomsData?.rooms ?? [];
+  const selectedRoom = rooms.find((room) => room.roomId === selectedChatId) ?? null;
+  const activeRoomId = selectedChatId ?? 0;
+  const chatRoom = useChatRoom(activeRoomId, {
+    enabled: isExpanded && activeRoomId > 0,
+  });
+  const selectedMessages = chatRoom.messages;
+  const hasMessageDraft = messageDraft.trim().length > 0;
+  const unreadRoomCount = unreadData?.unreadRoomCount ?? 0;
+  const unreadBadgeLabel = unreadRoomCount > 99 ? '99+' : String(unreadRoomCount);
+  const dateLabel = formatDateLabel(selectedMessages[0]?.createdAt ?? null);
+  const isRoomsEmpty = rooms.length === 0;
+  const sendingDisabled = !hasMessageDraft || activeRoomId <= 0;
+
+  useEffect(() => {
+    if (focusRoomId == null) return;
+    setIsExpanded(true);
+    setSelectedChatId(focusRoomId);
+    setMessageDraft('');
+    setFailedActionMessageId(null);
+    setIsRoomMenuOpen(false);
+    setIsLeaveConfirmOpen(false);
+    setLeaveErrorMessage(null);
+    clearFocusRoom();
+  }, [focusRoomId, clearFocusRoom]);
+
+  useEffect(() => {
+    if (failedActionMessageId == null && !isRoomMenuOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (failedMenuRef.current?.contains(target)) return;
+      if (roomMenuRef.current?.contains(target)) return;
+      setFailedActionMessageId(null);
+      setIsRoomMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [failedActionMessageId, isRoomMenuOpen]);
+
+  const lastMessageId = selectedMessages.at(-1)?.messageId ?? null;
+  useEffect(() => {
+    if (activeRoomId <= 0) {
+      prevRoomIdForScrollRef.current = null;
+      prevLastMessageIdForScrollRef.current = null;
+      return;
+    }
+    if (selectedMessages.length === 0) return;
+
+    const roomChanged = prevRoomIdForScrollRef.current !== activeRoomId;
+    const lastChanged = prevLastMessageIdForScrollRef.current !== lastMessageId;
+    prevRoomIdForScrollRef.current = activeRoomId;
+    prevLastMessageIdForScrollRef.current = lastMessageId;
+
+    // 이전 페이지 prepend로 길이만 늘어난 경우엔 맨 아래로 내리지 않음
+    if (!roomChanged && !lastChanged) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      const el = messageListRef.current;
+      if (!el) return;
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: roomChanged ? 'auto' : 'smooth',
+      });
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [activeRoomId, lastMessageId, selectedMessages.length]);
+
+  const handleMessageListScroll = () => {
+    const el = messageListRef.current;
+    if (!el) return;
+    if (el.scrollTop > 48) return;
+    if (!chatRoom.hasOlderMessages || chatRoom.isFetchingOlderMessages || isLoadingOlderRef.current) {
+      return;
+    }
+
+    isLoadingOlderRef.current = true;
+    const prevHeight = el.scrollHeight;
+    const prevTop = el.scrollTop;
+
+    void chatRoom
+      .fetchOlderMessages()
+      .then(() => {
+        window.requestAnimationFrame(() => {
+          const list = messageListRef.current;
+          if (!list) return;
+          list.scrollTop = list.scrollHeight - prevHeight + prevTop;
+        });
+      })
+      .finally(() => {
+        isLoadingOlderRef.current = false;
+      });
+  };
 
   const avatarClassName = cn(
     avatarBaseClassName,
@@ -130,7 +216,7 @@ const FloatingChatWidget = () => {
       : 'border-[rgba(127,133,150,0.16)] bg-[rgba(25,27,30,0.95)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
   );
   const listItemClassName = cn(
-    'group relative flex h-[7.8rem] w-full items-start rounded-[1.4rem] px-[1.2rem] pt-[1.1rem] text-left max-[389px]:h-[7.2rem] max-[389px]:px-[1rem] max-[389px]:pt-[1rem]',
+    'group relative flex w-full items-start rounded-[1.4rem] px-[1.2rem] py-[1.1rem] text-left max-[389px]:px-[1rem] max-[389px]:py-[1rem]',
     isLightTheme ? 'bg-white hover:bg-[var(--ui-50)]' : 'bg-[var(--ui-50)] hover:bg-[var(--ui-100)]',
   );
   const listDividerClassName = cn(
@@ -139,20 +225,72 @@ const FloatingChatWidget = () => {
       ? 'bg-[linear-gradient(90deg,rgba(212,218,231,0)_0%,rgba(212,218,231,0.95)_18%,rgba(212,218,231,0.95)_82%,rgba(212,218,231,0)_100%)]'
       : 'bg-[linear-gradient(90deg,rgba(127,133,150,0)_0%,rgba(127,133,150,0.24)_18%,rgba(127,133,150,0.24)_82%,rgba(127,133,150,0)_100%)]',
   );
-
-  const selectedRoom = chatRooms.find((room) => room.id === selectedChatId) ?? null;
-  const selectedChat = selectedChatId ? chatMessages[selectedChatId] : null;
-  const hasMessageDraft = messageDraft.trim().length > 0;
+  const messageRows = useMemo(
+    () =>
+      selectedMessages.map((message) => ({
+        ...message,
+        isMine: Boolean(userId) && message.senderClerkId === userId,
+      })),
+    [selectedMessages, userId],
+  );
 
   const closeWidget = () => {
     setIsExpanded(false);
     setSelectedChatId(null);
     setMessageDraft('');
+    setFailedActionMessageId(null);
+    setIsRoomMenuOpen(false);
+    setIsLeaveConfirmOpen(false);
+    setLeaveErrorMessage(null);
   };
 
   const collapseToList = () => {
     setSelectedChatId(null);
     setMessageDraft('');
+    setFailedActionMessageId(null);
+    setIsRoomMenuOpen(false);
+    setIsLeaveConfirmOpen(false);
+    setLeaveErrorMessage(null);
+    void refetchRooms();
+  };
+
+  const openLeaveConfirm = () => {
+    setIsRoomMenuOpen(false);
+    setLeaveErrorMessage(null);
+    setIsLeaveConfirmOpen(true);
+  };
+
+  const closeLeaveConfirm = () => {
+    if (leaveChatRoomMutation.isPending) return;
+    setIsLeaveConfirmOpen(false);
+    setLeaveErrorMessage(null);
+  };
+
+  const handleConfirmLeave = async () => {
+    if (activeRoomId <= 0 || leaveChatRoomMutation.isPending) return;
+    setLeaveErrorMessage(null);
+    try {
+      await leaveChatRoomMutation.mutateAsync({ roomId: activeRoomId });
+      setIsLeaveConfirmOpen(false);
+      collapseToList();
+    } catch {
+      setLeaveErrorMessage('채팅방 나가기에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    }
+  };
+
+  const handleSend = async () => {
+    if (sendingDisabled) return;
+    const draft = messageDraft;
+    setMessageDraft('');
+    setFailedActionMessageId(null);
+    await chatRoom.sendMessage(draft, {
+      senderClerkId: userId,
+    });
+  };
+
+  const handleRemoveFailed = (messageId: number) => {
+    setFailedActionMessageId(null);
+    chatRoom.removeFailedMessage(messageId);
   };
 
   return (
@@ -170,6 +308,11 @@ const FloatingChatWidget = () => {
               type="button"
               aria-expanded={false}
               aria-controls="global-chat-panel"
+              aria-label={
+                unreadRoomCount > 0
+                  ? `메시지, 안 읽은 채팅방 ${unreadRoomCount}개`
+                  : '메시지'
+              }
               onClick={() => setIsExpanded(true)}
               className={cn(
                 'flex h-full w-full items-center px-[1.8rem] text-left max-[389px]:px-[1.4rem]',
@@ -178,6 +321,14 @@ const FloatingChatWidget = () => {
               )}
             >
               <span className="Heading2 flex-1 font-semibold text-[var(--ui-900)]">메시지</span>
+              {unreadRoomCount > 0 ? (
+                <span
+                  className="mr-[0.8rem] flex min-w-[2.2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_100%)] px-[0.75rem] py-[0.25rem] text-[1.15rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.6rem_1.4rem_rgba(78,73,255,0.28)]"
+                  aria-hidden
+                >
+                  {unreadBadgeLabel}
+                </span>
+              ) : null}
               <span
                 className="mr-[0.2rem] flex size-[2.8rem] items-center justify-center text-[var(--ui-500)]"
               >
@@ -186,7 +337,7 @@ const FloatingChatWidget = () => {
             </button>
           ) : (
             <div id="global-chat-panel" className={cn('flex h-full min-h-0 flex-col', widgetSurfaceClassName)}>
-              {selectedRoom && selectedChat ? (
+              {activeRoomId > 0 ? (
                 <>
                   <div className={headerClassName}>
                     <button
@@ -204,7 +355,53 @@ const FloatingChatWidget = () => {
                       )}
                     />
                     <div className="ml-[1.2rem] min-w-0 flex-1 max-[389px]:ml-[0.8rem]">
-                      <span className="Body1 block truncate font-semibold text-[var(--ui-900)]">닉네임</span>
+                      <span className="Body1 block truncate font-semibold text-[var(--ui-900)]">
+                        {selectedRoom?.otherMember.nickname ?? '채팅'}
+                      </span>
+                    </div>
+                    <div className="relative mr-[0.2rem]" ref={roomMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFailedActionMessageId(null);
+                          setIsRoomMenuOpen((prev) => !prev);
+                        }}
+                        className={iconButtonClassName}
+                        aria-label="채팅방 메뉴"
+                        aria-expanded={isRoomMenuOpen}
+                        aria-haspopup="menu"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="size-[2rem]"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <circle cx="12" cy="5" r="1.75" />
+                          <circle cx="12" cy="12" r="1.75" />
+                          <circle cx="12" cy="19" r="1.75" />
+                        </svg>
+                      </button>
+                      {isRoomMenuOpen ? (
+                        <div
+                          className={cn(
+                            'absolute top-[calc(100%+0.4rem)] right-0 z-30 min-w-[9.6rem] overflow-hidden rounded-[0.8rem] border py-[0.2rem] shadow-[0_0.8rem_1.8rem_rgba(15,23,42,0.16)]',
+                            isLightTheme
+                              ? 'border-[rgba(212,218,231,0.95)] bg-white'
+                              : 'border-[rgba(127,133,150,0.28)] bg-[rgba(33,35,40,0.98)]',
+                          )}
+                          role="menu"
+                        >
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="flex w-full items-center justify-center px-[1rem] py-[0.55rem] text-center text-[1.25rem] font-medium text-[#FF4D4F] hover:bg-[var(--ui-50)]"
+                            onClick={openLeaveConfirm}
+                          >
+                            채팅방 나가기
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                     <button
                       type="button"
@@ -217,40 +414,111 @@ const FloatingChatWidget = () => {
                   </div>
 
                   <div className="px-[1.6rem] py-[1rem] text-center max-[389px]:px-[1.2rem]">
-                    <span className={datePillClassName}>{selectedChat.dateLabel}</span>
+                    <span className={datePillClassName}>{dateLabel}</span>
                   </div>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto px-[1.6rem] py-[0.6rem] max-[389px]:px-[1.2rem]">
+                  <div
+                    ref={messageListRef}
+                    onScroll={handleMessageListScroll}
+                    className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-[1.6rem] py-[0.6rem] max-[389px]:px-[1.2rem]"
+                  >
                     <div className="flex flex-col gap-[1.6rem]">
-                      {selectedChat.messages.map((message) =>
-                        message.type === 'received' ? (
-                          <div key={message.id} className="flex items-end gap-[0.8rem] max-[389px]:gap-[0.6rem]">
+                      {chatRoom.isFetchingOlderMessages ? (
+                        <p className="py-[0.4rem] text-center text-[1.1rem] text-[var(--ui-400)]">
+                          이전 메시지 불러오는 중…
+                        </p>
+                      ) : null}
+                      {messageRows.length === 0 ? (
+                        <p className="text-center text-[1.2rem] text-[var(--ui-500)]">대화를 시작해보세요.</p>
+                      ) : null}
+                      {messageRows.map((message) =>
+                        !message.isMine ? (
+                          <div key={message.messageId} className="flex items-end gap-[0.8rem] max-[389px]:gap-[0.6rem]">
                             <span
                               className={cn('mb-[0.2rem] size-[2.4rem] max-[389px]:size-[2rem]', avatarClassName)}
                             />
                             <div className="min-w-0 max-w-[70%] max-[389px]:max-w-[68%]">
                               <p className="Caption1 mb-[0.6rem] font-medium text-[var(--ui-500)]">
-                                {message.sender}
+                                {message.senderNickname}
                               </p>
                               <div className={receivedBubbleClassName}>
                                 <p className="text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-[var(--ui-900)]">
-                                  {message.text}
+                                  {message.content}
                                 </p>
                               </div>
                             </div>
                             <span className="shrink-0 pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
-                              {message.time}
+                              {formatTime(message.createdAt)}
                             </span>
                           </div>
                         ) : (
-                          <div key={message.id} className="flex justify-end">
+                          <div key={message.messageId} className="flex justify-end">
                             <div className="flex max-w-[82%] items-end gap-[0.6rem] max-[389px]:max-w-[86%] max-[389px]:gap-[0.5rem]">
-                              <span className="shrink-0 pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
-                                {message.time}
-                              </span>
-                              <div className="rounded-[1.6rem] rounded-br-[0.6rem] bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_58%,#7C79FF_100%)] px-[1.2rem] py-[0.9rem] max-[389px]:px-[1rem] shadow-[0_1.2rem_2.4rem_rgba(78,73,255,0.22)]">
+                              {message.localStatus === 'failed' ? null : (
+                                <div className="flex shrink-0 flex-col items-end justify-end gap-[0.15rem] pb-[0.2rem]">
+                                  {!message.isRead && message.localStatus !== 'sending' ? (
+                                    <span
+                                      className="text-[1.05rem] font-semibold leading-none text-[#5B56FF]"
+                                      aria-label="상대가 아직 읽지 않음"
+                                    >
+                                      1
+                                    </span>
+                                  ) : null}
+                                  <span className="text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
+                                    {formatTime(message.createdAt)}
+                                  </span>
+                                </div>
+                              )}
+                              {message.localStatus === 'failed' ? (
+                                <div
+                                  className="relative z-20 shrink-0 self-center"
+                                  ref={failedActionMessageId === message.messageId ? failedMenuRef : undefined}
+                                >
+                                  <button
+                                    type="button"
+                                    aria-label="전송 실패 메뉴"
+                                    aria-expanded={failedActionMessageId === message.messageId}
+                                    onClick={() => {
+                                      setFailedActionMessageId((prev) =>
+                                        prev === message.messageId ? null : message.messageId,
+                                      );
+                                    }}
+                                    className="flex size-[2rem] items-center justify-center rounded-full bg-[#FF4D4F] text-[1.2rem] font-bold leading-none text-white shadow-[0_0.4rem_1rem_rgba(255,77,79,0.35)]"
+                                  >
+                                    !
+                                  </button>
+                                  {failedActionMessageId === message.messageId ? (
+                                    <div
+                                      className={cn(
+                                        // 위(날짜 영역)로 열면 overflow에 잘리므로 아래로 펼침
+                                        'absolute top-[calc(100%+0.6rem)] left-1/2 z-30 min-w-[9.6rem] -translate-x-1/2 overflow-hidden rounded-[1rem] border py-[0.4rem] shadow-[0_1rem_2.4rem_rgba(15,23,42,0.18)]',
+                                        isLightTheme
+                                          ? 'border-[rgba(212,218,231,0.95)] bg-white'
+                                          : 'border-[rgba(127,133,150,0.28)] bg-[rgba(33,35,40,0.98)]',
+                                      )}
+                                      role="menu"
+                                    >
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        className="flex w-full px-[1.2rem] py-[0.7rem] text-left text-[1.2rem] font-medium text-[#FF4D4F] hover:bg-[var(--ui-50)]"
+                                        onClick={() => handleRemoveFailed(message.messageId)}
+                                      >
+                                        삭제
+                                      </button>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              ) : null}
+                              <div
+                                className={cn(
+                                  'rounded-[1.6rem] rounded-br-[0.6rem] bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_58%,#7C79FF_100%)] px-[1.2rem] py-[0.9rem] max-[389px]:px-[1rem] shadow-[0_1.2rem_2.4rem_rgba(78,73,255,0.22)]',
+                                  message.localStatus === 'sending' && 'opacity-70',
+                                  message.localStatus === 'failed' && 'opacity-90',
+                                )}
+                              >
                                 <p className="text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-white">
-                                  {message.text}
+                                  {message.content}
                                 </p>
                               </div>
                             </div>
@@ -267,16 +535,24 @@ const FloatingChatWidget = () => {
                           type="text"
                           value={messageDraft}
                           onChange={(event) => setMessageDraft(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                              void handleSend();
+                            }
+                          }}
                           placeholder="메시지 보내기"
                           className="Label1 w-full bg-transparent font-medium text-[var(--ui-900)] placeholder:text-[var(--ui-400)] outline-none"
                         />
                       </div>
                       <button
                         type="button"
-                        disabled={!hasMessageDraft}
+                        onClick={() => {
+                          void handleSend();
+                        }}
+                        disabled={sendingDisabled}
                         className={cn(
                           'flex size-[3rem] cursor-pointer items-center justify-center rounded-full transition-[transform,box-shadow] duration-200 max-[389px]:size-[2.8rem] disabled:cursor-default',
-                          hasMessageDraft
+                          !sendingDisabled
                             ? 'bg-[var(--color-primary)] text-[var(--ui-50)] shadow-[0_1rem_2rem_rgba(78,73,255,0.28)] hover:scale-[1.03]'
                             : 'bg-[var(--ui-200)] text-[var(--ui-50)] shadow-none',
                         )}
@@ -311,54 +587,59 @@ const FloatingChatWidget = () => {
                     </button>
                   </div>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto px-[0.8rem] py-[0.8rem] max-[389px]:px-[0.6rem]">
+                  <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-[0.8rem] py-[0.8rem] max-[389px]:px-[0.6rem]">
                     <div className="flex flex-col gap-[0.2rem]">
-                      {chatRooms.map((room) => (
-                        <button
-                          key={room.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedChatId(room.id);
-                            setMessageDraft('');
-                          }}
-                          className={listItemClassName}
-                        >
-                          <span
-                            className={cn(
-                              'size-[3.8rem] transition-transform duration-200 group-hover:scale-[1.03] max-[389px]:size-[3.4rem]',
-                              avatarClassName,
-                            )}
-                          />
-                          <div className="ml-[1.2rem] min-w-0 flex-1 pr-[4rem] max-[389px]:ml-[0.8rem] max-[389px]:pr-[3.6rem]">
-                            <div className="flex items-start gap-[0.8rem] max-[389px]:gap-[0.6rem]">
-                              <span className="Label1 min-w-0 truncate font-semibold text-[var(--ui-900)]">
-                                {room.name}
-                              </span>
-                              <span className="ml-auto shrink-0 text-right text-[1.3rem] leading-[1.429] tracking-[0.0145em] text-[var(--ui-600)] max-[389px]:text-[1.2rem]">
-                                {room.timeLabel}
-                              </span>
-                            </div>
-                            <p className="mt-[0.5rem] line-clamp-2 text-[1.2rem] leading-[1.45] tracking-[0.0252em] text-[var(--ui-500)]">
-                              {room.preview}
-                            </p>
-                          </div>
-                          {room.unreadCount ? (
-                            <span className="absolute top-[3.8rem] right-[1.2rem] flex min-w-[2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_100%)] px-[0.7rem] py-[0.2rem] text-[1.1rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.8rem_1.6rem_rgba(78,73,255,0.25)] max-[389px]:top-[3.5rem] max-[389px]:right-[1rem]">
-                              {room.unreadCount}
-                            </span>
-                          ) : (
+                      {isRoomsEmpty ? (
+                        <p className="py-[2.4rem] text-center text-[1.2rem] text-[var(--ui-500)]">
+                          참여 중인 채팅방이 없습니다.
+                        </p>
+                      ) : null}
+                      {rooms.map((room) => {
+                        const unreadLabel =
+                          room.unreadCount > 99 ? '99+' : String(room.unreadCount);
+                        return (
+                          <button
+                            key={room.roomId}
+                            type="button"
+                            onClick={() => {
+                              setSelectedChatId(room.roomId);
+                              setMessageDraft('');
+                            }}
+                            className={listItemClassName}
+                          >
                             <span
                               className={cn(
-                                'absolute top-[1.8rem] right-[1.4rem] size-[0.7rem] rounded-full opacity-0 transition-opacity duration-200 group-hover:opacity-100 max-[389px]:top-[1.7rem] max-[389px]:right-[1.1rem]',
-                                isLightTheme
-                                  ? 'bg-[rgba(158,166,186,0.6)]'
-                                  : 'bg-[rgba(127,133,150,0.35)]',
+                                'size-[3.8rem] transition-transform duration-200 group-hover:scale-[1.03] max-[389px]:size-[3.4rem]',
+                                avatarClassName,
                               )}
                             />
-                          )}
-                          <span className={listDividerClassName} />
-                        </button>
-                      ))}
+                            <div className="ml-[1.2rem] flex min-w-0 flex-1 items-start gap-[0.8rem] max-[389px]:ml-[0.8rem] max-[389px]:gap-[0.6rem]">
+                              <div className="min-w-0 flex-1">
+                                <span className="Label1 block truncate font-semibold text-[var(--ui-900)]">
+                                  {room.otherMember.nickname}
+                                </span>
+                                <p className="mt-[0.5rem] line-clamp-2 text-[1.2rem] leading-[1.45] tracking-[0.0252em] text-[var(--ui-500)]">
+                                  {room.lastMessage ?? '메시지가 없습니다.'}
+                                </p>
+                              </div>
+                              <div className="flex shrink-0 flex-col items-end gap-[0.55rem] pt-[0.15rem]">
+                                <span className="text-right text-[1.3rem] leading-[1.429] tracking-[0.0145em] text-[var(--ui-600)] max-[389px]:text-[1.2rem]">
+                                  {formatListLastContactLabel(room.lastMessageAt)}
+                                </span>
+                                {room.unreadCount > 0 ? (
+                                  <span
+                                    className="flex min-w-[2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_100%)] px-[0.7rem] py-[0.2rem] text-[1.1rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.6rem_1.2rem_rgba(78,73,255,0.22)]"
+                                    aria-label={`안 읽은 메시지 ${room.unreadCount}개`}
+                                  >
+                                    {unreadLabel}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
+                            <span className={listDividerClassName} />
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </>
@@ -367,6 +648,68 @@ const FloatingChatWidget = () => {
           )}
         </section>
       </div>
+
+      {isLeaveConfirmOpen
+        ? createPortal(
+            <div
+              className="pointer-events-auto fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-[1.6rem]"
+              role="presentation"
+              onClick={closeLeaveConfirm}
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="leave-chat-room-title"
+                className={cn(
+                  'w-full max-w-[32rem] rounded-[1.6rem] px-[2rem] pt-[2.4rem] pb-[1.6rem] text-center shadow-[0_2rem_6rem_rgba(0,0,0,0.2)]',
+                  isLightTheme ? 'bg-white' : 'bg-[rgba(33,35,40,0.98)]',
+                )}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <h2
+                  id="leave-chat-room-title"
+                  className="text-[1.6rem] font-semibold leading-[1.4] text-[var(--ui-900)]"
+                >
+                  채팅방에서 나가시겠습니까?
+                </h2>
+                <p className="mt-[0.8rem] text-[1.25rem] leading-[1.45] text-[var(--ui-500)]">
+                  나가면 이 채팅방 목록에서 사라집니다.
+                </p>
+                {leaveErrorMessage ? (
+                  <p className="mt-[0.8rem] text-[1.2rem] leading-[1.4] text-[#FF4D4F]">
+                    {leaveErrorMessage}
+                  </p>
+                ) : null}
+                <div className="mt-[1.8rem] flex gap-[0.8rem]">
+                  <button
+                    type="button"
+                    onClick={closeLeaveConfirm}
+                    disabled={leaveChatRoomMutation.isPending}
+                    className={cn(
+                      'h-[4.4rem] flex-1 cursor-pointer rounded-[1rem] text-[1.4rem] font-semibold transition-opacity disabled:cursor-default disabled:opacity-60',
+                      isLightTheme
+                        ? 'bg-[var(--ui-50)] text-[var(--ui-700)] hover:bg-[var(--ui-100)]'
+                        : 'bg-[rgba(255,255,255,0.06)] text-[var(--ui-200)] hover:bg-[rgba(255,255,255,0.1)]',
+                    )}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleConfirmLeave();
+                    }}
+                    disabled={leaveChatRoomMutation.isPending}
+                    className="h-[4.4rem] flex-1 cursor-pointer rounded-[1rem] bg-[#FF4D4F] text-[1.4rem] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-60"
+                  >
+                    {leaveChatRoomMutation.isPending ? '나가는 중…' : '나가기'}
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 };
