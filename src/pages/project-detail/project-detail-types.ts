@@ -27,6 +27,8 @@ export type ProjectDetailInfo = {
   summary?: string;
   creatorName?: string | null;
   creatorId?: number;
+  /** 작성자 Clerk ID — 연락하기(채팅)용 */
+  creatorClerkId?: string | null;
   isOwner?: boolean;
   creatorImage?: string | null;
   imageUrls?: string[];
@@ -139,6 +141,7 @@ export const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailI
     summary,
     creatorName: project.creatorNickname ?? project.creatorName,
     creatorId: project.creatorId,
+    creatorClerkId: project.creatorClerkId ?? null,
     isOwner,
     creatorImage: project.creatorImage ?? null,
     imageUrls,

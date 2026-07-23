@@ -85,7 +85,7 @@ const DeveloperDetailPage = () => {
       window.alert('로그인 후 이용해 주세요.');
       return;
     }
-    const clerkId = profile?.member?.clerkId?.trim();
+    const clerkId = profile?.clerkId?.trim();
     if (!clerkId) {
       window.alert('채팅을 시작할 수 없어요. 회원 정보가 아직 연결되지 않았습니다.');
       return;
@@ -114,7 +114,7 @@ const DeveloperDetailPage = () => {
           : '채팅방을 열 수 없어요.';
       window.alert(msg);
     }
-  }, [createRoomMutation, isSignedIn, profile?.member?.clerkId, queryClient]);
+  }, [createRoomMutation, isSignedIn, profile?.clerkId, queryClient]);
 
   useEffect(() => {
     // if(me?.memberId == profileRes)

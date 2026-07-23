@@ -141,8 +141,11 @@ const FloatingChatWidget = () => {
 
   const handleSend = async () => {
     if (sendingDisabled) return;
-    await chatRoom.sendMessage(messageDraft);
+    const draft = messageDraft;
     setMessageDraft('');
+    await chatRoom.sendMessage(draft, {
+      senderClerkId: userId,
+    });
   };
 
   return (

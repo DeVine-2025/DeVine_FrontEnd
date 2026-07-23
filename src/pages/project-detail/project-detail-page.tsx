@@ -1,6 +1,5 @@
 import { isChatApiError } from '@apis/chat';
 import type { ProjectStatus } from '@apis/project-detail';
-import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import PersonIcon from '@assets/icons/person.svg?react';
 import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
 import TalkBalloonIcon from '@assets/icons/detail-page/talkBalloon.svg?react';
@@ -13,7 +12,7 @@ import { useCreateOrGetChatRoom } from '@hooks/useCreateOrGetChatRoom';
 import { useThemeStore } from '@store/theme';
 import { useChatWidgetStore } from '@store/chatWidget';
 import type { ChatRoomsListData } from '@t/chat';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import type { BadgeTone } from 'src/shared/types/badgeTone';
 import { badgeToneToClass } from 'src/shared/types/badgeTone';
@@ -80,19 +79,12 @@ const ProjectDetailPage = () => {
   const queryClient = useQueryClient();
   const createRoomMutation = useCreateOrGetChatRoom();
 
-  const creatorNick = project?.creatorName?.trim() ?? '';
-  const { data: creatorProfileRes } = useQuery({
-    ...myInfoQueries.memberProfile(creatorNick),
-    enabled: Boolean(creatorNick && !isOwner),
-  });
-  const creatorProfile = creatorProfileRes?.result;
-
   const handleContactClick = useCallback(async () => {
     if (!isSignedIn) {
       window.alert('로그인 후 이용해 주세요.');
       return;
     }
-    const clerkId = creatorProfile?.member?.clerkId?.trim();
+    const clerkId = project?.creatorClerkId?.trim();
     if (!clerkId) {
       window.alert('채팅을 시작할 수 없어요. 회원 정보가 아직 연결되지 않았습니다.');
       return;
@@ -121,7 +113,7 @@ const ProjectDetailPage = () => {
           : '채팅방을 열 수 없어요.';
       window.alert(msg);
     }
-  }, [createRoomMutation, isSignedIn, creatorProfile?.member?.clerkId, queryClient]);
+  }, [createRoomMutation, isSignedIn, project?.creatorClerkId, queryClient]);
 
 const isApply = appliedStatus === 'PENDING' || appliedStatus === 'PROCESSING';
 const isAccepted = appliedStatus === 'COMPLETED';
