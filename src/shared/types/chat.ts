@@ -44,7 +44,7 @@ export type ChatReadEvent = {
 export type ChatRoomSummary = {
   roomId: number;
   lastMessage: string | null;
-  lastMessageAt: string;
+  lastMessageAt: string | null;
   unreadCount: number;
   otherMember: ChatOtherMember;
 };

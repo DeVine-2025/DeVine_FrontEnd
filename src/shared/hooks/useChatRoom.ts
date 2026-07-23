@@ -400,8 +400,11 @@ export function useChatRoom(roomId: number, options?: { enabled?: boolean; pageS
 
   const messagesAsc = useMemo(() => {
     const pages = historyQuery.data?.pages ?? [];
-    const desc = pages.flatMap((p) => p.messages);
-    const asc = desc.slice().reverse();
+    // page0 = 최신 chunk(DESC), page1 = 더 과거… → 각 페이지 reverse 후 과거→최신으로 이어붙임
+    const asc = pages.reduceRight<ChatMessage[]>(
+      (acc, page) => acc.concat([...page.messages].reverse()),
+      [],
+    );
     return mergeMessagesUnique(asc, realtimeMessages);
   }, [historyQuery.data, realtimeMessages]);
 
@@ -413,5 +416,8 @@ export function useChatRoom(roomId: number, options?: { enabled?: boolean; pageS
     removeFailedMessage,
     markAsRead: () => markReadMutation.mutateAsync(),
     isMarkingRead: markReadMutation.isPending,
+    fetchOlderMessages: () => historyQuery.fetchNextPage(),
+    hasOlderMessages: Boolean(historyQuery.hasNextPage),
+    isFetchingOlderMessages: historyQuery.isFetchingNextPage,
   };
 }

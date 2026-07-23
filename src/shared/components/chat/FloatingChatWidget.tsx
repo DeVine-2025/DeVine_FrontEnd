@@ -58,6 +58,8 @@ const FloatingChatWidget = () => {
   const roomMenuRef = useRef<HTMLDivElement | null>(null);
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const prevRoomIdForScrollRef = useRef<number | null>(null);
+  const prevLastMessageIdForScrollRef = useRef<number | null>(null);
+  const isLoadingOlderRef = useRef(false);
   const isLightTheme = theme === 'light';
   const focusRoomId = useChatWidgetStore((s) => s.focusRoomId);
   const clearFocusRoom = useChatWidgetStore((s) => s.clearFocusRoom);
@@ -111,16 +113,22 @@ const FloatingChatWidget = () => {
     return () => document.removeEventListener('mousedown', onPointerDown);
   }, [failedActionMessageId, isRoomMenuOpen]);
 
-  const lastMessageId = selectedMessages.at(-1)?.messageId;
+  const lastMessageId = selectedMessages.at(-1)?.messageId ?? null;
   useEffect(() => {
     if (activeRoomId <= 0) {
       prevRoomIdForScrollRef.current = null;
+      prevLastMessageIdForScrollRef.current = null;
       return;
     }
     if (selectedMessages.length === 0) return;
 
     const roomChanged = prevRoomIdForScrollRef.current !== activeRoomId;
+    const lastChanged = prevLastMessageIdForScrollRef.current !== lastMessageId;
     prevRoomIdForScrollRef.current = activeRoomId;
+    prevLastMessageIdForScrollRef.current = lastMessageId;
+
+    // 이전 페이지 prepend로 길이만 늘어난 경우엔 맨 아래로 내리지 않음
+    if (!roomChanged && !lastChanged) return;
 
     const frameId = window.requestAnimationFrame(() => {
       const el = messageListRef.current;
@@ -131,7 +139,33 @@ const FloatingChatWidget = () => {
       });
     });
     return () => window.cancelAnimationFrame(frameId);
-  }, [activeRoomId, selectedMessages.length, lastMessageId]);
+  }, [activeRoomId, lastMessageId, selectedMessages.length]);
+
+  const handleMessageListScroll = () => {
+    const el = messageListRef.current;
+    if (!el) return;
+    if (el.scrollTop > 48) return;
+    if (!chatRoom.hasOlderMessages || chatRoom.isFetchingOlderMessages || isLoadingOlderRef.current) {
+      return;
+    }
+
+    isLoadingOlderRef.current = true;
+    const prevHeight = el.scrollHeight;
+    const prevTop = el.scrollTop;
+
+    void chatRoom
+      .fetchOlderMessages()
+      .then(() => {
+        window.requestAnimationFrame(() => {
+          const list = messageListRef.current;
+          if (!list) return;
+          list.scrollTop = list.scrollHeight - prevHeight + prevTop;
+        });
+      })
+      .finally(() => {
+        isLoadingOlderRef.current = false;
+      });
+  };
 
   const avatarClassName = cn(
     avatarBaseClassName,
@@ -385,9 +419,15 @@ const FloatingChatWidget = () => {
 
                   <div
                     ref={messageListRef}
+                    onScroll={handleMessageListScroll}
                     className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-[1.6rem] py-[0.6rem] max-[389px]:px-[1.2rem]"
                   >
                     <div className="flex flex-col gap-[1.6rem]">
+                      {chatRoom.isFetchingOlderMessages ? (
+                        <p className="py-[0.4rem] text-center text-[1.1rem] text-[var(--ui-400)]">
+                          이전 메시지 불러오는 중…
+                        </p>
+                      ) : null}
                       {messageRows.length === 0 ? (
                         <p className="text-center text-[1.2rem] text-[var(--ui-500)]">대화를 시작해보세요.</p>
                       ) : null}
