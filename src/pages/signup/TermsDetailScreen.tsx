@@ -12,39 +12,24 @@ type TermsDetailScreenProps = {
   title: string;
   content: string;
   onClose: () => void;
+  onLogoClick?: () => void;
 };
 
-const SECTION_TITLES = new Set([
-  'Devine 서비스 이용약관',
-  'Devine 개인정보 처리방침',
-  '부칙',
-  '1. 개인정보의 처리 목적',
-  '2. 처리하는 개인정보의 항목',
-  '3. 개인정보의 처리 및 보유기간',
-  '4. 개인정보의 제3자 제공',
-  '5. 개인정보 처리업무의 위탁',
-  '6. 개인정보의 국외 이전',
-  '7. 개인정보의 파기 절차 및 방법',
-  '8. 개인정보 자동 수집 장치의 설치·운영 및 거부',
-  '9. 정보주체의 권리·의무 및 행사방법',
-  '10. 개인정보의 안전성 확보조치',
-  '11. 개인정보 보호책임자',
-  '12. 정보주체의 권익침해에 대한 구제방법',
-  '13. 개인정보 처리방침의 변경',
-  '14. 서비스 특화 개인정보 처리사항',
-  '1. 마케팅 정보 수신 동의 (선택)',
-  '2. 맞춤형 광고 제공 동의 (선택)',
-  '3. 서비스 분석 및 개선을 위한 정보 활용 동의 (선택)',
-  '4. GitHub 추가 정보 수집 동의 (선택 - 개발자 회원만 해당)',
-  '5. 개인정보 제3자 제공 동의 (선택)',
-  '동의 철회 안내',
-  '중요 안내사항',
-  'Devine 개인정보 수집·이용 동의서 (선택)',
-]);
+const getMarkdownHeading = (line: string) => {
+  const match = /^(#{1,6})\s+(.+)$/.exec(line.trim());
+  if (!match) return null;
+
+  return {
+    level: match[1].length,
+    text: match[2],
+  };
+};
+
+const removeMarkdownTextMarkers = (text: string) =>
+  text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1');
 
 const parseTermsContent = (content: string): ReactNode[] => {
-  const sanitizedContent = content.replace(/[#*]/g, '');
-  const contentLines = sanitizedContent.split('\n');
+  const contentLines = content.split('\n');
   const parsedContent: ReactNode[] = [];
   let i = 0;
 
@@ -60,23 +45,53 @@ const parseTermsContent = (content: string): ReactNode[] => {
 
     const isTableLine = /^\|.*\|$/.test(trimmedLine);
     if (isTableLine) {
-      const tableLines: string[] = [];
+      const tableLines: { lineNumber: number; text: string }[] = [];
       while (i < contentLines.length && /^\|.*\|$/.test(contentLines[i].trim())) {
-        tableLines.push(contentLines[i].trim());
+        tableLines.push({ lineNumber: i, text: contentLines[i].trim() });
         i += 1;
       }
 
       const rows = tableLines
-        .map((line) =>
-          line
+        .map(({ lineNumber, text }) => ({
+          lineNumber,
+          cells: text
             .slice(1, -1)
             .split('|')
-            .map((cell) => cell.trim()),
-        )
-        .filter((cells) => !cells.every((cell) => /^-+$/.test(cell.replace(/:/g, ''))));
+            .map((cell) => removeMarkdownTextMarkers(cell.trim())),
+        }))
+        .filter(({ cells }) => !cells.every((cell) => /^-+$/.test(cell.replace(/:/g, ''))));
 
       if (rows.length > 0) {
         const [header, ...body] = rows;
+        const headerCells: ReactNode[] = [];
+        const bodyCells: ReactNode[] = [];
+
+        for (let cellIndex = 0; cellIndex < header.cells.length; cellIndex += 1) {
+          const cell = header.cells[cellIndex];
+          headerCells.push(
+            <div
+              key={`th-${header.lineNumber}-${cellIndex}`}
+              className="bg-[var(--ui-50)] px-3 py-2 font-semibold text-[12px] text-[var(--ui-800)]"
+            >
+              {cell}
+            </div>,
+          );
+        }
+
+        for (const row of body) {
+          for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex += 1) {
+            const cell = row.cells[cellIndex];
+            bodyCells.push(
+              <div
+                key={`td-${row.lineNumber}-${cellIndex}`}
+                className="border-[var(--ui-100)] border-t px-3 py-2 text-[12px] text-[var(--ui-700)]"
+              >
+                {cell}
+              </div>,
+            );
+          }
+        }
+
         parsedContent.push(
           <div
             key={`table-${i}`}
@@ -84,26 +99,10 @@ const parseTermsContent = (content: string): ReactNode[] => {
           >
             <div
               className="grid"
-              style={{ gridTemplateColumns: `repeat(${header.length}, minmax(0, 1fr))` }}
+              style={{ gridTemplateColumns: `repeat(${header.cells.length}, minmax(0, 1fr))` }}
             >
-              {header.map((cell, idx) => (
-                <div
-                  key={`th-${idx}`}
-                  className="bg-[var(--ui-50)] px-3 py-2 font-semibold text-[12px] text-[var(--ui-800)]"
-                >
-                  {cell}
-                </div>
-              ))}
-              {body.flatMap((row, rowIndex) =>
-                row.map((cell, cellIndex) => (
-                  <div
-                    key={`td-${rowIndex}-${cellIndex}`}
-                    className="border-[var(--ui-100)] border-t px-3 py-2 text-[12px] text-[var(--ui-700)]"
-                  >
-                    {cell}
-                  </div>
-                )),
-              )}
+              {headerCells}
+              {bodyCells}
             </div>
           </div>,
         );
@@ -111,8 +110,10 @@ const parseTermsContent = (content: string): ReactNode[] => {
       continue;
     }
 
-    const isArticleTitle = /^제\s*\d+\s*조/.test(trimmedLine) || SECTION_TITLES.has(trimmedLine);
-    const isSubsectionTitle = /^\d+\)\s/.test(trimmedLine);
+    const heading = getMarkdownHeading(rawLine);
+    const displayText = removeMarkdownTextMarkers(heading?.text ?? rawLine);
+    const isArticleTitle = heading !== null && heading.level <= 2;
+    const isSubsectionTitle = heading !== null && heading.level >= 3;
     parsedContent.push(
       <p
         key={`line-${i}`}
@@ -124,7 +125,7 @@ const parseTermsContent = (content: string): ReactNode[] => {
               : 'text-[14px] text-[var(--ui-700)]'
         }
       >
-        {rawLine}
+        {displayText}
       </p>,
     );
     i += 1;
@@ -133,7 +134,13 @@ const parseTermsContent = (content: string): ReactNode[] => {
   return parsedContent;
 };
 
-const TermsDetailScreen = ({ open, title, content, onClose }: TermsDetailScreenProps) => {
+const TermsDetailScreen = ({
+  open,
+  title,
+  content,
+  onClose,
+  onLogoClick,
+}: TermsDetailScreenProps) => {
   const { theme } = useThemeStore();
   const { signOut } = useAuth();
   const { user } = useUser();
@@ -162,6 +169,10 @@ const TermsDetailScreen = ({ open, title, content, onClose }: TermsDetailScreenP
           <button
             type="button"
             onClick={() => {
+              if (onLogoClick) {
+                onLogoClick();
+                return;
+              }
               sessionStorage.setItem('show_onboarding_modal', 'true');
               localStorage.removeItem(getUserRoleKey(user?.id ?? null));
               localStorage.removeItem(getUserRoleKey());
@@ -171,7 +182,7 @@ const TermsDetailScreen = ({ open, title, content, onClose }: TermsDetailScreenP
               sessionStorage.removeItem('allow_main_once');
               void signOut().finally(() => navigate('/'));
             }}
-            className="flex-items-center gap-[0.4rem]"
+            className="flex-items-center cursor-pointer gap-[0.4rem]"
             aria-label="메인으로 이동"
           >
             {theme === 'dark' ? <LogoLight aria-hidden="true" /> : <LogoDark aria-hidden="true" />}
