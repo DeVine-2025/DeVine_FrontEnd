@@ -387,11 +387,21 @@ const FloatingChatWidget = () => {
                         ) : (
                           <div key={message.messageId} className="flex justify-end">
                             <div className="flex max-w-[82%] items-end gap-[0.6rem] max-[389px]:max-w-[86%] max-[389px]:gap-[0.5rem]">
-                              {message.localStatus !== 'failed' ? (
-                                <span className="shrink-0 pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
-                                  {formatTime(message.createdAt)}
-                                </span>
-                              ) : null}
+                              {message.localStatus === 'failed' ? null : (
+                                <div className="flex shrink-0 flex-col items-end justify-end gap-[0.15rem] pb-[0.2rem]">
+                                  {!message.isRead && message.localStatus !== 'sending' ? (
+                                    <span
+                                      className="text-[1.05rem] font-semibold leading-none text-[#5B56FF]"
+                                      aria-label="상대가 아직 읽지 않음"
+                                    >
+                                      1
+                                    </span>
+                                  ) : null}
+                                  <span className="text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
+                                    {formatTime(message.createdAt)}
+                                  </span>
+                                </div>
+                              )}
                               {message.localStatus === 'failed' ? (
                                 <div
                                   className="relative z-20 shrink-0 self-center"

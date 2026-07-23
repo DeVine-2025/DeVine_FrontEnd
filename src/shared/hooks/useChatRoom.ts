@@ -1,12 +1,19 @@
 import { fetchChatMessages, markChatRoomRead } from '@apis/chat';
+import { useAuth } from '@clerk/clerk-react';
 import { ensureStompConnected, getStompClient, onStompConnect } from '@libs/stomp-client';
 import type { ChatMessage, ChatMessageListData } from '@t/chat';
 import type { IMessage, StompSubscription } from '@stomp/stompjs';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  type InfiniteData,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CHAT_ROOMS_QUERY_KEY } from '@hooks/useChatRooms';
-import { CHAT_UNREAD_COUNT_QUERY_KEY } from '@hooks/useUnreadChatRoomCount';
 import { useChatErrorQueue } from '@hooks/useChatErrorQueue';
+import { useChatReadReceipt } from '@hooks/useChatReadReceipt';
+import { CHAT_UNREAD_COUNT_QUERY_KEY } from '@hooks/useUnreadChatRoomCount';
 
 export const chatRoomMessagesKey = (roomId: number) => ['chat/rooms', roomId, 'messages'] as const;
 
@@ -78,6 +85,7 @@ export function useChatRoom(roomId: number, options?: { enabled?: boolean; pageS
   const enabled = options?.enabled ?? Boolean(roomId);
   const pageSize = options?.pageSize ?? 50;
   const qc = useQueryClient();
+  const { userId } = useAuth();
 
   const [realtimeMessages, setRealtimeMessages] = useState<ChatDisplayMessage[]>([]);
   const subscriptionRef = useRef<StompSubscription | null>(null);
@@ -85,6 +93,53 @@ export function useChatRoom(roomId: number, options?: { enabled?: boolean; pageS
   const sendMetaRef = useRef<
     Map<number, { senderClerkId: string; senderNickname: string; senderImage: string | null }>
   >(new Map());
+
+  const markMyMessagesReadInCache = useCallback(
+    (targetRoomId: number, myClerkId: string) => {
+      qc.setQueryData<InfiniteData<ChatMessageListData>>(chatRoomMessagesKey(targetRoomId), (old) => {
+        if (!old) return old;
+        let changed = false;
+        const pages = old.pages.map((page) => ({
+          ...page,
+          messages: page.messages.map((m) => {
+            if (m.senderClerkId !== myClerkId || m.isRead) return m;
+            changed = true;
+            return { ...m, isRead: true };
+          }),
+        }));
+        return changed ? { ...old, pages } : old;
+      });
+    },
+    [qc],
+  );
+
+  const handleReadReceipt = useCallback(
+    (receipt: { roomId: number; readerClerkId: string }) => {
+      const myClerkId = userId?.trim();
+      if (!myClerkId) return;
+      // 내가 읽은 이벤트는 무시 (상대가 읽었을 때만 내 말풍선 1 제거)
+      if (receipt.readerClerkId === myClerkId) return;
+
+      markMyMessagesReadInCache(receipt.roomId, myClerkId);
+
+      if (receipt.roomId !== roomId) return;
+      setRealtimeMessages((prev) => {
+        let changed = false;
+        const next = prev.map((m) => {
+          if (m.senderClerkId !== myClerkId || m.isRead) return m;
+          changed = true;
+          return { ...m, isRead: true };
+        });
+        return changed ? next : prev;
+      });
+    },
+    [userId, roomId, markMyMessagesReadInCache],
+  );
+
+  useChatReadReceipt({
+    enabled,
+    onRead: handleReadReceipt,
+  });
 
   const clearConfirmTimer = useCallback((messageId: number) => {
     const timer = confirmTimersRef.current.get(messageId);
@@ -203,7 +258,21 @@ export function useChatRoom(roomId: number, options?: { enabled?: boolean; pageS
     });
 
     void ensureStompConnected()
-      .then(() => markReadMutation.mutateAsync())
+      .then(() => {
+        const client = getStompClient();
+        if (client?.connected) {
+          try {
+            client.publish({
+              destination: `/app/chat/${roomId}/read`,
+              headers: { 'content-type': 'application/json' },
+              body: '{}',
+            });
+          } catch (e) {
+            console.error('[chat] STOMP read publish failed', e);
+          }
+        }
+        return markReadMutation.mutateAsync();
+      })
       .catch(() => {});
 
     return () => {
@@ -312,7 +381,7 @@ export function useChatRoom(roomId: number, options?: { enabled?: boolean; pageS
       senderNickname,
       senderImage,
       content: trimmed,
-      isRead: true,
+      isRead: false,
       createdAt: new Date().toISOString(),
       localStatus: 'sending',
     };

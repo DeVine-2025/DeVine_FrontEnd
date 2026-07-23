@@ -1,7 +1,7 @@
 import type { ChatReadEvent } from '@t/chat';
 import { onStompConnect, ensureStompConnected } from '@libs/stomp-client';
 import type { StompSubscription } from '@stomp/stompjs';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export type ChatReadReceipt = ChatReadEvent;
 
@@ -10,6 +10,8 @@ export function useChatReadReceipt(options: {
   onRead: (receipt: ChatReadReceipt) => void;
 }) {
   const enabled = options.enabled ?? true;
+  const onReadRef = useRef(options.onRead);
+  onReadRef.current = options.onRead;
 
   useEffect(() => {
     if (!enabled) return;
@@ -19,12 +21,15 @@ export function useChatReadReceipt(options: {
     const unsubscribeConnect = onStompConnect((client) => {
       subscription?.unsubscribe();
       subscription = client.subscribe('/user/queue/chat/read', (frame) => {
-        const parsed = JSON.parse(frame.body) as ChatReadEvent;
-        options.onRead(parsed);
+        try {
+          const parsed = JSON.parse(frame.body) as ChatReadEvent;
+          onReadRef.current(parsed);
+        } catch (e) {
+          console.error('[chat] STOMP read receipt parse failed', e, frame.body);
+        }
       });
     });
 
-    // 연결 자체는 구독 훅에서 보장 x시, 아무 일도 안 일어날 수 있어 먼저 활성화
     void ensureStompConnected();
 
     return () => {
@@ -32,6 +37,5 @@ export function useChatReadReceipt(options: {
       subscription?.unsubscribe();
       subscription = null;
     };
-  }, [enabled, options]);
+  }, [enabled]);
 }
-
