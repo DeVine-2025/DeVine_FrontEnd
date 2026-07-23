@@ -4,12 +4,14 @@ import ArrowUpIcon from '@assets/icons/arrow-up.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
 import { useChatRoom } from '@hooks/useChatRoom';
 import { useChatRooms } from '@hooks/useChatRooms';
+import { useLeaveChatRoom } from '@hooks/useLeaveChatRoom';
 import { useUnreadChatRoomCount } from '@hooks/useUnreadChatRoomCount';
 import { cn } from '@libs/cn';
 import { useChatWidgetStore } from '@store/chatWidget';
 import { useThemeStore } from '@store/theme';
 import { useAuth } from '@clerk/clerk-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 const avatarBaseClassName =
   'shrink-0 rounded-full border shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]';
@@ -49,10 +51,15 @@ const FloatingChatWidget = () => {
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const [messageDraft, setMessageDraft] = useState('');
   const [failedActionMessageId, setFailedActionMessageId] = useState<number | null>(null);
+  const [isRoomMenuOpen, setIsRoomMenuOpen] = useState(false);
+  const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
+  const [leaveErrorMessage, setLeaveErrorMessage] = useState<string | null>(null);
   const failedMenuRef = useRef<HTMLDivElement | null>(null);
+  const roomMenuRef = useRef<HTMLDivElement | null>(null);
   const isLightTheme = theme === 'light';
   const focusRoomId = useChatWidgetStore((s) => s.focusRoomId);
   const clearFocusRoom = useChatWidgetStore((s) => s.clearFocusRoom);
+  const leaveChatRoomMutation = useLeaveChatRoom();
 
   const { data: roomsData, refetch: refetchRooms } = useChatRooms({
     enabled: isExpanded,
@@ -83,18 +90,24 @@ const FloatingChatWidget = () => {
     setSelectedChatId(focusRoomId);
     setMessageDraft('');
     setFailedActionMessageId(null);
+    setIsRoomMenuOpen(false);
+    setIsLeaveConfirmOpen(false);
+    setLeaveErrorMessage(null);
     clearFocusRoom();
   }, [focusRoomId, clearFocusRoom]);
 
   useEffect(() => {
-    if (failedActionMessageId == null) return;
+    if (failedActionMessageId == null && !isRoomMenuOpen) return;
     const onPointerDown = (event: MouseEvent) => {
-      if (failedMenuRef.current?.contains(event.target as Node)) return;
+      const target = event.target as Node;
+      if (failedMenuRef.current?.contains(target)) return;
+      if (roomMenuRef.current?.contains(target)) return;
       setFailedActionMessageId(null);
+      setIsRoomMenuOpen(false);
     };
     document.addEventListener('mousedown', onPointerDown);
     return () => document.removeEventListener('mousedown', onPointerDown);
-  }, [failedActionMessageId]);
+  }, [failedActionMessageId, isRoomMenuOpen]);
 
   const avatarClassName = cn(
     avatarBaseClassName,
@@ -168,13 +181,43 @@ const FloatingChatWidget = () => {
     setSelectedChatId(null);
     setMessageDraft('');
     setFailedActionMessageId(null);
+    setIsRoomMenuOpen(false);
+    setIsLeaveConfirmOpen(false);
+    setLeaveErrorMessage(null);
   };
 
   const collapseToList = () => {
     setSelectedChatId(null);
     setMessageDraft('');
     setFailedActionMessageId(null);
+    setIsRoomMenuOpen(false);
+    setIsLeaveConfirmOpen(false);
+    setLeaveErrorMessage(null);
     void refetchRooms();
+  };
+
+  const openLeaveConfirm = () => {
+    setIsRoomMenuOpen(false);
+    setLeaveErrorMessage(null);
+    setIsLeaveConfirmOpen(true);
+  };
+
+  const closeLeaveConfirm = () => {
+    if (leaveChatRoomMutation.isPending) return;
+    setIsLeaveConfirmOpen(false);
+    setLeaveErrorMessage(null);
+  };
+
+  const handleConfirmLeave = async () => {
+    if (activeRoomId <= 0 || leaveChatRoomMutation.isPending) return;
+    setLeaveErrorMessage(null);
+    try {
+      await leaveChatRoomMutation.mutateAsync({ roomId: activeRoomId });
+      setIsLeaveConfirmOpen(false);
+      collapseToList();
+    } catch {
+      setLeaveErrorMessage('채팅방 나가기에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    }
   };
 
   const handleSend = async () => {
@@ -257,6 +300,50 @@ const FloatingChatWidget = () => {
                       <span className="Body1 block truncate font-semibold text-[var(--ui-900)]">
                         {selectedRoom?.otherMember.nickname ?? '채팅'}
                       </span>
+                    </div>
+                    <div className="relative mr-[0.2rem]" ref={roomMenuRef}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFailedActionMessageId(null);
+                          setIsRoomMenuOpen((prev) => !prev);
+                        }}
+                        className={iconButtonClassName}
+                        aria-label="채팅방 메뉴"
+                        aria-expanded={isRoomMenuOpen}
+                        aria-haspopup="menu"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="size-[2rem]"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <circle cx="12" cy="5" r="1.75" />
+                          <circle cx="12" cy="12" r="1.75" />
+                          <circle cx="12" cy="19" r="1.75" />
+                        </svg>
+                      </button>
+                      {isRoomMenuOpen ? (
+                        <div
+                          className={cn(
+                            'absolute top-[calc(100%+0.4rem)] right-0 z-30 min-w-[9.6rem] overflow-hidden rounded-[0.8rem] border py-[0.2rem] shadow-[0_0.8rem_1.8rem_rgba(15,23,42,0.16)]',
+                            isLightTheme
+                              ? 'border-[rgba(212,218,231,0.95)] bg-white'
+                              : 'border-[rgba(127,133,150,0.28)] bg-[rgba(33,35,40,0.98)]',
+                          )}
+                          role="menu"
+                        >
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="flex w-full items-center justify-center px-[1rem] py-[0.55rem] text-center text-[1.25rem] font-medium text-[#FF4D4F] hover:bg-[var(--ui-50)]"
+                            onClick={openLeaveConfirm}
+                          >
+                            채팅방 나가기
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                     <button
                       type="button"
@@ -484,6 +571,68 @@ const FloatingChatWidget = () => {
           )}
         </section>
       </div>
+
+      {isLeaveConfirmOpen
+        ? createPortal(
+            <div
+              className="pointer-events-auto fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-[1.6rem]"
+              role="presentation"
+              onClick={closeLeaveConfirm}
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="leave-chat-room-title"
+                className={cn(
+                  'w-full max-w-[32rem] rounded-[1.6rem] px-[2rem] pt-[2.4rem] pb-[1.6rem] text-center shadow-[0_2rem_6rem_rgba(0,0,0,0.2)]',
+                  isLightTheme ? 'bg-white' : 'bg-[rgba(33,35,40,0.98)]',
+                )}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <h2
+                  id="leave-chat-room-title"
+                  className="text-[1.6rem] font-semibold leading-[1.4] text-[var(--ui-900)]"
+                >
+                  채팅방에서 나가시겠습니까?
+                </h2>
+                <p className="mt-[0.8rem] text-[1.25rem] leading-[1.45] text-[var(--ui-500)]">
+                  나가면 이 채팅방 목록에서 사라집니다.
+                </p>
+                {leaveErrorMessage ? (
+                  <p className="mt-[0.8rem] text-[1.2rem] leading-[1.4] text-[#FF4D4F]">
+                    {leaveErrorMessage}
+                  </p>
+                ) : null}
+                <div className="mt-[1.8rem] flex gap-[0.8rem]">
+                  <button
+                    type="button"
+                    onClick={closeLeaveConfirm}
+                    disabled={leaveChatRoomMutation.isPending}
+                    className={cn(
+                      'h-[4.4rem] flex-1 cursor-pointer rounded-[1rem] text-[1.4rem] font-semibold transition-opacity disabled:cursor-default disabled:opacity-60',
+                      isLightTheme
+                        ? 'bg-[var(--ui-50)] text-[var(--ui-700)] hover:bg-[var(--ui-100)]'
+                        : 'bg-[rgba(255,255,255,0.06)] text-[var(--ui-200)] hover:bg-[rgba(255,255,255,0.1)]',
+                    )}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleConfirmLeave();
+                    }}
+                    disabled={leaveChatRoomMutation.isPending}
+                    className="h-[4.4rem] flex-1 cursor-pointer rounded-[1rem] bg-[#FF4D4F] text-[1.4rem] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-60"
+                  >
+                    {leaveChatRoomMutation.isPending ? '나가는 중…' : '나가기'}
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 };
