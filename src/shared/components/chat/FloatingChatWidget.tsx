@@ -56,6 +56,8 @@ const FloatingChatWidget = () => {
   const [leaveErrorMessage, setLeaveErrorMessage] = useState<string | null>(null);
   const failedMenuRef = useRef<HTMLDivElement | null>(null);
   const roomMenuRef = useRef<HTMLDivElement | null>(null);
+  const messageListRef = useRef<HTMLDivElement | null>(null);
+  const prevRoomIdForScrollRef = useRef<number | null>(null);
   const isLightTheme = theme === 'light';
   const focusRoomId = useChatWidgetStore((s) => s.focusRoomId);
   const clearFocusRoom = useChatWidgetStore((s) => s.clearFocusRoom);
@@ -108,6 +110,28 @@ const FloatingChatWidget = () => {
     document.addEventListener('mousedown', onPointerDown);
     return () => document.removeEventListener('mousedown', onPointerDown);
   }, [failedActionMessageId, isRoomMenuOpen]);
+
+  const lastMessageId = selectedMessages.at(-1)?.messageId;
+  useEffect(() => {
+    if (activeRoomId <= 0) {
+      prevRoomIdForScrollRef.current = null;
+      return;
+    }
+    if (selectedMessages.length === 0) return;
+
+    const roomChanged = prevRoomIdForScrollRef.current !== activeRoomId;
+    prevRoomIdForScrollRef.current = activeRoomId;
+
+    const frameId = window.requestAnimationFrame(() => {
+      const el = messageListRef.current;
+      if (!el) return;
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: roomChanged ? 'auto' : 'smooth',
+      });
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [activeRoomId, selectedMessages.length, lastMessageId]);
 
   const avatarClassName = cn(
     avatarBaseClassName,
@@ -359,7 +383,10 @@ const FloatingChatWidget = () => {
                     <span className={datePillClassName}>{dateLabel}</span>
                   </div>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto px-[1.6rem] py-[0.6rem] max-[389px]:px-[1.2rem]">
+                  <div
+                    ref={messageListRef}
+                    className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-[1.6rem] py-[0.6rem] max-[389px]:px-[1.2rem]"
+                  >
                     <div className="flex flex-col gap-[1.6rem]">
                       {messageRows.length === 0 ? (
                         <p className="text-center text-[1.2rem] text-[var(--ui-500)]">대화를 시작해보세요.</p>
@@ -520,7 +547,7 @@ const FloatingChatWidget = () => {
                     </button>
                   </div>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto px-[0.8rem] py-[0.8rem] max-[389px]:px-[0.6rem]">
+                  <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-[0.8rem] py-[0.8rem] max-[389px]:px-[0.6rem]">
                     <div className="flex flex-col gap-[0.2rem]">
                       {isRoomsEmpty ? (
                         <p className="py-[2.4rem] text-center text-[1.2rem] text-[var(--ui-500)]">
