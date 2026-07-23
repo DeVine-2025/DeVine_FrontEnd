@@ -39,7 +39,11 @@ const FloatingChatWidget = () => {
   const clearFocusRoom = useChatWidgetStore((s) => s.clearFocusRoom);
 
   const { data: roomsData } = useChatRooms({ enabled: isExpanded });
-  const { data: unreadData } = useUnreadChatRoomCount({ enabled: isExpanded });
+  // 접힌 상태에서도 배지용으로 unread 조회 
+  const { data: unreadData } = useUnreadChatRoomCount({
+    enabled: true,
+    refetchIntervalMs: 30_000,
+  });
   const rooms = roomsData?.rooms ?? [];
   const selectedRoom = rooms.find((room) => room.roomId === selectedChatId) ?? null;
   const activeRoomId = selectedChatId ?? 0;
@@ -49,6 +53,7 @@ const FloatingChatWidget = () => {
   const selectedMessages = chatRoom.messages;
   const hasMessageDraft = messageDraft.trim().length > 0;
   const unreadRoomCount = unreadData?.unreadRoomCount ?? 0;
+  const unreadBadgeLabel = unreadRoomCount > 99 ? '99+' : String(unreadRoomCount);
   const dateLabel = formatDateLabel(selectedMessages[0]?.createdAt ?? null);
   const isRoomsEmpty = rooms.length === 0;
   const sendingDisabled = !hasMessageDraft || activeRoomId <= 0;
@@ -163,6 +168,11 @@ const FloatingChatWidget = () => {
               type="button"
               aria-expanded={false}
               aria-controls="global-chat-panel"
+              aria-label={
+                unreadRoomCount > 0
+                  ? `메시지, 안 읽은 채팅방 ${unreadRoomCount}개`
+                  : '메시지'
+              }
               onClick={() => setIsExpanded(true)}
               className={cn(
                 'flex h-full w-full items-center px-[1.8rem] text-left max-[389px]:px-[1.4rem]',
@@ -172,8 +182,11 @@ const FloatingChatWidget = () => {
             >
               <span className="Heading2 flex-1 font-semibold text-[var(--ui-900)]">메시지</span>
               {unreadRoomCount > 0 ? (
-                <span className="mr-[0.6rem] rounded-full bg-[var(--color-primary)] px-[0.8rem] py-[0.2rem] text-[1.1rem] font-semibold text-white">
-                  {unreadRoomCount}
+                <span
+                  className="mr-[0.8rem] flex min-w-[2.2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_100%)] px-[0.75rem] py-[0.25rem] text-[1.15rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.6rem_1.4rem_rgba(78,73,255,0.28)]"
+                  aria-hidden
+                >
+                  {unreadBadgeLabel}
                 </span>
               ) : null}
               <span
@@ -312,6 +325,14 @@ const FloatingChatWidget = () => {
                 <>
                   <div className={cn(headerClassName, 'px-[1.8rem]')}>
                     <span className="Heading2 flex-1 font-semibold text-[var(--ui-900)]">메시지</span>
+                    {unreadRoomCount > 0 ? (
+                      <span
+                        className="mr-[0.8rem] flex min-w-[2.2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_100%)] px-[0.75rem] py-[0.25rem] text-[1.15rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.6rem_1.4rem_rgba(78,73,255,0.28)]"
+                        aria-label={`안 읽은 채팅방 ${unreadRoomCount}개`}
+                      >
+                        {unreadBadgeLabel}
+                      </span>
+                    ) : null}
                     <button
                       type="button"
                       onClick={closeWidget}
