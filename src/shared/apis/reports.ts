@@ -10,6 +10,21 @@ type CreateReportResponse = {
 import type { Report } from '@apis/report/report';
 import type { MyReportItem, ReportResponse, ReportType } from '@t/report';
 
+type CreateReportSyncResponse = ReportResponse & {
+  code?: string;
+  message?: string;
+};
+
+export class CreateReportError extends Error {
+  code?: string;
+
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = 'CreateReportError';
+    this.code = code;
+  }
+}
+
 type GetMyReportsMeResponse = {
   isSuccess: boolean;
   code: string;
@@ -29,11 +44,15 @@ export async function createReportSync(gitRepoId: number, token: string) {
     body: JSON.stringify({ gitRepoId }),
   });
 
-  if (!res.ok) {
-    throw new Error(`report create failed: ${res.status}`);
+  const data = (await res.json().catch(() => null)) as CreateReportSyncResponse | null;
+
+  if (!res.ok || data?.isSuccess === false) {
+    throw new CreateReportError(
+      data?.message ?? '리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+      data?.code,
+    );
   }
 
-  const data = (await res.json().catch(() => null)) as ReportResponse | null;
   return data?.result ?? null;
 }
 
