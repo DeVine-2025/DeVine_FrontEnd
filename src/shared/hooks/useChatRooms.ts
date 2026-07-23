@@ -5,16 +5,21 @@ import type { ChatRoomsListData } from '@t/chat';
 
 export const CHAT_ROOMS_QUERY_KEY = ['chat/rooms'] as const;
 
-export function useChatRooms(options?: { enabled?: boolean }) {
+export function useChatRooms(options?: {
+  enabled?: boolean;
+  refetchIntervalMs?: number | false;
+}) {
   const { isSignedIn } = useAuth();
+  const enabled = (options?.enabled ?? true) && Boolean(isSignedIn);
 
   return useQuery({
     queryKey: CHAT_ROOMS_QUERY_KEY,
     queryFn: async (): Promise<ChatRoomsListData> => {
       return fetchChatRooms();
     },
-    enabled: options?.enabled ?? isSignedIn ?? false,
+    enabled,
     staleTime: 15_000,
+    refetchOnWindowFocus: true,
+    refetchInterval: options?.refetchIntervalMs ?? false,
   });
 }
-

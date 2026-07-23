@@ -1,6 +1,6 @@
 import { ensureStompConnected, onStompConnect } from '@libs/stomp-client';
 import type { StompSubscription } from '@stomp/stompjs';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export type ChatSocketErrorPayload = unknown;
 
@@ -9,6 +9,8 @@ export function useChatErrorQueue(options: {
   onError: (payload: ChatSocketErrorPayload) => void;
 }) {
   const enabled = options.enabled ?? true;
+  const onErrorRef = useRef(options.onError);
+  onErrorRef.current = options.onError;
 
   useEffect(() => {
     if (!enabled) return;
@@ -24,7 +26,7 @@ export function useChatErrorQueue(options: {
         } catch {
           // keep raw string
         }
-        options.onError(payload);
+        onErrorRef.current(payload);
       });
     });
 
@@ -35,6 +37,5 @@ export function useChatErrorQueue(options: {
       subscription?.unsubscribe();
       subscription = null;
     };
-  }, [enabled, options]);
+  }, [enabled]);
 }
-
