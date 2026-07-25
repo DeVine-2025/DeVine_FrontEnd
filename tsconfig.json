@@ -32,7 +32,8 @@
       "@contexts/*": ["src/shared/contexts/*"],
       "@pages": ["src/pages"],
       "@pages/*": ["src/pages/*"],
-      "@mappers/*": ["src/shared/mappers/*"]
+      "@mappers/*": ["src/shared/mappers/*"],
+      "@admin/*": ["src/admin/*"]
     }
   },
   "include": ["src", "vite-env.d.ts"],
