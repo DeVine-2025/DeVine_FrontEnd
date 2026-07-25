@@ -14,6 +14,10 @@ html[data-theme='dark'] .admin-reload-button {
   color: #fff;
 }
 
+html[data-theme='light'] .admin-filter-chevron path {
+  stroke: #191b1e;
+}
+
 .admin-content {
   width: min(100% - 48px, 1180px);
   margin: 0 auto;

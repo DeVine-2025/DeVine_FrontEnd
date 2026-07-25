@@ -1,3 +1,4 @@
+import ChevronDownIcon from '@assets/icons/chevron-down.svg?react';
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 import { AdminStatusBadge } from '../../components/common/admin-status-badge';
 import { AdminTable, type AdminTableColumn } from '../../components/common/admin-table';
@@ -101,11 +102,12 @@ export default function PaymentListPage() {
       <div className="mt-[28px] flex flex-wrap gap-[12px]">
         {FILTER_LABELS.map((label) => (
           <button
-            className="Body1 inline-flex h-[44px] cursor-pointer items-center rounded-full bg-[var(--ui-50)] px-[16px] font-medium text-[var(--ui-800)] hover:bg-[var(--ui-100)]"
+            className="Body1 inline-flex h-[44px] cursor-pointer items-center gap-[10px] rounded-full bg-[var(--ui-50)] px-[16px] font-medium text-[var(--ui-800)] hover:bg-[var(--ui-100)]"
             key={label}
             type="button"
           >
             {label}
+            <ChevronDownIcon aria-hidden="true" className="admin-filter-chevron shrink-0" />
           </button>
         ))}
       </div>
