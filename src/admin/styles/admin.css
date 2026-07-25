@@ -1,0 +1,27 @@
+.admin-app,
+html:has(.admin-app),
+body:has(.admin-app) {
+  background-color: var(--ui-bg);
+}
+
+.admin-app {
+  min-height: 100dvh;
+  background: var(--ui-bg);
+  color: var(--ui-1000);
+}
+
+html[data-theme='dark'] .admin-reload-button {
+  color: #fff;
+}
+
+.admin-content {
+  width: min(100% - 48px, 1180px);
+  margin: 0 auto;
+  padding: 34px 0 80px;
+}
+
+@media (max-width: 900px) {
+  .admin-content {
+    width: min(100% - 32px, 1180px);
+  }
+}
