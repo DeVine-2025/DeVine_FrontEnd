@@ -1,3 +1,4 @@
+import { adminRoutes } from '@admin/routes/admin-router';
 import ProtectedRoute from '@components/protected-route';
 import RootLayout from '@layouts/root-layout';
 import {
@@ -43,6 +44,7 @@ import {
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 export const router = createBrowserRouter([
+  ...adminRoutes,
   {
     path: '/service',
     element: <ServicePage />,
