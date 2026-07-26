@@ -11,7 +11,7 @@ export type AdminTableColumn<T> = {
   header: ReactNode;
   /** 고정 폭 또는 비율 폭을 지정할 수 있습니다. */
   width?: CSSProperties['width'];
-  /** 내용 정렬 방향입니다. 기본값은 왼쪽입니다. */
+  /** 내용 정렬 방향입니다. 기본값은 가운데입니다. */
   align?: AdminTableAlign;
   /** 헤더 셀에만 추가할 클래스입니다. */
   headerClassName?: string;
@@ -80,7 +80,7 @@ export function AdminTable<T>({
                 <th
                   className={cn(
                     'Body1 px-[40px] align-middle font-semibold text-[var(--ui-1000)]',
-                    ALIGNMENT_CLASS[column.align ?? 'left'],
+                    ALIGNMENT_CLASS[column.align ?? 'center'],
                     column.headerClassName,
                   )}
                   key={column.id}
@@ -117,7 +117,7 @@ export function AdminTable<T>({
                           className={cn(
                             'Body1 align-middle font-normal text-[var(--ui-1000)]',
                             rowHref ? 'p-0' : 'px-[40px]',
-                            ALIGNMENT_CLASS[column.align ?? 'left'],
+                            ALIGNMENT_CLASS[column.align ?? 'center'],
                             additionalCellClass,
                           )}
                           key={column.id}
@@ -125,8 +125,8 @@ export function AdminTable<T>({
                           {rowHref ? (
                             <Link
                               className={cn(
-                                'flex h-[64px] w-full items-center px-[40px] no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-[-2px]',
-                                FLEX_ALIGNMENT_CLASS[column.align ?? 'left'],
+                                'flex h-[64px] w-full items-center px-[40px] no-underline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-[-2px]',
+                                FLEX_ALIGNMENT_CLASS[column.align ?? 'center'],
                               )}
                               to={rowHref}
                             >
