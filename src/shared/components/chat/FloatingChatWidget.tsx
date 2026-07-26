@@ -2,14 +2,18 @@ import ArrowLeftIcon from '@assets/icons/arrow-left.svg?react';
 import ArrowDownIcon from '@assets/icons/arrow-down.svg?react';
 import ArrowUpIcon from '@assets/icons/arrow-up.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
+import { isChatApiError } from '@apis/chat';
 import { useChatRoom } from '@hooks/useChatRoom';
-import { useChatRooms } from '@hooks/useChatRooms';
+import { useChatRooms, CHAT_ROOMS_QUERY_KEY } from '@hooks/useChatRooms';
+import { useCreateOrGetChatRoom } from '@hooks/useCreateOrGetChatRoom';
 import { useLeaveChatRoom } from '@hooks/useLeaveChatRoom';
 import { useUnreadChatRoomCount } from '@hooks/useUnreadChatRoomCount';
 import { cn } from '@libs/cn';
-import { useChatWidgetStore } from '@store/chatWidget';
+import { type ChatDraftTarget, useChatWidgetStore } from '@store/chatWidget';
 import { useThemeStore } from '@store/theme';
+import type { ChatRoomsListData } from '@t/chat';
 import { useAuth } from '@clerk/clerk-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -54,6 +58,8 @@ const FloatingChatWidget = () => {
   const [isRoomMenuOpen, setIsRoomMenuOpen] = useState(false);
   const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
   const [leaveErrorMessage, setLeaveErrorMessage] = useState<string | null>(null);
+  const [draftTarget, setDraftTarget] = useState<ChatDraftTarget | null>(null);
+  const [pendingFirstMessage, setPendingFirstMessage] = useState<string | null>(null);
   const failedMenuRef = useRef<HTMLDivElement | null>(null);
   const roomMenuRef = useRef<HTMLDivElement | null>(null);
   const messageListRef = useRef<HTMLDivElement | null>(null);
@@ -62,8 +68,12 @@ const FloatingChatWidget = () => {
   const isLoadingOlderRef = useRef(false);
   const isLightTheme = theme === 'light';
   const focusRoomId = useChatWidgetStore((s) => s.focusRoomId);
+  const focusDraft = useChatWidgetStore((s) => s.focusDraft);
   const clearFocusRoom = useChatWidgetStore((s) => s.clearFocusRoom);
+  const clearFocusDraft = useChatWidgetStore((s) => s.clearFocusDraft);
   const leaveChatRoomMutation = useLeaveChatRoom();
+  const createRoomMutation = useCreateOrGetChatRoom();
+  const queryClient = useQueryClient();
 
   const { data: roomsData, refetch: refetchRooms } = useChatRooms({
     enabled: isExpanded,
@@ -77,6 +87,8 @@ const FloatingChatWidget = () => {
   const rooms = roomsData?.rooms ?? [];
   const selectedRoom = rooms.find((room) => room.roomId === selectedChatId) ?? null;
   const activeRoomId = selectedChatId ?? 0;
+  const isDraftChat = draftTarget != null && activeRoomId <= 0;
+  const isRoomView = activeRoomId > 0 || isDraftChat;
   const chatRoom = useChatRoom(activeRoomId, {
     enabled: isExpanded && activeRoomId > 0,
   });
@@ -86,12 +98,18 @@ const FloatingChatWidget = () => {
   const unreadBadgeLabel = unreadRoomCount > 99 ? '99+' : String(unreadRoomCount);
   const dateLabel = formatDateLabel(selectedMessages[0]?.createdAt ?? null);
   const isRoomsEmpty = rooms.length === 0;
-  const sendingDisabled = !hasMessageDraft || activeRoomId <= 0;
+  const isCreatingRoom = createRoomMutation.isPending;
+  const sendingDisabled =
+    !hasMessageDraft || isCreatingRoom || (!isDraftChat && activeRoomId <= 0);
+  const roomTitle =
+    selectedRoom?.otherMember.nickname ?? draftTarget?.nickname ?? '채팅';
 
   useEffect(() => {
     if (focusRoomId == null) return;
     setIsExpanded(true);
     setSelectedChatId(focusRoomId);
+    setDraftTarget(null);
+    setPendingFirstMessage(null);
     setMessageDraft('');
     setFailedActionMessageId(null);
     setIsRoomMenuOpen(false);
@@ -99,6 +117,30 @@ const FloatingChatWidget = () => {
     setLeaveErrorMessage(null);
     clearFocusRoom();
   }, [focusRoomId, clearFocusRoom]);
+
+  useEffect(() => {
+    if (focusDraft == null) return;
+    setIsExpanded(true);
+    setSelectedChatId(null);
+    setDraftTarget(focusDraft);
+    setPendingFirstMessage(null);
+    setMessageDraft('');
+    setFailedActionMessageId(null);
+    setIsRoomMenuOpen(false);
+    setIsLeaveConfirmOpen(false);
+    setLeaveErrorMessage(null);
+    clearFocusDraft();
+  }, [focusDraft, clearFocusDraft]);
+
+  // draft 첫 메시지: 방 생성 후 room hook이 준비되면 전송
+  useEffect(() => {
+    if (pendingFirstMessage == null || activeRoomId <= 0) return;
+    const content = pendingFirstMessage;
+    setPendingFirstMessage(null);
+    void chatRoom.sendMessage(content, { senderClerkId: userId });
+    // sendMessage는 roomId 변경 직후 인스턴스 기준으로 한 번만 호출
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingFirstMessage, activeRoomId]);
 
   useEffect(() => {
     if (failedActionMessageId == null && !isRoomMenuOpen) return;
@@ -237,6 +279,8 @@ const FloatingChatWidget = () => {
   const closeWidget = () => {
     setIsExpanded(false);
     setSelectedChatId(null);
+    setDraftTarget(null);
+    setPendingFirstMessage(null);
     setMessageDraft('');
     setFailedActionMessageId(null);
     setIsRoomMenuOpen(false);
@@ -246,6 +290,8 @@ const FloatingChatWidget = () => {
 
   const collapseToList = () => {
     setSelectedChatId(null);
+    setDraftTarget(null);
+    setPendingFirstMessage(null);
     setMessageDraft('');
     setFailedActionMessageId(null);
     setIsRoomMenuOpen(false);
@@ -280,12 +326,48 @@ const FloatingChatWidget = () => {
 
   const handleSend = async () => {
     if (sendingDisabled) return;
-    const draft = messageDraft;
+    const content = messageDraft.trim();
+    if (!content) return;
     setMessageDraft('');
     setFailedActionMessageId(null);
-    await chatRoom.sendMessage(draft, {
-      senderClerkId: userId,
-    });
+
+    // 기존 방: 바로 전송
+    if (activeRoomId > 0) {
+      await chatRoom.sendMessage(content, { senderClerkId: userId });
+      return;
+    }
+
+    // draft: 첫 전송 때 방 생성 후 메시지 전송
+    if (!draftTarget) return;
+    try {
+      const room = await createRoomMutation.mutateAsync({
+        targetClerkId: draftTarget.targetClerkId,
+      });
+      queryClient.setQueryData<ChatRoomsListData>(CHAT_ROOMS_QUERY_KEY, (prev) => {
+        const prevRooms = prev?.rooms ?? [];
+        const summary = {
+          roomId: room.roomId,
+          lastMessage: content,
+          lastMessageAt: new Date().toISOString(),
+          unreadCount: 0,
+          otherMember: room.otherMember,
+        };
+        return {
+          rooms: [summary, ...prevRooms.filter((r) => r.roomId !== summary.roomId)],
+        };
+      });
+      setPendingFirstMessage(content);
+      setDraftTarget(null);
+      setSelectedChatId(room.roomId);
+    } catch (e) {
+      setMessageDraft(content);
+      const msg = isChatApiError(e)
+        ? e.message
+        : e instanceof Error
+          ? e.message
+          : '채팅방을 열 수 없어요.';
+      window.alert(msg);
+    }
   };
 
   const handleRemoveFailed = (messageId: number) => {
@@ -337,7 +419,7 @@ const FloatingChatWidget = () => {
             </button>
           ) : (
             <div id="global-chat-panel" className={cn('flex h-full min-h-0 flex-col', widgetSurfaceClassName)}>
-              {activeRoomId > 0 ? (
+              {isRoomView ? (
                 <>
                   <div className={headerClassName}>
                     <button
@@ -356,9 +438,10 @@ const FloatingChatWidget = () => {
                     />
                     <div className="ml-[1.2rem] min-w-0 flex-1 max-[389px]:ml-[0.8rem]">
                       <span className="Body1 block truncate font-semibold text-[var(--ui-900)]">
-                        {selectedRoom?.otherMember.nickname ?? '채팅'}
+                        {roomTitle}
                       </span>
                     </div>
+                    {!isDraftChat ? (
                     <div className="relative mr-[0.2rem]" ref={roomMenuRef}>
                       <button
                         type="button"
@@ -403,6 +486,9 @@ const FloatingChatWidget = () => {
                         </div>
                       ) : null}
                     </div>
+                    ) : (
+                      <span className="mr-[0.2rem] size-[2.8rem]" aria-hidden />
+                    )}
                     <button
                       type="button"
                       onClick={closeWidget}
@@ -429,7 +515,11 @@ const FloatingChatWidget = () => {
                         </p>
                       ) : null}
                       {messageRows.length === 0 ? (
-                        <p className="text-center text-[1.2rem] text-[var(--ui-500)]">대화를 시작해보세요.</p>
+                        <p className="text-center text-[1.2rem] text-[var(--ui-500)]">
+                          {isDraftChat
+                            ? '첫 메시지를 보내면 채팅이 시작됩니다.'
+                            : '대화를 시작해보세요.'}
+                        </p>
                       ) : null}
                       {messageRows.map((message) =>
                         !message.isMine ? (
@@ -540,7 +630,8 @@ const FloatingChatWidget = () => {
                               void handleSend();
                             }
                           }}
-                          placeholder="메시지 보내기"
+                          placeholder={isCreatingRoom ? '채팅방 만드는 중…' : '메시지 보내기'}
+                          disabled={isCreatingRoom}
                           className="Label1 w-full bg-transparent font-medium text-[var(--ui-900)] placeholder:text-[var(--ui-400)] outline-none"
                         />
                       </div>
