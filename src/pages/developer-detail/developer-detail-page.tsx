@@ -1,4 +1,3 @@
-import { isChatApiError } from '@apis/chat';
 import type { Contribution } from '@apis/myInfo/myInfo';
 import type { TechstackDto } from '@t/profileCard.types';
 import type { ChatRoomsListData } from '@t/chat';
@@ -8,7 +7,6 @@ import TalkBalloonIcon from '@assets/icons/detail-page/talkBalloon.svg?react';
 import ContactCard from '@components/profileDetail/ContactCard';
 import { useAuth } from '@clerk/clerk-react';
 import { CHAT_ROOMS_QUERY_KEY } from '@hooks/useChatRooms';
-import { useCreateOrGetChatRoom } from '@hooks/useCreateOrGetChatRoom';
 import { useChatWidgetStore } from '@store/chatWidget';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -19,7 +17,6 @@ const DeveloperDetailPage = () => {
   const { memberNick } = useParams<{ memberNick: string }>();
   const { isSignedIn } = useAuth();
   const queryClient = useQueryClient();
-  const createRoomMutation = useCreateOrGetChatRoom();
   const { data: myInfo } = useQuery(myInfoQueries.profile());
   const [year, setYear] = useState(new Date().getFullYear());
   const [isMine, setIsMine] = useState<boolean>(false);
@@ -80,7 +77,7 @@ const DeveloperDetailPage = () => {
 
   const nickname = profile?.member?.nickname || profile?.member?.name || '닉네임';
 
-  const handleContactClick = useCallback(async () => {
+  const handleContactClick = useCallback(() => {
     if (!isSignedIn) {
       window.alert('로그인 후 이용해 주세요.');
       return;
@@ -90,31 +87,18 @@ const DeveloperDetailPage = () => {
       window.alert('채팅을 시작할 수 없어요. 회원 정보가 아직 연결되지 않았습니다.');
       return;
     }
-    try {
-      const room = await createRoomMutation.mutateAsync({ targetClerkId: clerkId });
-      queryClient.setQueryData<ChatRoomsListData>(CHAT_ROOMS_QUERY_KEY, (prev) => {
-        const rooms = prev?.rooms ?? [];
-        const summary = {
-          roomId: room.roomId,
-          lastMessage: null,
-          lastMessageAt: new Date().toISOString(),
-          unreadCount: 0,
-          otherMember: room.otherMember,
-        };
-        return {
-          rooms: [summary, ...rooms.filter((r) => r.roomId !== summary.roomId)],
-        };
-      });
-      useChatWidgetStore.getState().requestOpenRoom(room.roomId);
-    } catch (e) {
-      const msg = isChatApiError(e)
-        ? e.message
-        : e instanceof Error
-          ? e.message
-          : '채팅방을 열 수 없어요.';
-      window.alert(msg);
+    const rooms = queryClient.getQueryData<ChatRoomsListData>(CHAT_ROOMS_QUERY_KEY)?.rooms ?? [];
+    const existing = rooms.find((room) => room.otherMember.clerkId === clerkId);
+    if (existing) {
+      useChatWidgetStore.getState().requestOpenRoom(existing.roomId);
+      return;
     }
-  }, [createRoomMutation, isSignedIn, profile?.clerkId, queryClient]);
+    useChatWidgetStore.getState().requestOpenDraft({
+      targetClerkId: clerkId,
+      nickname: profile?.member?.nickname || profile?.member?.name || undefined,
+      image: profile?.member?.imageUrl ?? null,
+    });
+  }, [isSignedIn, profile?.clerkId, profile?.member?.imageUrl, profile?.member?.name, profile?.member?.nickname, queryClient]);
 
   useEffect(() => {
     // if(me?.memberId == profileRes)
@@ -145,13 +129,10 @@ const DeveloperDetailPage = () => {
           <ContactCard />
           <button
             type="button"
-            disabled={createRoomMutation.isPending}
-            onClick={() => {
-              void handleContactClick();
-            }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-ui-100 py-[1.4rem] text-xl font-medium text-ui-500 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={handleContactClick}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-ui-100 py-[1.4rem] text-xl font-medium text-ui-500"
           >
-            <TalkBalloonIcon /> {createRoomMutation.isPending ? '연결 중…' : '연락하기'}
+            <TalkBalloonIcon /> 연락하기
           </button>
           <button
             type="button"

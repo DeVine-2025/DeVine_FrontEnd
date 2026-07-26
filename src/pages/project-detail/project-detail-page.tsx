@@ -1,4 +1,3 @@
-import { isChatApiError } from '@apis/chat';
 import type { ProjectStatus } from '@apis/project-detail';
 import PersonIcon from '@assets/icons/person.svg?react';
 import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
@@ -8,7 +7,6 @@ import LoadingSpinner from '@components/common/LoadingSpinner';
 import { useAuth } from '@clerk/clerk-react';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { CHAT_ROOMS_QUERY_KEY } from '@hooks/useChatRooms';
-import { useCreateOrGetChatRoom } from '@hooks/useCreateOrGetChatRoom';
 import { useThemeStore } from '@store/theme';
 import { useChatWidgetStore } from '@store/chatWidget';
 import type { ChatRoomsListData } from '@t/chat';
@@ -77,9 +75,8 @@ const ProjectDetailPage = () => {
 
   const { isSignedIn } = useAuth();
   const queryClient = useQueryClient();
-  const createRoomMutation = useCreateOrGetChatRoom();
 
-  const handleContactClick = useCallback(async () => {
+  const handleContactClick = useCallback(() => {
     if (!isSignedIn) {
       window.alert('로그인 후 이용해 주세요.');
       return;
@@ -89,31 +86,18 @@ const ProjectDetailPage = () => {
       window.alert('채팅을 시작할 수 없어요. 회원 정보가 아직 연결되지 않았습니다.');
       return;
     }
-    try {
-      const room = await createRoomMutation.mutateAsync({ targetClerkId: clerkId });
-      queryClient.setQueryData<ChatRoomsListData>(CHAT_ROOMS_QUERY_KEY, (prev) => {
-        const rooms = prev?.rooms ?? [];
-        const summary = {
-          roomId: room.roomId,
-          lastMessage: null,
-          lastMessageAt: new Date().toISOString(),
-          unreadCount: 0,
-          otherMember: room.otherMember,
-        };
-        return {
-          rooms: [summary, ...rooms.filter((r) => r.roomId !== summary.roomId)],
-        };
-      });
-      useChatWidgetStore.getState().requestOpenRoom(room.roomId);
-    } catch (e) {
-      const msg = isChatApiError(e)
-        ? e.message
-        : e instanceof Error
-          ? e.message
-          : '채팅방을 열 수 없어요.';
-      window.alert(msg);
+    const rooms = queryClient.getQueryData<ChatRoomsListData>(CHAT_ROOMS_QUERY_KEY)?.rooms ?? [];
+    const existing = rooms.find((room) => room.otherMember.clerkId === clerkId);
+    if (existing) {
+      useChatWidgetStore.getState().requestOpenRoom(existing.roomId);
+      return;
     }
-  }, [createRoomMutation, isSignedIn, project?.creatorClerkId, queryClient]);
+    useChatWidgetStore.getState().requestOpenDraft({
+      targetClerkId: clerkId,
+      nickname: project?.creatorName ?? undefined,
+      image: creatorImage ?? null,
+    });
+  }, [creatorImage, isSignedIn, project?.creatorClerkId, project?.creatorName, queryClient]);
 
 const isApply = appliedStatus === 'PENDING' || appliedStatus === 'PROCESSING';
 const isAccepted = appliedStatus === 'COMPLETED';
@@ -332,13 +316,10 @@ const isAccepted = appliedStatus === 'COMPLETED';
               <div className="flex w-[200px] flex-col gap-2">
                 <button
                   type="button"
-                  disabled={createRoomMutation.isPending}
-                  onClick={() => {
-                    void handleContactClick();
-                  }}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-ui-100 py-[1.4rem] text-xl font-medium text-ui-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={handleContactClick}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-ui-100 py-[1.4rem] text-xl font-medium text-ui-500"
                 >
-                  <TalkBalloonIcon /> {createRoomMutation.isPending ? '연결 중…' : '연락하기'}
+                  <TalkBalloonIcon /> 연락하기
                 </button>
                 {/* PENDING/미지원/취소됨 → 지원하기 */}
                 {canApply && (
