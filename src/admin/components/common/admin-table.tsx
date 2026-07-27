@@ -68,7 +68,7 @@ export function AdminTable<T>({
       )}
     >
       <div className="overflow-x-auto">
-        <table aria-label={ariaLabel} className="w-full min-w-[720px] border-collapse">
+        <table aria-label={ariaLabel} className="w-full min-w-[960px] border-collapse">
           <colgroup>
             {columns.map((column) => (
               <col key={column.id} style={column.width ? { width: column.width } : undefined} />
@@ -79,7 +79,7 @@ export function AdminTable<T>({
               {columns.map((column) => (
                 <th
                   className={cn(
-                    'Body1 px-[40px] align-middle font-semibold text-[var(--ui-1000)]',
+                    'Body1 whitespace-nowrap px-[40px] align-middle font-semibold text-[var(--ui-1000)]',
                     ALIGNMENT_CLASS[column.align ?? 'center'],
                     column.headerClassName,
                   )}
@@ -115,7 +115,7 @@ export function AdminTable<T>({
                       return (
                         <td
                           className={cn(
-                            'Body1 align-middle font-normal text-[var(--ui-1000)]',
+                            'Body1 whitespace-nowrap align-middle font-normal text-[var(--ui-1000)]',
                             rowHref ? 'p-0' : 'px-[40px]',
                             ALIGNMENT_CLASS[column.align ?? 'center'],
                             additionalCellClass,
@@ -125,7 +125,7 @@ export function AdminTable<T>({
                           {rowHref ? (
                             <Link
                               className={cn(
-                                'flex h-[64px] w-full items-center px-[40px] no-underline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-[-2px]',
+                                'flex h-[64px] w-full items-center whitespace-nowrap px-[40px] no-underline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-[-2px]',
                                 FLEX_ALIGNMENT_CLASS[column.align ?? 'center'],
                               )}
                               to={rowHref}
