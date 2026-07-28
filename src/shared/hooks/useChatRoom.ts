@@ -33,13 +33,13 @@ type SendMessageOptions = {
   senderImage?: string | null;
 };
 
-/** 소켓은 살아 있는데 에코가 없을 때만 (오프라인은 즉시 failed) */
-const SEND_ECHO_TIMEOUT_MS = 1_200;
+/** 소켓은 살아 있는데 에코가 없을 때만 (오프라인은 즉시 failed). 히스토리 조회로도 확정 가능 */
+const SEND_ECHO_TIMEOUT_MS = 4_000;
 
 /**
  * 같은 내용의 이전 성공 메시지와 optimistic(실패)을 잘못 매칭하지 않음.
- * - failed: 절대 자동 제거하지 않음 (사용자가 삭제할 때만)
- * - sending: 이 시도 시각 이후에 생긴 서버 메시지와만 매칭
+ * - sending/failed: 이 시도 시각 이후에 생긴 서버 메시지와만 매칭
+ * - 서버 히스토리/에코로 확정되면 optimistic(! 포함)은 제거
  */
 function isConfirmedAfterAttempt(opt: ChatDisplayMessage, confirmed: ChatMessage): boolean {
   if (opt.content !== confirmed.content) return false;
@@ -69,14 +69,9 @@ function mergeMessagesUnique(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
 
-  const filteredPending = pending.filter((opt) => {
-    if (opt.localStatus === 'failed') return true;
-    if (opt.localStatus === 'sending') {
-      return !confirmed.some((c) => isConfirmedAfterAttempt(opt, c));
-    }
-    // localStatus 없는 구형 optimistic
-    return !confirmed.some((c) => isConfirmedAfterAttempt(opt, c));
-  });
+  const filteredPending = pending.filter(
+    (opt) => !confirmed.some((c) => isConfirmedAfterAttempt(opt, c)),
+  );
 
   return [...confirmed, ...filteredPending];
 }
@@ -180,10 +175,12 @@ export function useChatRoom(roomId: number, options?: { enabled?: boolean; pageS
       clearConfirmTimer(messageId);
       const timer = window.setTimeout(() => {
         markLocalFailed(messageId);
+        // 에코가 없어도 REST 히스토리에 저장됐으면 ! 해제되도록 재조회
+        void qc.invalidateQueries({ queryKey: chatRoomMessagesKey(roomId) });
       }, SEND_ECHO_TIMEOUT_MS);
       confirmTimersRef.current.set(messageId, timer);
     },
-    [clearConfirmTimer, markLocalFailed],
+    [clearConfirmTimer, markLocalFailed, qc, roomId],
   );
 
   const historyQuery = useInfiniteQuery({
@@ -235,7 +232,7 @@ export function useChatRoom(roomId: number, options?: { enabled?: boolean; pageS
               const matched = prev.filter(
                 (m) =>
                   m.messageId < 0 &&
-                  m.localStatus === 'sending' &&
+                  (m.localStatus === 'sending' || m.localStatus === 'failed') &&
                   isConfirmedAfterAttempt(m, msg),
               );
               for (const m of matched) {
@@ -288,7 +285,7 @@ export function useChatRoom(roomId: number, options?: { enabled?: boolean; pageS
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, roomId]);
 
-  // 히스토리 refetch: failed는 유지, sending만 "이번 시도 이후" 확정분과 매칭 시 제거
+  // 히스토리 refetch: sending/failed 모두 서버 확정분과 매칭되면 optimistic(!) 제거
   useEffect(() => {
     const pages = historyQuery.data?.pages ?? [];
     const confirmed = pages.flatMap((p) => p.messages);
@@ -296,8 +293,6 @@ export function useChatRoom(roomId: number, options?: { enabled?: boolean; pageS
       let changed = false;
       const next = prev.filter((opt) => {
         if (opt.messageId >= 0) return true;
-        if (opt.localStatus === 'failed') return true;
-        if (opt.localStatus !== 'sending') return true;
         const hit = confirmed.some((c) => isConfirmedAfterAttempt(opt, c));
         if (hit) {
           changed = true;
