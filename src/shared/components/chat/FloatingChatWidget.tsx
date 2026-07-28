@@ -14,11 +14,59 @@ import { useThemeStore } from '@store/theme';
 import type { ChatRoomsListData } from '@t/chat';
 import { useAuth } from '@clerk/clerk-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 
 const avatarBaseClassName =
   'shrink-0 rounded-full border shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]';
+
+const DEFAULT_CHAT_WIDTH_PX = 310;
+const DEFAULT_CHAT_HEIGHT_PX = 458;
+const MIN_CHAT_WIDTH_PX = 280;
+const MIN_CHAT_HEIGHT_PX = 320;
+const CHAT_SIZE_STORAGE_KEY = 'devine.chatWidget.size';
+const DESKTOP_RESIZE_MQ = '(min-width: 744px)';
+
+type ChatPanelSize = { width: number; height: number };
+type ResizeEdge = 'left' | 'top' | 'corner';
+
+function readStoredChatSize(): ChatPanelSize {
+  try {
+    const raw = window.localStorage.getItem(CHAT_SIZE_STORAGE_KEY);
+    if (!raw) return { width: DEFAULT_CHAT_WIDTH_PX, height: DEFAULT_CHAT_HEIGHT_PX };
+    const parsed = JSON.parse(raw) as Partial<ChatPanelSize>;
+    const width = typeof parsed.width === 'number' ? parsed.width : DEFAULT_CHAT_WIDTH_PX;
+    const height = typeof parsed.height === 'number' ? parsed.height : DEFAULT_CHAT_HEIGHT_PX;
+    return { width, height };
+  } catch {
+    return { width: DEFAULT_CHAT_WIDTH_PX, height: DEFAULT_CHAT_HEIGHT_PX };
+  }
+}
+
+function clampChatSize(size: ChatPanelSize): ChatPanelSize {
+  const maxWidth = Math.max(MIN_CHAT_WIDTH_PX, window.innerWidth - 20);
+  const maxHeight = Math.max(MIN_CHAT_HEIGHT_PX, window.innerHeight - 12);
+  return {
+    width: Math.min(maxWidth, Math.max(MIN_CHAT_WIDTH_PX, Math.round(size.width))),
+    height: Math.min(maxHeight, Math.max(MIN_CHAT_HEIGHT_PX, Math.round(size.height))),
+  };
+}
+
+function useDesktopChatResizeEnabled() {
+  const [enabled, setEnabled] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(DESKTOP_RESIZE_MQ).matches : false,
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia(DESKTOP_RESIZE_MQ);
+    const onChange = () => setEnabled(media.matches);
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
+
+  return enabled;
+}
 
 const formatTime = (iso?: string | null): string => {
   if (!iso) return '';
@@ -60,13 +108,28 @@ const FloatingChatWidget = () => {
   const [leaveErrorMessage, setLeaveErrorMessage] = useState<string | null>(null);
   const [draftTarget, setDraftTarget] = useState<ChatDraftTarget | null>(null);
   const [pendingFirstMessage, setPendingFirstMessage] = useState<string | null>(null);
+  const [panelSize, setPanelSize] = useState<ChatPanelSize>(() =>
+    typeof window !== 'undefined' ? clampChatSize(readStoredChatSize()) : {
+      width: DEFAULT_CHAT_WIDTH_PX,
+      height: DEFAULT_CHAT_HEIGHT_PX,
+    },
+  );
+  const [isResizing, setIsResizing] = useState(false);
   const failedMenuRef = useRef<HTMLDivElement | null>(null);
   const roomMenuRef = useRef<HTMLDivElement | null>(null);
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const prevRoomIdForScrollRef = useRef<number | null>(null);
   const prevLastMessageIdForScrollRef = useRef<number | null>(null);
   const isLoadingOlderRef = useRef(false);
+  const resizeSessionRef = useRef<{
+    edge: ResizeEdge;
+    startX: number;
+    startY: number;
+    startWidth: number;
+    startHeight: number;
+  } | null>(null);
   const isLightTheme = theme === 'light';
+  const canResizePanel = useDesktopChatResizeEnabled();
   const focusRoomId = useChatWidgetStore((s) => s.focusRoomId);
   const focusDraft = useChatWidgetStore((s) => s.focusDraft);
   const clearFocusRoom = useChatWidgetStore((s) => s.clearFocusRoom);
@@ -74,6 +137,65 @@ const FloatingChatWidget = () => {
   const leaveChatRoomMutation = useLeaveChatRoom();
   const createRoomMutation = useCreateOrGetChatRoom();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!canResizePanel) return;
+    const onWindowResize = () => {
+      setPanelSize((prev) => clampChatSize(prev));
+    };
+    window.addEventListener('resize', onWindowResize);
+    return () => window.removeEventListener('resize', onWindowResize);
+  }, [canResizePanel]);
+
+  const beginPanelResize = useCallback(
+    (edge: ResizeEdge, event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!canResizePanel || !isExpanded) return;
+      event.preventDefault();
+      event.stopPropagation();
+      resizeSessionRef.current = {
+        edge,
+        startX: event.clientX,
+        startY: event.clientY,
+        startWidth: panelSize.width,
+        startHeight: panelSize.height,
+      };
+      setIsResizing(true);
+
+      const onPointerMove = (moveEvent: PointerEvent) => {
+        const session = resizeSessionRef.current;
+        if (!session) return;
+        let nextWidth = session.startWidth;
+        let nextHeight = session.startHeight;
+        if (session.edge === 'left' || session.edge === 'corner') {
+          nextWidth = session.startWidth + (session.startX - moveEvent.clientX);
+        }
+        if (session.edge === 'top' || session.edge === 'corner') {
+          nextHeight = session.startHeight + (session.startY - moveEvent.clientY);
+        }
+        setPanelSize(clampChatSize({ width: nextWidth, height: nextHeight }));
+      };
+
+      const onPointerUp = () => {
+        resizeSessionRef.current = null;
+        setIsResizing(false);
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        setPanelSize((current) => {
+          const next = clampChatSize(current);
+          try {
+            window.localStorage.setItem(CHAT_SIZE_STORAGE_KEY, JSON.stringify(next));
+          } catch {
+            // ignore
+          }
+          return next;
+        });
+      };
+
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp);
+    },
+    [canResizePanel, isExpanded, panelSize.height, panelSize.width],
+  );
 
   const { data: roomsData, refetch: refetchRooms } = useChatRooms({
     enabled: isExpanded,
@@ -381,10 +503,43 @@ const FloatingChatWidget = () => {
         <section
           aria-label="전역 채팅 위젯"
           className={cn(
-            'pointer-events-auto fixed right-[1rem] bottom-0 w-[31rem] transition-[height,width,right,left,transform,box-shadow] duration-300 ease-out max-[743px]:right-[1rem] max-[743px]:w-[28.8rem] max-[389px]:right-[1rem] max-[389px]:left-[1rem] max-[389px]:w-auto',
-            isExpanded ? 'h-[45.8rem] max-[743px]:h-[42rem] max-[389px]:h-[40rem]' : 'h-[6.8rem]',
+            'pointer-events-auto fixed right-[1rem] bottom-0 transition-[height,width,right,left,transform,box-shadow] duration-300 ease-out max-[743px]:right-[1rem] max-[389px]:right-[1rem] max-[389px]:left-[1rem] max-[389px]:w-auto',
+            canResizePanel ? null : 'w-[31rem] max-[743px]:w-[28.8rem]',
+            isExpanded
+              ? canResizePanel
+                ? null
+                : 'h-[45.8rem] max-[743px]:h-[42rem] max-[389px]:h-[40rem]'
+              : 'h-[6.8rem]',
+            isResizing && 'transition-none select-none',
           )}
+          style={
+            canResizePanel
+              ? {
+                  width: panelSize.width,
+                  height: isExpanded ? panelSize.height : undefined,
+                }
+              : undefined
+          }
         >
+          {canResizePanel && isExpanded ? (
+            <>
+              <div
+                aria-hidden
+                className="absolute top-0 left-0 z-20 h-[1rem] w-[1rem] cursor-nwse-resize"
+                onPointerDown={(event) => beginPanelResize('corner', event)}
+              />
+              <div
+                aria-hidden
+                className="absolute top-0 right-[1rem] left-[1rem] z-20 h-[0.6rem] cursor-ns-resize"
+                onPointerDown={(event) => beginPanelResize('top', event)}
+              />
+              <div
+                aria-hidden
+                className="absolute top-[1rem] bottom-0 left-0 z-20 w-[0.6rem] cursor-ew-resize"
+                onPointerDown={(event) => beginPanelResize('left', event)}
+              />
+            </>
+          ) : null}
           {!isExpanded ? (
             <button
               type="button"
