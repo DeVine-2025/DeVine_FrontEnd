@@ -8,6 +8,7 @@ export interface MyProfile {
     nickname: string;
     address: string;
     disclosure: boolean;
+    proposalAlarm: boolean;
     mainType: 'DEVELOPER' | string;
     imageUrl: string;
     body: string;
@@ -55,6 +56,7 @@ export interface UpdateProfileRequest {
   }[];
   mainType: 'DEVELOPER' | 'PM';
   disclosure: boolean;
+  proposalAlarm: boolean;
 }
 
 export interface MyProfileResponse extends ApiResponse<MyProfile> {}

@@ -55,8 +55,7 @@ const ReportDetailPage = () => {
   const title = type === 'MAIN' ? '메인' : '상세';
 
   const fetchReport = async (): Promise<Report> => {
-    const token = await getToken();
-    if (!token) throw new Error('No token');
+    const token = (await getToken()) ?? undefined;
 
     if (type === 'MAIN') {
       const res = await reportQueries.main({ gitRepoId, token }).queryFn();

@@ -51,6 +51,7 @@ const MyInfoProfile = () => {
         contributions={contributionsData}
         gitRepos={gitRepos}
         year={year}
+        isOwner={'mine'}
         reports={reports?.result?.reports}
         onYearChange={handleYearChange}
         fetchNextPage={fetchNextPage}

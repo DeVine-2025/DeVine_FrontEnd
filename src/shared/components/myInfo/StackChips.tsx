@@ -1,8 +1,13 @@
 import { getTechBadgeByName, TECH_STACK_LABEL_BY_KEY } from '@constants/position-tech-stack';
 import { useThemeStore } from '@store/theme';
 
+type StackItem = {
+  key: string;
+  source: 'AUTO' | 'MANUAL';
+};
+
 type StackChipsProps = {
-  stacks: string[];
+  stacks: StackItem[];
   onRemove?: (stack: string) => void;
 };
 
@@ -15,7 +20,8 @@ const StackChips = ({ stacks, onRemove }: StackChipsProps) => {
 
   return (
     <div className="flex flex-wrap gap-2">
-      {stacks.map((key) => {
+      {stacks.map((item) => {
+        const key = item.key;
         const label = TECH_STACK_LABEL_BY_KEY[key] ?? key;
         const badge = getTechBadgeByName(label);
         const iconSrc =
@@ -29,7 +35,6 @@ const StackChips = ({ stacks, onRemove }: StackChipsProps) => {
           <button
             key={key}
             type="button"
-            onClick={() => removeStack(key)}
             className="relative inline-flex items-center"
           >
             {iconSrc ? (
@@ -39,12 +44,13 @@ const StackChips = ({ stacks, onRemove }: StackChipsProps) => {
                 <span className="Caption1 font-medium text-[var(--ui-800)]">{label}</span>
               </div>
             )}
-            <span
+            {item.source === "MANUAL" && <span
+              onClick={() => removeStack(key)}
               aria-hidden
               className="-right-[4px] -top-[4px] absolute flex h-[18px] w-[18px] cursor-pointer items-center justify-center rounded-full bg-[var(--ui-50)] text-[11px] text-[var(--ui-400)]"
             >
               ×
-            </span>
+            </span>}
           </button>
         );
       })}

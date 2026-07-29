@@ -27,7 +27,7 @@ export interface ReportCardRequest {
 
 export interface ReportDetailRequest {
   gitRepoId: number;
-  token: string;
+  token?: string;
 }
 
 /** =====================================================

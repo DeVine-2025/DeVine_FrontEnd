@@ -7,9 +7,10 @@ type MyInfoInputProps = {
   setText?: (text: string) => void;
   onClick?: () => void;
   placeholder?: string;
+  disabled?: boolean;
 };
 
-const MyInfoInput = ({ type, text, setText, placeholder, onClick }: MyInfoInputProps) => {
+const MyInfoInput = ({ type, text, setText, placeholder, onClick, disabled }: MyInfoInputProps) => {
   return (
     <div className="relative">
       {type === 'search' && (
@@ -22,9 +23,11 @@ const MyInfoInput = ({ type, text, setText, placeholder, onClick }: MyInfoInputP
         className={cn(
           'w-full rounded-2xl bg-ui-50 p-[1.4rem] text-ui-1000 text-xl placeholder:text-ui-400',
           type === 'search' && 'cursor-pointer pl-[5rem]',
+          disabled && 'text-ui-400'
         )}
         value={text}
         onChange={(e) => setText?.(e.target.value)}
+        disabled={disabled}
       />
     </div>
   );

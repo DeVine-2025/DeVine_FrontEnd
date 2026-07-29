@@ -4,6 +4,8 @@ import { Outlet } from 'react-router-dom';
 
 const ReportMainPage = () => {
   const { isSignedIn, isLoaded } = useAuth();
+  // const { search } = useLocation();
+  // const isOthersReport = search.includes('isOwner=others');
   const showLoginGate = isLoaded && !isSignedIn;
 
   if (showLoginGate) {

@@ -94,7 +94,7 @@ export const router = createBrowserRouter([
         element: <ReportMainPage />,
         children: [
           { index: true, element: <ReportPage /> },
-          { path: 'create', element: <ReportCreatePage /> },
+          { path: 'create', element: <ProtectedRoute><ReportCreatePage /></ProtectedRoute> },
           { path: 'loading', element: <ReportLoadingPage /> },
           { path: 'result', element: <ReportResultPage /> },
           { path: 'detail/:reportId', element: <ReportDetailPage /> },
