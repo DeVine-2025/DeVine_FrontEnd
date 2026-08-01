@@ -9,10 +9,14 @@ interface RequestPaymentParams {
   orderName: string;
   totalAmount: number;
   pgProvider: PgProvider;
+  clerkId: string;
+  items: Array<{ ticketProductId: number; quantity: number }>;
+  memberCouponId?: number;
 }
 
 export async function requestPayment(params: RequestPaymentParams) {
-  const { channelKey, paymentId, orderName, totalAmount, pgProvider } = params;
+  const { channelKey, paymentId, orderName, totalAmount, pgProvider, clerkId, items, memberCouponId } =
+    params;
 
   const storeId = import.meta.env.VITE_PORTONE_STORE_ID;
   if (!storeId) throw new Error('VITE_PORTONE_STORE_ID가 설정되지 않았습니다.');
@@ -29,6 +33,12 @@ export async function requestPayment(params: RequestPaymentParams) {
     totalAmount,
     currency: 'CURRENCY_KRW',
     payMethod,
+    customData: {
+      clerkId,
+      orderName,
+      items,
+      ...(memberCouponId !== undefined && { memberCouponId }),
+    },
     ...(isTossPay && {
       easyPay: {
         easyPayProvider: 'TOSSPAY',

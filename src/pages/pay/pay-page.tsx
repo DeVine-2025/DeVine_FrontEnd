@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { getChannelKey } from '@apis/payment/payment';
 import { useCompletePayment } from '@apis/payment/payment-queries';
 import { requestPayment, type PgProvider } from '@apis/payment/requestPayment';
-import TossPaymentsDark from '@assets/icons/tosspayments-dark.png';
-import TossPaymentsLight from '@assets/icons/tosspayments-light.png';
+import TossPayLogoDark from '@assets/icons/tosspay-logo-dark.png';
+import TossPayLogoWhite from '@assets/icons/tosspay-logo-white.png';
 import { useThemeStore } from '@store/theme';
 import PassProductButton from './components/PassProductButton';
 import QuantityStepper from './components/QuantityStepper';
@@ -19,6 +20,7 @@ const TICKET_PRODUCT_IDS: Record<1 | 3, number> = {
 
 const PayPage = () => {
   const { mutateAsync: completePayment, isPending } = useCompletePayment();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const { theme } = useThemeStore();
 
   const [selectedUnitCount, setSelectedUnitCount] = useState<1 | 3>(1);
@@ -34,6 +36,16 @@ const PayPage = () => {
   const handleProceedPayment = async () => {
     if (isProcessing) return;
 
+    if (!isUserLoaded) {
+      setPaymentError({ message: '사용자 정보를 확인 중입니다. 잠시 후 다시 시도해 주세요.' });
+      return;
+    }
+
+    if (!user?.id) {
+      setPaymentError({ message: '결제를 진행하려면 로그인이 필요합니다.' });
+      return;
+    }
+
     setIsProcessing(true);
     setPaymentError(null);
 
@@ -43,6 +55,9 @@ const PayPage = () => {
 
       const paymentId = `payment_${Date.now()}`;
       const orderName = `이용권 ${selectedUnitCount}개 x${orderQuantity}`;
+      const items = [
+        { ticketProductId: TICKET_PRODUCT_IDS[selectedUnitCount], quantity: orderQuantity },
+      ];
 
       await requestPayment({
         channelKey,
@@ -50,13 +65,15 @@ const PayPage = () => {
         paymentId,
         orderName,
         totalAmount: expectedAmount,
+        clerkId: user.id,
+        items,
       });
 
       await completePayment({
         paymentId,
         orderName,
         amount: expectedAmount,
-        items: [{ ticketProductId: TICKET_PRODUCT_IDS[selectedUnitCount], quantity: orderQuantity }],
+        items,
       });
 
       window.alert('결제가 완료되었습니다.');
@@ -149,8 +166,8 @@ const PayPage = () => {
               type="button"
               onClick={handleProceedPayment}
               disabled={isProcessing || isPending}
-              aria-label={isProcessing || isPending ? '결제 처리 중' : '토스페이먼츠로 결제하기'}
-              className={`flex h-[48px] w-[240px] cursor-pointer items-center justify-center rounded-[12px] shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 ${
+              aria-label={isProcessing || isPending ? '결제 처리 중' : '토스페이로 결제하기'}
+              className={`flex h-[48px] w-[180px] cursor-pointer items-center justify-center rounded-[12px] shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 ${
                 theme === 'dark' ? 'bg-[#FFFFFF]' : 'bg-[#202532]'
               }`}
             >
@@ -158,7 +175,7 @@ const PayPage = () => {
                 <span className="Label1 font-semibold text-card-title">처리 중...</span>
               ) : (
                 <img
-                  src={theme === 'dark' ? TossPaymentsDark : TossPaymentsLight}
+                  src={theme === 'dark' ? TossPayLogoDark : TossPayLogoWhite}
                   alt=""
                   className="h-[60px] w-[180px] object-contain"
                 />
