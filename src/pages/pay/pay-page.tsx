@@ -3,8 +3,8 @@ import { useUser } from '@clerk/clerk-react';
 import { getChannelKey } from '@apis/payment/payment';
 import { useCompletePayment } from '@apis/payment/payment-queries';
 import { requestPayment, type PgProvider } from '@apis/payment/requestPayment';
-import TossPaymentsDark from '@assets/icons/tosspayments-dark.png';
-import TossPaymentsLight from '@assets/icons/tosspayments-light.png';
+import TossPayLogoDark from '@assets/icons/tosspay-logo-dark.png';
+import TossPayLogoWhite from '@assets/icons/tosspay-logo-white.png';
 import { useThemeStore } from '@store/theme';
 import PassProductButton from './components/PassProductButton';
 import QuantityStepper from './components/QuantityStepper';
@@ -166,8 +166,8 @@ const PayPage = () => {
               type="button"
               onClick={handleProceedPayment}
               disabled={isProcessing || isPending}
-              aria-label={isProcessing || isPending ? '결제 처리 중' : '토스페이먼츠로 결제하기'}
-              className={`flex h-[48px] w-[240px] cursor-pointer items-center justify-center rounded-[12px] shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 ${
+              aria-label={isProcessing || isPending ? '결제 처리 중' : '토스페이로 결제하기'}
+              className={`flex h-[48px] w-[180px] cursor-pointer items-center justify-center rounded-[12px] shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 ${
                 theme === 'dark' ? 'bg-[#FFFFFF]' : 'bg-[#202532]'
               }`}
             >
@@ -175,7 +175,7 @@ const PayPage = () => {
                 <span className="Label1 font-semibold text-card-title">처리 중...</span>
               ) : (
                 <img
-                  src={theme === 'dark' ? TossPaymentsDark : TossPaymentsLight}
+                  src={theme === 'dark' ? TossPayLogoDark : TossPayLogoWhite}
                   alt=""
                   className="h-[60px] w-[180px] object-contain"
                 />
