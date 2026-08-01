@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { getChannelKey } from '@apis/payment/payment';
 import { useCompletePayment } from '@apis/payment/payment-queries';
 import { requestPayment, type PgProvider } from '@apis/payment/requestPayment';
@@ -19,6 +20,7 @@ const TICKET_PRODUCT_IDS: Record<1 | 3, number> = {
 
 const PayPage = () => {
   const { mutateAsync: completePayment, isPending } = useCompletePayment();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const { theme } = useThemeStore();
 
   const [selectedUnitCount, setSelectedUnitCount] = useState<1 | 3>(1);
@@ -34,6 +36,16 @@ const PayPage = () => {
   const handleProceedPayment = async () => {
     if (isProcessing) return;
 
+    if (!isUserLoaded) {
+      setPaymentError({ message: '사용자 정보를 확인 중입니다. 잠시 후 다시 시도해 주세요.' });
+      return;
+    }
+
+    if (!user?.id) {
+      setPaymentError({ message: '결제를 진행하려면 로그인이 필요합니다.' });
+      return;
+    }
+
     setIsProcessing(true);
     setPaymentError(null);
 
@@ -43,6 +55,9 @@ const PayPage = () => {
 
       const paymentId = `payment_${Date.now()}`;
       const orderName = `이용권 ${selectedUnitCount}개 x${orderQuantity}`;
+      const items = [
+        { ticketProductId: TICKET_PRODUCT_IDS[selectedUnitCount], quantity: orderQuantity },
+      ];
 
       await requestPayment({
         channelKey,
@@ -50,13 +65,15 @@ const PayPage = () => {
         paymentId,
         orderName,
         totalAmount: expectedAmount,
+        clerkId: user.id,
+        items,
       });
 
       await completePayment({
         paymentId,
         orderName,
         amount: expectedAmount,
-        items: [{ ticketProductId: TICKET_PRODUCT_IDS[selectedUnitCount], quantity: orderQuantity }],
+        items,
       });
 
       window.alert('결제가 완료되었습니다.');
