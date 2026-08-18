@@ -2,9 +2,9 @@
 
 ## 👨‍👩‍👧 팀원 소개
 
-| [<img src="https://github.com/seongmin-noh.png" width="200px">](https://github.com/seongmin-noh) | [<img src="https://github.com/MunSuyoung.png" width="200px">](https://github.com/MunSuyoung) | [<img src="https://github.com/hyeyoon23.png" width="200px">](https://github.com/hyeyoon23) | [<img src="https://github.com/choikyungsoo.png" width="200px">](https://github.com/choikyungsoo) |
+| [<img src="https://github.com/seongmin-noh.png" width="200px">](https://github.com/seongmin-noh) | [<img src="https://github.com/OhDongI.png" width="200px">](https://github.com/OhDongI) | [<img src="https://github.com/sjmd117.png" width="200px">](https://github.com/sjmd117) | [<img src="https://github.com/choikyungsoo.png" width="200px">](https://github.com/choikyungsoo) |
 | :------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: |
-| [노승민](https://github.com/seongmin-noh) | [문수영](https://github.com/MunSuyoung) | [이혜윤](https://github.com/hyeyoon23) | [최경수](https://github.com/choikyungsoo) |
+| [노승민](https://github.com/seongmin-noh) | [오동이](https://github.com/OhDongI) | [이주석](https://github.com/sjmd117) | [최경수](https://github.com/choikyungsoo) |
 
 
 <br>
