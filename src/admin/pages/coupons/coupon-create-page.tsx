@@ -16,6 +16,7 @@ import {
   type UpdateAdminCouponRequest,
   updateAdminCoupon,
 } from '../../apis/coupon';
+import { CouponIssueModal } from '../../components/coupon-issue-modal';
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 
 const DISCOUNT_METHODS = ['정률', '정액'] as const;
@@ -133,6 +134,7 @@ export default function CouponCreatePage() {
   const [description, setDescription] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [formError, setFormError] = useState('');
+  const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
 
   const couponDetailQuery = useQuery({
     queryKey: ['admin', 'coupons', 'detail', parsedCouponId],
@@ -272,7 +274,19 @@ export default function CouponCreatePage() {
         쿠폰 목록/ 현황으로
       </Link>
 
-      <AdminPageTitle className="mt-[8px]" title={isEdit ? '쿠폰 수정' : '쿠폰 생성'} />
+      <div className="mt-[8px] flex flex-wrap items-center justify-between gap-[16px]">
+        <AdminPageTitle title={isEdit ? '쿠폰 수정' : '쿠폰 생성'} />
+        {isEdit && couponDetailQuery.data && (
+          <button
+            className="Body1 inline-flex h-[44px] cursor-pointer items-center justify-center rounded-[8px] bg-[#4e49ff] px-[18px] font-medium text-white transition-colors hover:bg-[#3e39e8] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!couponDetailQuery.data.isActive}
+            onClick={() => setIsIssueModalOpen(true)}
+            type="button"
+          >
+            쿠폰 발급
+          </button>
+        )}
+      </div>
 
       {isEdit && couponDetailQuery.isPending && (
         <p className="Body1 mt-[28px] text-center text-[var(--ui-500)]">
@@ -433,6 +447,14 @@ export default function CouponCreatePage() {
               : '쿠폰 생성'}
         </button>
       </form>
+
+      {isIssueModalOpen && couponDetailQuery.data && (
+        <CouponIssueModal
+          couponId={parsedCouponId}
+          couponName={couponDetailQuery.data.name}
+          onClose={() => setIsIssueModalOpen(false)}
+        />
+      )}
     </section>
   );
 }

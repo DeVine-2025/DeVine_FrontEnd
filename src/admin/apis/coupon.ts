@@ -66,6 +66,20 @@ export type AdminCouponUsage = {
   validUntil: string;
 };
 
+export type IssueAdminCouponRequest = {
+  issueType: 'ALL' | 'SPECIFIC' | 'CODE_GEN';
+  nicknames?: string[];
+  codeLength?: number;
+  codeCount?: number;
+  code?: string;
+  maxUses?: number;
+};
+
+export type IssueAdminCouponResult = {
+  issuedCount?: number | null;
+  generatedCodes?: string[] | null;
+};
+
 type GetAdminCouponsParams = {
   page: number;
   size: number;
@@ -105,6 +119,15 @@ export async function createAdminCoupon(body: CreateAdminCouponRequest) {
 export async function updateAdminCoupon(couponId: number, body: UpdateAdminCouponRequest) {
   const { data } = await axiosInstance.patch<ApiResponse<AdminCoupon>>(
     `/admin/v1/coupon/${couponId}`,
+    body,
+  );
+
+  return data.result;
+}
+
+export async function issueAdminCoupon(couponId: number, body: IssueAdminCouponRequest) {
+  const { data } = await axiosInstance.post<ApiResponse<IssueAdminCouponResult>>(
+    `/admin/v1/coupon/${couponId}/issue`,
     body,
   );
 
