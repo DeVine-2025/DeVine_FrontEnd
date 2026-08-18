@@ -35,6 +35,17 @@ export type AdminCouponPage = {
   totalPages?: number;
 };
 
+export type CreateAdminCouponRequest = {
+  name: string;
+  discountType: 'FIXED_RATE' | 'FIXED_AMOUNT';
+  discountValue: number;
+  applicableTicketProductId: number;
+  validFrom: string;
+  validUntil: string;
+  totalIssueLimit: number;
+  description: string;
+};
+
 type GetAdminCouponsParams = {
   page: number;
   size: number;
@@ -44,6 +55,12 @@ export async function getAdminCoupons({ page, size }: GetAdminCouponsParams) {
   const { data } = await axiosInstance.get<ApiResponse<AdminCouponPage>>('/admin/v1/coupon', {
     params: { page, size },
   });
+
+  return data.result;
+}
+
+export async function createAdminCoupon(body: CreateAdminCouponRequest) {
+  const { data } = await axiosInstance.post<ApiResponse<AdminCoupon>>('/admin/v1/coupon', body);
 
   return data.result;
 }

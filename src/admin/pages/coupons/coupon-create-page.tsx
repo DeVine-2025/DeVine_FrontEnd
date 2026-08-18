@@ -1,19 +1,23 @@
 import ArrowLeftAdminIcon from '@assets/icons/arrow-left-admin.svg?react';
 import CalendarClockIcon from '@assets/icons/calendar-clock.svg?react';
 import ChevronDownIcon from '@assets/icons/chevron-down.svg?react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import { ko } from 'date-fns/locale';
-import { useEffect, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { DayPicker } from 'react-day-picker';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { cn } from '@libs/cn';
 import '@styles/date-picker-theme.css';
+import {
+  createAdminCoupon,
+  type CreateAdminCouponRequest,
+} from '../../apis/coupon';
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 
 const DISCOUNT_METHODS = ['정률', '정액'] as const;
-const ISSUE_METHODS = ['전체', '특정유저', '전체생성'] as const;
 
 type DiscountMethod = (typeof DISCOUNT_METHODS)[number];
-type IssueMethod = (typeof ISSUE_METHODS)[number];
 
 const FIELD_LABEL_CLASS = 'Headline1 font-semibold text-[var(--ui-1000)]';
 const INPUT_CLASS =
@@ -108,15 +112,93 @@ function DateField({
 export default function CouponCreatePage() {
   const { couponId } = useParams();
   const isEdit = Boolean(couponId);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [name, setName] = useState('');
-  const [product, setProduct] = useState('');
+  const [productId, setProductId] = useState('');
   const [discountMethod, setDiscountMethod] = useState<DiscountMethod>('정률');
   const [discountValue, setDiscountValue] = useState('');
-  const [startDate, setStartDate] = useState(() => new Date(2026, 6, 21));
-  const [endDate, setEndDate] = useState(() => new Date(2026, 6, 21));
+  const [startDate, setStartDate] = useState(() => new Date());
+  const [endDate, setEndDate] = useState(() => {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    return nextMonth;
+  });
   const [quantity, setQuantity] = useState('');
-  const [issueMethod, setIssueMethod] = useState<IssueMethod>('전체');
+  const [description, setDescription] = useState('');
+  const [formError, setFormError] = useState('');
+
+  const createCouponMutation = useMutation({
+    mutationFn: createAdminCoupon,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'coupons'] });
+      navigate('/admin/coupons');
+    },
+    onError: (error) => {
+      const message = axios.isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      setFormError(message ?? '쿠폰을 생성하지 못했습니다.');
+    },
+  });
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError('');
+
+    if (isEdit) {
+      setFormError('쿠폰 수정 API는 아직 연동되지 않았습니다.');
+      return;
+    }
+
+    const parsedProductId = Number(productId);
+    const parsedDiscountValue = Number(discountValue);
+    const parsedQuantity = Number(quantity);
+
+    if (!name.trim()) {
+      setFormError('쿠폰명을 입력해주세요.');
+      return;
+    }
+    if (!Number.isInteger(parsedProductId) || parsedProductId <= 0) {
+      setFormError('적용 대상 상품 ID를 올바르게 입력해주세요.');
+      return;
+    }
+    if (!Number.isFinite(parsedDiscountValue) || parsedDiscountValue <= 0) {
+      setFormError('할인 값을 올바르게 입력해주세요.');
+      return;
+    }
+    if (discountMethod === '정률' && parsedDiscountValue > 100) {
+      setFormError('정률 할인 값은 100 이하로 입력해주세요.');
+      return;
+    }
+    if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
+      setFormError('발급 수량 제한을 올바르게 입력해주세요.');
+      return;
+    }
+    if (startDate > endDate) {
+      setFormError('유효기간 종료일은 시작일보다 빠를 수 없습니다.');
+      return;
+    }
+
+    const validFrom = new Date(startDate);
+    validFrom.setHours(0, 0, 0, 0);
+    const validUntil = new Date(endDate);
+    validUntil.setHours(23, 59, 59, 999);
+
+    const body: CreateAdminCouponRequest = {
+      name: name.trim(),
+      discountType: discountMethod === '정률' ? 'FIXED_RATE' : 'FIXED_AMOUNT',
+      discountValue: parsedDiscountValue,
+      applicableTicketProductId: parsedProductId,
+      validFrom: validFrom.toISOString(),
+      validUntil: validUntil.toISOString(),
+      totalIssueLimit: parsedQuantity,
+      description: description.trim(),
+    };
+
+    createCouponMutation.mutate(body);
+  };
 
   return (
     <section>
@@ -131,9 +213,12 @@ export default function CouponCreatePage() {
         쿠폰 목록/ 현황으로
       </Link>
 
-      <AdminPageTitle className="mt-[8px]" title="쿠폰 생성 / 발급" />
+      <AdminPageTitle className="mt-[8px]" title={isEdit ? '쿠폰 수정' : '쿠폰 생성'} />
 
-      <div className="mt-[28px] rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[35px]">
+      <form
+        className="mt-[28px] rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[35px]"
+        onSubmit={handleSubmit}
+      >
         <div className="grid grid-cols-1 gap-x-[40px] gap-y-[36px] lg:grid-cols-2">
           <label className="flex flex-col gap-[12px]">
             <span className={FIELD_LABEL_CLASS}>쿠폰명 / 캠페인명</span>
@@ -141,17 +226,22 @@ export default function CouponCreatePage() {
               className={INPUT_CLASS}
               onChange={(event) => setName(event.target.value)}
               placeholder="내용 입력"
+              required
               value={name}
             />
           </label>
 
           <label className="flex flex-col gap-[12px]">
-            <span className={FIELD_LABEL_CLASS}>적용 대상 상품</span>
+            <span className={FIELD_LABEL_CLASS}>적용 대상 상품 ID</span>
             <input
               className={INPUT_CLASS}
-              onChange={(event) => setProduct(event.target.value)}
-              placeholder="상품을 입력해주세요"
-              value={product}
+              inputMode="numeric"
+              min="1"
+              onChange={(event) => setProductId(event.target.value)}
+              placeholder="상품 ID를 입력해주세요"
+              required
+              type="number"
+              value={productId}
             />
           </label>
 
@@ -180,8 +270,11 @@ export default function CouponCreatePage() {
             <span className={FIELD_LABEL_CLASS}>할인 값</span>
             <input
               className={INPUT_CLASS}
+              min="1"
               onChange={(event) => setDiscountValue(event.target.value)}
               placeholder="할인 값을 입력해주세요"
+              required
+              type="number"
               value={discountValue}
             />
           </label>
@@ -194,46 +287,40 @@ export default function CouponCreatePage() {
             <input
               className={INPUT_CLASS}
               inputMode="numeric"
+              min="1"
               onChange={(event) => setQuantity(event.target.value)}
               placeholder="수량을 입력해주세요"
+              required
+              type="number"
               value={quantity}
             />
           </label>
 
-          <div className="flex flex-col gap-[12px]">
-            <span className={FIELD_LABEL_CLASS}>발급 방식</span>
-            <div className="flex overflow-hidden rounded-[5px] border border-[var(--ui-200)]">
-              {ISSUE_METHODS.map((method, index) => {
-                const isSelected = method === issueMethod;
-
-                return (
-                  <button
-                    className={cn(
-                      'Body1 h-[50px] flex-1 cursor-pointer font-medium transition-colors',
-                      index > 0 && 'border-[var(--ui-200)] border-l',
-                      isSelected
-                        ? 'bg-[#4e49ff] text-white'
-                        : 'bg-[var(--ui-bg)] text-[var(--ui-800)] hover:bg-[var(--ui-50)]',
-                    )}
-                    key={method}
-                    onClick={() => setIssueMethod(method)}
-                    type="button"
-                  >
-                    {method}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <label className="flex flex-col gap-[12px] lg:col-span-2">
+            <span className={FIELD_LABEL_CLASS}>설명</span>
+            <textarea
+              className={cn(INPUT_CLASS, 'h-[100px] resize-none py-[14px]')}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="쿠폰 설명을 입력해주세요"
+              value={description}
+            />
+          </label>
         </div>
 
+        {formError && (
+          <p className="Body1 mt-[24px] text-center font-medium text-[var(--negative-text)]">
+            {formError}
+          </p>
+        )}
+
         <button
-          className="Heading2 mt-[36px] h-[56px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-medium text-white transition-colors hover:bg-[#3e39e8]"
-          type="button"
+          className="Heading2 mt-[36px] h-[56px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-medium text-white transition-colors hover:bg-[#3e39e8] disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={createCouponMutation.isPending}
+          type="submit"
         >
-          {isEdit ? '쿠폰 수정' : '쿠폰 발급'}
+          {isEdit ? '쿠폰 수정' : createCouponMutation.isPending ? '생성 중...' : '쿠폰 생성'}
         </button>
-      </div>
+      </form>
     </section>
   );
 }
