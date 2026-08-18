@@ -2,8 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import Pagination from '@components/common/Pagination';
+import { getAdminNotices, type AdminNoticeListItem } from '../../apis/notice';
 import { getAdminProjects, type AdminProjectListItem } from '../../apis/project';
 import { AdminListLayout } from '../../components/common/admin-list-layout';
+import { AdminStatusBadge } from '../../components/common/admin-status-badge';
 import { AdminTable, type AdminTableColumn } from '../../components/common/admin-table';
 
 type ContentVisibility = '노출' | '비노출';
@@ -18,6 +20,14 @@ type Content = {
   visible: boolean;
 };
 
+type NoticeListRow = {
+  id: number;
+  title: string;
+  displayPeriod: string;
+  displayStatus: string;
+  statusTone: 'positive' | 'neutral';
+};
+
 const PAGE_SIZE = 10;
 
 const toContent = (project: AdminProjectListItem): Content => ({
@@ -28,6 +38,40 @@ const toContent = (project: AdminProjectListItem): Content => ({
   visibility: project.visible ? '노출' : '비노출',
   visible: project.visible,
 });
+
+const NOTICE_STATUS_META: Record<string, { label: string; tone: 'positive' | 'neutral' }> = {
+  HIDDEN: { label: '비노출', tone: 'neutral' },
+  SCHEDULED: { label: '게시 예정', tone: 'neutral' },
+  EXPOSED: { label: '노출', tone: 'positive' },
+  VISIBLE: { label: '노출', tone: 'positive' },
+  ENDED: { label: '게시 종료', tone: 'neutral' },
+  EXPIRED: { label: '게시 종료', tone: 'neutral' },
+};
+
+const formatDisplayPeriod = (startAt: string | null, endAt: string | null) => {
+  const start = startAt ? dayjs(startAt).format('YY-MM-DD HH:mm') : null;
+  const end = endAt ? dayjs(endAt).format('YY-MM-DD HH:mm') : null;
+
+  if (start && end) return `${start} ~ ${end}`;
+  if (start) return `${start}부터`;
+  if (end) return `${end}까지`;
+  return '-';
+};
+
+const toNoticeListRow = (notice: AdminNoticeListItem): NoticeListRow => {
+  const statusMeta = NOTICE_STATUS_META[notice.displayStatus] ?? {
+    label: notice.displayStatus,
+    tone: notice.isExposed ? ('positive' as const) : ('neutral' as const),
+  };
+
+  return {
+    id: notice.noticeId,
+    title: notice.title,
+    displayPeriod: formatDisplayPeriod(notice.displayStartAt, notice.displayEndAt),
+    displayStatus: statusMeta.label,
+    statusTone: statusMeta.tone,
+  };
+};
 
 const createContentColumns = (
   onVisibilityClick: (content: Content) => void,
@@ -92,24 +136,70 @@ const createContentColumns = (
   },
 ];
 
+const NOTICE_COLUMNS: AdminTableColumn<NoticeListRow>[] = [
+  {
+    id: 'title',
+    header: '제목',
+    width: '30%',
+    align: 'left',
+    cell: (notice) => notice.title,
+  },
+  {
+    id: 'displayPeriod',
+    header: '게시 기간',
+    width: '40%',
+    align: 'center',
+    cell: (notice) => notice.displayPeriod,
+  },
+  {
+    id: 'displayStatus',
+    header: '노출 상태',
+    width: '30%',
+    cell: (notice) => (
+      <AdminStatusBadge status={notice.displayStatus} tone={notice.statusTone} />
+    ),
+  },
+];
+
 export default function ContentListPage() {
   const [page, setPage] = useState(1);
   const [contentType, setContentType] = useState<ContentType>('PROJECT');
   const [visibilityTarget, setVisibilityTarget] = useState<Content | null>(null);
   const isProject = contentType === 'PROJECT';
-  const { data, isError, isPending } = useQuery({
+  const {
+    data: projectData,
+    isError: isProjectError,
+    isPending: isProjectPending,
+  } = useQuery({
     queryKey: ['admin', 'projects', page, PAGE_SIZE],
     queryFn: () => getAdminProjects({ page, size: PAGE_SIZE }),
     enabled: isProject,
   });
+  const {
+    data: noticeData,
+    isError: isNoticeError,
+    isPending: isNoticePending,
+  } = useQuery({
+    queryKey: ['admin', 'notices', page, PAGE_SIZE],
+    queryFn: () => getAdminNotices({ page, size: PAGE_SIZE }),
+    enabled: !isProject,
+  });
 
-  const projects = data?.content.map(toContent) ?? [];
-  const totalPages = data?.totalPages ?? 1;
-  const projectEmptyMessage = isPending
+  const projects = projectData?.content.map(toContent) ?? [];
+  const notices = noticeData?.content.map(toNoticeListRow) ?? [];
+  const totalPages = isProject
+    ? (projectData?.totalPages ?? 1)
+    : (noticeData?.totalPages ?? 1);
+  const projectEmptyMessage = isProjectPending
     ? '게시글 목록을 불러오는 중입니다.'
-    : isError
+    : isProjectError
       ? '게시글 목록을 불러오지 못했습니다.'
       : '등록된 게시글이 없습니다.';
+  const noticeEmptyMessage = isNoticePending
+    ? '공지사항 목록을 불러오는 중입니다.'
+    : isNoticeError
+      ? '공지사항 목록을 불러오지 못했습니다.'
+      : '등록된 공지사항이 없습니다.';
   const contentColumns = createContentColumns(setVisibilityTarget);
 
   return (
@@ -148,20 +238,26 @@ export default function ContentListPage() {
           })}
         </div>
       }
-      footer={
-        isProject ? (
-          <Pagination page={page} totalPages={totalPages} onChange={setPage} maxButtons={5} />
-        ) : undefined
-      }
+      footer={<Pagination page={page} totalPages={totalPages} onChange={setPage} maxButtons={5} />}
       title={isProject ? '게시글 관리' : '공지사항 관리'}
     >
-      <AdminTable
-        ariaLabel={isProject ? '게시글 목록' : '공지사항 목록'}
-        columns={contentColumns}
-        data={isProject ? projects : []}
-        emptyMessage={isProject ? projectEmptyMessage : '등록된 공지사항이 없습니다.'}
-        getRowKey={(content) => content.id}
-      />
+      {isProject ? (
+        <AdminTable
+          ariaLabel="게시글 목록"
+          columns={contentColumns}
+          data={projects}
+          emptyMessage={projectEmptyMessage}
+          getRowKey={(content) => content.id}
+        />
+      ) : (
+        <AdminTable
+          ariaLabel="공지사항 목록"
+          columns={NOTICE_COLUMNS}
+          data={notices}
+          emptyMessage={noticeEmptyMessage}
+          getRowKey={(notice) => notice.id}
+        />
+      )}
 
       {visibilityTarget && (
         <div
