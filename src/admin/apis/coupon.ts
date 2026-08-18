@@ -56,6 +56,16 @@ export type UpdateAdminCouponRequest = {
   description?: string | null;
 };
 
+export type AdminCouponUsage = {
+  couponId: number;
+  name: string;
+  issuedCount: number;
+  usedCount: number;
+  usageRate: number;
+  isExpiringSoon: boolean;
+  validUntil: string;
+};
+
 type GetAdminCouponsParams = {
   page: number;
   size: number;
@@ -72,6 +82,15 @@ export async function getAdminCoupons({ page, size }: GetAdminCouponsParams) {
 export async function getAdminCoupon(couponId: number) {
   const { data } = await axiosInstance.get<ApiResponse<AdminCoupon>>(
     `/admin/v1/coupon/${couponId}`,
+  );
+
+  return data.result;
+}
+
+export async function getAdminCouponUsage(couponId?: number) {
+  const { data } = await axiosInstance.get<ApiResponse<AdminCouponUsage[]>>(
+    '/admin/v1/coupon/usage',
+    { params: couponId ? { couponId } : undefined },
   );
 
   return data.result;

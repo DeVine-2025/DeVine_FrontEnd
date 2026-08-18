@@ -19,8 +19,10 @@ import {
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 
 const DISCOUNT_METHODS = ['정률', '정액'] as const;
+const ISSUE_METHODS = ['전체', '특정유저', '전체생성'] as const;
 
 type DiscountMethod = (typeof DISCOUNT_METHODS)[number];
+type IssueMethod = (typeof ISSUE_METHODS)[number];
 
 const FIELD_LABEL_CLASS = 'Headline1 font-semibold text-[var(--ui-1000)]';
 const INPUT_CLASS =
@@ -131,6 +133,7 @@ export default function CouponCreatePage() {
   });
   const [quantity, setQuantity] = useState('');
   const [description, setDescription] = useState('');
+  const [issueMethod, setIssueMethod] = useState<IssueMethod>('전체');
   const [isActive, setIsActive] = useState(true);
   const [formError, setFormError] = useState('');
 
@@ -378,7 +381,7 @@ export default function CouponCreatePage() {
             />
           </label>
 
-          {isEdit && (
+          {isEdit ? (
             <label className="flex flex-col gap-[12px]">
               <span className={FIELD_LABEL_CLASS}>활성화 여부</span>
               <span className="relative block">
@@ -396,17 +399,45 @@ export default function CouponCreatePage() {
                 />
               </span>
             </label>
+          ) : (
+            <div className="flex flex-col gap-[12px]">
+              <span className={FIELD_LABEL_CLASS}>발급 방식</span>
+              <div className="flex overflow-hidden rounded-[5px] border border-[var(--ui-200)]">
+                {ISSUE_METHODS.map((method, index) => {
+                  const isSelected = method === issueMethod;
+
+                  return (
+                    <button
+                      className={cn(
+                        'Body1 h-[50px] flex-1 cursor-pointer font-medium transition-colors',
+                        index > 0 && 'border-[var(--ui-200)] border-l',
+                        isSelected
+                          ? 'bg-[#4e49ff] text-white'
+                          : 'bg-[var(--ui-bg)] text-[var(--ui-800)] hover:bg-[var(--ui-50)]',
+                      )}
+                      key={method}
+                      onClick={() => setIssueMethod(method)}
+                      type="button"
+                    >
+                      {method}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
-          <label className="flex flex-col gap-[12px] lg:col-span-2">
-            <span className={FIELD_LABEL_CLASS}>설명</span>
-            <textarea
-              className={cn(INPUT_CLASS, 'h-[100px] resize-none py-[14px]')}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="쿠폰 설명을 입력해주세요"
-              value={description}
-            />
-          </label>
+          {isEdit && (
+            <label className="flex flex-col gap-[12px] lg:col-span-2">
+              <span className={FIELD_LABEL_CLASS}>설명</span>
+              <textarea
+                className={cn(INPUT_CLASS, 'h-[100px] resize-none py-[14px]')}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="쿠폰 설명을 입력해주세요"
+                value={description}
+              />
+            </label>
+          )}
         </div>
 
         {formError && (

@@ -3,7 +3,12 @@ import dayjs from 'dayjs';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Pagination from '@components/common/Pagination';
-import { getAdminCoupons, type AdminCoupon } from '../../apis/coupon';
+import {
+  type AdminCoupon,
+  type AdminCouponUsage,
+  getAdminCoupons,
+  getAdminCouponUsage,
+} from '../../apis/coupon';
 import { AdminListLayout } from '../../components/common/admin-list-layout';
 import { AdminStatusBadge } from '../../components/common/admin-status-badge';
 import { AdminTable, type AdminTableColumn } from '../../components/common/admin-table';
@@ -16,6 +21,7 @@ type CouponListRow = {
   discount: string;
   product: string;
   expiresAt: string;
+  isExpiringSoon: boolean;
   issuedUsed: string;
   usageRate: string;
   usageTone: CouponUsageTone;
@@ -31,18 +37,24 @@ const formatDiscount = (coupon: AdminCoupon) => {
   return `${coupon.discountValue.toLocaleString('ko-KR')}원`;
 };
 
-const toCouponListRow = (coupon: AdminCoupon): CouponListRow => {
-  const usageRate =
-    coupon.issuedCount > 0 ? Math.round((coupon.usedCount / coupon.issuedCount) * 100) : 0;
-  const isAllUsed = coupon.issuedCount > 0 && coupon.usedCount >= coupon.issuedCount;
+const toCouponListRow = (coupon: AdminCoupon, usage?: AdminCouponUsage): CouponListRow => {
+  const issuedCount = usage?.issuedCount ?? coupon.issuedCount;
+  const usedCount = usage?.usedCount ?? coupon.usedCount;
+  const usageRate = usage
+    ? Math.round(usage.usageRate * 100)
+    : issuedCount > 0
+      ? Math.round((usedCount / issuedCount) * 100)
+      : 0;
+  const isAllUsed = issuedCount > 0 && usedCount >= issuedCount;
 
   return {
     id: coupon.couponId,
     name: coupon.name,
     discount: formatDiscount(coupon),
     product: coupon.applicableTicketProductName ?? '전체',
-    expiresAt: `~${dayjs(coupon.validUntil).format('MM-DD')}`,
-    issuedUsed: `${coupon.issuedCount.toLocaleString('ko-KR')}/${coupon.usedCount.toLocaleString('ko-KR')}`,
+    expiresAt: `~${dayjs(usage?.validUntil ?? coupon.validUntil).format('MM-DD')}`,
+    isExpiringSoon: usage?.isExpiringSoon ?? false,
+    issuedUsed: `${issuedCount.toLocaleString('ko-KR')}/${usedCount.toLocaleString('ko-KR')}`,
     usageRate: isAllUsed ? '사용 완료' : `${usageRate}%`,
     usageTone: isAllUsed ? 'positive' : usageRate >= 80 ? 'negative' : 'neutral',
   };
@@ -71,7 +83,14 @@ const COUPON_COLUMNS: AdminTableColumn<CouponListRow>[] = [
     id: 'expiresAt',
     header: '유효기간',
     width: '14%',
-    cell: (coupon) => coupon.expiresAt,
+    cell: (coupon) => (
+      <span className="flex flex-col items-center gap-[2px]">
+        <span>{coupon.expiresAt}</span>
+        {coupon.isExpiringSoon && (
+          <span className="Caption1 text-[var(--negative-text)]">만료 임박</span>
+        )}
+      </span>
+    ),
   },
   {
     id: 'issuedUsed',
@@ -93,8 +112,15 @@ export default function CouponListPage() {
     queryKey: ['admin', 'coupons', page, PAGE_SIZE],
     queryFn: () => getAdminCoupons({ page, size: PAGE_SIZE }),
   });
+  const { data: usageData, isError: isUsageError } = useQuery({
+    queryKey: ['admin', 'coupons', 'usage'],
+    queryFn: () => getAdminCouponUsage(),
+  });
 
-  const coupons = data?.content.map(toCouponListRow) ?? [];
+  const usageByCouponId = new Map(usageData?.map((usage) => [usage.couponId, usage]));
+  const coupons =
+    data?.content.map((coupon) => toCouponListRow(coupon, usageByCouponId.get(coupon.couponId))) ??
+    [];
   const totalPages = data?.totalPages ?? data?.page?.totalPages ?? 1;
   const emptyMessage = isPending
     ? '쿠폰 목록을 불러오는 중입니다.'
@@ -117,14 +143,21 @@ export default function CouponListPage() {
       }
       title="쿠폰 목록 / 현황"
     >
-      <AdminTable
-        ariaLabel="쿠폰 목록"
-        columns={COUPON_COLUMNS}
-        data={coupons}
-        emptyMessage={emptyMessage}
-        getRowHref={(coupon) => `/admin/coupons/${coupon.id}/edit`}
-        getRowKey={(coupon) => coupon.id}
-      />
+      <>
+        {isUsageError && (
+          <p className="Body1 mb-[12px] text-center text-[var(--negative-text)]">
+            사용 현황을 불러오지 못해 쿠폰 목록 기준으로 표시합니다.
+          </p>
+        )}
+        <AdminTable
+          ariaLabel="쿠폰 목록"
+          columns={COUPON_COLUMNS}
+          data={coupons}
+          emptyMessage={emptyMessage}
+          getRowHref={(coupon) => `/admin/coupons/${coupon.id}/edit`}
+          getRowKey={(coupon) => coupon.id}
+        />
+      </>
     </AdminListLayout>
   );
 }
