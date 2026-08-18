@@ -1,99 +1,105 @@
+import { useQuery } from '@tanstack/react-query';
+import dayjs from 'dayjs';
 import { type FormEvent, useState } from 'react';
 import Pagination from '@components/common/Pagination';
+import { getAdminMembers, type AdminMemberListItem } from '../../apis/member';
 import { AdminListLayout } from '../../components/common/admin-list-layout';
 import { AdminStatusBadge } from '../../components/common/admin-status-badge';
 import { AdminTable, type AdminTableColumn } from '../../components/common/admin-table';
 
-type UserStatus = '정상' | '정지';
+type UserStatusTone = 'positive' | 'negative' | 'neutral';
 
-type User = {
-  id: string;
+type UserListRow = {
+  nickname: string;
   name: string;
   email: string;
   joinedAt: string;
-  status: UserStatus;
-  lastLoginAt: string;
+  status: string;
+  statusTone: UserStatusTone;
 };
 
-const USER_DATA: User[] = [
-  {
-    id: 'U-0231',
-    name: '김개발',
-    email: 'Kim@kimgal.com',
-    joinedAt: '25-11-02',
-    status: '정지',
-    lastLoginAt: '07-08',
-  },
-  {
-    id: 'U-0230',
-    name: '김개발',
-    email: 'Kim@kimgal.com',
-    joinedAt: '25-11-02',
-    status: '정상',
-    lastLoginAt: '07-08',
-  },
-  {
-    id: 'U-0229',
-    name: '김개발',
-    email: 'Kim@kimgal.com',
-    joinedAt: '25-11-02',
-    status: '정지',
-    lastLoginAt: '07-08',
-  },
-];
+const PAGE_SIZE = 10;
 
-const USER_COLUMNS: AdminTableColumn<User>[] = [
+const STATUS_META: Record<string, { label: string; tone: UserStatusTone }> = {
+  ACTIVE: { label: '정상', tone: 'positive' },
+  SUSPENDED: { label: '정지', tone: 'negative' },
+  WITHDRAWN: { label: '탈퇴', tone: 'neutral' },
+  PENDING_WITHDRAWAL: { label: '탈퇴 예정', tone: 'neutral' },
+};
+
+const toUserListRow = (member: AdminMemberListItem): UserListRow => {
+  const statusMeta = STATUS_META[member.status] ?? {
+    label: member.status,
+    tone: 'neutral' as const,
+  };
+
+  return {
+    nickname: member.nickname,
+    name: member.name?.trim() || '-',
+    email: member.email?.trim() || '-',
+    joinedAt: dayjs(member.createdAt).format('YY-MM-DD'),
+    status: statusMeta.label,
+    statusTone: statusMeta.tone,
+  };
+};
+
+const USER_COLUMNS: AdminTableColumn<UserListRow>[] = [
   {
-    id: 'id',
-    header: '유저 ID',
-    width: '12%',
-    cell: (user) => user.id,
+    id: 'nickname',
+    header: '닉네임',
+    width: '18%',
+    cell: (user) => user.nickname,
   },
   {
     id: 'name',
     header: '이름',
-    width: '12%',
+    width: '16%',
     cell: (user) => user.name,
   },
   {
     id: 'email',
     header: '이메일',
-    width: '24%',
+    width: '30%',
     cell: (user) => user.email,
   },
   {
     id: 'joinedAt',
     header: '가입일',
-    width: '14%',
-    cell: (user) => <time dateTime={`20${user.joinedAt}`}>{user.joinedAt}</time>,
+    width: '18%',
+    cell: (user) => <time>{user.joinedAt}</time>,
   },
   {
     id: 'status',
     header: '상태',
-    width: '14%',
-    cell: (user) =>
-      user.status === '정지' ? (
-        <AdminStatusBadge status={user.status} tone="negative" />
-      ) : (
-        user.status
-      ),
-  },
-  {
-    id: 'lastLoginAt',
-    header: '최근 로그인',
-    width: '14%',
-    cell: (user) => user.lastLoginAt,
+    width: '18%',
+    cell: (user) => <AdminStatusBadge status={user.status} tone={user.statusTone} />,
   },
 ];
 
 export default function UserListPage() {
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const { data, isError, isPending } = useQuery({
+    queryKey: ['admin', 'members', keyword, page, PAGE_SIZE],
+    queryFn: () => getAdminMembers({ keyword: keyword || undefined, page, size: PAGE_SIZE }),
+  });
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setKeyword(searchInput.trim());
     setPage(1);
   };
+
+  const users = data?.content.map(toUserListRow) ?? [];
+  const totalPages = data?.totalPages ?? 1;
+  const emptyMessage = isPending
+    ? '유저 목록을 불러오는 중입니다.'
+    : isError
+      ? '유저 목록을 불러오지 못했습니다.'
+      : keyword
+        ? '검색 결과가 없습니다.'
+        : '등록된 유저가 없습니다.';
 
   return (
     <AdminListLayout
@@ -118,15 +124,18 @@ export default function UserListPage() {
           </button>
         </form>
       }
-      footer={<Pagination page={page} totalPages={68} onChange={setPage} maxButtons={5} />}
+      footer={
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} maxButtons={5} />
+      }
       title="유저 검색 / 목록"
     >
       <AdminTable
         ariaLabel="유저 목록"
         columns={USER_COLUMNS}
-        data={USER_DATA}
-        getRowHref={(user) => `/admin/users/${user.id}`}
-        getRowKey={(user) => user.id}
+        data={users}
+        emptyMessage={emptyMessage}
+        getRowHref={(user) => `/admin/users/${encodeURIComponent(user.nickname)}`}
+        getRowKey={(user) => user.nickname}
       />
     </AdminListLayout>
   );
