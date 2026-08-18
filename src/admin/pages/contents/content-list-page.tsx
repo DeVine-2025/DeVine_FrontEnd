@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Pagination from '@components/common/Pagination';
 import { getAdminNotices, type AdminNoticeListItem } from '../../apis/notice';
 import { getAdminProjects, type AdminProjectListItem } from '../../apis/project';
@@ -163,8 +164,11 @@ const NOTICE_COLUMNS: AdminTableColumn<NoticeListRow>[] = [
 ];
 
 export default function ContentListPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(1);
-  const [contentType, setContentType] = useState<ContentType>('PROJECT');
+  const [contentType, setContentType] = useState<ContentType>(() =>
+    searchParams.get('type') === 'notice' ? 'NOTICE' : 'PROJECT',
+  );
   const [visibilityTarget, setVisibilityTarget] = useState<Content | null>(null);
   const [isNoticeCreateOpen, setIsNoticeCreateOpen] = useState(false);
   const isProject = contentType === 'PROJECT';
@@ -241,6 +245,7 @@ export default function ContentListPage() {
                 onClick={() => {
                   setContentType(tab.value);
                   setPage(1);
+                  setSearchParams(tab.value === 'NOTICE' ? { type: 'notice' } : {});
                 }}
                 role="tab"
                 type="button"
@@ -268,6 +273,7 @@ export default function ContentListPage() {
           columns={NOTICE_COLUMNS}
           data={notices}
           emptyMessage={noticeEmptyMessage}
+          getRowHref={(notice) => `/admin/contents/notices/${notice.id}`}
           getRowKey={(notice) => notice.id}
         />
       )}

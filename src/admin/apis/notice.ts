@@ -44,6 +44,14 @@ export async function getAdminNotices(params: GetAdminNoticesParams) {
   return data.result;
 }
 
+export async function getAdminNotice(noticeId: number) {
+  const { data } = await axiosInstance.get<ApiResponse<AdminNoticeListItem>>(
+    `/admin/v1/notices/${noticeId}`,
+  );
+
+  return data.result;
+}
+
 export async function createAdminNotice(body: CreateAdminNoticeRequest) {
   const { data } = await axiosInstance.post<ApiResponse<AdminNoticeListItem>>(
     '/admin/v1/notices',
