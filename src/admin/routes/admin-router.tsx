@@ -5,7 +5,6 @@ import ContentListPage from '../pages/contents/content-list-page';
 import CouponCreatePage from '../pages/coupons/coupon-create-page';
 import CouponListPage from '../pages/coupons/coupon-list-page';
 import AdminDashboardPage from '../pages/dashboard/admin-dashboard-page';
-import AdminLoginPage from '../pages/login/admin-login-page';
 import PaymentDetailPage from '../pages/payments/payment-detail-page';
 import PaymentListPage from '../pages/payments/payment-list-page';
 import ReportDetailPage from '../pages/reports/report-detail-page';
@@ -13,15 +12,20 @@ import ReportListPage from '../pages/reports/report-list-page';
 import SystemSettingPage from '../pages/settings/system-setting-page';
 import UserDetailPage from '../pages/users/user-detail-page';
 import UserListPage from '../pages/users/user-list-page';
+import { AdminRouteGuard } from './admin-route-guard';
 
 export const adminRoutes: RouteObject[] = [
   {
     path: 'admin',
     element: <AdminApp />,
     children: [
-      { path: 'login', element: <AdminLoginPage /> },
+      { path: 'login', element: <Navigate to="/login" replace /> },
       {
-        element: <AdminLayout />,
+        element: (
+          <AdminRouteGuard>
+            <AdminLayout />
+          </AdminRouteGuard>
+        ),
         children: [
           { index: true, element: <Navigate to="dashboard" replace /> },
           { path: 'dashboard', element: <AdminDashboardPage /> },
