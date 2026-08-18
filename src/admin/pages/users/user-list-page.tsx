@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import Pagination from '@components/common/Pagination';
 import { AdminListLayout } from '../../components/common/admin-list-layout';
 import { AdminStatusBadge } from '../../components/common/admin-status-badge';
@@ -88,9 +88,36 @@ const USER_COLUMNS: AdminTableColumn<User>[] = [
 
 export default function UserListPage() {
   const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState('');
+
+  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setPage(1);
+  };
 
   return (
     <AdminListLayout
+      filters={
+        <form className="flex w-full gap-[8px]" onSubmit={handleSearch} role="search">
+          <label className="sr-only" htmlFor="admin-user-search">
+            유저 검색
+          </label>
+          <input
+            className="Body1 h-[48px] min-w-0 flex-1 rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[16px] font-medium text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-400)] focus:border-[#4e49ff]"
+            id="admin-user-search"
+            onChange={(event) => setSearchInput(event.target.value)}
+            placeholder="이름, 닉네임, 이메일 검색"
+            type="search"
+            value={searchInput}
+          />
+          <button
+            className="Body1 h-[48px] shrink-0 cursor-pointer rounded-[8px] bg-[#4e49ff] px-[20px] font-medium text-white transition-colors hover:bg-[#3e39e8]"
+            type="submit"
+          >
+            검색
+          </button>
+        </form>
+      }
       footer={<Pagination page={page} totalPages={68} onChange={setPage} maxButtons={5} />}
       title="유저 검색 / 목록"
     >
