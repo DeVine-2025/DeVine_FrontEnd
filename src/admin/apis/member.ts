@@ -19,6 +19,27 @@ export type AdminMemberPage = {
   last: boolean;
 };
 
+export type AdminMemberPaymentSummary = {
+  paymentId?: number | null;
+  memberNickname?: string | null;
+  orderName?: string | null;
+  amount?: number | null;
+  paidAt?: string | null;
+  status?: string | null;
+};
+
+export type AdminMemberDetail = {
+  name: string | null;
+  nickname: string;
+  email: string | null;
+  mainType: string | null;
+  status: string;
+  scheduledWithdrawalAt: string | null;
+  createdAt: string;
+  paymentSummary: AdminMemberPaymentSummary | null;
+  loginHistory?: Array<{ loginAt?: string | null }> | null;
+};
+
 type GetAdminMembersParams = {
   keyword?: string;
   page: number;
@@ -33,6 +54,14 @@ export async function getAdminMembers({ keyword, page, size }: GetAdminMembersPa
       size,
     },
   });
+
+  return data.result;
+}
+
+export async function getAdminMemberDetail(nickname: string) {
+  const { data } = await axiosInstance.get<ApiResponse<AdminMemberDetail>>(
+    `/admin/v1/member/${encodeURIComponent(nickname)}`,
+  );
 
   return data.result;
 }

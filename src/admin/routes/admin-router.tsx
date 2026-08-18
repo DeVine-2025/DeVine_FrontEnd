@@ -31,7 +31,7 @@ export const adminRoutes: RouteObject[] = [
           { path: 'coupons/new', element: <CouponCreatePage /> },
           { path: 'coupons/:couponId/edit', element: <CouponCreatePage /> },
           { path: 'users', element: <UserListPage /> },
-          { path: 'users/:userId', element: <UserDetailPage /> },
+          { path: 'users/:nickname', element: <UserDetailPage /> },
           { path: 'payments', element: <PaymentListPage /> },
           { path: 'payments/:paymentId', element: <PaymentDetailPage /> },
           { path: 'contents', element: <ContentListPage /> },
