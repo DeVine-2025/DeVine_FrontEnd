@@ -13,6 +13,8 @@ import {
   createAdminCoupon,
   type CreateAdminCouponRequest,
   getAdminCoupon,
+  type UpdateAdminCouponRequest,
+  updateAdminCoupon,
 } from '../../apis/coupon';
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 
@@ -129,6 +131,7 @@ export default function CouponCreatePage() {
   });
   const [quantity, setQuantity] = useState('');
   const [description, setDescription] = useState('');
+  const [isActive, setIsActive] = useState(true);
   const [formError, setFormError] = useState('');
 
   const couponDetailQuery = useQuery({
@@ -147,8 +150,9 @@ export default function CouponCreatePage() {
     setDiscountValue(coupon.discountValue.toString());
     setStartDate(new Date(coupon.validFrom));
     setEndDate(new Date(coupon.validUntil));
-    setQuantity(coupon.totalIssueLimit.toString());
+    setQuantity(coupon.totalIssueLimit?.toString() ?? '');
     setDescription(coupon.description ?? '');
+    setIsActive(coupon.isActive);
   }, [couponDetailQuery.data]);
 
   const createCouponMutation = useMutation({
@@ -165,14 +169,29 @@ export default function CouponCreatePage() {
     },
   });
 
+  const updateCouponMutation = useMutation({
+    mutationFn: ({
+      couponId: targetCouponId,
+      body,
+    }: {
+      couponId: number;
+      body: UpdateAdminCouponRequest;
+    }) => updateAdminCoupon(targetCouponId, body),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'coupons'] });
+      navigate('/admin/coupons');
+    },
+    onError: (error) => {
+      const message = axios.isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      setFormError(message ?? '쿠폰을 수정하지 못했습니다.');
+    },
+  });
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError('');
-
-    if (isEdit) {
-      setFormError('쿠폰 수정 API는 아직 연동되지 않았습니다.');
-      return;
-    }
 
     const parsedProductId = Number(productId);
     const parsedDiscountValue = Number(discountValue);
@@ -182,19 +201,22 @@ export default function CouponCreatePage() {
       setFormError('쿠폰명을 입력해주세요.');
       return;
     }
-    if (!Number.isInteger(parsedProductId) || parsedProductId <= 0) {
+    if (!isEdit && (!Number.isInteger(parsedProductId) || parsedProductId <= 0)) {
       setFormError('적용 대상 상품 ID를 올바르게 입력해주세요.');
       return;
     }
-    if (!Number.isFinite(parsedDiscountValue) || parsedDiscountValue <= 0) {
+    if (!isEdit && (!Number.isFinite(parsedDiscountValue) || parsedDiscountValue <= 0)) {
       setFormError('할인 값을 올바르게 입력해주세요.');
       return;
     }
-    if (discountMethod === '정률' && parsedDiscountValue > 100) {
+    if (!isEdit && discountMethod === '정률' && parsedDiscountValue > 100) {
       setFormError('정률 할인 값은 100 이하로 입력해주세요.');
       return;
     }
-    if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
+    if (
+      (!isEdit || quantity.trim() !== '') &&
+      (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0)
+    ) {
       setFormError('발급 수량 제한을 올바르게 입력해주세요.');
       return;
     }
@@ -207,6 +229,21 @@ export default function CouponCreatePage() {
     validFrom.setHours(0, 0, 0, 0);
     const validUntil = new Date(endDate);
     validUntil.setHours(23, 59, 59, 999);
+
+    if (isEdit) {
+      const body: UpdateAdminCouponRequest = {
+        name: name.trim(),
+        validFrom: validFrom.toISOString(),
+        validUntil: validUntil.toISOString(),
+        totalIssueLimit: quantity.trim() ? parsedQuantity : null,
+        clearTotalIssueLimit: quantity.trim() === '',
+        isActive,
+        description: description.trim(),
+      };
+
+      updateCouponMutation.mutate({ couponId: parsedCouponId, body });
+      return;
+    }
 
     const body: CreateAdminCouponRequest = {
       name: name.trim(),
@@ -251,7 +288,9 @@ export default function CouponCreatePage() {
       <form
         className={cn(
           'mt-[28px] rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[35px]',
-          isEdit && couponDetailQuery.isPending && 'pointer-events-none opacity-60',
+          isEdit &&
+            (couponDetailQuery.isPending || couponDetailQuery.isError) &&
+            'pointer-events-none opacity-60',
         )}
         onSubmit={handleSubmit}
       >
@@ -270,7 +309,8 @@ export default function CouponCreatePage() {
           <label className="flex flex-col gap-[12px]">
             <span className={FIELD_LABEL_CLASS}>적용 대상 상품 ID</span>
             <input
-              className={INPUT_CLASS}
+              className={cn(INPUT_CLASS, isEdit && 'cursor-not-allowed bg-[var(--ui-100)]')}
+              disabled={isEdit}
               inputMode="numeric"
               min="1"
               onChange={(event) => setProductId(event.target.value)}
@@ -285,7 +325,12 @@ export default function CouponCreatePage() {
             <span className={FIELD_LABEL_CLASS}>할인 방식</span>
             <span className="relative block">
               <select
-                className={cn(INPUT_CLASS, 'cursor-pointer appearance-none pr-[40px]')}
+                className={cn(
+                  INPUT_CLASS,
+                  'cursor-pointer appearance-none pr-[40px]',
+                  isEdit && 'cursor-not-allowed bg-[var(--ui-100)]',
+                )}
+                disabled={isEdit}
                 onChange={(event) => setDiscountMethod(event.target.value as DiscountMethod)}
                 value={discountMethod}
               >
@@ -305,7 +350,8 @@ export default function CouponCreatePage() {
           <label className="flex flex-col gap-[12px]">
             <span className={FIELD_LABEL_CLASS}>할인 값</span>
             <input
-              className={INPUT_CLASS}
+              className={cn(INPUT_CLASS, isEdit && 'cursor-not-allowed bg-[var(--ui-100)]')}
+              disabled={isEdit}
               min="1"
               onChange={(event) => setDiscountValue(event.target.value)}
               placeholder="할인 값을 입력해주세요"
@@ -325,12 +371,32 @@ export default function CouponCreatePage() {
               inputMode="numeric"
               min="1"
               onChange={(event) => setQuantity(event.target.value)}
-              placeholder="수량을 입력해주세요"
-              required
+              placeholder={isEdit ? '비우면 발급 제한 없음' : '수량을 입력해주세요'}
+              required={!isEdit}
               type="number"
               value={quantity}
             />
           </label>
+
+          {isEdit && (
+            <label className="flex flex-col gap-[12px]">
+              <span className={FIELD_LABEL_CLASS}>활성화 여부</span>
+              <span className="relative block">
+                <select
+                  className={cn(INPUT_CLASS, 'cursor-pointer appearance-none pr-[40px]')}
+                  onChange={(event) => setIsActive(event.target.value === 'true')}
+                  value={String(isActive)}
+                >
+                  <option value="true">활성</option>
+                  <option value="false">비활성</option>
+                </select>
+                <ChevronDownIcon
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-1/2 right-[16px] h-[8px] w-[14px] -translate-y-1/2 [&_path]:stroke-[var(--ui-400)]"
+                />
+              </span>
+            </label>
+          )}
 
           <label className="flex flex-col gap-[12px] lg:col-span-2">
             <span className={FIELD_LABEL_CLASS}>설명</span>
@@ -351,10 +417,20 @@ export default function CouponCreatePage() {
 
         <button
           className="Heading2 mt-[36px] h-[56px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-medium text-white transition-colors hover:bg-[#3e39e8] disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={createCouponMutation.isPending}
+          disabled={
+            createCouponMutation.isPending ||
+            updateCouponMutation.isPending ||
+            (isEdit && (couponDetailQuery.isPending || couponDetailQuery.isError))
+          }
           type="submit"
         >
-          {isEdit ? '쿠폰 수정' : createCouponMutation.isPending ? '생성 중...' : '쿠폰 생성'}
+          {isEdit
+            ? updateCouponMutation.isPending
+              ? '수정 중...'
+              : '쿠폰 수정'
+            : createCouponMutation.isPending
+              ? '생성 중...'
+              : '쿠폰 생성'}
         </button>
       </form>
     </section>
