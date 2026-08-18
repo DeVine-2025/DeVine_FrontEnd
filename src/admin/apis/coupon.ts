@@ -59,6 +59,14 @@ export async function getAdminCoupons({ page, size }: GetAdminCouponsParams) {
   return data.result;
 }
 
+export async function getAdminCoupon(couponId: number) {
+  const { data } = await axiosInstance.get<ApiResponse<AdminCoupon>>(
+    `/admin/v1/coupon/${couponId}`,
+  );
+
+  return data.result;
+}
+
 export async function createAdminCoupon(body: CreateAdminCouponRequest) {
   const { data } = await axiosInstance.post<ApiResponse<AdminCoupon>>('/admin/v1/coupon', body);
 

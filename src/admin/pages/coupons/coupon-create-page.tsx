@@ -1,7 +1,7 @@
 import ArrowLeftAdminIcon from '@assets/icons/arrow-left-admin.svg?react';
 import CalendarClockIcon from '@assets/icons/calendar-clock.svg?react';
 import ChevronDownIcon from '@assets/icons/chevron-down.svg?react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { ko } from 'date-fns/locale';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
@@ -12,6 +12,7 @@ import '@styles/date-picker-theme.css';
 import {
   createAdminCoupon,
   type CreateAdminCouponRequest,
+  getAdminCoupon,
 } from '../../apis/coupon';
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 
@@ -112,6 +113,7 @@ function DateField({
 export default function CouponCreatePage() {
   const { couponId } = useParams();
   const isEdit = Boolean(couponId);
+  const parsedCouponId = Number(couponId);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -128,6 +130,26 @@ export default function CouponCreatePage() {
   const [quantity, setQuantity] = useState('');
   const [description, setDescription] = useState('');
   const [formError, setFormError] = useState('');
+
+  const couponDetailQuery = useQuery({
+    queryKey: ['admin', 'coupons', 'detail', parsedCouponId],
+    queryFn: () => getAdminCoupon(parsedCouponId),
+    enabled: isEdit && Number.isInteger(parsedCouponId) && parsedCouponId > 0,
+  });
+
+  useEffect(() => {
+    const coupon = couponDetailQuery.data;
+    if (!coupon) return;
+
+    setName(coupon.name);
+    setProductId(coupon.applicableTicketProductId?.toString() ?? '');
+    setDiscountMethod(coupon.discountType === 'FIXED_RATE' ? '정률' : '정액');
+    setDiscountValue(coupon.discountValue.toString());
+    setStartDate(new Date(coupon.validFrom));
+    setEndDate(new Date(coupon.validUntil));
+    setQuantity(coupon.totalIssueLimit.toString());
+    setDescription(coupon.description ?? '');
+  }, [couponDetailQuery.data]);
 
   const createCouponMutation = useMutation({
     mutationFn: createAdminCoupon,
@@ -215,8 +237,22 @@ export default function CouponCreatePage() {
 
       <AdminPageTitle className="mt-[8px]" title={isEdit ? '쿠폰 수정' : '쿠폰 생성'} />
 
+      {isEdit && couponDetailQuery.isPending && (
+        <p className="Body1 mt-[28px] text-center text-[var(--ui-500)]">
+          쿠폰 정보를 불러오는 중입니다.
+        </p>
+      )}
+      {isEdit && couponDetailQuery.isError && (
+        <p className="Body1 mt-[28px] text-center text-[var(--negative-text)]">
+          쿠폰 정보를 불러오지 못했습니다.
+        </p>
+      )}
+
       <form
-        className="mt-[28px] rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[35px]"
+        className={cn(
+          'mt-[28px] rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[35px]',
+          isEdit && couponDetailQuery.isPending && 'pointer-events-none opacity-60',
+        )}
         onSubmit={handleSubmit}
       >
         <div className="grid grid-cols-1 gap-x-[40px] gap-y-[36px] lg:grid-cols-2">
