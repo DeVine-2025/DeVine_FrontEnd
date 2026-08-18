@@ -5,8 +5,8 @@ import { DayPicker } from 'react-day-picker';
 import '@styles/date-picker-theme.css';
 
 type AdminDateTimePickerProps = {
-  value: Date;
-  onChange: (value: Date) => void;
+  value: Date | null;
+  onChange: (value: Date | null) => void;
 };
 
 const HOURS = Array.from({ length: 24 }, (_, hour) => hour);
@@ -50,12 +50,12 @@ export function AdminDateTimePicker({ value, onChange }: AdminDateTimePickerProp
     if (!date) return;
 
     const nextValue = new Date(date);
-    nextValue.setHours(value.getHours(), value.getMinutes(), 0, 0);
+    nextValue.setHours(value?.getHours() ?? 0, value?.getMinutes() ?? 0, 0, 0);
     onChange(nextValue);
   };
 
   const setTime = (part: 'hour' | 'minute', nextPart: number) => {
-    const nextValue = new Date(value);
+    const nextValue = new Date(value ?? new Date());
 
     if (part === 'hour') nextValue.setHours(nextPart);
     else nextValue.setMinutes(nextPart);
@@ -77,7 +77,7 @@ export function AdminDateTimePicker({ value, onChange }: AdminDateTimePickerProp
           aria-hidden="true"
           className="[&_path]:!fill-current pointer-events-none absolute left-[16px] h-[22px] w-[22px] text-[var(--ui-600)]"
         />
-        {formatDateTime(value)}
+        {value ? formatDateTime(value) : '예상 종료 시각을 선택해주세요.'}
       </button>
 
       {isOpen && (
@@ -97,7 +97,7 @@ export function AdminDateTimePicker({ value, onChange }: AdminDateTimePickerProp
                     <select
                       className="Caption1 mt-[6px] h-[36px] w-full cursor-pointer rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[8px] text-[var(--ui-800)] outline-none focus:border-[#4e49ff]"
                       onChange={(event) => setTime('hour', Number(event.target.value))}
-                      value={value.getHours()}
+                      value={value?.getHours() ?? 0}
                     >
                       {HOURS.map((hour) => (
                         <option key={hour} value={hour}>
@@ -111,7 +111,7 @@ export function AdminDateTimePicker({ value, onChange }: AdminDateTimePickerProp
                     <select
                       className="Caption1 mt-[6px] h-[36px] w-full cursor-pointer rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[8px] text-[var(--ui-800)] outline-none focus:border-[#4e49ff]"
                       onChange={(event) => setTime('minute', Number(event.target.value))}
-                      value={value.getMinutes()}
+                      value={value?.getMinutes() ?? 0}
                     >
                       {MINUTES.map((minute) => (
                         <option key={minute} value={minute}>
@@ -133,7 +133,7 @@ export function AdminDateTimePicker({ value, onChange }: AdminDateTimePickerProp
             locale={ko}
             mode="single"
             onSelect={setDate}
-            selected={value}
+            selected={value ?? undefined}
             startMonth={new Date(2020, 0)}
           />
         </div>
