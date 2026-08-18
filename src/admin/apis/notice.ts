@@ -78,3 +78,11 @@ export async function updateAdminNotice(noticeId: number, body: UpdateAdminNotic
 
   return data.result;
 }
+
+export async function deleteAdminNotice(noticeId: number) {
+  const { data } = await axiosInstance.delete<ApiResponse<string>>(
+    `/admin/v1/notices/${noticeId}`,
+  );
+
+  return data.result;
+}

@@ -1,10 +1,10 @@
 import ArrowLeftAdminIcon from '@assets/icons/arrow-left-admin.svg?react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import { type ReactNode, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { getAdminNotice } from '../../apis/notice';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { deleteAdminNotice, getAdminNotice } from '../../apis/notice';
 import { NoticeCreateModal } from '../../components/notice-create-modal';
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 import { AdminStatusBadge } from '../../components/common/admin-status-badge';
@@ -32,7 +32,11 @@ function InfoItem({ label, value }: { label: string; value: ReactNode }) {
 
 export default function NoticeDetailPage() {
   const { noticeId } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const parsedNoticeId = Number(noticeId);
   const isValidNoticeId = Number.isInteger(parsedNoticeId) && parsedNoticeId > 0;
   const { data, error, isPending } = useQuery({
@@ -42,6 +46,19 @@ export default function NoticeDetailPage() {
   });
 
   const isNotFound = axios.isAxiosError(error) && error.response?.status === 404;
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteAdminNotice(parsedNoticeId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'notices'] });
+      navigate('/admin/contents?type=notice', { replace: true });
+    },
+    onError: (deleteRequestError) => {
+      const message = axios.isAxiosError<{ message?: string }>(deleteRequestError)
+        ? deleteRequestError.response?.data?.message
+        : undefined;
+      setDeleteError(message ?? '공지사항을 삭제하지 못했습니다.');
+    },
+  });
 
   return (
     <section>
@@ -59,13 +76,25 @@ export default function NoticeDetailPage() {
       <div className="mt-[8px] flex flex-wrap items-center justify-between gap-[16px]">
         <AdminPageTitle title="공지사항 상세" />
         {data && (
-          <button
-            className="Body1 inline-flex cursor-pointer items-center justify-center rounded-[8px] bg-[#4e49ff] px-[16px] py-[10px] text-white transition-opacity hover:opacity-90"
-            onClick={() => setIsEditOpen(true)}
-            type="button"
-          >
-            공지사항 수정
-          </button>
+          <div className="flex items-center gap-[10px]">
+            <button
+              className="Body1 inline-flex cursor-pointer items-center justify-center rounded-[8px] bg-[var(--negative-text)] px-[16px] py-[10px] text-white transition-opacity hover:opacity-90"
+              onClick={() => {
+                setDeleteError('');
+                setIsDeleteOpen(true);
+              }}
+              type="button"
+            >
+              삭제
+            </button>
+            <button
+              className="Body1 inline-flex cursor-pointer items-center justify-center rounded-[8px] bg-[#4e49ff] px-[16px] py-[10px] text-white transition-opacity hover:opacity-90"
+              onClick={() => setIsEditOpen(true)}
+              type="button"
+            >
+              공지사항 수정
+            </button>
+          </div>
         )}
       </div>
 
@@ -115,6 +144,54 @@ export default function NoticeDetailPage() {
       )}
       {isEditOpen && data && (
         <NoticeCreateModal notice={data} onClose={() => setIsEditOpen(false)} />
+      )}
+      {isDeleteOpen && data && (
+        <div
+          aria-label="공지사항 삭제 확인"
+          aria-modal="true"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-[20px]"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !deleteMutation.isPending) {
+              setIsDeleteOpen(false);
+            }
+          }}
+          role="dialog"
+        >
+          <div className="w-full max-w-[440px] rounded-[16px] bg-[var(--ui-bg)] p-[28px] text-center shadow-xl">
+            <h2 className="Title3 font-bold text-[var(--ui-1000)]">공지사항 삭제</h2>
+            <p className="Body1 mt-[12px] break-words text-[var(--ui-700)]">
+              <strong>{data.title}</strong> 공지사항을 영구 삭제합니다.
+            </p>
+            <p className="Body1 mt-[6px] text-[var(--negative-text)]">
+              삭제한 공지사항은 복구할 수 없습니다.
+            </p>
+
+            {deleteError && (
+              <p className="Body1 mt-[16px] text-center text-[var(--negative-text)]">
+                {deleteError}
+              </p>
+            )}
+
+            <div className="mt-[24px] flex gap-[10px]">
+              <button
+                className="Heading2 h-[48px] flex-1 cursor-pointer rounded-[10px] border border-[var(--ui-200)] text-[var(--ui-700)]"
+                disabled={deleteMutation.isPending}
+                onClick={() => setIsDeleteOpen(false)}
+                type="button"
+              >
+                취소
+              </button>
+              <button
+                className="Heading2 h-[48px] flex-1 cursor-pointer rounded-[10px] bg-[var(--negative-text)] text-white disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={deleteMutation.isPending}
+                onClick={() => deleteMutation.mutate()}
+                type="button"
+              >
+                {deleteMutation.isPending ? '삭제 중...' : '영구 삭제'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );
