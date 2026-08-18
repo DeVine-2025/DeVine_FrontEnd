@@ -144,7 +144,7 @@ export function AdminTable<T>({
             ) : (
               <tr className="h-[160px] border-[var(--ui-200)] border-t">
                 <td
-                  className="Body1 px-[40px] text-center text-[var(--ui-500)]"
+                  className="Body1 px-[40px] text-center align-middle text-[var(--ui-500)]"
                   colSpan={columns.length}
                 >
                   {emptyMessage}

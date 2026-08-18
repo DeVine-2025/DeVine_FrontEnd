@@ -1,14 +1,17 @@
+import { useQuery } from '@tanstack/react-query';
+import dayjs from 'dayjs';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Pagination from '@components/common/Pagination';
+import { getAdminCoupons, type AdminCoupon } from '../../apis/coupon';
 import { AdminListLayout } from '../../components/common/admin-list-layout';
 import { AdminStatusBadge } from '../../components/common/admin-status-badge';
 import { AdminTable, type AdminTableColumn } from '../../components/common/admin-table';
 
 type CouponUsageTone = 'positive' | 'negative' | 'neutral';
 
-type Coupon = {
-  id: string;
+type CouponListRow = {
+  id: number;
   name: string;
   discount: string;
   product: string;
@@ -18,40 +21,34 @@ type Coupon = {
   usageTone: CouponUsageTone;
 };
 
-const COUPON_DATA: Coupon[] = [
-  {
-    id: 'C-1001',
-    name: '첫결제 20%',
-    discount: '20%',
-    product: '단건',
-    expiresAt: '~07-31',
-    issuedUsed: '120/74',
-    usageRate: '94%',
-    usageTone: 'negative',
-  },
-  {
-    id: 'C-1002',
-    name: '여름 프로모션',
-    discount: '1,000원',
-    product: '3개 묶음',
-    expiresAt: '~08-15',
-    issuedUsed: '300/12',
-    usageRate: '4%',
-    usageTone: 'neutral',
-  },
-  {
-    id: 'C-1003',
-    name: '재가입 환영',
-    discount: '30%',
-    product: '전체',
-    expiresAt: '~07-20',
-    issuedUsed: '50/50',
-    usageRate: '사용 완료',
-    usageTone: 'positive',
-  },
-];
+const PAGE_SIZE = 10;
 
-const COUPON_COLUMNS: AdminTableColumn<Coupon>[] = [
+const formatDiscount = (coupon: AdminCoupon) => {
+  if (coupon.discountType === 'FIXED_RATE') {
+    return `${coupon.discountValue}%`;
+  }
+
+  return `${coupon.discountValue.toLocaleString('ko-KR')}원`;
+};
+
+const toCouponListRow = (coupon: AdminCoupon): CouponListRow => {
+  const usageRate =
+    coupon.issuedCount > 0 ? Math.round((coupon.usedCount / coupon.issuedCount) * 100) : 0;
+  const isAllUsed = coupon.issuedCount > 0 && coupon.usedCount >= coupon.issuedCount;
+
+  return {
+    id: coupon.couponId,
+    name: coupon.name,
+    discount: formatDiscount(coupon),
+    product: coupon.applicableTicketProductName ?? '전체',
+    expiresAt: `~${dayjs(coupon.validUntil).format('MM-DD')}`,
+    issuedUsed: `${coupon.issuedCount.toLocaleString('ko-KR')}/${coupon.usedCount.toLocaleString('ko-KR')}`,
+    usageRate: isAllUsed ? '사용 완료' : `${usageRate}%`,
+    usageTone: isAllUsed ? 'positive' : usageRate >= 80 ? 'negative' : 'neutral',
+  };
+};
+
+const COUPON_COLUMNS: AdminTableColumn<CouponListRow>[] = [
   {
     id: 'name',
     header: '쿠폰명',
@@ -92,6 +89,18 @@ const COUPON_COLUMNS: AdminTableColumn<Coupon>[] = [
 
 export default function CouponListPage() {
   const [page, setPage] = useState(1);
+  const { data, isError, isPending } = useQuery({
+    queryKey: ['admin', 'coupons', page, PAGE_SIZE],
+    queryFn: () => getAdminCoupons({ page, size: PAGE_SIZE }),
+  });
+
+  const coupons = data?.content.map(toCouponListRow) ?? [];
+  const totalPages = data?.totalPages ?? data?.page?.totalPages ?? 1;
+  const emptyMessage = isPending
+    ? '쿠폰 목록을 불러오는 중입니다.'
+    : isError
+      ? '쿠폰 목록을 불러오지 못했습니다.'
+      : '등록된 쿠폰이 없습니다.';
 
   return (
     <AdminListLayout
@@ -103,13 +112,16 @@ export default function CouponListPage() {
           쿠폰 생성
         </Link>
       }
-      footer={<Pagination page={page} totalPages={68} onChange={setPage} maxButtons={5} />}
+      footer={
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} maxButtons={5} />
+      }
       title="쿠폰 목록 / 현황"
     >
       <AdminTable
         ariaLabel="쿠폰 목록"
         columns={COUPON_COLUMNS}
-        data={COUPON_DATA}
+        data={coupons}
+        emptyMessage={emptyMessage}
         getRowHref={(coupon) => `/admin/coupons/${coupon.id}/edit`}
         getRowKey={(coupon) => coupon.id}
       />
