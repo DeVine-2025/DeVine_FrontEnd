@@ -1,32 +1,62 @@
 import ReloadIcon from '@assets/icons/reload.svg?react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import {
+  ADMIN_INTEGRATION_HEALTH_QUERY_KEY,
+  getIntegrationHealth,
+  type IntegrationStatus,
+  refreshIntegrationHealth,
+} from '../../apis/integration';
 import { AdminDateTimePicker } from '../../components/common/admin-date-time-picker';
 import { AdminHighlightCard } from '../../components/common/admin-highlight-card';
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 
-const INTEGRATIONS = [
-  { name: 'Github API', status: '정상', checkedAt: '07-09 15:20', tone: 'positive' },
-  { name: '결제(PG) API', status: '정상', checkedAt: '07-09 15:20', tone: 'positive' },
-  { name: '이메일 발송', status: '지연', checkedAt: '07-09 15:20', tone: 'negative' },
-  { name: 'Github OAuth', status: '확인불가', checkedAt: '07-09 15:20', tone: 'neutral' },
-] as const;
-
 const STATUS_STYLE = {
-  positive: 'bg-[var(--positive-bg)] text-[var(--positive-text)]',
-  negative: 'bg-[var(--negative-bg)] text-[var(--negative-text)]',
-  neutral: 'bg-[var(--ui-50)] text-[var(--ui-400)]',
+  NORMAL: 'bg-[var(--positive-bg)] text-[var(--positive-text)]',
+  DELAYED: 'bg-[var(--negative-bg)] text-[var(--negative-text)]',
+  DOWN: 'bg-[var(--negative-bg)] text-[var(--negative-text)]',
+  UNKNOWN: 'bg-[var(--ui-50)] text-[var(--ui-400)]',
 } as const;
 
+const STATUS_LABEL: Record<IntegrationStatus, string> = {
+  NORMAL: '정상',
+  DELAYED: '지연',
+  DOWN: '장애',
+  UNKNOWN: '확인불가',
+};
+
+function formatCheckedAt(value: string | null) {
+  if (!value) return '점검 이력 없음';
+
+  return value.replace('T', ' ').slice(0, 16);
+}
+
 export default function SystemSettingPage() {
+  const queryClient = useQueryClient();
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [scheduledAt, setScheduledAt] = useState(() => new Date(2026, 6, 21, 21, 0));
+  const {
+    data: integrationHealth,
+    isError: isIntegrationHealthError,
+    isPending: isIntegrationHealthPending,
+    refetch: refetchIntegrationHealth,
+  } = useQuery({
+    queryKey: ADMIN_INTEGRATION_HEALTH_QUERY_KEY,
+    queryFn: getIntegrationHealth,
+  });
+  const {
+    isError: isRefreshError,
+    isPending: isRefreshing,
+    mutate: refresh,
+  } = useMutation({
+    mutationFn: refreshIntegrationHealth,
+    onSuccess: (health) => queryClient.setQueryData(ADMIN_INTEGRATION_HEALTH_QUERY_KEY, health),
+  });
 
   const handleRefresh = () => {
     if (isRefreshing) return;
 
-    setIsRefreshing(true);
-    window.setTimeout(() => setIsRefreshing(false), 800);
+    refresh();
   };
 
   return (
@@ -64,22 +94,57 @@ export default function SystemSettingPage() {
                 <span className="Caption1 font-semibold text-[var(--ui-500)]">최근 확인 시각</span>
               </div>
 
-              {INTEGRATIONS.map((integration) => (
+              {isIntegrationHealthPending && (
+                <div className="Body1 border-[var(--ui-200)] border-t py-[14px] text-[var(--ui-500)]">
+                  외부 연동 상태를 불러오는 중입니다.
+                </div>
+              )}
+
+              {isIntegrationHealthError && (
+                <div className="flex items-center justify-between gap-[16px] border-[var(--ui-200)] border-t py-[14px]">
+                  <p className="Body1 text-[var(--negative-text)]">
+                    외부 연동 상태를 불러오지 못했습니다.
+                  </p>
+                  <button
+                    className="Caption1 cursor-pointer rounded-[6px] border border-[var(--ui-200)] px-[10px] py-[6px] font-semibold text-[var(--ui-700)] hover:bg-[var(--ui-50)]"
+                    onClick={() => void refetchIntegrationHealth()}
+                    type="button"
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              )}
+
+              {!isIntegrationHealthPending &&
+                !isIntegrationHealthError &&
+                integrationHealth?.integrations.length === 0 && (
+                  <div className="Body1 border-[var(--ui-200)] border-t py-[14px] text-[var(--ui-500)]">
+                    아직 점검 이력이 없습니다.
+                  </div>
+                )}
+
+              {integrationHealth?.integrations.map((integration) => (
                 <div
                   className="grid grid-cols-[minmax(150px,1fr)_100px_140px] items-center gap-[16px] border-[var(--ui-200)] border-t py-[14px]"
-                  key={integration.name}
+                  key={integration.type}
                 >
                   <span className="Body1 font-medium text-[var(--ui-800)]">{integration.name}</span>
                   <span
-                    className={`Caption1 w-fit rounded-[8px] px-[10px] py-[4px] font-semibold ${STATUS_STYLE[integration.tone]}`}
+                    className={`Caption1 w-fit rounded-[8px] px-[10px] py-[4px] font-semibold ${STATUS_STYLE[integration.status]}`}
                   >
-                    {integration.status}
+                    {integration.statusLabel || STATUS_LABEL[integration.status]}
                   </span>
                   <time className="Label1 font-medium text-[var(--ui-1000)]">
-                    {integration.checkedAt}
+                    {formatCheckedAt(integration.checkedAt ?? integrationHealth.checkedAt)}
                   </time>
                 </div>
               ))}
+
+              {isRefreshError && (
+                <p className="Body1 border-[var(--ui-200)] border-t py-[14px] text-[var(--negative-text)]">
+                  재점검 요청을 완료하지 못했습니다. 잠시 후 다시 시도해주세요.
+                </p>
+              )}
             </div>
           </div>
         </AdminHighlightCard>
