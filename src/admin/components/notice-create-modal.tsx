@@ -1,13 +1,18 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import dayjs from 'dayjs';
 import { type FormEvent, useEffect, useState } from 'react';
 import { cn } from '@libs/cn';
 import {
+  type AdminNoticeListItem,
   createAdminNotice,
   type CreateAdminNoticeRequest,
+  type UpdateAdminNoticeRequest,
+  updateAdminNotice,
 } from '../apis/notice';
 
 type NoticeCreateModalProps = {
+  notice?: AdminNoticeListItem;
   onClose: () => void;
 };
 
@@ -15,19 +20,29 @@ const INPUT_CLASS =
   'Body1 w-full rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[14px] text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-400)] focus:border-[#4e49ff]';
 
 const withSeconds = (value: string) => (value.length === 16 ? `${value}:00` : value);
+const toDateTimeLocal = (value: string | null | undefined) =>
+  value ? dayjs(value).format('YYYY-MM-DDTHH:mm') : '';
 
-export function NoticeCreateModal({ onClose }: NoticeCreateModalProps) {
+export function NoticeCreateModal({ notice, onClose }: NoticeCreateModalProps) {
   const queryClient = useQueryClient();
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [hasDisplayPeriod, setHasDisplayPeriod] = useState(false);
-  const [displayStartAt, setDisplayStartAt] = useState('');
-  const [displayEndAt, setDisplayEndAt] = useState('');
-  const [isExposed, setIsExposed] = useState(true);
+  const isEdit = Boolean(notice);
+  const [title, setTitle] = useState(notice?.title ?? '');
+  const [content, setContent] = useState(notice?.content ?? '');
+  const [hasDisplayPeriod, setHasDisplayPeriod] = useState(
+    Boolean(notice?.displayStartAt || notice?.displayEndAt),
+  );
+  const [displayStartAt, setDisplayStartAt] = useState(
+    toDateTimeLocal(notice?.displayStartAt),
+  );
+  const [displayEndAt, setDisplayEndAt] = useState(toDateTimeLocal(notice?.displayEndAt));
+  const [isExposed, setIsExposed] = useState(notice?.isExposed ?? true);
   const [formError, setFormError] = useState('');
 
-  const createMutation = useMutation({
-    mutationFn: (body: CreateAdminNoticeRequest) => createAdminNotice(body),
+  const saveMutation = useMutation({
+    mutationFn: (body: CreateAdminNoticeRequest | UpdateAdminNoticeRequest) =>
+      notice
+        ? updateAdminNotice(notice.noticeId, body as UpdateAdminNoticeRequest)
+        : createAdminNotice(body as CreateAdminNoticeRequest),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'notices'] });
       onClose();
@@ -36,13 +51,13 @@ export function NoticeCreateModal({ onClose }: NoticeCreateModalProps) {
       const message = axios.isAxiosError<{ message?: string }>(error)
         ? error.response?.data?.message
         : undefined;
-      setFormError(message ?? '공지사항을 등록하지 못했습니다.');
+      setFormError(message ?? `공지사항을 ${isEdit ? '수정' : '등록'}하지 못했습니다.`);
     },
   });
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !createMutation.isPending) onClose();
+      if (event.key === 'Escape' && !saveMutation.isPending) onClose();
     };
 
     document.addEventListener('keydown', closeOnEscape);
@@ -53,7 +68,7 @@ export function NoticeCreateModal({ onClose }: NoticeCreateModalProps) {
       document.removeEventListener('keydown', closeOnEscape);
       document.body.style.overflow = previousOverflow;
     };
-  }, [createMutation.isPending, onClose]);
+  }, [saveMutation.isPending, onClose]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -76,42 +91,50 @@ export function NoticeCreateModal({ onClose }: NoticeCreateModalProps) {
       return;
     }
 
-    const body: CreateAdminNoticeRequest = {
+    const commonBody = {
       title: title.trim(),
       content: content.trim(),
       isExposed,
+    };
+    const body: CreateAdminNoticeRequest | UpdateAdminNoticeRequest = {
+      ...commonBody,
       ...(hasDisplayPeriod
         ? {
             displayStartAt: withSeconds(displayStartAt),
             displayEndAt: withSeconds(displayEndAt),
+            ...(isEdit ? { clearDisplayPeriod: false } : {}),
           }
-        : {}),
+        : isEdit
+          ? { clearDisplayPeriod: true }
+          : {}),
     };
 
-    createMutation.mutate(body);
+    saveMutation.mutate(body);
   };
 
   return (
     <div
-      aria-label="공지사항 신규 등록"
+      aria-label={`공지사항 ${isEdit ? '수정' : '신규 등록'}`}
       aria-modal="true"
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-[20px]"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !createMutation.isPending) onClose();
+        if (event.target === event.currentTarget && !saveMutation.isPending) onClose();
       }}
       role="dialog"
     >
       <div className="max-h-[90vh] w-full max-w-[680px] overflow-y-auto rounded-[16px] bg-[var(--ui-bg)] p-[28px] shadow-xl">
         <div className="flex items-start justify-between gap-[20px]">
           <div>
-            <h2 className="Title3 font-bold text-[var(--ui-1000)]">공지사항 등록</h2>
+            <h2 className="Title3 font-bold text-[var(--ui-1000)]">
+              공지사항 {isEdit ? '수정' : '등록'}
+            </h2>
             <p className="Body1 mt-[4px] text-[var(--ui-600)]">
-              유저 화면에 표시할 공지사항을 작성해주세요.
+              유저 화면에 표시할 공지사항을 {isEdit ? '수정' : '작성'}해주세요.
             </p>
           </div>
           <button
             className="Body1 cursor-pointer rounded-[8px] px-[10px] py-[6px] text-[var(--ui-600)] hover:bg-[var(--ui-100)]"
-            disabled={createMutation.isPending}
+            disabled={saveMutation.isPending}
             onClick={onClose}
             type="button"
           >
@@ -210,7 +233,7 @@ export function NoticeCreateModal({ onClose }: NoticeCreateModalProps) {
           <div className="mt-[28px] flex gap-[10px]">
             <button
               className="Heading2 h-[52px] flex-1 cursor-pointer rounded-[10px] border border-[var(--ui-200)] text-[var(--ui-700)]"
-              disabled={createMutation.isPending}
+              disabled={saveMutation.isPending}
               onClick={onClose}
               type="button"
             >
@@ -218,10 +241,12 @@ export function NoticeCreateModal({ onClose }: NoticeCreateModalProps) {
             </button>
             <button
               className="Heading2 h-[52px] flex-1 cursor-pointer rounded-[10px] bg-[#4e49ff] text-white disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={createMutation.isPending}
+              disabled={saveMutation.isPending}
               type="submit"
             >
-              {createMutation.isPending ? '등록 중...' : '공지사항 등록'}
+              {saveMutation.isPending
+                ? `${isEdit ? '수정' : '등록'} 중...`
+                : `공지사항 ${isEdit ? '수정' : '등록'}`}
             </button>
           </div>
         </form>

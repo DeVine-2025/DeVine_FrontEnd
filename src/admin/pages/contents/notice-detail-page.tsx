@@ -2,9 +2,10 @@ import ArrowLeftAdminIcon from '@assets/icons/arrow-left-admin.svg?react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getAdminNotice } from '../../apis/notice';
+import { NoticeCreateModal } from '../../components/notice-create-modal';
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 import { AdminStatusBadge } from '../../components/common/admin-status-badge';
 
@@ -31,6 +32,7 @@ function InfoItem({ label, value }: { label: string; value: ReactNode }) {
 
 export default function NoticeDetailPage() {
   const { noticeId } = useParams();
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const parsedNoticeId = Number(noticeId);
   const isValidNoticeId = Number.isInteger(parsedNoticeId) && parsedNoticeId > 0;
   const { data, error, isPending } = useQuery({
@@ -54,7 +56,18 @@ export default function NoticeDetailPage() {
         공지사항 목록으로
       </Link>
 
-      <AdminPageTitle className="mt-[8px]" title="공지사항 상세" />
+      <div className="mt-[8px] flex flex-wrap items-center justify-between gap-[16px]">
+        <AdminPageTitle title="공지사항 상세" />
+        {data && (
+          <button
+            className="Body1 inline-flex cursor-pointer items-center justify-center rounded-[8px] bg-[#4e49ff] px-[16px] py-[10px] text-white transition-opacity hover:opacity-90"
+            onClick={() => setIsEditOpen(true)}
+            type="button"
+          >
+            공지사항 수정
+          </button>
+        )}
+      </div>
 
       {!isValidNoticeId || error ? (
         <div className="Body1 mt-[28px] rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[24px] py-[64px] text-center text-[var(--ui-500)]">
@@ -99,6 +112,9 @@ export default function NoticeDetailPage() {
             </div>
           </div>
         </div>
+      )}
+      {isEditOpen && data && (
+        <NoticeCreateModal notice={data} onClose={() => setIsEditOpen(false)} />
       )}
     </section>
   );

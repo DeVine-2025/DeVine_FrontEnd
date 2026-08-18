@@ -31,6 +31,15 @@ export type CreateAdminNoticeRequest = {
   isExposed: boolean;
 };
 
+export type UpdateAdminNoticeRequest = {
+  title?: string | null;
+  content?: string | null;
+  displayStartAt?: string | null;
+  displayEndAt?: string | null;
+  clearDisplayPeriod?: boolean | null;
+  isExposed?: boolean | null;
+};
+
 type GetAdminNoticesParams = {
   page: number;
   size: number;
@@ -55,6 +64,15 @@ export async function getAdminNotice(noticeId: number) {
 export async function createAdminNotice(body: CreateAdminNoticeRequest) {
   const { data } = await axiosInstance.post<ApiResponse<AdminNoticeListItem>>(
     '/admin/v1/notices',
+    body,
+  );
+
+  return data.result;
+}
+
+export async function updateAdminNotice(noticeId: number, body: UpdateAdminNoticeRequest) {
+  const { data } = await axiosInstance.patch<ApiResponse<AdminNoticeListItem>>(
+    `/admin/v1/notices/${noticeId}`,
     body,
   );
 
