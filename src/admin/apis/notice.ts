@@ -23,6 +23,14 @@ export type AdminNoticePage = {
   last: boolean;
 };
 
+export type CreateAdminNoticeRequest = {
+  title: string;
+  content: string;
+  displayStartAt?: string;
+  displayEndAt?: string;
+  isExposed: boolean;
+};
+
 type GetAdminNoticesParams = {
   page: number;
   size: number;
@@ -32,6 +40,15 @@ export async function getAdminNotices(params: GetAdminNoticesParams) {
   const { data } = await axiosInstance.get<ApiResponse<AdminNoticePage>>('/admin/v1/notices', {
     params,
   });
+
+  return data.result;
+}
+
+export async function createAdminNotice(body: CreateAdminNoticeRequest) {
+  const { data } = await axiosInstance.post<ApiResponse<AdminNoticeListItem>>(
+    '/admin/v1/notices',
+    body,
+  );
 
   return data.result;
 }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Pagination from '@components/common/Pagination';
 import { getAdminNotices, type AdminNoticeListItem } from '../../apis/notice';
 import { getAdminProjects, type AdminProjectListItem } from '../../apis/project';
+import { NoticeCreateModal } from '../../components/notice-create-modal';
 import { AdminListLayout } from '../../components/common/admin-list-layout';
 import { AdminStatusBadge } from '../../components/common/admin-status-badge';
 import { AdminTable, type AdminTableColumn } from '../../components/common/admin-table';
@@ -165,6 +166,7 @@ export default function ContentListPage() {
   const [page, setPage] = useState(1);
   const [contentType, setContentType] = useState<ContentType>('PROJECT');
   const [visibilityTarget, setVisibilityTarget] = useState<Content | null>(null);
+  const [isNoticeCreateOpen, setIsNoticeCreateOpen] = useState(false);
   const isProject = contentType === 'PROJECT';
   const {
     data: projectData,
@@ -204,6 +206,17 @@ export default function ContentListPage() {
 
   return (
     <AdminListLayout
+      actions={
+        !isProject && (
+          <button
+            className="Body1 inline-flex cursor-pointer items-center justify-center rounded-[8px] bg-[#4e49ff] px-[14px] py-[10px] font-normal text-white transition-opacity hover:opacity-90"
+            onClick={() => setIsNoticeCreateOpen(true)}
+            type="button"
+          >
+            신규 등록
+          </button>
+        )
+      }
       filters={
         <div
           aria-label="콘텐츠 유형"
@@ -300,6 +313,9 @@ export default function ContentListPage() {
             </div>
           </div>
         </div>
+      )}
+      {isNoticeCreateOpen && (
+        <NoticeCreateModal onClose={() => setIsNoticeCreateOpen(false)} />
       )}
     </AdminListLayout>
   );
