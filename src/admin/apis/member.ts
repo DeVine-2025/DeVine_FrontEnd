@@ -65,3 +65,33 @@ export async function getAdminMemberDetail(nickname: string) {
 
   return data.result;
 }
+
+export type AdminMemberStatusAction =
+  | 'SUSPEND'
+  | 'UNSUSPEND'
+  | 'FORCE_WITHDRAW'
+  | 'CANCEL_WITHDRAWAL';
+
+export type UpdateAdminMemberStatusRequest = {
+  action: AdminMemberStatusAction;
+  reason?: string;
+  notifyRequested?: boolean;
+};
+
+export type AdminMemberStatusResult = {
+  nickname: string;
+  status: string;
+  scheduledWithdrawalAt: string | null;
+};
+
+export async function updateAdminMemberStatus(
+  nickname: string,
+  body: UpdateAdminMemberStatusRequest,
+) {
+  const { data } = await axiosInstance.patch<ApiResponse<AdminMemberStatusResult>>(
+    `/admin/v1/member/${encodeURIComponent(nickname)}/status`,
+    body,
+  );
+
+  return data.result;
+}

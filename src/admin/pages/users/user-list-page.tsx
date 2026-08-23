@@ -22,9 +22,10 @@ const PAGE_SIZE = 10;
 
 const STATUS_META: Record<string, { label: string; tone: UserStatusTone }> = {
   ACTIVE: { label: '정상', tone: 'positive' },
+  INACTIVE: { label: '비활성', tone: 'neutral' },
   SUSPENDED: { label: '정지', tone: 'negative' },
-  WITHDRAWN: { label: '탈퇴', tone: 'neutral' },
   PENDING_WITHDRAWAL: { label: '탈퇴 예정', tone: 'neutral' },
+  DELETED: { label: '탈퇴', tone: 'neutral' },
 };
 
 const toUserListRow = (member: AdminMemberListItem): UserListRow => {

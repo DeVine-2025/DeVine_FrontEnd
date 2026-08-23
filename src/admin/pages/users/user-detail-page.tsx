@@ -6,10 +6,11 @@ import AdminVerifiedUserIcon from '@assets/icons/admin-verified-user.svg?react';
 import AdminWarningIcon from '@assets/icons/admin-warning.svg?react';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { cn } from '@libs/cn';
-import { getAdminMemberDetail } from '../../apis/member';
+import { type AdminMemberStatusAction, getAdminMemberDetail } from '../../apis/member';
+import { MemberStatusModal } from '../../components/member-status-modal';
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 
 const CARD_CLASS = 'rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px]';
@@ -44,10 +45,49 @@ function SummaryItem({
 
 const STATUS_LABELS: Record<string, string> = {
   ACTIVE: '정상',
+  INACTIVE: '비활성',
   SUSPENDED: '정지',
-  WITHDRAWN: '탈퇴',
   PENDING_WITHDRAWAL: '탈퇴 예정',
+  DELETED: '탈퇴',
 };
+
+const STATUS_ACTIONS: Record<string, AdminMemberStatusAction[]> = {
+  ACTIVE: ['SUSPEND', 'FORCE_WITHDRAW'],
+  INACTIVE: ['SUSPEND', 'FORCE_WITHDRAW'],
+  SUSPENDED: ['UNSUSPEND', 'FORCE_WITHDRAW'],
+  PENDING_WITHDRAWAL: ['CANCEL_WITHDRAWAL'],
+};
+
+const ACTION_BUTTONS: Array<{
+  action: AdminMemberStatusAction;
+  label: string;
+  className: string;
+}> = [
+  {
+    action: 'SUSPEND',
+    label: '정지',
+    className:
+      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-medium text-white transition-colors hover:bg-[#3e39e8]',
+  },
+  {
+    action: 'UNSUSPEND',
+    label: '정지 해제',
+    className:
+      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] border border-[#4e49ff] bg-[var(--ui-bg)] font-medium text-[#4e49ff] transition-colors hover:bg-[var(--ui-50)]',
+  },
+  {
+    action: 'FORCE_WITHDRAW',
+    label: '강제 탈퇴',
+    className:
+      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] bg-[#ec221f] font-medium text-white transition-colors hover:bg-[#d41e1b]',
+  },
+  {
+    action: 'CANCEL_WITHDRAWAL',
+    label: '강제 탈퇴 취소',
+    className:
+      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] border border-[#ec221f] bg-[var(--ui-bg)] font-medium text-[#ec221f] transition-colors hover:bg-[var(--ui-50)]',
+  },
+];
 
 const MAIN_TYPE_LABELS: Record<string, string> = {
   DEVELOPER: '개발자',
@@ -72,6 +112,7 @@ const formatDateTime = (value?: string | null) => {
 
 export default function UserDetailPage() {
   const { nickname } = useParams();
+  const [selectedAction, setSelectedAction] = useState<AdminMemberStatusAction | null>(null);
   const decodedNickname = nickname ? decodeURIComponent(nickname) : '';
   const { data, isError, isPending } = useQuery({
     queryKey: ['admin', 'members', 'detail', decodedNickname],
@@ -92,6 +133,7 @@ export default function UserDetailPage() {
         paymentSummary.paidAt ||
         paymentSummary.status),
   );
+  const availableActions = STATUS_ACTIONS[data?.status ?? ''] ?? [];
 
   return (
     <section>
@@ -226,24 +268,23 @@ export default function UserDetailPage() {
               <h2 className={SECTION_TITLE_CLASS}>계정 상태 변경</h2>
 
               <div className="mt-[24px] flex flex-col gap-[20px]">
-                <button
-                  className="Heading2 h-[56px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-medium text-white transition-colors hover:bg-[#3e39e8]"
-                  type="button"
-                >
-                  정지
-                </button>
-                <button
-                  className="Heading2 h-[56px] w-full cursor-pointer rounded-[12px] border border-[#4e49ff] bg-[var(--ui-bg)] font-medium text-[#4e49ff] transition-colors hover:bg-[var(--ui-50)]"
-                  type="button"
-                >
-                  정지 해제
-                </button>
-                <button
-                  className="Heading2 h-[56px] w-full cursor-pointer rounded-[12px] bg-[#ec221f] font-medium text-white transition-colors hover:bg-[#d41e1b]"
-                  type="button"
-                >
-                  강제 탈퇴
-                </button>
+                {ACTION_BUTTONS.filter((button) => availableActions.includes(button.action)).map(
+                  (button) => (
+                    <button
+                      className={button.className}
+                      key={button.action}
+                      onClick={() => setSelectedAction(button.action)}
+                      type="button"
+                    >
+                      {button.label}
+                    </button>
+                  ),
+                )}
+                {availableActions.length === 0 && (
+                  <p className="Body1 py-[12px] text-center text-[var(--ui-500)]">
+                    현재 상태에서 변경할 수 있는 작업이 없습니다.
+                  </p>
+                )}
               </div>
 
               <div className="mt-[32px] flex items-center gap-[12px] rounded-[10px] border border-[var(--negative-text)] bg-[var(--negative-bg)] px-[20px] py-[22px]">
@@ -287,6 +328,13 @@ export default function UserDetailPage() {
             </div>
           </div>
         </div>
+      )}
+      {selectedAction && decodedNickname && (
+        <MemberStatusModal
+          action={selectedAction}
+          nickname={decodedNickname}
+          onClose={() => setSelectedAction(null)}
+        />
       )}
     </section>
   );
