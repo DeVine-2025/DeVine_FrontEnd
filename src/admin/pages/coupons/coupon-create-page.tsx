@@ -20,6 +20,10 @@ import { CouponIssueModal } from '../../components/coupon-issue-modal';
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 
 const DISCOUNT_METHODS = ['정률', '정액'] as const;
+const DISCOUNT_TYPE_BY_METHOD = {
+  정률: 'FIXED_RATE',
+  정액: 'FIXED_AMOUNT',
+} as const;
 
 type DiscountMethod = (typeof DISCOUNT_METHODS)[number];
 
@@ -148,7 +152,7 @@ export default function CouponCreatePage() {
 
     setName(coupon.name);
     setProductId(coupon.applicableTicketProductId?.toString() ?? '');
-    setDiscountMethod(coupon.discountType === 'FIXED_RATE' ? '정률' : '정액');
+    setDiscountMethod(coupon.discountType === 'FIXED_AMOUNT' ? '정액' : '정률');
     setDiscountValue(coupon.discountValue.toString());
     setStartDate(new Date(coupon.validFrom));
     setEndDate(new Date(coupon.validUntil));
@@ -249,7 +253,7 @@ export default function CouponCreatePage() {
 
     const body: CreateAdminCouponRequest = {
       name: name.trim(),
-      discountType: discountMethod === '정률' ? 'FIXED_RATE' : 'FIXED_AMOUNT',
+      discountType: DISCOUNT_TYPE_BY_METHOD[discountMethod],
       discountValue: parsedDiscountValue,
       applicableTicketProductId: parsedProductId,
       validFrom: validFrom.toISOString(),

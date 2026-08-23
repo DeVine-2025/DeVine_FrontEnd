@@ -7,10 +7,12 @@ export type AdminCouponCode = {
   usedCount: number;
 };
 
+export type AdminCouponDiscountType = 'FIXED_RATE' | 'FIXED_AMOUNT';
+
 export type AdminCoupon = {
   couponId: number;
   name: string;
-  discountType: string;
+  discountType: AdminCouponDiscountType;
   discountValue: number;
   applicableTicketProductId: number | null;
   applicableTicketProductName: string | null;
@@ -37,7 +39,7 @@ export type AdminCouponPage = {
 
 export type CreateAdminCouponRequest = {
   name: string;
-  discountType: 'FIXED_RATE' | 'FIXED_AMOUNT';
+  discountType: AdminCouponDiscountType;
   discountValue: number;
   applicableTicketProductId: number;
   validFrom: string;
