@@ -1,6 +1,8 @@
 import type { ApiResponse } from '@apis/base/api';
 import { axiosInstance } from '@apis/instance';
 
+export const ADMIN_PROJECTS_QUERY_KEY = ['admin', 'projects'] as const;
+
 export type AdminProjectListItem = {
   projectId: number;
   title: string;
@@ -8,6 +10,8 @@ export type AdminProjectListItem = {
   createdAt: string;
   visible: boolean;
 };
+
+export type AdminProject = AdminProjectListItem;
 
 export type AdminProjectPage = {
   content: AdminProjectListItem[];
@@ -25,9 +29,13 @@ type GetAdminProjectsParams = {
   size: number;
 };
 
-export async function getAdminProjects(params: GetAdminProjectsParams) {
+export async function getAdminProjects({ page, size, visible }: GetAdminProjectsParams) {
   const { data } = await axiosInstance.get<ApiResponse<AdminProjectPage>>('/admin/v1/projects', {
-    params,
+    params: {
+      page,
+      size,
+      ...(visible === undefined ? {} : { visible }),
+    },
   });
 
   return data.result;
@@ -55,4 +63,8 @@ export async function updateAdminProjectVisibility(
   );
 
   return data.result;
+}
+
+export async function updateProjectVisibility(projectId: number, visible: boolean) {
+  return updateAdminProjectVisibility(projectId, { visible });
 }

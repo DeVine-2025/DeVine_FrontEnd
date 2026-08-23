@@ -6,6 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 import Pagination from '@components/common/Pagination';
 import { getAdminNotices, type AdminNoticeListItem } from '../../apis/notice';
 import {
+  ADMIN_PROJECTS_QUERY_KEY,
   getAdminProjects,
   type AdminProjectListItem,
   updateAdminProjectVisibility,
@@ -182,7 +183,7 @@ export default function ContentListPage() {
     isError: isProjectError,
     isPending: isProjectPending,
   } = useQuery({
-    queryKey: ['admin', 'projects', page, PAGE_SIZE],
+    queryKey: [...ADMIN_PROJECTS_QUERY_KEY, page, PAGE_SIZE],
     queryFn: () => getAdminProjects({ page, size: PAGE_SIZE }),
     enabled: isProject,
   });
@@ -219,7 +220,7 @@ export default function ContentListPage() {
     mutationFn: (content: Content) =>
       updateAdminProjectVisibility(content.id, { visible: !content.visible }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] });
+      void queryClient.invalidateQueries({ queryKey: ADMIN_PROJECTS_QUERY_KEY });
       setVisibilityTarget(null);
     },
     onError: (error) => {
