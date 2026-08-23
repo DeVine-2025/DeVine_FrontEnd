@@ -2,6 +2,7 @@ import { Navigate, type RouteObject } from 'react-router-dom';
 import { AdminApp } from '../app/admin-app';
 import { AdminLayout } from '../layouts/admin-layout';
 import ContentListPage from '../pages/contents/content-list-page';
+import NoticeDetailPage from '../pages/contents/notice-detail-page';
 import CouponCreatePage from '../pages/coupons/coupon-create-page';
 import CouponListPage from '../pages/coupons/coupon-list-page';
 import AdminDashboardPage from '../pages/dashboard/admin-dashboard-page';
@@ -35,10 +36,11 @@ export const adminRoutes: RouteObject[] = [
           { path: 'coupons/new', element: <CouponCreatePage /> },
           { path: 'coupons/:couponId/edit', element: <CouponCreatePage /> },
           { path: 'users', element: <UserListPage /> },
-          { path: 'users/:userId', element: <UserDetailPage /> },
+          { path: 'users/:nickname', element: <UserDetailPage /> },
           { path: 'payments', element: <PaymentListPage /> },
           { path: 'payments/:paymentId', element: <PaymentDetailPage /> },
           { path: 'contents', element: <ContentListPage /> },
+          { path: 'contents/notices/:noticeId', element: <NoticeDetailPage /> },
           { path: 'settings', element: <SystemSettingPage /> },
         ],
       },

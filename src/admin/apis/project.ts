@@ -1,8 +1,9 @@
+import type { ApiResponse } from '@apis/base/api';
 import { axiosInstance } from '@apis/instance';
 
 export const ADMIN_PROJECTS_QUERY_KEY = ['admin', 'projects'] as const;
 
-export type AdminProject = {
+export type AdminProjectListItem = {
   projectId: number;
   title: string;
   authorNickname: string;
@@ -10,8 +11,10 @@ export type AdminProject = {
   visible: boolean;
 };
 
+export type AdminProject = AdminProjectListItem;
+
 export type AdminProjectPage = {
-  content: AdminProject[];
+  content: AdminProjectListItem[];
   page: number;
   size: number;
   totalElements: number;
@@ -20,29 +23,13 @@ export type AdminProjectPage = {
   last: boolean;
 };
 
-export type UpdateProjectVisibilityResult = {
-  reportId: number;
-  visibility: 'PUBLIC' | 'PRIVATE';
-};
-
-type ApiResponse<T> = {
-  isSuccess: boolean;
-  code: string;
-  message: string;
-  result: T;
-};
-
 type GetAdminProjectsParams = {
+  visible?: boolean;
   page: number;
   size: number;
-  visible?: boolean;
 };
 
-export async function getAdminProjects({
-  page,
-  size,
-  visible,
-}: GetAdminProjectsParams): Promise<AdminProjectPage> {
+export async function getAdminProjects({ page, size, visible }: GetAdminProjectsParams) {
   const { data } = await axiosInstance.get<ApiResponse<AdminProjectPage>>('/admin/v1/projects', {
     params: {
       page,
@@ -54,14 +41,30 @@ export async function getAdminProjects({
   return data.result;
 }
 
-export async function updateProjectVisibility(
+export type UpdateAdminProjectVisibilityRequest = {
+  visible: boolean;
+};
+
+export type AdminProjectVisibilityResult = {
+  projectId: number;
+  visible: boolean;
+  changed: boolean;
+  processorMemberId: number | null;
+  changedAt: string;
+};
+
+export async function updateAdminProjectVisibility(
   projectId: number,
-  visible: boolean,
-): Promise<UpdateProjectVisibilityResult> {
-  const { data } = await axiosInstance.patch<ApiResponse<UpdateProjectVisibilityResult>>(
+  body: UpdateAdminProjectVisibilityRequest,
+) {
+  const { data } = await axiosInstance.patch<ApiResponse<AdminProjectVisibilityResult>>(
     `/admin/v1/projects/${projectId}/visibility`,
-    { visible },
+    body,
   );
 
   return data.result;
+}
+
+export async function updateProjectVisibility(projectId: number, visible: boolean) {
+  return updateAdminProjectVisibility(projectId, { visible });
 }
