@@ -12,10 +12,8 @@ import { AdminStatusBadge } from '../../components/common/admin-status-badge';
 const STATUS_META: Record<string, { label: string; tone: 'positive' | 'neutral' }> = {
   HIDDEN: { label: '비노출', tone: 'neutral' },
   SCHEDULED: { label: '게시 예정', tone: 'neutral' },
-  EXPOSED: { label: '노출', tone: 'positive' },
-  VISIBLE: { label: '노출', tone: 'positive' },
+  DISPLAYING: { label: '노출 중', tone: 'positive' },
   ENDED: { label: '게시 종료', tone: 'neutral' },
-  EXPIRED: { label: '게시 종료', tone: 'neutral' },
 };
 
 const formatDateTime = (value: string | null) =>

@@ -1,6 +1,8 @@
 import type { ApiResponse } from '@apis/base/api';
 import { axiosInstance } from '@apis/instance';
 
+export type AdminNoticeDisplayStatus = 'HIDDEN' | 'SCHEDULED' | 'DISPLAYING' | 'ENDED';
+
 export type AdminNoticeListItem = {
   noticeId: number;
   title: string;
@@ -8,7 +10,7 @@ export type AdminNoticeListItem = {
   displayStartAt: string | null;
   displayEndAt: string | null;
   isExposed: boolean;
-  displayStatus: string;
+  displayStatus: AdminNoticeDisplayStatus;
   createdAt: string;
   updatedAt: string;
 };
