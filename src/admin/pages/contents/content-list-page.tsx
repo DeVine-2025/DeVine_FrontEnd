@@ -1,10 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Pagination from '@components/common/Pagination';
 import { getAdminNotices, type AdminNoticeListItem } from '../../apis/notice';
-import { getAdminProjects, type AdminProjectListItem } from '../../apis/project';
+import {
+  getAdminProjects,
+  type AdminProjectListItem,
+  updateAdminProjectVisibility,
+} from '../../apis/project';
 import { NoticeCreateModal } from '../../components/notice-create-modal';
 import { AdminListLayout } from '../../components/common/admin-list-layout';
 import { AdminStatusBadge } from '../../components/common/admin-status-badge';
@@ -162,12 +167,14 @@ const NOTICE_COLUMNS: AdminTableColumn<NoticeListRow>[] = [
 ];
 
 export default function ContentListPage() {
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(1);
   const [contentType, setContentType] = useState<ContentType>(() =>
     searchParams.get('type') === 'notice' ? 'NOTICE' : 'PROJECT',
   );
   const [visibilityTarget, setVisibilityTarget] = useState<Content | null>(null);
+  const [visibilityError, setVisibilityError] = useState('');
   const [isNoticeCreateOpen, setIsNoticeCreateOpen] = useState(false);
   const isProject = contentType === 'PROJECT';
   const {
@@ -204,7 +211,24 @@ export default function ContentListPage() {
     : isNoticeError
       ? '공지사항 목록을 불러오지 못했습니다.'
       : '등록된 공지사항이 없습니다.';
-  const contentColumns = createContentColumns(setVisibilityTarget);
+  const contentColumns = createContentColumns((content) => {
+    setVisibilityError('');
+    setVisibilityTarget(content);
+  });
+  const visibilityMutation = useMutation({
+    mutationFn: (content: Content) =>
+      updateAdminProjectVisibility(content.id, { visible: !content.visible }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'projects'] });
+      setVisibilityTarget(null);
+    },
+    onError: (error) => {
+      const message = axios.isAxiosError<{ message?: string }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      setVisibilityError(message ?? '노출 상태를 변경하지 못했습니다.');
+    },
+  });
 
   return (
     <AdminListLayout
@@ -282,11 +306,13 @@ export default function ContentListPage() {
           aria-modal="true"
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-[20px]"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setVisibilityTarget(null);
+            if (event.target === event.currentTarget && !visibilityMutation.isPending) {
+              setVisibilityTarget(null);
+            }
           }}
           role="dialog"
         >
-          <div className="w-full max-w-[440px] rounded-[16px] bg-[var(--ui-bg)] p-[28px] shadow-xl">
+          <div className="w-full max-w-[440px] rounded-[16px] bg-[var(--ui-bg)] p-[28px] text-center shadow-xl">
             <h2 className="Title3 font-bold text-[var(--ui-1000)]">노출 상태 변경</h2>
             <p className="Body1 mt-[12px] text-[var(--ui-700)]">
               <strong>{visibilityTarget.title}</strong> 게시글을{' '}
@@ -298,21 +324,26 @@ export default function ContentListPage() {
                 : '변경 후 유저 화면에 해당 게시글이 다시 표시됩니다.'}
             </p>
 
+            {visibilityError && (
+              <p className="Body1 mt-[16px] text-[var(--negative-text)]">{visibilityError}</p>
+            )}
+
             <div className="mt-[24px] flex gap-[10px]">
               <button
                 className="Heading2 h-[48px] flex-1 cursor-pointer rounded-[10px] border border-[var(--ui-200)] text-[var(--ui-700)]"
+                disabled={visibilityMutation.isPending}
                 onClick={() => setVisibilityTarget(null)}
                 type="button"
               >
                 취소
               </button>
               <button
-                className="Heading2 h-[48px] flex-1 cursor-not-allowed rounded-[10px] bg-[#4e49ff] text-white opacity-50"
-                disabled
-                title="API 응답 명세 확인 후 연결 예정"
+                className="Heading2 h-[48px] flex-1 cursor-pointer rounded-[10px] bg-[#4e49ff] text-white disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={visibilityMutation.isPending}
+                onClick={() => visibilityMutation.mutate(visibilityTarget)}
                 type="button"
               >
-                변경
+                {visibilityMutation.isPending ? '변경 중...' : '변경'}
               </button>
             </div>
           </div>

@@ -32,3 +32,27 @@ export async function getAdminProjects(params: GetAdminProjectsParams) {
 
   return data.result;
 }
+
+export type UpdateAdminProjectVisibilityRequest = {
+  visible: boolean;
+};
+
+export type AdminProjectVisibilityResult = {
+  projectId: number;
+  visible: boolean;
+  changed: boolean;
+  processorMemberId: number | null;
+  changedAt: string;
+};
+
+export async function updateAdminProjectVisibility(
+  projectId: number,
+  body: UpdateAdminProjectVisibilityRequest,
+) {
+  const { data } = await axiosInstance.patch<ApiResponse<AdminProjectVisibilityResult>>(
+    `/admin/v1/projects/${projectId}/visibility`,
+    body,
+  );
+
+  return data.result;
+}
