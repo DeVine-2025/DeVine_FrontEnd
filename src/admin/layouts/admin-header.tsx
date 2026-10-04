@@ -71,8 +71,8 @@ export function AdminHeader() {
             onClick={() => navigate('/admin/login')}
             type="button"
           >
-            <span className="absolute inset-0 rounded-[8px] bg-[#4e49ff] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <span className="Caption1 relative z-10 whitespace-nowrap font-semibold text-[#4e49ff] transition-colors duration-300 group-hover:text-white">
+            <span className="absolute inset-0 rounded-[8px] bg-[#6654F5] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <span className="Caption1 relative z-10 whitespace-nowrap font-semibold text-[#6654F5] transition-colors duration-300 group-hover:text-white">
               로그아웃
             </span>
           </button>

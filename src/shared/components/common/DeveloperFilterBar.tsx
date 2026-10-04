@@ -51,7 +51,7 @@ export default function DeveloperFilterBar({
     'border border-[var(--badge-bg-primary)] bg-[var(--badge-bg-primary)] text-[var(--badge-text-primary)]';
   const defaultClass = 'border border-transparent bg-filter-bg text-filter-text';
   // 오픈 시 바깥 링 없이 테두리 색만 변경 (기본 border-transparent를 확실히 override)
-  const openClass = '!border-[#4E49FF]';
+  const openClass = '!border-[#6654F5]';
   const visibleFilters = filters.filter((f) => !excludeFilters.includes(f));
 
   const getValues = (label: DeveloperFilterKey) => {

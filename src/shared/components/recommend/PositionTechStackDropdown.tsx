@@ -115,8 +115,9 @@ export default function PositionTechStackDropdown({
   valueType = 'key',
 }: PositionTechStackDropdownProps) {
   const { theme } = useThemeStore();
-  const { data: techstackGroups = [], isLoading } = useTechstacks();
+  const { data: techstackGroups = [], isLoading, isError, refetch } = useTechstacks();
   const ref = useRef<HTMLDivElement | null>(null);
+  const wasOpenRef = useRef(false);
   const selected = useMemo(() => new Set(value), [value]);
 
   const [activeTab, setActiveTab] = useState<TabKey>('frontend');
@@ -150,6 +151,15 @@ export default function PositionTechStackDropdown({
       document.removeEventListener('keydown', onKeyDown);
     };
   }, [open, onClose, asModal]);
+
+  useEffect(() => {
+    const justOpened = open && !wasOpenRef.current;
+    wasOpenRef.current = open;
+
+    if (justOpened && isError) {
+      void refetch();
+    }
+  }, [isError, open, refetch]);
 
   const groupByTab = useMemo(() => {
     const map = new Map<string, TechstackGroup>();
@@ -228,7 +238,7 @@ export default function PositionTechStackDropdown({
         className={[
           'inline-flex h-[36px] items-center gap-[8px] rounded-[24px] px-[12px] py-[8px] text-left transition-transform duration-150 ease-out active:scale-[0.98]',
           'bg-[var(--ui-100)]',
-          isOn ? 'ring-[#4E49FF] ring-[1.5px]' : 'ring-[1.5px] ring-[var(--ui-200)]',
+          isOn ? 'ring-[#6654F5] ring-[1.5px]' : 'ring-[1.5px] ring-[var(--ui-200)]',
         ].join(' ')}
       >
         <span className="Caption1 font-medium text-[var(--ui-800)]">{label}</span>
@@ -369,8 +379,8 @@ export default function PositionTechStackDropdown({
           onClick={toggleAll}
           className={`inline-flex items-center gap-[4px] ${
             tabAllSelected
-              ? 'text-[#4E49FF] [&_path]:!stroke-[#4E49FF]'
-              : 'text-[var(--ui-500)] hover:text-[#4E49FF] hover:[&_path]:!stroke-[#4E49FF]'
+              ? 'text-[#6654F5] [&_path]:!stroke-[#6654F5]'
+              : 'text-[var(--ui-500)] hover:text-[#6654F5] hover:[&_path]:!stroke-[#6654F5]'
           }`}
         >
           <span aria-hidden className="inline-flex h-[20px] w-[20px] items-center justify-center">
@@ -420,7 +430,7 @@ export default function PositionTechStackDropdown({
             onApply?.();
             onClose();
           }}
-          className="Label1 flex h-[36px] w-[60px] cursor-pointer items-center justify-center rounded-[8px] bg-[#4E49FF] px-[10px] text-white"
+          className="Label1 flex h-[36px] w-[60px] cursor-pointer items-center justify-center rounded-[8px] bg-[#6654F5] px-[10px] text-white"
         >
           저장
         </button>

@@ -227,7 +227,7 @@ const RootLayout = () => {
                     navigate('/signup');
                   }
                 }}
-                className="h-[48px] w-full rounded-[12px] bg-[#4E49FF] font-semibold text-[16px] text-white"
+                className="h-[48px] w-full rounded-[12px] bg-[#6654F5] font-semibold text-[16px] text-white"
               >
                 회원가입 계속하기
               </button>

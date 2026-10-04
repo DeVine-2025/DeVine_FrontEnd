@@ -69,7 +69,7 @@ export function AdminDateTimePicker({ value, onChange }: AdminDateTimePickerProp
         aria-label="예상 종료 시각 선택"
         aria-expanded={isOpen}
         aria-haspopup="dialog"
-        className="Body1 flex h-[56px] w-full cursor-pointer items-center rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] pr-[16px] pl-[54px] text-left font-medium text-[var(--ui-800)] hover:bg-[var(--ui-50)] focus:border-[#4e49ff] focus:outline-none"
+        className="Body1 flex h-[56px] w-full cursor-pointer items-center rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] pr-[16px] pl-[54px] text-left font-medium text-[var(--ui-800)] hover:bg-[var(--ui-50)] focus:border-[#6654F5] focus:outline-none"
         onClick={() => setIsOpen((current) => !current)}
         type="button"
       >
@@ -95,7 +95,7 @@ export function AdminDateTimePicker({ value, onChange }: AdminDateTimePickerProp
                   <label className="Caption1 flex-1 font-medium text-[var(--ui-600)]">
                     시간
                     <select
-                      className="Caption1 mt-[6px] h-[36px] w-full cursor-pointer rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[8px] text-[var(--ui-800)] outline-none focus:border-[#4e49ff]"
+                      className="Caption1 mt-[6px] h-[36px] w-full cursor-pointer rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[8px] text-[var(--ui-800)] outline-none focus:border-[#6654F5]"
                       onChange={(event) => setTime('hour', Number(event.target.value))}
                       value={value?.getHours() ?? 0}
                     >
@@ -109,7 +109,7 @@ export function AdminDateTimePicker({ value, onChange }: AdminDateTimePickerProp
                   <label className="Caption1 flex-1 font-medium text-[var(--ui-600)]">
                     분
                     <select
-                      className="Caption1 mt-[6px] h-[36px] w-full cursor-pointer rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[8px] text-[var(--ui-800)] outline-none focus:border-[#4e49ff]"
+                      className="Caption1 mt-[6px] h-[36px] w-full cursor-pointer rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[8px] text-[var(--ui-800)] outline-none focus:border-[#6654F5]"
                       onChange={(event) => setTime('minute', Number(event.target.value))}
                       value={value?.getMinutes() ?? 0}
                     >
@@ -122,7 +122,7 @@ export function AdminDateTimePicker({ value, onChange }: AdminDateTimePickerProp
                   </label>
                 </div>
                 <button
-                  className="Caption1 mt-[16px] h-[38px] w-full cursor-pointer rounded-[8px] bg-[#4e49ff] font-semibold text-white transition-colors hover:bg-[#3e39e8]"
+                  className="Caption1 mt-[16px] h-[38px] w-full cursor-pointer rounded-[8px] bg-[#6654F5] font-semibold text-white transition-colors hover:bg-[#5544DB]"
                   onClick={() => setIsOpen(false)}
                   type="button"
                 >

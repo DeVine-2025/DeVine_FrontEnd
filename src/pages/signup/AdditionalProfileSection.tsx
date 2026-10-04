@@ -315,8 +315,8 @@ const AdditionalProfileSection = ({
             hasAnyInput
               ? 'bg-[var(--color-primary)] text-white'
               : theme === 'dark'
-                ? 'bg-[#1E1D4D] text-[#7E7AFF]'
-                : 'bg-[#EEEDFF] text-[#4E49FF]'
+                ? 'bg-[#1E1D4D] text-[#7B6BFF]'
+                : 'bg-[#EEEDFF] text-[#6654F5]'
           } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           {isSubmitting ? '처리 중…' : hasAnyInput ? '회원가입' : '건너뛰기'}

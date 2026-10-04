@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
             <span className="font-semibold text-[16px] text-[var(--ui-900)]">이메일</span>
             <input
               autoComplete="email"
-              className="h-[48px] rounded-[12px] bg-[var(--ui-50)] px-[16px] font-semibold text-[16px] text-[var(--ui-900)] outline-none placeholder:text-[var(--ui-400)] focus:ring-2 focus:ring-[#4e49ff]"
+              className="h-[48px] rounded-[12px] bg-[var(--ui-50)] px-[16px] font-semibold text-[16px] text-[var(--ui-900)] outline-none placeholder:text-[var(--ui-400)] focus:ring-2 focus:ring-[#6654F5]"
               onChange={(event) => setEmail(event.target.value)}
               placeholder="이메일을 입력해주세요"
               type="email"
@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
             <span className="font-semibold text-[16px] text-[var(--ui-900)]">비밀번호</span>
             <input
               autoComplete="current-password"
-              className="h-[48px] rounded-[12px] bg-[var(--ui-50)] px-[16px] font-semibold text-[16px] text-[var(--ui-900)] outline-none placeholder:text-[var(--ui-400)] focus:ring-2 focus:ring-[#4e49ff]"
+              className="h-[48px] rounded-[12px] bg-[var(--ui-50)] px-[16px] font-semibold text-[16px] text-[var(--ui-900)] outline-none placeholder:text-[var(--ui-400)] focus:ring-2 focus:ring-[#6654F5]"
               onChange={(event) => setPassword(event.target.value)}
               placeholder="비밀번호를 입력해주세요"
               type="password"
@@ -47,7 +47,7 @@ export default function AdminLoginPage() {
           </label>
         </div>
         <button
-          className="mt-[24px] flex h-[48px] w-full items-center justify-center rounded-[12px] bg-[#4e49ff] font-semibold text-[16px] text-white transition-opacity hover:opacity-90"
+          className="mt-[24px] flex h-[48px] w-full items-center justify-center rounded-[12px] bg-[#6654F5] font-semibold text-[16px] text-white transition-opacity hover:opacity-90"
           type="submit"
         >
           로그인

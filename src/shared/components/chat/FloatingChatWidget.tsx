@@ -560,7 +560,7 @@ const FloatingChatWidget = () => {
               <span className="Heading2 flex-1 font-semibold text-[var(--ui-900)]">메시지</span>
               {unreadRoomCount > 0 ? (
                 <span
-                  className="mr-[0.8rem] flex min-w-[2.2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_100%)] px-[0.75rem] py-[0.25rem] text-[1.15rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.6rem_1.4rem_rgba(78,73,255,0.28)]"
+                  className="mr-[0.8rem] flex min-w-[2.2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#6654F5_100%)] px-[0.75rem] py-[0.25rem] text-[1.15rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.6rem_1.4rem_rgba(102,84,245,0.28)]"
                   aria-hidden
                 >
                   {unreadBadgeLabel}
@@ -757,7 +757,7 @@ const FloatingChatWidget = () => {
                               ) : null}
                               <div
                                 className={cn(
-                                  'rounded-[1.6rem] rounded-br-[0.6rem] bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_58%,#7C79FF_100%)] px-[1.2rem] py-[0.9rem] max-[389px]:px-[1rem] shadow-[0_1.2rem_2.4rem_rgba(78,73,255,0.22)]',
+                                  'rounded-[1.6rem] rounded-br-[0.6rem] bg-[linear-gradient(135deg,#5B56FF_0%,#6654F5_58%,#7C79FF_100%)] px-[1.2rem] py-[0.9rem] max-[389px]:px-[1rem] shadow-[0_1.2rem_2.4rem_rgba(102,84,245,0.22)]',
                                   message.localStatus === 'sending' && 'opacity-70',
                                   message.localStatus === 'failed' && 'opacity-90',
                                 )}
@@ -799,7 +799,7 @@ const FloatingChatWidget = () => {
                         className={cn(
                           'flex size-[3rem] cursor-pointer items-center justify-center rounded-full transition-[transform,box-shadow] duration-200 max-[389px]:size-[2.8rem] disabled:cursor-default',
                           !sendingDisabled
-                            ? 'bg-[var(--color-primary)] text-[var(--ui-50)] shadow-[0_1rem_2rem_rgba(78,73,255,0.28)] hover:scale-[1.03]'
+                            ? 'bg-[var(--color-primary)] text-[var(--ui-50)] shadow-[0_1rem_2rem_rgba(102,84,245,0.28)] hover:scale-[1.03]'
                             : 'bg-[var(--ui-200)] text-[var(--ui-50)] shadow-none',
                         )}
                         aria-label="메시지 전송"
@@ -874,7 +874,7 @@ const FloatingChatWidget = () => {
                                 </span>
                                 {room.unreadCount > 0 ? (
                                   <span
-                                    className="flex min-w-[2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#4E49FF_100%)] px-[0.7rem] py-[0.2rem] text-[1.1rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.6rem_1.2rem_rgba(78,73,255,0.22)]"
+                                    className="flex min-w-[2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#6654F5_100%)] px-[0.7rem] py-[0.2rem] text-[1.1rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.6rem_1.2rem_rgba(102,84,245,0.22)]"
                                     aria-label={`안 읽은 메시지 ${room.unreadCount}개`}
                                   >
                                     {unreadLabel}

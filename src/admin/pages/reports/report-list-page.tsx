@@ -29,7 +29,7 @@ type ReportListRow = {
 
 const PAGE_SIZE = 10;
 const DATE_INPUT_CLASS =
-  'Body1 h-[42px] w-full rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[12px] text-[var(--ui-800)] outline-none focus:border-[#4e49ff]';
+  'Body1 h-[42px] w-full rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[12px] text-[var(--ui-800)] outline-none focus:border-[#6654F5]';
 
 const TARGET_TYPE_LABELS: Record<ComplaintTargetType, string> = {
   CHAT: '채팅',
@@ -265,7 +265,7 @@ function DateRangeFilter({
               초기화
             </button>
             <button
-              className="Body1 h-[40px] flex-1 cursor-pointer rounded-[8px] bg-[#4e49ff] text-white disabled:opacity-50"
+              className="Body1 h-[40px] flex-1 cursor-pointer rounded-[8px] bg-[#6654F5] text-white disabled:opacity-50"
               disabled={hasInvalidDateRange}
               onClick={() => setIsOpen(false)}
               type="button"

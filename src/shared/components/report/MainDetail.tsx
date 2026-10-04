@@ -39,7 +39,7 @@ const MainDetail = ({ data }: MainDetailProps) => {
             <div className="flex-col gap-[0.3rem]">
               {data?.overview?.capabilities.map((todo) => (
                 <p key={todo} className="flex items-center gap-2 font-normal text-lg text-ui-1000">
-                  <span className="text-2xl text-[#4E49FF]">•</span>
+                  <span className="text-2xl text-[#6654F5]">•</span>
                   {todo}
                 </p>
               ))}
@@ -60,7 +60,7 @@ const MainDetail = ({ data }: MainDetailProps) => {
             <div className="grid grid-cols-2 gap-x-10 gap-y-1">
               {data?.projectInfo?.techStack.map((stack) => (
                 <p key={stack} className="flex items-center gap-2 font-normal text-lg text-ui-1000">
-                  <span className="text-2xl text-[#4E49FF]">•</span>
+                  <span className="text-2xl text-[#6654F5]">•</span>
                   {stack}
                 </p>
               ))}
@@ -107,7 +107,7 @@ const MainDetail = ({ data }: MainDetailProps) => {
                     key={item}
                     className="flex items-center gap-2 pb-1 font-normal text-lg text-ui-900"
                   >
-                    <span className="text-2xl text-[#4E49FF]">•</span>
+                    <span className="text-2xl text-[#6654F5]">•</span>
                     {item}
                   </p>
                 ))}
@@ -135,7 +135,7 @@ const MainDetail = ({ data }: MainDetailProps) => {
                       key={description}
                       className="flex items-center gap-2 pb-1 font-normal text-lg text-ui-900"
                     >
-                      <span className="text-2xl text-[#4E49FF]">•</span>
+                      <span className="text-2xl text-[#6654F5]">•</span>
                       {description}
                     </p>
                   ))}

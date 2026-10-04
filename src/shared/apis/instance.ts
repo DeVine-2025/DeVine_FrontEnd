@@ -38,3 +38,8 @@ export const createAxiosInstance = (): AxiosInstance => {
 };
 
 export const axiosInstance = createAxiosInstance();
+
+// Public catalog endpoints must not inherit an expired Clerk bearer token.
+export const publicAxiosInstance = axios.create({
+  baseURL: BASE_URL,
+});

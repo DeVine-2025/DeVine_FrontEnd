@@ -139,7 +139,7 @@ export default function PaymentListPage() {
       width: '9%',
       cell: (payment) => (
         <Link
-          className="font-semibold text-[#4e49ff] no-underline hover:underline"
+          className="font-semibold text-[#6654F5] no-underline hover:underline"
           to={`/admin/payments/${payment.paymentId}`}
         >
           보기
@@ -191,7 +191,7 @@ export default function PaymentListPage() {
         emptyMessage={
           isPaymentsError ? (
             <button
-              className="cursor-pointer font-semibold text-[#4e49ff] underline"
+              className="cursor-pointer font-semibold text-[#6654F5] underline"
               onClick={() => void refetchPayments()}
               type="button"
             >
@@ -229,7 +229,7 @@ export default function PaymentListPage() {
               환불 사유
             </label>
             <textarea
-              className="Body1 mt-[8px] min-h-[120px] w-full resize-y rounded-[8px] border border-[var(--ui-300)] bg-transparent p-[12px] text-[var(--ui-1000)] outline-none focus:border-[#4e49ff]"
+              className="Body1 mt-[8px] min-h-[120px] w-full resize-y rounded-[8px] border border-[var(--ui-300)] bg-transparent p-[12px] text-[var(--ui-1000)] outline-none focus:border-[#6654F5]"
               id={refundReasonId}
               onChange={(event) => setRefundReason(event.target.value)}
               placeholder="예: 고객 요청"

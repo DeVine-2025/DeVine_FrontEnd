@@ -150,12 +150,12 @@ const TermsDetailScreen = ({
       ? {
           backgroundColor: 'var(--ui-bg)',
           backgroundImage:
-            'radial-gradient(circle at top center, rgba(78,73,255,0.18) 0%, rgba(78,73,255,0.08) 25%, rgba(78,73,255,0) 70%)',
+            'radial-gradient(circle at top center, rgba(102,84,245,0.18) 0%, rgba(102,84,245,0.08) 25%, rgba(102,84,245,0) 70%)',
         }
       : {
           backgroundColor: 'var(--ui-bg)',
           backgroundImage:
-            'radial-gradient(circle at top center, rgba(78,73,255,0.2) 0%, rgba(78,73,255,0.06) 25%, rgba(78,73,255,0) 70%)',
+            'radial-gradient(circle at top center, rgba(102,84,245,0.2) 0%, rgba(102,84,245,0.06) 25%, rgba(102,84,245,0) 70%)',
         };
 
   if (!open) return null;

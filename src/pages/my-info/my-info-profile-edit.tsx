@@ -547,7 +547,7 @@ const MyInfoProfileEdit = () => {
                       >
                         {selected ? (
                           <CheckboxCheckedIcon
-                            className="h-7 w-7 shrink-0 text-[#4E49FF]"
+                            className="h-7 w-7 shrink-0 text-[#6654F5]"
                             aria-hidden="true"
                           />
                         ) : (

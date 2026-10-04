@@ -20,7 +20,9 @@ import ModeLightIcon from '@assets/icons/mode-light.svg?react';
 import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
 import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
 import { SignedIn, SignedOut, useAuth as useClerkAuth, useUser } from '@clerk/clerk-react';
+import { useQuery } from '@tanstack/react-query';
 import NotificationModal from '@components/common/NotificationModal';
+import { myCreditsQuery } from '@apis/payment/payment-queries';
 import { useNotificationStore } from '@store/notification';
 import { useThemeStore } from '@store/theme';
 import { getProfileImageKey, getStoredProfileImageUrl } from '@utils/storage';
@@ -53,6 +55,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const isTermsPage = location.pathname.startsWith('/terms/');
   const isOnboardingComplete = clerkUser?.unsafeMetadata?.onboardingComplete === true;
   const canUseMemberProtectedApis = isSignedIn === true && isOnboardingComplete && !isSignupFlow;
+  const { data: myCredits } = useQuery(myCreditsQuery(canUseMemberProtectedApis));
 
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
@@ -269,8 +272,8 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
 
   return (
     <>
-      <header className="w-full bg-ui-bg">
-        <div className="relative mx-auto h-[7rem] w-full max-w-[1180px] flex-row-between pl-6 max-[391px]:px-2 max-[743px]:px-4">
+      <header className="w-full border-b border-white/[0.04] bg-ui-bg">
+        <div className="relative mx-auto h-[7rem] w-full max-w-none flex-row-between px-8 max-[391px]:px-2 max-[743px]:px-4">
           {/* 왼쪽: 로고 + 네비게이션 */}
           <div className="flex-items-center gap-[4.8rem] phone:gap-[2rem] tablet:gap-[3rem]">
             <div className="group relative ml-[-14px] flex-items-center gap-[0.4rem]">
@@ -312,16 +315,17 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                   key={item.path}
                   to={item.path}
                   className={`Label1 group relative shrink-0 whitespace-nowrap px-[0.6rem] py-[0.4rem] transition-all duration-300 ease-out ${
-                    isActive(item.path) ? 'text-ui-800' : 'text-ui-400'
+                    isActive(item.path) ? 'text-ui-1000' : 'text-ui-500'
                   } hover:text-ui-800`}
+                  aria-current={isActive(item.path) ? 'page' : undefined}
                 >
                   {item.label}
                   <span
-                    className={`-translate-x-1/2 absolute bottom-[0.2rem] left-1/2 h-[0.5px] transition-all duration-300 ease-out ${
+                    className={`-translate-x-1/2 absolute bottom-0 left-1/2 h-[2px] rounded-full transition-all duration-300 ease-out ${
                       isActive(item.path)
                         ? 'w-[calc(100%-1.2rem)] opacity-100'
                         : 'w-0 opacity-0 group-hover:w-[calc(100%-1.2rem)] group-hover:opacity-100'
-                    } bg-ui-800`}
+                    } bg-primary`}
                   />
                 </Link>
               ))}
@@ -332,39 +336,50 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
           <div className="flex-items-center shrink-0 flex-nowrap gap-[1.2rem] phone:gap-[0.6rem] tablet:gap-[0.8rem]">
             <SignedIn>
               {!isTermsPage && !isSignupFlow && (
-                <Link
-                  to="/pay"
-                  className="group relative h-[3.6rem] flex-row-center shrink-0 overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--badge-text-primary)] px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
-                >
-                  <span
-                    className="absolute inset-0 rounded-[8px] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                    style={{
-                      background: '#4E49FF',
-                    }}
-                  />
-                  <span
-                    className="-inset-[2px] -z-10 absolute rounded-[10px] opacity-0 blur-[8px] transition-opacity duration-300 group-hover:opacity-20"
-                    style={{
-                      background: '#7E7AFF',
-                    }}
-                  />
-                  <span className="Caption1 relative z-10 whitespace-nowrap font-semibold text-[#4E49FF] transition-colors duration-300 group-hover:text-white">
-                    이용권 구매
-                  </span>
-                </Link>
+                <>
+                  <span aria-hidden="true" className="mx-[0.4rem] hidden h-[3.2rem] w-px bg-ui-200 min-[744px]:block" />
+                  <Link
+                    to="/pay"
+                    aria-label={
+                      typeof myCredits?.remainingCount === 'number'
+                        ? `이용권 ${myCredits.remainingCount}장, 구매 페이지로 이동`
+                        : '이용권 구매 페이지로 이동'
+                    }
+                    className="group flex h-[3.6rem] shrink-0 items-center gap-[0.8rem] whitespace-nowrap rounded-[10px] border border-ui-200 px-[1.4rem] text-ui-800 transition-colors hover:border-ui-400 hover:bg-ui-50"
+                  >
+                    <svg aria-hidden="true" className="size-[2rem] shrink-0" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+                      <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                    </svg>
+                    <span className="Caption1 font-semibold">
+                      {typeof myCredits?.remainingCount === 'number'
+                        ? `이용권 ${myCredits.remainingCount}장`
+                        : '이용권 구매'}
+                    </span>
+                    <svg aria-hidden="true" className="size-[1.6rem] shrink-0 text-ui-500" viewBox="0 0 20 20" fill="none">
+                      <path d="m7.5 4.5 5.5 5.5-5.5 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </Link>
+                </>
               )}
               <Link
                 to="/project/create"
-                className="Caption1 relative h-[3.2rem] flex-row-center whitespace-nowrap rounded-[8px] bg-[#4E49FF] px-[1.0rem] py-[0.6rem] font-semibold text-white transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:translate-y-[1px] active:scale-[0.98]"
+                className="Caption1 relative h-[3.6rem] flex-row-center gap-[0.8rem] whitespace-nowrap rounded-[10px] bg-primary px-[1.6rem] py-[0.8rem] font-semibold text-white transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:translate-y-[1px] active:scale-[0.98]"
               >
-                프로젝트 등록하기
+                <svg aria-hidden="true" className="size-[2rem] shrink-0" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                프로젝트 등록
               </Link>
+              {!isTermsPage && !isSignupFlow && (
+                <span aria-hidden="true" className="mx-[0.4rem] hidden h-[3.2rem] w-px bg-ui-200 min-[744px]:block" />
+              )}
             </SignedIn>
             {/* 다크모드 토글 */}
             <button
               type="button"
               onClick={toggleTheme}
-              className="group max-[391px]:!hidden relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg"
+              className="group max-[391px]:!hidden relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[10px] bg-ui-50 transition-colors hover:bg-ui-100"
             >
               {theme === 'dark' ? (
                 <>
@@ -387,7 +402,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                 setIsNotificationOpen(!isNotificationOpen);
                 if (isNotificationOpen) fetchUnreadCount();
               }}
-              className="group relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg p-[0.4rem]"
+              className="group relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[10px] bg-ui-50 p-[0.4rem] transition-colors hover:bg-ui-100"
               aria-label={
                 unreadCount > 0
                   ? `알림 열기. 읽지 않은 알림 ${unreadCount > 99 ? '99+' : unreadCount}건`
@@ -408,10 +423,10 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
 
               {unreadCount > 0 && (
                 <span
-                  className="absolute top-[0.4rem] right-[0.4rem] flex size-5 items-center justify-center rounded-full bg-[#4E49FF] font-semibold text-[0.7rem] text-white leading-none"
+                  className="absolute top-[0.4rem] right-[0.4rem] flex size-5 items-center justify-center rounded-full bg-[#6654F5] font-semibold text-[0.7rem] text-white leading-none"
                   aria-hidden="true"
                 >
-                  <span className="absolute inset-0 animate-notification-pulse rounded-full bg-[#4E49FF]" />
+                  <span className="absolute inset-0 animate-notification-pulse rounded-full bg-[#6654F5]" />
                   <span className="relative">{unreadCount > 99 ? '99+' : unreadCount}</span>
                 </span>
               )}
@@ -444,18 +459,18 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
               {!isTermsPage && (
                 <Link
                   to="/login"
-                  className="group relative h-[3.6rem] flex-row-center shrink-0 overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--badge-text-primary)] px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
+                  className="group relative h-[3.6rem] flex-row-center shrink-0 overflow-hidden whitespace-nowrap rounded-[8px] border border-ui-200 px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
                 >
                   <span
                     className="absolute inset-0 rounded-[8px] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                     style={{
-                      background: '#4E49FF',
+                      background: '#6654F5',
                     }}
                   />
                   <span
                     className="-inset-[2px] -z-10 absolute rounded-[10px] opacity-0 blur-[8px] transition-opacity duration-300 group-hover:opacity-20"
                     style={{
-                      background: '#7E7AFF',
+                      background: '#7B6BFF',
                     }}
                   />
                   <span className="Caption1 relative z-10 whitespace-nowrap text-[var(--ui-900)] transition-colors duration-300 group-hover:text-[var(--ui-1000)]">
@@ -469,7 +484,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             <button
               type="button"
               onClick={toggleMenu}
-              className="!hidden max-[743px]:!flex size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg p-[0.4rem]"
+              className="!hidden max-[743px]:!flex size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[10px] bg-ui-50 p-[0.4rem] transition-colors hover:bg-ui-100"
             >
               {isMenuOpen ? (
                 <MenuClosedIcon className="size-[2.4rem]" />

@@ -129,7 +129,7 @@ export default function ApplyModal({
             className={cn(
               baseButtonStyle,
               selectedRole && !isApplying
-                ? 'bg-[#4E49FF] text-white hover:opacity-90'
+                ? 'bg-[#6654F5] text-white hover:opacity-90'
                 : 'cursor-not-allowed bg-[var(--ui-100)] text-[var(--ui-400)]',
             )}
           >

@@ -60,7 +60,7 @@ const ACTION_COPY: Record<
 };
 
 const INPUT_CLASS =
-  'Body1 w-full rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[14px] py-[12px] text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-400)] focus:border-[#4e49ff]';
+  'Body1 w-full rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[14px] py-[12px] text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-400)] focus:border-[#6654F5]';
 
 export function MemberStatusModal({ action, nickname, onClose }: MemberStatusModalProps) {
   const queryClient = useQueryClient();
@@ -149,7 +149,7 @@ export function MemberStatusModal({ action, nickname, onClose }: MemberStatusMod
             <label className="mt-[16px] flex cursor-pointer items-center gap-[10px]">
               <input
                 checked={notifyRequested}
-                className="size-[18px] accent-[#4e49ff]"
+                className="size-[18px] accent-[#6654F5]"
                 onChange={(event) => setNotifyRequested(event.target.checked)}
                 type="checkbox"
               />
@@ -173,7 +173,7 @@ export function MemberStatusModal({ action, nickname, onClose }: MemberStatusMod
             <button
               className={cn(
                 'Heading2 h-[48px] flex-1 cursor-pointer rounded-[10px] text-white disabled:cursor-not-allowed disabled:opacity-60',
-                copy.danger ? 'bg-[var(--negative-text)]' : 'bg-[#4e49ff]',
+                copy.danger ? 'bg-[var(--negative-text)]' : 'bg-[#6654F5]',
               )}
               disabled={mutation.isPending}
               type="submit"

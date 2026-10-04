@@ -17,7 +17,7 @@
     --color-ui-1000: var(--ui-1000);
 
     /* Badge aliases */
-    --color-primary: #4E49FF;
+    --color-primary: #6654F5;
 
     --color-badge-text-primary: var(--badge-text-primary);
     --color-badge-bg-primary: var(--badge-bg-primary);
@@ -43,10 +43,10 @@
     --color-form-error: var(--form-error);
 
     /* UI Dark */
-    --ui-bg: #191B1E;
-    --ui-50: #212328;
-    --ui-100: #2F323A;
-    --ui-200: #41444D;
+    --ui-bg: #0E0F13;
+    --ui-50: #191B21;
+    --ui-100: #252832;
+    --ui-200: #373B47;
     --ui-300: #606673;
     --ui-400: #7F8596;
     --ui-500: #939AAE;
@@ -57,7 +57,7 @@
     --ui-1000: #FFFFFF;
 
     /* Badge Tokens Dark */
-    --badge-text-primary: #7E7AFF;
+    --badge-text-primary: #7B6BFF;
     --badge-bg-primary: #1E1D4D;
 
     --badge-text-blue: #499FD4;

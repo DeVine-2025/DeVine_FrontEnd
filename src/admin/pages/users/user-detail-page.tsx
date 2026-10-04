@@ -67,13 +67,13 @@ const ACTION_BUTTONS: Array<{
     action: 'SUSPEND',
     label: '정지',
     className:
-      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-medium text-white transition-colors hover:bg-[#3e39e8]',
+      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] bg-[#6654F5] font-medium text-white transition-colors hover:bg-[#5544DB]',
   },
   {
     action: 'UNSUSPEND',
     label: '정지 해제',
     className:
-      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] border border-[#4e49ff] bg-[var(--ui-bg)] font-medium text-[#4e49ff] transition-colors hover:bg-[var(--ui-50)]',
+      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] border border-[#6654F5] bg-[var(--ui-bg)] font-medium text-[#6654F5] transition-colors hover:bg-[var(--ui-50)]',
   },
   {
     action: 'FORCE_WITHDRAW',

@@ -117,7 +117,7 @@ const ReportCreatePage = () => {
             type="button"
             onClick={handleCreateRepo}
             disabled={isLoading || (!selectedId && repo.length > 0)}
-            className="w-full cursor-pointer rounded-[16px] bg-[#4E49FF] py-[1.5rem] text-[1.6rem] font-semibold text-white transition-opacity duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="w-full cursor-pointer rounded-[16px] bg-[#6654F5] py-[1.5rem] text-[1.6rem] font-semibold text-white transition-opacity duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {!isLoading && repo.length === 0 ? '깃허브 연동하러 가기' : '생성하기'}
           </button>

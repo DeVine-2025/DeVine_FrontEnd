@@ -40,7 +40,7 @@ const ProposalAction = ({ onAccept, onReject }: { onAccept: () => void; onReject
   <div className="flex gap-3">
     <button
       type="button"
-      className="cursor-pointer rounded-xl bg-[#4E49FF] px-3 py-2 font-medium text-[12px] text-my-tab-inactive"
+      className="cursor-pointer rounded-xl bg-[#6654F5] px-3 py-2 font-medium text-[12px] text-my-tab-inactive"
       onClick={(e) => {
         e.stopPropagation();
         onAccept();
@@ -135,7 +135,7 @@ const MyDevTopSection = ({ devTab, onChangeDevTab }: Props) => {
                       <button
                         type="button"
                         disabled={isPending}
-                        className="cursor-pointer rounded-xl bg-[#4E49FF] px-3 py-2 font-medium text-[12px] text-my-tab-inactive disabled:opacity-50"
+                        className="cursor-pointer rounded-xl bg-[#6654F5] px-3 py-2 font-medium text-[12px] text-my-tab-inactive disabled:opacity-50"
                         onClick={(event) => {
                           event.stopPropagation();
                           respond({ matchingId: m.matchingId, decision: 'ACCEPT', tab: devTab });

@@ -29,7 +29,7 @@ type DiscountMethod = (typeof DISCOUNT_METHODS)[number];
 
 const FIELD_LABEL_CLASS = 'Headline1 font-semibold text-[var(--ui-1000)]';
 const INPUT_CLASS =
-  'Body1 h-[50px] w-full rounded-[5px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[16px] font-medium text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-300)] focus:border-[#4e49ff]';
+  'Body1 h-[50px] w-full rounded-[5px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[16px] font-medium text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-300)] focus:border-[#6654F5]';
 
 function formatDate(value: Date) {
   const year = value.getFullYear();
@@ -282,7 +282,7 @@ export default function CouponCreatePage() {
         <AdminPageTitle title={isEdit ? '쿠폰 수정' : '쿠폰 생성'} />
         {isEdit && couponDetailQuery.data && (
           <button
-            className="Body1 inline-flex h-[44px] cursor-pointer items-center justify-center rounded-[8px] bg-[#4e49ff] px-[18px] font-medium text-white transition-colors hover:bg-[#3e39e8] disabled:cursor-not-allowed disabled:opacity-50"
+            className="Body1 inline-flex h-[44px] cursor-pointer items-center justify-center rounded-[8px] bg-[#6654F5] px-[18px] font-medium text-white transition-colors hover:bg-[#5544DB] disabled:cursor-not-allowed disabled:opacity-50"
             disabled={!couponDetailQuery.data.isActive}
             onClick={() => setIsIssueModalOpen(true)}
             type="button"
@@ -434,7 +434,7 @@ export default function CouponCreatePage() {
         )}
 
         <button
-          className="Heading2 mt-[36px] h-[56px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-medium text-white transition-colors hover:bg-[#3e39e8] disabled:cursor-not-allowed disabled:opacity-60"
+          className="Heading2 mt-[36px] h-[56px] w-full cursor-pointer rounded-[12px] bg-[#6654F5] font-medium text-white transition-colors hover:bg-[#5544DB] disabled:cursor-not-allowed disabled:opacity-60"
           disabled={
             createCouponMutation.isPending ||
             updateCouponMutation.isPending ||

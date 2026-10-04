@@ -20,8 +20,8 @@ const ReportResultPage = () => {
         <div
           className="flex h-[5.2rem] w-[5.2rem] items-center justify-center rounded-full"
           style={{
-            background: 'linear-gradient(145deg, #6C63FF, #4E49FF)',
-            boxShadow: '0 0 0 1px rgba(78,73,255,0.4), 0 8px 20px rgba(78,73,255,0.4)',
+            background: 'linear-gradient(145deg, #6C63FF, #6654F5)',
+            boxShadow: '0 0 0 1px rgba(102,84,245,0.4), 0 8px 20px rgba(102,84,245,0.4)',
           }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">

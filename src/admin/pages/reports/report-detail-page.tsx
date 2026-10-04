@@ -143,7 +143,7 @@ export default function ReportDetailPage() {
 
           <div className="relative mt-[16px]">
             <select
-              className="Body1 h-[50px] w-full cursor-pointer appearance-none rounded-[5px] border border-[var(--ui-200)] bg-[var(--ui-bg)] pr-[40px] pl-[16px] font-medium text-[var(--ui-800)] outline-none focus:border-[#4e49ff]"
+              className="Body1 h-[50px] w-full cursor-pointer appearance-none rounded-[5px] border border-[var(--ui-200)] bg-[var(--ui-bg)] pr-[40px] pl-[16px] font-medium text-[var(--ui-800)] outline-none focus:border-[#6654F5]"
               onChange={(event) => setStatus(event.target.value as (typeof STATUS_OPTIONS)[number])}
               value={status}
             >
@@ -171,7 +171,7 @@ export default function ReportDetailPage() {
                     'Body1 h-[50px] flex-1 cursor-pointer font-medium transition-colors',
                     index > 0 && 'border-[var(--ui-200)] border-l',
                     isSelected
-                      ? 'bg-[#4e49ff] text-white'
+                      ? 'bg-[#6654F5] text-white'
                       : 'bg-[var(--ui-bg)] text-[var(--ui-800)] hover:bg-[var(--ui-50)]',
                   )}
                   key={action}
@@ -187,14 +187,14 @@ export default function ReportDetailPage() {
           <h2 className={cn(SECTION_TITLE_CLASS, 'mt-[28px]')}>처리 사유</h2>
 
           <textarea
-            className="Body1 mt-[16px] h-[243px] w-full resize-none rounded-[5px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[16px] py-[14px] font-normal text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-300)] focus:border-[#4e49ff]"
+            className="Body1 mt-[16px] h-[243px] w-full resize-none rounded-[5px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[16px] py-[14px] font-normal text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-300)] focus:border-[#6654F5]"
             onChange={(event) => setReason(event.target.value)}
             placeholder="처리 사유를 입력해주세요."
             value={reason}
           />
 
           <button
-            className="Heading2 mt-[24px] h-[56px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-medium text-white transition-colors hover:bg-[#3e39e8]"
+            className="Heading2 mt-[24px] h-[56px] w-full cursor-pointer rounded-[12px] bg-[#6654F5] font-medium text-white transition-colors hover:bg-[#5544DB]"
             type="button"
           >
             저장

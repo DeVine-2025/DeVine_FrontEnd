@@ -89,7 +89,7 @@ function InputLike({ placeholder, value }: { placeholder: string; value?: string
       value={value ?? ''}
       placeholder={placeholder}
       onChange={() => {}}
-      className="Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:border-[#4E49FF] focus:outline-none"
+      className="Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:border-[#6654F5] focus:outline-none"
     />
   );
 }
@@ -117,8 +117,8 @@ function InputField({
       className={cn(
         'Caption1 h-[48px] w-full rounded-[12px] border bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:outline-none',
         error
-          ? 'border-form-error focus:border-[#4E49FF]'
-          : 'border-[var(--ui-200)] focus:border-[#4E49FF]',
+          ? 'border-form-error focus:border-[#6654F5]'
+          : 'border-[var(--ui-200)] focus:border-[#6654F5]',
       )}
     />
   );
@@ -1127,7 +1127,7 @@ const ProjectCreatePage = () => {
                               disabled={!positionKey}
                               onClick={() => setTechStackOpen((v) => !v)}
                               className={`relative flex h-[44px] w-full items-center rounded-[12px] border bg-ui-bg px-[12px] text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-                                techStackOpen ? 'border-[#4E49FF]' : 'border-ui-200'
+                                techStackOpen ? 'border-[#6654F5]' : 'border-ui-200'
                               }`}
                             >
                               {techStack.length ? (
@@ -1166,7 +1166,7 @@ const ProjectCreatePage = () => {
                           disabled={!canSaveRecruitment}
                           onClick={onSaveRecruitment}
                           className={`flex h-[44px] w-[80px] items-center justify-center rounded-[12px] px-[12px] py-[10px] max-[1100px]:w-full ${
-                            canSaveRecruitment ? 'cursor-pointer bg-[#4E49FF]' : 'bg-[var(--ui-50)]'
+                            canSaveRecruitment ? 'cursor-pointer bg-[#6654F5]' : 'bg-[var(--ui-50)]'
                           }`}
                         >
                           <span
@@ -1426,7 +1426,7 @@ const ProjectCreatePage = () => {
                       type="button"
                       disabled={submitLoading}
                       onClick={handleSubmit}
-                      className="Body1 h-[48px] w-[270px] cursor-pointer rounded-[12px] bg-[#4E49FF] font-medium text-white transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
+                      className="Body1 h-[48px] w-[270px] cursor-pointer rounded-[12px] bg-[#6654F5] font-medium text-white transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
                     >
                       {submitLoading
                         ? isEditMode

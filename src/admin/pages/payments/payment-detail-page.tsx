@@ -179,7 +179,7 @@ export default function PaymentDetailPage() {
         <p className="Body1 mt-[28px] text-[var(--ui-500)]">결제 상세를 불러오는 중입니다.</p>
       ) : isError ? (
         <button
-          className="Body1 mt-[28px] cursor-pointer font-semibold text-[#4e49ff] underline"
+          className="Body1 mt-[28px] cursor-pointer font-semibold text-[#6654F5] underline"
           onClick={() => void refetch()}
           type="button"
         >

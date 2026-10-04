@@ -58,18 +58,18 @@ const ReportCard = ({
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         className={cn(
-          'group col-span-1 flex cursor-pointer flex-col items-center justify-center gap-[1.4rem] rounded-[16px] border-2 border-dashed py-[4rem] transition-all duration-300 hover:border-[rgba(78,73,255,0.55)]',
+          'group col-span-1 flex cursor-pointer flex-col items-center justify-center gap-[1.4rem] rounded-[16px] border-2 border-dashed py-[4rem] transition-all duration-300 hover:border-[rgba(102,84,245,0.55)]',
           isLight
-            ? 'border-[var(--ui-300)] bg-[var(--ui-50)] hover:bg-[rgba(78,73,255,0.06)]'
-            : 'border-white/10 hover:bg-[rgba(78,73,255,0.04)]',
+            ? 'border-[var(--ui-300)] bg-[var(--ui-50)] hover:bg-[rgba(102,84,245,0.06)]'
+            : 'border-white/10 hover:bg-[rgba(102,84,245,0.04)]',
         )}
       >
         <div
           className={cn(
-            'flex h-[4.8rem] w-[4.8rem] items-center justify-center rounded-full border transition-all duration-300 group-hover:scale-110 group-hover:border-[rgba(78,73,255,0.45)] group-hover:bg-[rgba(78,73,255,0.12)]',
+            'flex h-[4.8rem] w-[4.8rem] items-center justify-center rounded-full border transition-all duration-300 group-hover:scale-110 group-hover:border-[rgba(102,84,245,0.45)] group-hover:bg-[rgba(102,84,245,0.12)]',
             isLight
               ? 'border-[var(--ui-300)] bg-white'
-              : 'border-white/10 bg-white/5 group-hover:bg-[rgba(78,73,255,0.1)]',
+              : 'border-white/10 bg-white/5 group-hover:bg-[rgba(102,84,245,0.1)]',
           )}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -80,7 +80,7 @@ const ReportCard = ({
               strokeLinecap="round"
               className={cn(
                 'transition-colors duration-300',
-                isLight ? 'text-[var(--ui-500)] group-hover:text-[#4E49FF]' : 'text-white/30 group-hover:text-[#8C88FF]',
+                isLight ? 'text-[var(--ui-500)] group-hover:text-[#6654F5]' : 'text-white/30 group-hover:text-[#8C88FF]',
               )}
             />
           </svg>
@@ -88,7 +88,7 @@ const ReportCard = ({
         <p
           className={cn(
             'text-[13px] font-medium tracking-wide transition-colors duration-300',
-            isLight ? 'text-[var(--ui-700)] group-hover:text-[#4E49FF]' : 'text-white/25 group-hover:text-[rgba(140,136,255,0.85)]',
+            isLight ? 'text-[var(--ui-700)] group-hover:text-[#6654F5]' : 'text-white/25 group-hover:text-[rgba(140,136,255,0.85)]',
           )}
         >
           리포트 생성하기
@@ -116,7 +116,7 @@ const ReportCard = ({
       )}
     >
 
-      <div className="h-[3px] w-full bg-[#4E49FF]" />
+      <div className="h-[3px] w-full bg-[#6654F5]" />
       <div className="flex flex-col gap-[1.4rem] p-[2rem]">
         {/* 배지 + 토글 */}
         <div className="flex items-center justify-between">
@@ -124,8 +124,8 @@ const ReportCard = ({
             className={cn(
               'inline-flex items-center rounded-full px-[0.9rem] py-[0.3rem] text-[11px] font-semibold',
               isLight
-                ? 'bg-[rgba(78,73,255,0.14)] text-[#4E49FF]'
-                : 'bg-[rgba(78,73,255,0.12)] text-[rgba(140,136,255,0.9)]',
+                ? 'bg-[rgba(102,84,245,0.14)] text-[#6654F5]'
+                : 'bg-[rgba(102,84,245,0.12)] text-[rgba(140,136,255,0.9)]',
             )}
           >
             {isMain ? '메인' : '상세'}
@@ -137,7 +137,7 @@ const ReportCard = ({
             className={cn(
               'relative h-[2.4rem] w-[4.8rem] rounded-full border transition-all duration-200',
               isOn
-                ? 'border-[rgba(78,73,255,0.45)] bg-[rgba(78,73,255,0.22)]'
+                ? 'border-[rgba(102,84,245,0.45)] bg-[rgba(102,84,245,0.22)]'
                 : isLight
                   ? 'border-[var(--ui-300)] bg-[var(--ui-100)]'
                   : 'border-white/10 bg-white/5',
@@ -154,7 +154,7 @@ const ReportCard = ({
                 className={cn(
                   'h-[1.1rem] w-[1.1rem] transition-colors',
                   isOn
-                    ? 'text-[#4E49FF]'
+                    ? 'text-[#6654F5]'
                     : isLight
                       ? 'text-[var(--ui-400)]'
                       : 'text-white/20',

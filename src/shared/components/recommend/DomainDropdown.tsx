@@ -115,7 +115,7 @@ export default function DomainDropdown({
                 aria-hidden
                 className={`relative z-10 inline-flex h-[20px] w-[20px] items-center justify-center rounded-[4px] border ${
                   isChecked
-                    ? 'border-[#4E49FF] bg-[#4E49FF] text-white'
+                    ? 'border-[#6654F5] bg-[#6654F5] text-white'
                     : 'border-[var(--ui-300)] bg-[var(--ui-bg)] text-transparent'
                 }`}
               >
@@ -144,7 +144,7 @@ export default function DomainDropdown({
             onApply?.();
             onClose();
           }}
-          className="Label1 flex w-[60px] items-center justify-center rounded-xl bg-[#4E49FF] p-3 text-white"
+          className="Label1 flex w-[60px] items-center justify-center rounded-xl bg-[#6654F5] p-3 text-white"
         >
           저장
         </button>

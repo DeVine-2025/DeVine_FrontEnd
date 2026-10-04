@@ -20,7 +20,6 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
   const [isCheckingNickname, setIsCheckingNickname] = useState(false);
   const [nicknameCheckError, setNicknameCheckError] = useState<string | null>(null);
   const { getToken } = useAuth();
-
   const trimmedNickname = useMemo(() => nickname.trim(), [nickname]);
   const hasInvalidNicknameCharacters = useMemo(
     () => trimmedNickname.length > 0 && !/^[가-힣A-Za-z0-9]+$/.test(nickname),
@@ -62,12 +61,7 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
         setIsCheckingNickname(true);
         setNicknameCheckError(null);
 
-        const token = await getToken();
-        if (!token) {
-          throw new Error('missing token');
-        }
-
-        const isDuplicate = await checkNicknameDuplicate(trimmedNickname, token);
+        const isDuplicate = await checkNicknameDuplicate(trimmedNickname);
         if (isActive) {
           setIsDuplicateNickname(isDuplicate);
         }
@@ -87,7 +81,7 @@ const BasicProfileSection = ({ onNext, onBack, initialData }: BasicProfileSectio
       isActive = false;
       window.clearTimeout(timer);
     };
-  }, [getToken, isNicknameValid, trimmedNickname]);
+  }, [isNicknameValid, trimmedNickname]);
 
   const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

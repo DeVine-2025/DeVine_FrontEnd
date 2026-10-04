@@ -42,7 +42,7 @@ const ReportRequiredCard = ({
       </div>
       <Link
         to={linkTo}
-        className={`inline-flex w-full items-center justify-center rounded-2xl bg-[#4E49FF] font-semibold text-white ${
+        className={`inline-flex w-full items-center justify-center rounded-2xl bg-[#6654F5] font-semibold text-white ${
           isSmall ? 'h-[40px] max-w-[260px] text-[15px]' : 'h-[52px] max-w-[320px] text-[18px]'
         }`}
       >

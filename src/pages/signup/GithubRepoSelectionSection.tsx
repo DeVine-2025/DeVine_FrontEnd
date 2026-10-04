@@ -340,7 +340,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
             <button
               type="button"
               onClick={() => setIsWaitModalOpen(false)}
-              className="mt-6 h-[48px] w-full rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
+              className="mt-6 h-[48px] w-full rounded-[12px] bg-[#6654F5] text-[16px] font-semibold text-white"
             >
               확인
             </button>

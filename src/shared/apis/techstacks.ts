@@ -1,4 +1,4 @@
-import { axiosInstance } from '@apis/instance';
+import { publicAxiosInstance } from '@apis/instance';
 
 export type TechstackItem = {
   techstackId: number;
@@ -64,7 +64,7 @@ export const buildTechstackNameByIdMap = (groups: TechstackGroup[]) => {
 };
 
 export async function getTechstacks() {
-  const { data } = await axiosInstance.get<GetTechstacksResponse>('/api/v1/techstacks');
+  const { data } = await publicAxiosInstance.get<GetTechstacksResponse>('/api/v1/techstacks');
   return data.result?.techstacks ?? [];
 }
 

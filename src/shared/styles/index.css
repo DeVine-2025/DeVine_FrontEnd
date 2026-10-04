@@ -26,7 +26,7 @@
         height: 100%;
         flex-direction: column;
         scroll-behavior: smooth;
-        background-color: #191B1E;
+        background-color: var(--ui-bg);
         overflow-x: hidden;
     }
 

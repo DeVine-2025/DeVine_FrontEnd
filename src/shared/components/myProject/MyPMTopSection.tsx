@@ -73,7 +73,7 @@ const Action = ({
       <button
         type="button"
         disabled={disabled}
-        className="cursor-pointer rounded-xl bg-[#4E49FF] px-4 py-3 font-medium text-[13px] text-my-tab-inactive disabled:cursor-not-allowed disabled:opacity-50"
+        className="cursor-pointer rounded-xl bg-[#6654F5] px-4 py-3 font-medium text-[13px] text-my-tab-inactive disabled:cursor-not-allowed disabled:opacity-50"
         onClick={onAccept}
       >
         수락하기

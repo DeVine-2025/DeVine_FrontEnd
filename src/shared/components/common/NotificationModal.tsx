@@ -175,7 +175,7 @@ const NotificationModal = ({
                 }`}
               >
                 {!notification.isRead && (
-                  <span className="absolute left-1.5 top-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[#4E49FF]" />
+                  <span className="absolute left-1.5 top-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[#6654F5]" />
                 )}
                 <div className="flex items-start justify-between gap-2 pl-0.5">
                   <h3
@@ -208,7 +208,7 @@ const NotificationModal = ({
                 type="button"
                 onClick={onLoadMore}
                 disabled={loadingMore}
-                className="w-full rounded-lg py-2.5 text-[13px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#4E49FF] disabled:opacity-60"
+                className="w-full rounded-lg py-2.5 text-[13px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#6654F5] disabled:opacity-60"
               >
                 {loadingMore ? '불러오는 중…' : '더 보기'}
               </button>
@@ -220,7 +220,7 @@ const NotificationModal = ({
             <button
               type="button"
               onClick={() => onMarkAllAsRead()}
-              className="w-full rounded-lg py-2.5 text-[13px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#4E49FF]"
+              className="w-full rounded-lg py-2.5 text-[13px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#6654F5]"
             >
               전체 읽음 처리
             </button>

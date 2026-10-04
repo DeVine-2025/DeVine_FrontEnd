@@ -221,7 +221,7 @@
     .recommend-card-hover-border:hover {
         border-color: transparent !important;
         background: linear-gradient(var(--ui-bg), var(--ui-bg)) padding-box,
-            linear-gradient(90deg, rgba(114, 110, 255, 0.4) 0%, rgba(219, 80, 179, 0.4) 100%) border-box !important;
+            linear-gradient(90deg, rgba(123,107,255,0.4) 0%, rgba(219, 80, 179, 0.4) 100%) border-box !important;
     }
 }
 
@@ -235,5 +235,5 @@
 .recommend-card-hover-border:hover {
     border-color: transparent !important;
     background: linear-gradient(var(--ui-bg), var(--ui-bg)) padding-box,
-        linear-gradient(90deg, rgba(114, 110, 255, 0.4) 0%, rgba(219, 80, 179, 0.4) 100%) border-box !important;
+        linear-gradient(90deg, rgba(123,107,255,0.4) 0%, rgba(219, 80, 179, 0.4) 100%) border-box !important;
 }

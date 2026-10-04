@@ -326,7 +326,7 @@ const isAccepted = appliedStatus === 'COMPLETED';
                   <button
                     type="button"
                     onClick={openApplyModal}
-                    className="h-[42px] w-full cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
+                    className="h-[42px] w-full cursor-pointer rounded-[10px] bg-[#6654F5] font-medium text-[14px] text-white transition hover:opacity-80"
                   >
                     지원하기
                   </button>
@@ -337,7 +337,7 @@ const isAccepted = appliedStatus === 'COMPLETED';
                   <button
                     type="button"
                     onClick={handleCancelApply}
-                    className="h-[42px] w-full cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
+                    className="h-[42px] w-full cursor-pointer rounded-[10px] bg-[#6654F5] font-medium text-[14px] text-white transition hover:opacity-80"
                   >
                     지원 취소하기
                   </button>
@@ -348,7 +348,7 @@ const isAccepted = appliedStatus === 'COMPLETED';
                   <button
                     type="button"
                     disabled
-                    className="h-[42px] w-full cursor-pointer rounded-[10px] bg-[#4E49FF] font-medium text-[14px] text-white transition hover:opacity-80"
+                    className="h-[42px] w-full cursor-pointer rounded-[10px] bg-[#6654F5] font-medium text-[14px] text-white transition hover:opacity-80"
                   >
                     수락 완료
                   </button>
@@ -528,7 +528,7 @@ function StatusMenu({
             ? 'bg-[var(--ui-400)]'
             : projectStatus === 'IN_PROGRESS'
               ? 'bg-[#22C55E]'
-              : 'bg-[#4E49FF]'
+              : 'bg-[#6654F5]'
         }`}
       >
         {isStatusUpdating ? '변경 중...' : currentStatusLabel}
@@ -563,13 +563,13 @@ function StatusMenu({
               }`}
               style={{
                 color:
-                  projectStatus === option.key ? '#4E49FF' : isDark ? '#F8F9FB' : 'var(--ui-700)',
+                  projectStatus === option.key ? '#6654F5' : isDark ? '#F8F9FB' : 'var(--ui-700)',
               }}
             >
               <span
                 className={`h-2 w-2 rounded-full ${
                   option.key === 'RECRUITING'
-                    ? 'bg-[#4E49FF]'
+                    ? 'bg-[#6654F5]'
                     : option.key === 'IN_PROGRESS'
                       ? 'bg-[#22C55E]'
                       : 'bg-[var(--ui-400)]'

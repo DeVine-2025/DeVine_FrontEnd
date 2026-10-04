@@ -14,7 +14,7 @@ function AdminAccessDenied() {
       <h1 className="Title2 font-semibold text-[var(--ui-1000)]">관리자 접근 권한이 없습니다.</h1>
       <p className="Body1 text-[var(--ui-500)]">관리자 권한이 있는 계정으로 로그인해주세요.</p>
       <Link
-        className="Body1 rounded-[8px] bg-[#4e49ff] px-[16px] py-[10px] font-semibold text-white no-underline"
+        className="Body1 rounded-[8px] bg-[#6654F5] px-[16px] py-[10px] font-semibold text-white no-underline"
         to="/"
       >
         서비스 홈으로 이동

@@ -228,7 +228,7 @@ export default function SystemSettingPage() {
                 aria-checked={isMaintenanceMode}
                 aria-label="점검 모드 전환"
                 className={`relative h-[26px] w-[46px] cursor-pointer rounded-full ${
-                  isMaintenanceMode ? 'bg-[#4e49ff]' : 'bg-[var(--ui-200)]'
+                  isMaintenanceMode ? 'bg-[#6654F5]' : 'bg-[var(--ui-200)]'
                 }`}
                 onClick={() => setIsMaintenanceMode((current) => !current)}
                 role="switch"
@@ -249,7 +249,7 @@ export default function SystemSettingPage() {
           <label className="mt-[28px] block">
             <span className="Body1 font-medium text-[var(--ui-800)]">점검 안내 메시지</span>
             <textarea
-              className="Body1 mt-[12px] h-[240px] w-full resize-none rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[16px] py-[14px] text-[var(--ui-800)] outline-none placeholder:text-[var(--ui-300)] focus:border-[#4e49ff]"
+              className="Body1 mt-[12px] h-[240px] w-full resize-none rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[16px] py-[14px] text-[var(--ui-800)] outline-none placeholder:text-[var(--ui-300)] focus:border-[#6654F5]"
               onChange={(event) => setMaintenanceMessage(event.target.value)}
               placeholder="점검 사유를 입력해주세요."
               value={maintenanceMessage}
@@ -265,7 +265,7 @@ export default function SystemSettingPage() {
 
           <button
             aria-busy={isMaintenanceUpdating}
-            className="Headline1 mt-[36px] h-[54px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-semibold text-white transition-colors hover:bg-[#3e39e8] disabled:cursor-wait disabled:opacity-60"
+            className="Headline1 mt-[36px] h-[54px] w-full cursor-pointer rounded-[12px] bg-[#6654F5] font-semibold text-white transition-colors hover:bg-[#5544DB] disabled:cursor-wait disabled:opacity-60"
             disabled={isMaintenancePending || isMaintenanceUpdating}
             type="submit"
           >

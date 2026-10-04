@@ -102,7 +102,7 @@ const ServicePage = () => {
       className="min-h-screen w-full bg-[#121212]"
       style={{
         backgroundImage:
-          'linear-gradient(180deg, rgba(78, 73, 255, 0.2) 0%, rgba(0, 0, 0, 0) 100%)',
+          'linear-gradient(180deg, rgba(102,84,245,0.2) 0%, rgba(0, 0, 0, 0) 100%)',
       }}
     >
       <div className="mx-auto w-full max-w-[1080px] flex-col gap-[20rem] px-[8rem]">
@@ -112,7 +112,7 @@ const ServicePage = () => {
           <div>
             <RevealText direction="left" className="flex-col gap-[2rem]" delayMs={0}>
               <p
-                className="w-fit bg-gradient-to-r from-[#D4DAE7] to-[#4E49FF] bg-clip-text font-normal text-3xl text-transparent">
+                className="w-fit bg-gradient-to-r from-[#D4DAE7] to-[#6654F5] bg-clip-text font-normal text-3xl text-transparent">
                 코드로 증명하고, 데이터로 연결하다.
               </p>
               <p className={cn('font-[\'Pretendard\'] font-bold text-6xl leading-[60px]', textColor)}>GitHub 코드 분석

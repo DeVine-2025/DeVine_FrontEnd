@@ -86,7 +86,7 @@ export default function NoticeDetailPage() {
               삭제
             </button>
             <button
-              className="Body1 inline-flex cursor-pointer items-center justify-center rounded-[8px] bg-[#4e49ff] px-[16px] py-[10px] text-white transition-opacity hover:opacity-90"
+              className="Body1 inline-flex cursor-pointer items-center justify-center rounded-[8px] bg-[#6654F5] px-[16px] py-[10px] text-white transition-opacity hover:opacity-90"
               onClick={() => setIsEditOpen(true)}
               type="button"
             >
