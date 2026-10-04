@@ -1,0 +1,21 @@
+@keyframes pay-report-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.8rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pay-report-page-enter {
+  animation: pay-report-page-enter 420ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pay-report-page-enter {
+    animation: none;
+  }
+}

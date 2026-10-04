@@ -1,5 +1,6 @@
 import { useUser } from '@clerk/clerk-react';
 import FloatingChatWidget from '@components/chat/FloatingChatWidget';
+import FloatingProjectCreateCta from '@components/common/FloatingProjectCreateCta';
 import Footer from '@layouts/footer';
 import Header from '@layouts/header';
 import { trackPageView } from '@libs/analytics';
@@ -207,6 +208,7 @@ const RootLayout = () => {
         </div>
       )}
 
+      {showFloatingChat ? <FloatingProjectCreateCta /> : null}
       {showFloatingChat ? <FloatingChatWidget /> : null}
 
       {showOnboardingModal && (

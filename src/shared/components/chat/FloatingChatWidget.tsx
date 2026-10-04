@@ -1,6 +1,6 @@
 import ArrowLeftIcon from '@assets/icons/arrow-left.svg?react';
 import ArrowDownIcon from '@assets/icons/arrow-down.svg?react';
-import ArrowUpIcon from '@assets/icons/arrow-up.svg?react';
+import ChatPaperPlaneIcon from '@assets/icons/chat-paper-plane.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
 import { isChatApiError } from '@apis/chat';
 import { useChatRoom } from '@hooks/useChatRoom';
@@ -17,8 +17,31 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 
-const avatarBaseClassName =
-  'shrink-0 rounded-full border shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]';
+const ChatAvatar = ({
+  image,
+  name,
+  className,
+  isLightTheme,
+}: {
+  image?: string | null;
+  name: string;
+  className: string;
+  isLightTheme: boolean;
+}) => (
+  <span
+    className={cn(
+      'flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold',
+      isLightTheme ? 'bg-[#EEE9FF] text-[#6552C9]' : 'bg-[rgba(112,85,245,0.16)] text-[#B7A8FF]',
+      className,
+    )}
+  >
+    {image ? (
+      <img src={image} alt="" className="size-full object-cover" />
+    ) : (
+      name.trim().slice(0, 1) || '?'
+    )}
+  </span>
+);
 
 const DEFAULT_CHAT_WIDTH_PX = 310;
 const DEFAULT_CHAT_HEIGHT_PX = 458;
@@ -198,8 +221,8 @@ const FloatingChatWidget = () => {
   );
 
   const { data: roomsData, refetch: refetchRooms } = useChatRooms({
-    enabled: isExpanded,
-    refetchIntervalMs: isExpanded ? 30_000 : false,
+    enabled: true,
+    refetchIntervalMs: 30_000,
   });
   // 접힌 상태에서도 배지용으로 unread 조회
   const { data: unreadData } = useUnreadChatRoomCount({
@@ -218,6 +241,7 @@ const FloatingChatWidget = () => {
   const hasMessageDraft = messageDraft.trim().length > 0;
   const unreadRoomCount = unreadData?.unreadRoomCount ?? 0;
   const unreadBadgeLabel = unreadRoomCount > 99 ? '99+' : String(unreadRoomCount);
+  const chatListPanelHeightRem = Math.min(40, Math.max(13.5, 8.4 + rooms.length * 8));
   const dateLabel = formatDateLabel(selectedMessages[0]?.createdAt ?? null);
   const isRoomsEmpty = rooms.length === 0;
   const isCreatingRoom = createRoomMutation.isPending;
@@ -331,12 +355,6 @@ const FloatingChatWidget = () => {
       });
   };
 
-  const avatarClassName = cn(
-    avatarBaseClassName,
-    isLightTheme
-      ? 'border-[rgba(212,218,231,0.95)] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,1)_0%,rgba(243,245,252,1)_38%,rgba(212,218,231,0.96)_100%)]'
-      : 'border-[rgba(255,255,255,0.08)] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.22)_0%,rgba(158,166,186,0.18)_18%,rgba(96,102,115,0.95)_100%)]',
-  );
   const widgetSurfaceClassName = cn(
     'overflow-hidden rounded-t-[1.8rem] border border-b-0 backdrop-blur-[2rem]',
     isLightTheme
@@ -377,17 +395,13 @@ const FloatingChatWidget = () => {
     'flex h-[4rem] min-w-0 flex-1 items-center rounded-full border px-[1.6rem] max-[389px]:px-[1.2rem]',
     isLightTheme
       ? 'border-[rgba(212,218,231,0.95)] bg-white shadow-[0_0.6rem_1.4rem_rgba(15,23,42,0.05)]'
-      : 'border-[rgba(127,133,150,0.16)] bg-[rgba(25,27,30,0.95)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
+      : 'border-[rgba(127,133,150,0.2)] bg-[rgba(25,27,30,0.95)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
   );
   const listItemClassName = cn(
-    'group relative flex w-full items-start rounded-[1.4rem] px-[1.2rem] py-[1.1rem] text-left max-[389px]:px-[1rem] max-[389px]:py-[1rem]',
-    isLightTheme ? 'bg-white hover:bg-[var(--ui-50)]' : 'bg-[var(--ui-50)] hover:bg-[var(--ui-100)]',
-  );
-  const listDividerClassName = cn(
-    'absolute right-[1.2rem] bottom-0 h-px w-[calc(100%-2.4rem)] max-[389px]:right-[1rem] max-[389px]:w-[calc(100%-2rem)]',
+    'group relative flex w-full items-start px-[1.2rem] py-[1.4rem] text-left transition-colors max-[389px]:px-[1rem]',
     isLightTheme
-      ? 'bg-[linear-gradient(90deg,rgba(212,218,231,0)_0%,rgba(212,218,231,0.95)_18%,rgba(212,218,231,0.95)_82%,rgba(212,218,231,0)_100%)]'
-      : 'bg-[linear-gradient(90deg,rgba(127,133,150,0)_0%,rgba(127,133,150,0.24)_18%,rgba(127,133,150,0.24)_82%,rgba(127,133,150,0)_100%)]',
+      ? 'hover:bg-[rgba(15,23,42,0.025)]'
+      : 'hover:bg-[rgba(255,255,255,0.025)]',
   );
   const messageRows = useMemo(
     () =>
@@ -503,20 +517,28 @@ const FloatingChatWidget = () => {
         <section
           aria-label="전역 채팅 위젯"
           className={cn(
-            'pointer-events-auto fixed right-[1rem] bottom-0 transition-[height,width,right,left,transform,box-shadow] duration-300 ease-out max-[743px]:right-[1rem] max-[389px]:right-[1rem] max-[389px]:left-[1rem] max-[389px]:w-auto',
-            canResizePanel ? null : 'w-[31rem] max-[743px]:w-[28.8rem]',
+            'pointer-events-auto fixed left-[1.4rem] transition-none max-[743px]:left-[1rem] max-[389px]:left-[1rem]',
             isExpanded
-              ? canResizePanel
-                ? null
-                : 'h-[45.8rem] max-[743px]:h-[42rem] max-[389px]:h-[40rem]'
-              : 'h-[6.8rem]',
+              ? cn(
+                  'bottom-[2rem] max-[389px]:right-[1rem]',
+                  canResizePanel && isRoomView ? null : 'w-[31rem] max-[743px]:w-[28.8rem]',
+                  'max-[389px]:w-auto',
+                  !canResizePanel && isRoomView
+                    ? 'h-[45.8rem] max-[743px]:h-[42rem] max-[389px]:h-[40rem]'
+                    : null,
+                )
+              : 'bottom-[3.4rem] h-[5.6rem] w-[20rem] max-[743px]:bottom-[3rem] max-[389px]:w-[min(20rem,calc(100vw-2rem))]',
             isResizing && 'transition-none select-none',
           )}
           style={
-            canResizePanel
+            isExpanded
               ? {
-                  width: panelSize.width,
-                  height: isExpanded ? panelSize.height : undefined,
+                  width: canResizePanel && isRoomView ? panelSize.width : undefined,
+                  height: isRoomView
+                    ? canResizePanel
+                      ? panelSize.height
+                      : undefined
+                    : `${chatListPanelHeightRem}rem`,
                 }
               : undefined
           }
@@ -552,24 +574,41 @@ const FloatingChatWidget = () => {
               }
               onClick={() => setIsExpanded(true)}
               className={cn(
-                'flex h-full w-full items-center px-[1.8rem] text-left max-[389px]:px-[1.4rem]',
-                isLightTheme ? 'hover:bg-[rgba(248,249,251,0.96)]' : 'hover:bg-[rgba(255,255,255,0.03)]',
-                widgetSurfaceClassName,
+                'flex h-full w-full items-center gap-[0.8rem] rounded-full border px-[1.4rem] text-left transition-colors',
+                isLightTheme
+                  ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(255,255,255,0.98)] shadow-[0_0.8rem_2rem_rgba(15,23,42,0.12)] hover:bg-[#F8F9FB]'
+                  : 'border-[rgba(127,133,150,0.22)] bg-[rgba(33,35,40,0.96)] shadow-[0_0.8rem_2rem_rgba(0,0,0,0.28)] hover:bg-[#25272D]',
               )}
             >
-              <span className="Heading2 flex-1 font-semibold text-[var(--ui-900)]">메시지</span>
-              {unreadRoomCount > 0 ? (
-                <span
-                  className="mr-[0.8rem] flex min-w-[2.2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#6654F5_100%)] px-[0.75rem] py-[0.25rem] text-[1.15rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.6rem_1.4rem_rgba(102,84,245,0.28)]"
-                  aria-hidden
-                >
-                  {unreadBadgeLabel}
+              <span className="relative flex size-[2rem] shrink-0 items-center justify-center text-[var(--ui-700)]">
+                <ChatPaperPlaneIcon aria-hidden="true" className="size-[2rem]" />
+                {unreadRoomCount > 0 ? (
+                  <span className="absolute -top-[0.55rem] -right-[0.7rem] flex size-[1.7rem] items-center justify-center rounded-full bg-[#F04452] text-[1rem] font-bold leading-none text-white" aria-hidden="true">
+                    {unreadBadgeLabel}
+                  </span>
+                ) : null}
+              </span>
+              <span className="whitespace-nowrap text-[1.4rem] font-semibold text-[var(--ui-900)]">메시지</span>
+              <span className="ml-auto flex items-center pl-[0.4rem]">
+                {rooms.slice(0, 3).map((room, index) => (
+                  <span
+                    key={room.roomId}
+                    className={cn(
+                      'relative flex size-[2.5rem] items-center justify-center overflow-hidden rounded-full border border-[rgba(255,255,255,0.72)] bg-[#77717D] text-[1rem] font-semibold text-white',
+                      index > 0 && '-ml-[0.8rem]',
+                    )}
+                    style={{ zIndex: 3 - index }}
+                  >
+                    {room.otherMember.image ? (
+                      <img src={room.otherMember.image} alt="" className="size-full object-cover" />
+                    ) : (
+                      room.otherMember.nickname.slice(0, 1)
+                    )}
+                  </span>
+                ))}
+                <span className="-ml-[0.7rem] flex size-[2.5rem] items-center justify-center rounded-full bg-[var(--ui-200)] text-[1.3rem] leading-none text-[var(--ui-700)]" aria-hidden="true">
+                  ···
                 </span>
-              ) : null}
-              <span
-                className="mr-[0.2rem] flex size-[2.8rem] items-center justify-center text-[var(--ui-500)]"
-              >
-                <ArrowUpIcon className="size-[2rem]" />
               </span>
             </button>
           ) : (
@@ -585,11 +624,11 @@ const FloatingChatWidget = () => {
                     >
                       <ArrowLeftIcon className="size-[2.4rem] max-[389px]:size-[2.2rem]" />
                     </button>
-                    <span
-                      className={cn(
-                        'ml-[0.8rem] size-[3.6rem] max-[389px]:ml-[0.6rem] max-[389px]:size-[3.2rem]',
-                        avatarClassName,
-                      )}
+                    <ChatAvatar
+                      image={selectedRoom?.otherMember.image ?? draftTarget?.image}
+                      name={roomTitle}
+                      isLightTheme={isLightTheme}
+                      className="ml-[0.8rem] size-[3.6rem] text-[1.3rem] max-[389px]:ml-[0.6rem] max-[389px]:size-[3.2rem]"
                     />
                     <div className="ml-[1.2rem] min-w-0 flex-1 max-[389px]:ml-[0.8rem]">
                       <span className="Body1 block truncate font-semibold text-[var(--ui-900)]">
@@ -676,45 +715,67 @@ const FloatingChatWidget = () => {
                             : '대화를 시작해보세요.'}
                         </p>
                       ) : null}
-                      {messageRows.map((message) =>
-                        !message.isMine ? (
-                          <div key={message.messageId} className="flex items-end gap-[0.8rem] max-[389px]:gap-[0.6rem]">
-                            <span
-                              className={cn('mb-[0.2rem] size-[2.4rem] max-[389px]:size-[2rem]', avatarClassName)}
-                            />
+                      {messageRows.map((message, index) => {
+                        const previousMessage = messageRows[index - 1];
+                        const nextMessage = messageRows[index + 1];
+                        const isSameGroup = (
+                          otherMessage: (typeof messageRows)[number] | undefined,
+                        ) => {
+                          if (!otherMessage || otherMessage.isMine !== message.isMine) return false;
+                          if (otherMessage.senderClerkId !== message.senderClerkId) return false;
+                          const timeDifference = Math.abs(
+                            new Date(message.createdAt).getTime() -
+                              new Date(otherMessage.createdAt).getTime(),
+                          );
+                          return timeDifference <= 5 * 60 * 1000;
+                        };
+                        const isGroupedWithPrevious = isSameGroup(previousMessage);
+                        const isGroupedWithNext = isSameGroup(nextMessage);
+                        const showMessageMeta = !isGroupedWithNext || message.localStatus === 'failed';
+
+                        return !message.isMine ? (
+                          <div
+                            key={message.messageId}
+                            className={cn(
+                              'flex items-end gap-[0.8rem] max-[389px]:gap-[0.6rem]',
+                              isGroupedWithPrevious && 'mt-[-1rem]',
+                            )}
+                          >
+                            {isGroupedWithPrevious ? (
+                              <span className="mb-[0.2rem] size-[2.4rem] shrink-0 max-[389px]:size-[2rem]" aria-hidden />
+                            ) : (
+                              <ChatAvatar
+                                image={message.senderImage}
+                                name={message.senderNickname}
+                                isLightTheme={isLightTheme}
+                                className="mb-[0.2rem] size-[2.4rem] text-[1rem] max-[389px]:size-[2rem]"
+                              />
+                            )}
                             <div className="min-w-0 max-w-[70%] max-[389px]:max-w-[68%]">
-                              <p className="Caption1 mb-[0.6rem] font-medium text-[var(--ui-500)]">
-                                {message.senderNickname}
-                              </p>
-                              <div className={receivedBubbleClassName}>
-                                <p className="text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-[var(--ui-900)]">
+                              {!isGroupedWithPrevious ? (
+                                <p className="Caption1 mb-[0.6rem] font-medium text-[var(--ui-500)]">
+                                  {message.senderNickname}
+                                </p>
+                              ) : null}
+                              <div className={cn(receivedBubbleClassName, isGroupedWithPrevious && 'rounded-tl-[0.8rem]')}>
+                                <p className="break-words whitespace-pre-wrap text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-[var(--ui-900)]">
                                   {message.content}
                                 </p>
                               </div>
                             </div>
-                            <span className="shrink-0 pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
-                              {formatTime(message.createdAt)}
-                            </span>
+                            {showMessageMeta ? (
+                              <span className="shrink-0 pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
+                                {formatTime(message.createdAt)}
+                              </span>
+                            ) : null}
                           </div>
                         ) : (
-                          <div key={message.messageId} className="flex justify-end">
+                          <div
+                            key={message.messageId}
+                            className={cn('flex justify-end', isGroupedWithPrevious && 'mt-[-1rem]')}
+                          >
                             <div className="flex max-w-[82%] items-end gap-[0.6rem] max-[389px]:max-w-[86%] max-[389px]:gap-[0.5rem]">
-                              {message.localStatus === 'failed' ? null : (
-                                <div className="flex shrink-0 flex-col items-end justify-end gap-[0.15rem] pb-[0.2rem]">
-                                  {!message.isRead && message.localStatus !== 'sending' ? (
-                                    <span
-                                      className="text-[1.05rem] font-semibold leading-none text-[#5B56FF]"
-                                      aria-label="상대가 아직 읽지 않음"
-                                    >
-                                      1
-                                    </span>
-                                  ) : null}
-                                  <span className="text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
-                                    {formatTime(message.createdAt)}
-                                  </span>
-                                </div>
-                              )}
-                              {message.localStatus === 'failed' ? (
+                              {!showMessageMeta ? null : message.localStatus === 'failed' ? (
                                 <div
                                   className="relative z-20 shrink-0 self-center"
                                   ref={failedActionMessageId === message.messageId ? failedMenuRef : undefined}
@@ -735,7 +796,6 @@ const FloatingChatWidget = () => {
                                   {failedActionMessageId === message.messageId ? (
                                     <div
                                       className={cn(
-                                        // 위(날짜 영역)로 열면 overflow에 잘리므로 아래로 펼침
                                         'absolute top-[calc(100%+0.6rem)] left-1/2 z-30 min-w-[9.6rem] -translate-x-1/2 overflow-hidden rounded-[1rem] border py-[0.4rem] shadow-[0_1rem_2.4rem_rgba(15,23,42,0.18)]',
                                         isLightTheme
                                           ? 'border-[rgba(212,218,231,0.95)] bg-white'
@@ -754,22 +814,37 @@ const FloatingChatWidget = () => {
                                     </div>
                                   ) : null}
                                 </div>
-                              ) : null}
+                              ) : (
+                                <div className="flex shrink-0 flex-col items-end justify-end gap-[0.15rem] pb-[0.2rem]">
+                                  {!message.isRead && message.localStatus !== 'sending' ? (
+                                    <span
+                                      className="text-[1.05rem] font-semibold leading-none text-[#5B56FF]"
+                                      aria-label="상대가 아직 읽지 않음"
+                                    >
+                                      1
+                                    </span>
+                                  ) : null}
+                                  <span className="text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
+                                    {formatTime(message.createdAt)}
+                                  </span>
+                                </div>
+                              )}
                               <div
                                 className={cn(
                                   'rounded-[1.6rem] rounded-br-[0.6rem] bg-[linear-gradient(135deg,#5B56FF_0%,#6654F5_58%,#7C79FF_100%)] px-[1.2rem] py-[0.9rem] max-[389px]:px-[1rem] shadow-[0_1.2rem_2.4rem_rgba(102,84,245,0.22)]',
+                                  isGroupedWithPrevious && 'rounded-tr-[0.8rem]',
                                   message.localStatus === 'sending' && 'opacity-70',
                                   message.localStatus === 'failed' && 'opacity-90',
                                 )}
                               >
-                                <p className="text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-white">
+                                <p className="break-words whitespace-pre-wrap text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-white">
                                   {message.content}
                                 </p>
                               </div>
                             </div>
                           </div>
-                        ),
-                      )}
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -797,10 +872,10 @@ const FloatingChatWidget = () => {
                         }}
                         disabled={sendingDisabled}
                         className={cn(
-                          'flex size-[3rem] cursor-pointer items-center justify-center rounded-full transition-[transform,box-shadow] duration-200 max-[389px]:size-[2.8rem] disabled:cursor-default',
+                          'flex size-[3rem] cursor-pointer items-center justify-center rounded-full transition-[transform,box-shadow,background-color,color] duration-200 max-[389px]:size-[2.8rem] disabled:cursor-not-allowed',
                           !sendingDisabled
-                            ? 'bg-[var(--color-primary)] text-[var(--ui-50)] shadow-[0_1rem_2rem_rgba(102,84,245,0.28)] hover:scale-[1.03]'
-                            : 'bg-[var(--ui-200)] text-[var(--ui-50)] shadow-none',
+                            ? 'bg-[var(--color-primary)] text-white shadow-[0_1rem_2rem_rgba(102,84,245,0.28)] hover:scale-[1.03]'
+                            : 'bg-[var(--ui-100)] text-[var(--ui-400)] shadow-none',
                         )}
                         aria-label="메시지 전송"
                       >
@@ -822,22 +897,28 @@ const FloatingChatWidget = () => {
               ) : (
                 <>
                   <div className={cn(headerClassName, 'px-[1.8rem]')}>
-                    <span className="Heading2 flex-1 font-semibold text-[var(--ui-900)]">메시지</span>
+                    <span className="Heading2 font-semibold text-[var(--ui-900)]">메시지</span>
+                    {unreadRoomCount > 0 ? (
+                      <span className="ml-[0.7rem] rounded-full bg-[rgba(240,68,82,0.14)] px-[0.65rem] py-[0.2rem] text-[1.05rem] font-semibold leading-none text-[#F04452]">
+                        {unreadBadgeLabel}
+                      </span>
+                    ) : null}
+                    <span className="flex-1" />
                     <button
                       type="button"
                       onClick={closeWidget}
-                      className={iconButtonClassName}
+                      className={cn(iconButtonClassName, 'size-[2.4rem]')}
                       aria-label="채팅 목록 접기"
                     >
-                      <ArrowDownIcon className="size-[2rem]" />
+                      <ArrowDownIcon className="size-[1.6rem]" />
                     </button>
                   </div>
 
                   <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-[0.8rem] py-[0.8rem] max-[389px]:px-[0.6rem]">
-                    <div className="flex flex-col gap-[0.2rem]">
+                    <div className="flex flex-col">
                       {isRoomsEmpty ? (
                         <p className="py-[2.4rem] text-center text-[1.2rem] text-[var(--ui-500)]">
-                          참여 중인 채팅방이 없습니다.
+                          대화를 시작해 보세요.
                         </p>
                       ) : null}
                       {rooms.map((room) => {
@@ -851,25 +932,37 @@ const FloatingChatWidget = () => {
                               setSelectedChatId(room.roomId);
                               setMessageDraft('');
                             }}
-                            className={listItemClassName}
+                            className={cn(
+                              listItemClassName,
+                              'border-b border-[var(--ui-200)] last:border-b-0',
+                            )}
                           >
                             <span
                               className={cn(
-                                'size-[3.8rem] transition-transform duration-200 group-hover:scale-[1.03] max-[389px]:size-[3.4rem]',
-                                avatarClassName,
+                                'flex size-[3.8rem] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[rgba(112,85,245,0.16)] text-[1.4rem] font-semibold text-[#B7A8FF] max-[389px]:size-[3.4rem]',
                               )}
-                            />
+                            >
+                              {room.otherMember.image ? (
+                                <img
+                                  src={room.otherMember.image}
+                                  alt=""
+                                  className="size-full object-cover"
+                                />
+                              ) : (
+                                room.otherMember.nickname.slice(0, 1)
+                              )}
+                            </span>
                             <div className="ml-[1.2rem] flex min-w-0 flex-1 items-start gap-[0.8rem] max-[389px]:ml-[0.8rem] max-[389px]:gap-[0.6rem]">
                               <div className="min-w-0 flex-1">
                                 <span className="Label1 block truncate font-semibold text-[var(--ui-900)]">
                                   {room.otherMember.nickname}
                                 </span>
-                                <p className="mt-[0.5rem] line-clamp-2 text-[1.2rem] leading-[1.45] tracking-[0.0252em] text-[var(--ui-500)]">
-                                  {room.lastMessage ?? '메시지가 없습니다.'}
+                                <p className="mt-[0.5rem] truncate text-[1.2rem] leading-[1.45] tracking-[0.0252em] text-[var(--ui-500)]">
+                                  {room.lastMessage?.trim() || '대화를 시작해 보세요.'}
                                 </p>
                               </div>
                               <div className="flex shrink-0 flex-col items-end gap-[0.55rem] pt-[0.15rem]">
-                                <span className="text-right text-[1.3rem] leading-[1.429] tracking-[0.0145em] text-[var(--ui-600)] max-[389px]:text-[1.2rem]">
+                                <span className="text-right text-[1.05rem] leading-[1.429] tracking-[0.0145em] text-[var(--ui-400)] max-[389px]:text-[1rem]">
                                   {formatListLastContactLabel(room.lastMessageAt)}
                                 </span>
                                 {room.unreadCount > 0 ? (
@@ -882,7 +975,6 @@ const FloatingChatWidget = () => {
                                 ) : null}
                               </div>
                             </div>
-                            <span className={listDividerClassName} />
                           </button>
                         );
                       })}

@@ -42,10 +42,12 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: apiBase,
           changeOrigin: true,
+          secure: false,
         },
         '/sse': {
           target: apiBase,
           changeOrigin: true,
+          secure: false,
           timeout: 0,
         },
       },

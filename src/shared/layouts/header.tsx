@@ -6,19 +6,12 @@ import {
   type NotificationItem,
   subscribeNotificationStream,
 } from '@apis/notifications';
-import AlarmIcon from '@assets/icons/alarm.svg?react';
-import AlarmDarkHoverIcon from '@assets/icons/alarm-dark-hover.svg?react';
-import AlarmLightIcon from '@assets/icons/alarm-light.svg?react';
-import AlarmLightHoverIcon from '@assets/icons/alarm-light-hover.svg?react';
 import DarkLogo from '@assets/icons/logo-dark.svg?react';
 import LightLogo from '@assets/icons/logo-light.svg?react';
 import MobileLogo from '@assets/icons/logo-mobile.svg?react';
 import MenuIcon from '@assets/icons/menu.svg?react';
 import MenuClosedIcon from '@assets/icons/menu-closed.svg?react';
-import ModeDarkHoverIcon from '@assets/icons/mode-dark-hover.svg?react';
-import ModeLightIcon from '@assets/icons/mode-light.svg?react';
-import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
-import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
+import TicketNeon from '@assets/icons/ticket-neon.svg?react';
 import { SignedIn, SignedOut, useAuth as useClerkAuth, useUser } from '@clerk/clerk-react';
 import { useQuery } from '@tanstack/react-query';
 import NotificationModal from '@components/common/NotificationModal';
@@ -50,6 +43,12 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const [loadingMoreNotifications, setLoadingMoreNotifications] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const { user: clerkUser } = useUser();
+  const profileImageSrc = profileImageUrl || (clerkUser?.hasImage ? clerkUser.imageUrl : null);
+  const profileInitial =
+    clerkUser?.firstName?.trim().charAt(0) ||
+    clerkUser?.username?.trim().charAt(0) ||
+    clerkUser?.primaryEmailAddress?.emailAddress?.charAt(0).toUpperCase() ||
+    'D';
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
   const isSignupFlow = location.pathname.startsWith('/signup');
   const isTermsPage = location.pathname.startsWith('/terms/');
@@ -309,13 +308,13 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             </div>
 
             {/* 네비게이션 - 데스크톱 */}
-            <nav className="max-[743px]:!hidden ml-[28px] flex-items-center shrink-0 flex-nowrap gap-[5rem] phone:gap-[2rem] tablet:gap-[3rem]">
+            <nav className="max-[743px]:!hidden ml-[28px] flex-items-center shrink-0 flex-nowrap gap-[2.6rem] phone:gap-[2rem] tablet:gap-[2.6rem]">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`Label1 group relative shrink-0 whitespace-nowrap px-[0.6rem] py-[0.4rem] transition-all duration-300 ease-out ${
-                    isActive(item.path) ? 'text-ui-1000' : 'text-ui-500'
+                  className={`group relative shrink-0 whitespace-nowrap py-[0.4rem] text-[1.4rem] font-medium transition-colors duration-200 ${
+                    isActive(item.path) ? 'text-ui-1000' : 'text-[#A1A1AA]'
                   } hover:text-ui-800`}
                   aria-current={isActive(item.path) ? 'page' : undefined}
                 >
@@ -323,8 +322,8 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                   <span
                     className={`-translate-x-1/2 absolute bottom-0 left-1/2 h-[2px] rounded-full transition-all duration-300 ease-out ${
                       isActive(item.path)
-                        ? 'w-[calc(100%-1.2rem)] opacity-100'
-                        : 'w-0 opacity-0 group-hover:w-[calc(100%-1.2rem)] group-hover:opacity-100'
+                        ? 'w-full opacity-100'
+                        : 'w-0 opacity-0 group-hover:w-full group-hover:opacity-100'
                     } bg-primary`}
                   />
                 </Link>
@@ -333,11 +332,9 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
           </div>
 
           {/* 액션 버튼들 */}
-          <div className="flex-items-center shrink-0 flex-nowrap gap-[1.2rem] phone:gap-[0.6rem] tablet:gap-[0.8rem]">
+          <div className="flex-items-center shrink-0 flex-nowrap gap-[1.6rem] phone:gap-[0.8rem] tablet:gap-[1.2rem]">
             <SignedIn>
               {!isTermsPage && !isSignupFlow && (
-                <>
-                  <span aria-hidden="true" className="mx-[0.4rem] hidden h-[3.2rem] w-px bg-ui-200 min-[744px]:block" />
                   <Link
                     to="/pay"
                     aria-label={
@@ -345,52 +342,31 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                         ? `이용권 ${myCredits.remainingCount}장, 구매 페이지로 이동`
                         : '이용권 구매 페이지로 이동'
                     }
-                    className="group flex h-[3.6rem] shrink-0 items-center gap-[0.8rem] whitespace-nowrap rounded-[10px] border border-ui-200 px-[1.4rem] text-ui-800 transition-colors hover:border-ui-400 hover:bg-ui-50"
+                    className="group flex h-[4rem] shrink-0 items-center gap-[0.7rem] whitespace-nowrap text-[var(--ui-500)] transition-colors hover:text-[var(--ui-800)]"
                   >
-                    <svg aria-hidden="true" className="size-[2rem] shrink-0" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-                      <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                    </svg>
-                    <span className="Caption1 font-semibold">
-                      {typeof myCredits?.remainingCount === 'number'
-                        ? `이용권 ${myCredits.remainingCount}장`
-                        : '이용권 구매'}
-                    </span>
-                    <svg aria-hidden="true" className="size-[1.6rem] shrink-0 text-ui-500" viewBox="0 0 20 20" fill="none">
-                      <path d="m7.5 4.5 5.5 5.5-5.5 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <TicketNeon aria-hidden="true" className="h-[1.6rem] w-[2.2rem] shrink-0" />
+                    <span className="text-[1.4rem] font-medium">이용권 구매</span>
                   </Link>
-                </>
-              )}
-              <Link
-                to="/project/create"
-                className="Caption1 relative h-[3.6rem] flex-row-center gap-[0.8rem] whitespace-nowrap rounded-[10px] bg-primary px-[1.6rem] py-[0.8rem] font-semibold text-white transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:translate-y-[1px] active:scale-[0.98]"
-              >
-                <svg aria-hidden="true" className="size-[2rem] shrink-0" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                프로젝트 등록
-              </Link>
-              {!isTermsPage && !isSignupFlow && (
-                <span aria-hidden="true" className="mx-[0.4rem] hidden h-[3.2rem] w-px bg-ui-200 min-[744px]:block" />
               )}
             </SignedIn>
             {/* 다크모드 토글 */}
             <button
               type="button"
               onClick={toggleTheme}
-              className="group max-[391px]:!hidden relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[10px] bg-ui-50 transition-colors hover:bg-ui-100"
+              aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+              title={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+              className="group max-[391px]:!hidden relative size-[4rem] flex-row-center shrink-0 cursor-pointer text-[var(--ui-500)] transition-colors duration-200 hover:text-[var(--ui-800)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               {theme === 'dark' ? (
-                <>
-                  <ModeSettingIcon className="size-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                  <ModeDarkHoverIcon className="absolute size-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                </>
+                <svg aria-hidden="true" className="size-[2rem]" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="3.6" stroke="currentColor" strokeWidth="1.7" />
+                  <path d="M12 2.8v2M12 19.2v2M21.2 12h-2M4.8 12h-2m15.7-6.5-1.4 1.4M6.9 17.1l-1.4 1.4m13 0-1.4-1.4M6.9 6.9 5.5 5.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                </svg>
               ) : (
-                <>
-                  <ModeLightIcon className="size-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                  <ModeLightHoverIcon className="absolute size-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                </>
+                <svg aria-hidden="true" className="size-[2rem]" viewBox="0 0 24 24" fill="none">
+                  <path d="M20.3 15.2A8.4 8.4 0 0 1 8.8 3.7 8.6 8.6 0 1 0 20.3 15.2Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="m17.5 4 .4 1.1L19 5.5l-1.1.4-.4 1.1-.4-1.1-1.1-.4 1.1-.4.4-1.1Z" fill="currentColor" />
+                </svg>
               )}
             </button>
 
@@ -402,24 +378,16 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                 setIsNotificationOpen(!isNotificationOpen);
                 if (isNotificationOpen) fetchUnreadCount();
               }}
-              className="group relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[10px] bg-ui-50 p-[0.4rem] transition-colors hover:bg-ui-100"
+              className="group relative size-[4rem] flex-row-center shrink-0 cursor-pointer text-[var(--ui-500)] transition-colors duration-200 hover:text-[var(--ui-800)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               aria-label={
                 unreadCount > 0
                   ? `알림 열기. 읽지 않은 알림 ${unreadCount > 99 ? '99+' : unreadCount}건`
                   : '알림 열기'
               }
             >
-              {theme === 'dark' ? (
-                <>
-                  <AlarmIcon className="size-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                  <AlarmDarkHoverIcon className="absolute size-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                </>
-              ) : (
-                <>
-                  <AlarmLightIcon className="size-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                  <AlarmLightHoverIcon className="absolute size-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                </>
-              )}
+              <svg aria-hidden="true" className="size-[2rem]" viewBox="0 0 24 24" fill="none">
+                <path d="M18 9.8a6 6 0 0 0-12 0c0 7-3 7.2-3 8.7h18c0-1.5-3-1.7-3-8.7ZM10 21h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
 
               {unreadCount > 0 && (
                 <span
@@ -433,24 +401,17 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             </button>
 
             <SignedIn>
-              <Link
-                to="/my-info"
-                className="Caption1 whitespace-nowrap text-[var(--ui-700)] transition-colors duration-300 hover:text-[var(--ui-900)]"
-              >
-                내 정보
-              </Link>
-
               <button
                 type="button"
                 onClick={() => navigate('/my-info')}
-                className="-translate-y-[0.15rem] relative h-[2.7rem] w-[2.7rem] shrink-0 cursor-pointer overflow-hidden rounded-full"
+                className="relative flex h-[3.2rem] w-[3.2rem] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-[#665C7A] text-[1.4rem] font-medium text-white transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 aria-label="내 정보 페이지로 이동"
               >
-                <img
-                  src={profileImageUrl || clerkUser?.imageUrl}
-                  alt="프로필"
-                  className="h-full w-full rounded-full object-cover"
-                />
+                {profileImageSrc ? (
+                  <img src={profileImageSrc} alt="프로필" className="h-full w-full rounded-full object-cover" />
+                ) : (
+                  <span aria-hidden="true">{profileInitial}</span>
+                )}
               </button>
             </SignedIn>
 
