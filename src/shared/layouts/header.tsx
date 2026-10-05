@@ -16,12 +16,12 @@ import { SignedIn, SignedOut, useAuth as useClerkAuth, useUser } from '@clerk/cl
 import { useQuery } from '@tanstack/react-query';
 import NotificationModal from '@components/common/NotificationModal';
 import { myCreditsQuery } from '@apis/payment/payment-queries';
+import { useAuthMe } from '@hooks/useAuthMe';
 import { useNotificationStore } from '@store/notification';
 import { useThemeStore } from '@store/theme';
 import { getProfileImageKey, getStoredProfileImageUrl } from '@utils/storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/shared/auth/useAuth';
 
 type HeaderProps = {
   navLocked?: boolean;
@@ -30,7 +30,6 @@ type HeaderProps = {
 
 const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const { theme, toggleTheme } = useThemeStore();
-  const { isAuthed, user: devUser, setDevAuthed } = useAuth();
   const { getToken, isSignedIn } = useClerkAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -52,7 +51,8 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
   const isSignupFlow = location.pathname.startsWith('/signup');
   const isTermsPage = location.pathname.startsWith('/terms/');
-  const isOnboardingComplete = clerkUser?.unsafeMetadata?.onboardingComplete === true;
+  const { data: memberStatus } = useAuthMe();
+  const isOnboardingComplete = memberStatus?.isRegistered === true;
   const canUseMemberProtectedApis = isSignedIn === true && isOnboardingComplete && !isSignupFlow;
   const { data: myCredits } = useQuery(myCreditsQuery(canUseMemberProtectedApis));
 

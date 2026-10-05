@@ -1,4 +1,5 @@
 import { useUser } from '@clerk/clerk-react';
+import { useAuthMe } from '@hooks/useAuthMe';
 import FloatingChatWidget from '@components/chat/FloatingChatWidget';
 import FloatingProjectCreateCta from '@components/common/FloatingProjectCreateCta';
 import Footer from '@layouts/footer';
@@ -23,32 +24,21 @@ const RootLayout = () => {
   const hydrateRole = useAuthStore((state) => state.hydrateRole);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [navLocked, setNavLocked] = useState(false);
-  const [onboardingIncomplete, setOnboardingIncomplete] = useState(false);
+  const memberQuery = useAuthMe();
+  const onboardingIncomplete = Boolean(user) && memberQuery.data?.isRegistered === false;
   const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
   const isSsoCallbackRoute = location.pathname === '/sso-callback';
   const hideFooterPaths = ['/signup', '/terms/2', '/terms/1'];
   const shouldHideFooter = hideFooterPaths.includes(location.pathname);
   const isReportPage = location.pathname === '/report' || location.pathname === '/';
-  const localOnboardingComplete = (() => {
-    try {
-      return user?.id ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true' : false;
-    } catch {
-      return false;
-    }
-  })();
-  const isOnboardingCompleteNow =
-    user?.unsafeMetadata?.onboardingComplete === true || localOnboardingComplete;
+  const isOnboardingCompleteNow = memberQuery.data?.isRegistered === true;
   const isAuthOnlyRoute =
     location.pathname === '/signup' ||
     location.pathname === '/login' ||
     location.pathname === '/sso-callback';
   const showFloatingChat = Boolean(user) && isOnboardingCompleteNow && !isAuthOnlyRoute;
-  const shouldRedirectToSignupImmediately =
-    isLoaded &&
-    location.pathname === '/' &&
-    !!user &&
-    !isOnboardingCompleteNow &&
-    sessionStorage.getItem('login_provider') !== null;
+  const shouldRedirectToSignupImmediately = onboardingIncomplete &&
+    !isAuthOnlyRoute && !location.pathname.startsWith('/terms/');
 
   useLayoutEffect(() => {
     trackPageView(location.pathname + location.search);
@@ -75,39 +65,13 @@ const RootLayout = () => {
   }, [location.key]);
 
   useLayoutEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !memberQuery.data) return;
     const shouldShowModal = sessionStorage.getItem('show_onboarding_modal') === 'true';
     if (!shouldShowModal) return;
     sessionStorage.removeItem('show_onboarding_modal');
-    const localComplete = (() => {
-      try {
-        return user?.id ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true' : false;
-      } catch {
-        return false;
-      }
-    })();
-    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true || localComplete;
-    if (onboardingComplete) return;
+    if (!onboardingIncomplete) return;
     setShowOnboardingModal(true);
-  }, [isLoaded, user]);
-
-  useLayoutEffect(() => {
-    if (!isLoaded) return;
-    if (!user) {
-      setOnboardingIncomplete(false);
-      return;
-    }
-
-    const localComplete = (() => {
-      try {
-        return user?.id ? localStorage.getItem(`onboarding_complete:${user.id}`) === 'true' : false;
-      } catch {
-        return false;
-      }
-    })();
-    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true || localComplete;
-    setOnboardingIncomplete(!onboardingComplete);
-  }, [isLoaded, user]);
+  }, [isLoaded, memberQuery.data, onboardingIncomplete]);
 
   useLayoutEffect(() => {
     if (!isLoaded) return;
@@ -118,51 +82,21 @@ const RootLayout = () => {
   }, [hydrateRole, isLoaded, user?.id]);
 
   useLayoutEffect(() => {
-    if (!onboardingIncomplete) return;
-    const pathname = location.pathname;
-    const isSignupRoute = pathname.startsWith('/signup');
-    const isLoginRoute = pathname === '/login';
-    const isCallbackRoute = pathname === '/sso-callback';
-    const isTermsRoute = pathname.startsWith('/terms/');
-    if (isSignupRoute || isLoginRoute || isCallbackRoute || isTermsRoute) return;
-
-    const loginProvider = sessionStorage.getItem('login_provider');
-    if (pathname === '/' && loginProvider) {
-      navigate('/signup', { replace: true });
-      return;
-    }
-
-    const skipModalOnce = sessionStorage.getItem('skip_onboarding_modal_once') === 'true';
-    if (skipModalOnce) {
-      sessionStorage.removeItem('skip_onboarding_modal_once');
-      return;
-    }
-    setShowOnboardingModal(true);
-  }, [location.pathname, navigate, onboardingIncomplete]);
-
-  useLayoutEffect(() => {
-    if (!onboardingIncomplete) {
+    if (!onboardingIncomplete || location.pathname === '/signup') {
       setShowOnboardingModal(false);
     }
-  }, [onboardingIncomplete]);
+  }, [onboardingIncomplete, location.pathname]);
 
   useLayoutEffect(() => {
     if (!isLoaded) return;
     if (!user) return;
 
-    const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
     const pathname = location.pathname;
-    const isSignupRoute = pathname === '/signup';
     const isLoginRoute = pathname === '/login';
-    if (onboardingComplete && isSignupRoute) {
-      navigate('/', { replace: true });
-      return;
+    if (memberQuery.data && isLoginRoute) {
+      navigate(isOnboardingCompleteNow ? '/' : '/signup', { replace: true });
     }
-
-    if (onboardingComplete && isLoginRoute) {
-      navigate('/', { replace: true });
-    }
-  }, [isLoaded, location.pathname, navigate, user]);
+  }, [isLoaded, location.pathname, navigate, user, memberQuery.data, isOnboardingCompleteNow]);
 
   useEffect(() => {
     document.dispatchEvent(new Event('prerender-ready'));
@@ -174,14 +108,30 @@ const RootLayout = () => {
       return;
     }
     if (isLoaded && user) {
-      const onboardingComplete = user?.unsafeMetadata?.onboardingComplete === true;
-      if (!onboardingComplete) {
+      if (onboardingIncomplete) {
         setShowOnboardingModal(true);
         return;
       }
     }
     navigate('/');
   };
+
+  // 회원 확인 전에는 하위 화면의 회원 전용 API를 실행하지 않습니다.
+  if (!isSsoCallbackRoute && (!isLoaded || (user && memberQuery.isPending))) {
+    return <p role="status" className="py-24 text-center text-ui-600">회원 정보를 확인하고 있어요.</p>;
+  }
+
+  if (!isSsoCallbackRoute && user && memberQuery.isError) {
+    return (
+      <div role="alert" className="flex flex-col items-center gap-6 py-24 text-ui-900">
+        <p>회원 정보를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.</p>
+        <button type="button" disabled={memberQuery.isFetching} onClick={() => void memberQuery.refetch()}
+          className="rounded-xl bg-primary px-6 py-3 text-white disabled:opacity-50">
+          다시 확인하기
+        </button>
+      </div>
+    );
+  }
 
   if (shouldRedirectToSignupImmediately) {
     return <Navigate to="/signup" replace />;

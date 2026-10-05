@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
+import { useUser } from '@clerk/clerk-react';
+import { useAuthMe } from '@hooks/useAuthMe';
 
 import CheckBox from '@components/report/CheckBox';
 import GithubRepoListSkeleton from '@components/report/GithubRepoListSkeleton';
@@ -13,27 +16,60 @@ const ReportCreatePage = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const { theme } = useThemeStore();
   const isLight = theme === 'light';
+  const { user } = useUser();
+  const memberQuery = useAuthMe();
+  const githubLinked = user?.externalAccounts.some((account) => account.provider === 'github');
 
   const {
     data,
     isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery(myInfoQueries.reposInfinite());
+  } = useInfiniteQuery({
+    ...myInfoQueries.reposInfinite(),
+    queryKey: ['repos', import.meta.env.VITE_API_BASE_URL, user?.id],
+    enabled: memberQuery.data?.isRegistered === true,
+  });
 
   const repo =
     data?.pages.flatMap((page) => page.result?.content ?? []) ?? [];
 
   const navigate = useNavigate();
+  const errorCode = isAxiosError(error) ? error.response?.data?.code : undefined;
+  const needsSignup = errorCode === 'AUTH403_1';
+  const needsGithub = errorCode === 'AUTH404_1' && githubLinked === false;
+  const authenticationFailed = isAxiosError(error) && error.response?.status === 401;
+  const feedback = needsSignup
+    ? '서비스 회원가입을 완료해야 레포지토리를 불러올 수 있어요.'
+    : needsGithub
+      ? '레포지토리를 불러오려면 GitHub 계정을 연결해 주세요.'
+      : authenticationFailed
+        ? '로그인 인증을 확인하지 못했어요. 다시 시도해 주세요.'
+        : '레포지토리 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
+  const actionLabel = needsSignup ? '회원가입 계속하기'
+    : needsGithub ? 'GitHub 연결하기'
+    : isError || repo.length === 0 ? '다시 불러오기' : '생성하기';
 
   const toggleCheckbox = (id: number) => {
     setSelectedId((prev) => (prev === id ? null : id));
   };
 
-  const handleCreateRepo = () => {
-    if (!isLoading && repo.length === 0) {
+  const handleCreateRepo = async () => {
+    if (needsSignup) {
+      await memberQuery.refetch();
+      return;
+    }
+    if (needsGithub) {
       navigate('/my-info/setting');
+      return;
+    }
+    if (isError || repo.length === 0) {
+      await refetch();
       return;
     }
     if (!selectedId) return;
@@ -78,6 +114,10 @@ const ReportCreatePage = () => {
         >
           {isLoading ? (
             <GithubRepoListSkeleton count={6} variant="report-create" />
+          ) : isError ? (
+            <div role="alert" className="flex h-full items-center justify-center p-6 text-center text-ui-600">
+              {feedback}
+            </div>
           ) : (
             <>
               {repo.map((item) => (
@@ -94,10 +134,10 @@ const ReportCreatePage = () => {
               {repo.length === 0 && (
                 <div className="flex h-full flex-col items-center justify-center gap-[1rem]">
                   <p className={cn('text-center text-2xl', isLight ? 'text-[var(--ui-600)]' : 'text-white/35')}>
-                    연동된 레포지토리가 없습니다.
+                    불러올 레포지토리가 없습니다.
                   </p>
                   <p className={cn('text-center text-xl', isLight ? 'text-[var(--ui-500)]' : 'text-white/25')}>
-                    아래 버튼을 누르면 깃허브 연동 페이지로 이동합니다.
+                    GitHub의 저장소와 접근 권한을 확인한 뒤 다시 불러와 주세요.
                   </p>
                 </div>
               )}
@@ -115,11 +155,11 @@ const ReportCreatePage = () => {
         <div className="flex flex-col gap-[1rem]">
           <button
             type="button"
-            onClick={handleCreateRepo}
-            disabled={isLoading || (!selectedId && repo.length > 0)}
+            onClick={() => void handleCreateRepo()}
+            disabled={isFetching || (!isError && !selectedId && repo.length > 0)}
             className="w-full cursor-pointer rounded-[16px] bg-[#6654F5] py-[1.5rem] text-[1.6rem] font-semibold text-white transition-opacity duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {!isLoading && repo.length === 0 ? '깃허브 연동하러 가기' : '생성하기'}
+            {isLoading ? '불러오는 중…' : actionLabel}
           </button>
           <button
             type="button"

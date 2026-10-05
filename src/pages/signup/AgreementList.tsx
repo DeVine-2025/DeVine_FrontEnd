@@ -29,7 +29,7 @@ type ProfileData = {
 };
 
 type AgreementListProps = {
-  onConfirm: () => void;
+  onConfirm: () => Promise<void> | void;
   loginProvider: 'github' | 'google';
 };
 
@@ -108,14 +108,14 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
   };
 
   const confirmOnboardingOnce = async () => {
-    if (onboardingConfirmedRef.current) return;
-    onboardingConfirmedRef.current = true;
-    await onConfirm();
+    if (onboardingConfirmedRef.current) return true;
     try {
-      const key = `onboarding_complete:${user?.id ?? 'unknown'}`;
-      localStorage.setItem(key, 'true');
-    } catch {
-      // ignore storage errors
+      await onConfirm();
+      onboardingConfirmedRef.current = true;
+      return true;
+    } catch (error) {
+      alert(error instanceof Error ? error.message : '회원가입 상태를 확인하지 못했습니다. 다시 시도해 주세요.');
+      return false;
     }
   };
 
@@ -153,7 +153,7 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
                 return;
               }
               if (step === 'signupComplete') {
-                void confirmOnboardingOnce().then(() => navigate('/'));
+                void confirmOnboardingOnce().then((confirmed) => { if (confirmed) navigate('/'); });
                 return;
               }
               setIsStayModalOpen(true);
@@ -222,8 +222,7 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
             <button
               type="button"
               onClick={async () => {
-                await confirmOnboardingOnce();
-                navigate('/');
+                if (await confirmOnboardingOnce()) navigate('/');
               }}
               className="inline-flex w-fit self-center text-[15px] font-medium text-[var(--ui-400)]"
             >
@@ -236,8 +235,7 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           <GithubRepoSelectionSection
             onBack={() => setStep('signupComplete')}
             onNext={async () => {
-              await confirmOnboardingOnce();
-              navigate('/');
+              if (await confirmOnboardingOnce()) navigate('/');
             }}
           />
         </div>
@@ -257,12 +255,14 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
                 mainType: profileInfo.mainType,
                 categoryIds: profileInfo.categoryIds,
               }}
-              onComplete={loginProvider === 'github' ? undefined : confirmOnboardingOnce}
+              onComplete={loginProvider === 'github' ? undefined : async () => {
+                if (!await confirmOnboardingOnce()) throw new Error('회원가입 상태를 다시 확인해 주세요.');
+              }}
               onNext={() => {
                 if (loginProvider === 'github') {
                   setStep('signupComplete');
                 } else {
-                  void confirmOnboardingOnce().then(() => navigate('/'));
+                  void confirmOnboardingOnce().then((confirmed) => { if (confirmed) navigate('/'); });
                 }
               }}
             />
