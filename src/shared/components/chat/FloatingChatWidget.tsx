@@ -1,6 +1,6 @@
 import ArrowLeftIcon from '@assets/icons/arrow-left.svg?react';
-import ArrowDownIcon from '@assets/icons/arrow-down.svg?react';
 import ChatPaperPlaneIcon from '@assets/icons/chat-paper-plane.svg?react';
+import ChatSendPlaneIcon from '@assets/icons/chat-send-plane.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
 import { isChatApiError } from '@apis/chat';
 import { useChatRoom } from '@hooks/useChatRoom';
@@ -14,8 +14,9 @@ import { useThemeStore } from '@store/theme';
 import type { ChatRoomsListData } from '@t/chat';
 import { useAuth } from '@clerk/clerk-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { createPortal } from 'react-dom';
+import './floating-chat-widget.css';
 
 const ChatAvatar = ({
   image,
@@ -48,10 +49,34 @@ const DEFAULT_CHAT_HEIGHT_PX = 458;
 const MIN_CHAT_WIDTH_PX = 280;
 const MIN_CHAT_HEIGHT_PX = 320;
 const CHAT_SIZE_STORAGE_KEY = 'devine.chatWidget.size';
+const CHAT_POSITION_STORAGE_KEY = 'devine.chatWidget.position';
 const DESKTOP_RESIZE_MQ = '(min-width: 744px)';
 
 type ChatPanelSize = { width: number; height: number };
+type ChatPosition = { left: number; bottom: number };
 type ResizeEdge = 'left' | 'top' | 'corner';
+
+function readStoredChatPosition(): ChatPosition | null {
+  try {
+    const raw = window.localStorage.getItem(CHAT_POSITION_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<ChatPosition>;
+    return typeof parsed.left === 'number' && Number.isFinite(parsed.left) &&
+      typeof parsed.bottom === 'number' && Number.isFinite(parsed.bottom)
+      ? { left: parsed.left, bottom: parsed.bottom }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function clampChatPosition(position: ChatPosition, width: number, height: number): ChatPosition {
+  const margin = 12;
+  return {
+    left: Math.min(Math.max(margin, window.innerWidth - width - margin), Math.max(margin, position.left)),
+    bottom: Math.min(Math.max(margin, window.innerHeight - height - margin), Math.max(margin, position.bottom)),
+  };
+}
 
 function readStoredChatSize(): ChatPanelSize {
   try {
@@ -105,24 +130,24 @@ const formatDateLabel = (iso?: string | null): string => {
   return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 };
 
-/* 목록 우측 메타: 마지막 연락 시각 (오늘이면 시:분, 아니면 날짜) */
-const formatListLastContactLabel = (iso?: string | null): string => {
+/* 목록 우측 메타: 마지막 메시지가 도착한 뒤 지난 시간 */
+const formatListLastContactLabel = (iso?: string | null, now = Date.now()): string => {
   if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const now = new Date();
-  const isToday =
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate();
-  if (isToday) return formatTime(iso);
-  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+  const sentAt = new Date(iso).getTime();
+  if (Number.isNaN(sentAt)) return '';
+  const elapsedMinutes = Math.max(0, Math.floor((now - sentAt) / 60_000));
+  if (elapsedMinutes < 1) return '방금';
+  if (elapsedMinutes < 60) return `${elapsedMinutes}분`;
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+  if (elapsedHours < 24) return `${elapsedHours}시간`;
+  return `${Math.floor(elapsedHours / 24)}일`;
 };
 
 const FloatingChatWidget = () => {
   const { theme } = useThemeStore();
   const { userId } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [relativeTimeNow, setRelativeTimeNow] = useState(() => Date.now());
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
   const [messageDraft, setMessageDraft] = useState('');
   const [failedActionMessageId, setFailedActionMessageId] = useState<number | null>(null);
@@ -138,6 +163,13 @@ const FloatingChatWidget = () => {
     },
   );
   const [isResizing, setIsResizing] = useState(false);
+  const [position, setPosition] = useState<ChatPosition | null>(() =>
+    typeof window !== 'undefined' ? readStoredChatPosition() : null,
+  );
+  const [isDragging, setIsDragging] = useState(false);
+  const widgetRef = useRef<HTMLElement | null>(null);
+  const dragCleanupRef = useRef<(() => void) | null>(null);
+  const lastDragEndRef = useRef(0);
   const failedMenuRef = useRef<HTMLDivElement | null>(null);
   const roomMenuRef = useRef<HTMLDivElement | null>(null);
   const messageListRef = useRef<HTMLDivElement | null>(null);
@@ -165,10 +197,74 @@ const FloatingChatWidget = () => {
     if (!canResizePanel) return;
     const onWindowResize = () => {
       setPanelSize((prev) => clampChatSize(prev));
+      const widget = widgetRef.current;
+      if (widget) {
+        const { width, height } = widget.getBoundingClientRect();
+        setPosition((current) => current && clampChatPosition(current, width, height));
+      }
     };
     window.addEventListener('resize', onWindowResize);
     return () => window.removeEventListener('resize', onWindowResize);
   }, [canResizePanel]);
+
+  useEffect(() => () => dragCleanupRef.current?.(), []);
+
+  const beginWidgetDrag = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      if (!canResizePanel || event.button !== 0 || !event.isPrimary) return;
+      if (isExpanded && (event.target as Element).closest('button, a, input, textarea, [data-no-drag]')) return;
+      const widget = widgetRef.current;
+      if (!widget) return;
+      const rect = widget.getBoundingClientRect();
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const startLeft = rect.left;
+      const startBottom = window.innerHeight - rect.bottom;
+      let moved = false;
+      let latestPosition: ChatPosition | null = null;
+
+      const onPointerMove = (moveEvent: PointerEvent) => {
+        if (moveEvent.pointerId !== event.pointerId) return;
+        const deltaX = moveEvent.clientX - startX;
+        const deltaY = moveEvent.clientY - startY;
+        if (!moved && Math.hypot(deltaX, deltaY) < 5) return;
+        moved = true;
+        setIsDragging(true);
+        latestPosition = clampChatPosition(
+          { left: startLeft + deltaX, bottom: startBottom - deltaY },
+          rect.width,
+          rect.height,
+        );
+        setPosition(latestPosition);
+      };
+
+      const cleanup = () => {
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerUp);
+        dragCleanupRef.current = null;
+        setIsDragging(false);
+      };
+      const onPointerUp = (upEvent: PointerEvent) => {
+        if (upEvent.pointerId !== event.pointerId) return;
+        cleanup();
+        if (!moved || !latestPosition) return;
+        if (!isExpanded) lastDragEndRef.current = Date.now();
+        try {
+          window.localStorage.setItem(CHAT_POSITION_STORAGE_KEY, JSON.stringify(latestPosition));
+        } catch {
+          // Storage may be unavailable; keep the position for this session.
+        }
+      };
+
+      dragCleanupRef.current?.();
+      dragCleanupRef.current = cleanup;
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp);
+      window.addEventListener('pointercancel', onPointerUp);
+    },
+    [canResizePanel, isExpanded],
+  );
 
   const beginPanelResize = useCallback(
     (edge: ResizeEdge, event: ReactPointerEvent<HTMLDivElement>) => {
@@ -241,7 +337,22 @@ const FloatingChatWidget = () => {
   const hasMessageDraft = messageDraft.trim().length > 0;
   const unreadRoomCount = unreadData?.unreadRoomCount ?? 0;
   const unreadBadgeLabel = unreadRoomCount > 99 ? '99+' : String(unreadRoomCount);
-  const chatListPanelHeightRem = Math.min(40, Math.max(13.5, 8.4 + rooms.length * 8));
+  const chatListPanelHeightRem = rooms.length === 0 ? 24.8 : 7.2 + Math.min(rooms.length, 4) * 7.7;
+  useEffect(() => {
+    if (!isExpanded || isRoomView) return;
+    setRelativeTimeNow(Date.now());
+    const interval = window.setInterval(() => setRelativeTimeNow(Date.now()), 60_000);
+    return () => window.clearInterval(interval);
+  }, [isExpanded, isRoomView]);
+  useLayoutEffect(() => {
+    if (!canResizePanel || !position || !widgetRef.current) return;
+    const { width, height } = widgetRef.current.getBoundingClientRect();
+    setPosition((current) => {
+      if (!current) return current;
+      const clamped = clampChatPosition(current, width, height);
+      return clamped.left === current.left && clamped.bottom === current.bottom ? current : clamped;
+    });
+  }, [canResizePanel, position, isExpanded, isRoomView, panelSize.width, panelSize.height, chatListPanelHeightRem]);
   const dateLabel = formatDateLabel(selectedMessages[0]?.createdAt ?? null);
   const isRoomsEmpty = rooms.length === 0;
   const isCreatingRoom = createRoomMutation.isPending;
@@ -356,17 +467,12 @@ const FloatingChatWidget = () => {
   };
 
   const widgetSurfaceClassName = cn(
-    'overflow-hidden rounded-t-[1.8rem] border border-b-0 backdrop-blur-[2rem]',
+    'overflow-hidden rounded-[1.8rem] border backdrop-blur-[2rem]',
     isLightTheme
-      ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(255,255,255,0.98)] shadow-[0_-1.2rem_3rem_rgba(15,23,42,0.08),0_-0.1rem_0.6rem_rgba(212,218,231,0.35)]'
-      : 'border-[rgba(127,133,150,0.28)] bg-[rgba(33,35,40,0.92)] shadow-[0_-1.8rem_4rem_rgba(0,0,0,0.28),0_-0.1rem_0.73rem_rgba(127,133,150,0.16)]',
+      ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(255,255,255,0.98)] shadow-[0_1.2rem_3rem_rgba(15,23,42,0.12)]'
+      : 'border-[rgba(127,133,150,0.28)] bg-[rgba(24,26,31,0.97)] shadow-[0_1.2rem_3rem_rgba(0,0,0,0.32)]',
   );
-  const headerClassName = cn(
-    'flex h-[6.8rem] items-center border-b px-[1.6rem] max-[389px]:px-[1.2rem]',
-    isLightTheme
-      ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(248,249,251,0.96)]'
-      : 'border-[rgba(127,133,150,0.18)] bg-[rgba(255,255,255,0.02)]',
-  );
+  const headerClassName = 'flex h-[6.8rem] items-center px-[1.6rem] max-[389px]:px-[1.2rem]';
   const iconButtonClassName = cn(
     'flex size-[2.8rem] cursor-pointer items-center justify-center rounded-full transition-colors duration-200',
     isLightTheme
@@ -374,34 +480,29 @@ const FloatingChatWidget = () => {
       : 'text-[var(--ui-500)] hover:bg-[rgba(255,255,255,0.05)]',
   );
   const datePillClassName = cn(
-    'inline-flex rounded-full border px-[1rem] py-[0.4rem] text-[1.1rem] font-medium leading-[1.334] tracking-[0.02em]',
+    'inline-flex rounded-full border px-[0.8rem] py-[0.3rem] text-[1rem] font-medium leading-[1.3]',
     isLightTheme
-      ? 'border-[rgba(212,218,231,0.95)] bg-white text-[var(--ui-500)]'
-      : 'border-[rgba(127,133,150,0.18)] bg-[rgba(255,255,255,0.04)] text-[var(--ui-400)]',
+      ? 'border-[rgba(212,218,231,0.7)] bg-white text-[var(--ui-400)]'
+      : 'border-[rgba(127,133,150,0.12)] bg-[rgba(255,255,255,0.025)] text-[var(--ui-400)]',
   );
   const receivedBubbleClassName = cn(
-    'rounded-[1.6rem] rounded-bl-[0.6rem] border px-[1.2rem] py-[0.9rem]',
+    'rounded-[1.6rem] border px-[1.2rem] py-[0.9rem]',
     isLightTheme
-      ? 'border-[rgba(212,218,231,0.95)] bg-white shadow-[0_0.8rem_1.8rem_rgba(15,23,42,0.06)]'
-      : 'border-[rgba(127,133,150,0.12)] bg-[rgba(255,255,255,0.05)] shadow-[0_0.8rem_1.8rem_rgba(0,0,0,0.12)]',
+      ? 'border-[rgba(212,218,231,0.7)] bg-[#F7F8FB]'
+      : 'border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.075)]',
   );
-  const footerClassName = cn(
-    'border-t px-[1.6rem] py-[1.4rem] max-[389px]:px-[1.2rem] max-[389px]:py-[1.2rem]',
-    isLightTheme
-      ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(248,249,251,0.96)]'
-      : 'border-[rgba(127,133,150,0.18)] bg-[rgba(255,255,255,0.02)]',
-  );
+  const footerClassName = 'px-[1.6rem] py-[1.2rem] max-[389px]:px-[1.2rem]';
   const inputFieldClassName = cn(
-    'flex h-[4rem] min-w-0 flex-1 items-center rounded-full border px-[1.6rem] max-[389px]:px-[1.2rem]',
+    'flex h-[4.4rem] min-w-0 flex-1 items-center rounded-full border px-[1.6rem] max-[389px]:px-[1.2rem]',
     isLightTheme
       ? 'border-[rgba(212,218,231,0.95)] bg-white shadow-[0_0.6rem_1.4rem_rgba(15,23,42,0.05)]'
-      : 'border-[rgba(127,133,150,0.2)] bg-[rgba(25,27,30,0.95)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
+      : 'border-[rgba(127,133,150,0.16)] bg-[#1B1D23]',
   );
   const listItemClassName = cn(
-    'group relative flex w-full items-start px-[1.2rem] py-[1.4rem] text-left transition-colors max-[389px]:px-[1rem]',
+    'group relative flex w-full cursor-pointer items-start px-[1.2rem] py-[1.6rem] text-left transition-colors max-[389px]:px-[1rem]',
     isLightTheme
       ? 'hover:bg-[rgba(15,23,42,0.025)]'
-      : 'hover:bg-[rgba(255,255,255,0.025)]',
+      : 'hover:bg-[#ffffff05]',
   );
   const messageRows = useMemo(
     () =>
@@ -515,6 +616,7 @@ const FloatingChatWidget = () => {
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[45]">
       <div className="relative mx-auto w-full max-w-[144rem]">
         <section
+          ref={widgetRef}
           aria-label="전역 채팅 위젯"
           className={cn(
             'pointer-events-auto fixed left-[1.4rem] transition-none max-[743px]:left-[1rem] max-[389px]:left-[1rem]',
@@ -527,21 +629,19 @@ const FloatingChatWidget = () => {
                     ? 'h-[45.8rem] max-[743px]:h-[42rem] max-[389px]:h-[40rem]'
                     : null,
                 )
-              : 'bottom-[3.4rem] h-[5.6rem] w-[20rem] max-[743px]:bottom-[3rem] max-[389px]:w-[min(20rem,calc(100vw-2rem))]',
-            isResizing && 'transition-none select-none',
+              : 'bottom-[3.4rem] h-[5.6rem] w-[18rem] max-[743px]:bottom-[3rem] max-[389px]:w-[min(18rem,calc(100vw-2rem))]',
+            (isResizing || isDragging) && 'transition-none select-none',
           )}
-          style={
-            isExpanded
-              ? {
-                  width: canResizePanel && isRoomView ? panelSize.width : undefined,
-                  height: isRoomView
-                    ? canResizePanel
-                      ? panelSize.height
-                      : undefined
-                    : `${chatListPanelHeightRem}rem`,
-                }
-              : undefined
-          }
+          style={{
+            left: canResizePanel ? position?.left : undefined,
+            bottom: canResizePanel ? position?.bottom : undefined,
+            width: isExpanded && canResizePanel && isRoomView ? panelSize.width : undefined,
+            height: isExpanded
+              ? isRoomView
+                ? canResizePanel ? panelSize.height : undefined
+                : `min(${chatListPanelHeightRem}rem, calc(100dvh - 40px))`
+              : undefined,
+          }}
         >
           {canResizePanel && isExpanded ? (
             <>
@@ -572,18 +672,24 @@ const FloatingChatWidget = () => {
                   ? `메시지, 안 읽은 채팅방 ${unreadRoomCount}개`
                   : '메시지'
               }
-              onClick={() => setIsExpanded(true)}
+              onPointerDown={beginWidgetDrag}
+              onClick={() => {
+                if (Date.now() - lastDragEndRef.current < 350) return;
+                setIsExpanded(true);
+              }}
+              style={{ touchAction: canResizePanel ? 'none' : undefined }}
               className={cn(
                 'flex h-full w-full items-center gap-[0.8rem] rounded-full border px-[1.4rem] text-left transition-colors',
+                canResizePanel && (isDragging ? 'cursor-grabbing' : 'cursor-grab'),
                 isLightTheme
                   ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(255,255,255,0.98)] shadow-[0_0.8rem_2rem_rgba(15,23,42,0.12)] hover:bg-[#F8F9FB]'
-                  : 'border-[rgba(127,133,150,0.22)] bg-[rgba(33,35,40,0.96)] shadow-[0_0.8rem_2rem_rgba(0,0,0,0.28)] hover:bg-[#25272D]',
+                  : 'border-[rgba(127,133,150,0.22)] bg-[rgba(24,26,31,0.98)] shadow-[0_0.8rem_2rem_rgba(0,0,0,0.28)] hover:bg-[#202228]',
               )}
             >
               <span className="relative flex size-[2rem] shrink-0 items-center justify-center text-[var(--ui-700)]">
                 <ChatPaperPlaneIcon aria-hidden="true" className="size-[2rem]" />
                 {unreadRoomCount > 0 ? (
-                  <span className="absolute -top-[0.55rem] -right-[0.7rem] flex size-[1.7rem] items-center justify-center rounded-full bg-[#F04452] text-[1rem] font-bold leading-none text-white" aria-hidden="true">
+                  <span className="absolute -right-[0.7rem] -bottom-[0.7rem] flex size-[1.7rem] items-center justify-center rounded-full bg-[#F04452] text-[1rem] font-bold leading-none text-white" aria-hidden="true">
                     {unreadBadgeLabel}
                   </span>
                 ) : null}
@@ -612,25 +718,29 @@ const FloatingChatWidget = () => {
               </span>
             </button>
           ) : (
-            <div id="global-chat-panel" className={cn('flex h-full min-h-0 flex-col', widgetSurfaceClassName)}>
+            <div id="global-chat-panel" className={cn('chat-widget-panel-enter flex h-full min-h-0 flex-col', widgetSurfaceClassName)}>
               {isRoomView ? (
                 <>
-                  <div className={headerClassName}>
+                  <div
+                    className={cn(headerClassName, canResizePanel && (isDragging ? 'cursor-grabbing select-none' : 'cursor-grab select-none'))}
+                    onPointerDown={beginWidgetDrag}
+                    style={{ touchAction: canResizePanel ? 'none' : undefined }}
+                  >
                     <button
                       type="button"
                       onClick={collapseToList}
-                      className={iconButtonClassName}
+                      className={cn(iconButtonClassName, 'size-[2.4rem]')}
                       aria-label="채팅 목록으로 돌아가기"
                     >
-                      <ArrowLeftIcon className="size-[2.4rem] max-[389px]:size-[2.2rem]" />
+                      <ArrowLeftIcon className="size-[1.8rem]" />
                     </button>
                     <ChatAvatar
                       image={selectedRoom?.otherMember.image ?? draftTarget?.image}
                       name={roomTitle}
                       isLightTheme={isLightTheme}
-                      className="ml-[0.8rem] size-[3.6rem] text-[1.3rem] max-[389px]:ml-[0.6rem] max-[389px]:size-[3.2rem]"
+                      className="ml-[0.7rem] size-[3.2rem] text-[1.2rem] max-[389px]:ml-[0.5rem]"
                     />
-                    <div className="ml-[1.2rem] min-w-0 flex-1 max-[389px]:ml-[0.8rem]">
+                    <div className="ml-[1rem] min-w-0 flex-1 max-[389px]:ml-[0.8rem]">
                       <span className="Body1 block truncate font-semibold text-[var(--ui-900)]">
                         {roomTitle}
                       </span>
@@ -643,14 +753,14 @@ const FloatingChatWidget = () => {
                           setFailedActionMessageId(null);
                           setIsRoomMenuOpen((prev) => !prev);
                         }}
-                        className={iconButtonClassName}
+                        className={cn(iconButtonClassName, 'size-[2.4rem]')}
                         aria-label="채팅방 메뉴"
                         aria-expanded={isRoomMenuOpen}
                         aria-haspopup="menu"
                       >
                         <svg
                           viewBox="0 0 24 24"
-                          className="size-[2rem]"
+                          className="size-[1.6rem]"
                           fill="currentColor"
                           aria-hidden="true"
                         >
@@ -662,45 +772,54 @@ const FloatingChatWidget = () => {
                       {isRoomMenuOpen ? (
                         <div
                           className={cn(
-                            'absolute top-[calc(100%+0.4rem)] right-0 z-30 min-w-[9.6rem] overflow-hidden rounded-[0.8rem] border py-[0.2rem] shadow-[0_0.8rem_1.8rem_rgba(15,23,42,0.16)]',
+                            'absolute top-[calc(100%+0.6rem)] right-0 z-30 min-w-[15.2rem] rounded-[1.2rem] border p-[0.4rem] shadow-[0_1.2rem_3rem_rgba(0,0,0,0.2)]',
                             isLightTheme
-                              ? 'border-[rgba(212,218,231,0.95)] bg-white'
-                              : 'border-[rgba(127,133,150,0.28)] bg-[rgba(33,35,40,0.98)]',
+                              ? 'border-[rgba(212,218,231,0.8)] bg-white'
+                              : 'border-[rgba(127,133,150,0.24)] bg-[#22242A]',
                           )}
                           role="menu"
                         >
                           <button
                             type="button"
                             role="menuitem"
-                            className="flex w-full items-center justify-center px-[1rem] py-[0.55rem] text-center text-[1.25rem] font-medium text-[#FF4D4F] hover:bg-[var(--ui-50)]"
+                            className={cn(
+                              'flex w-full items-center gap-[0.9rem] rounded-[0.9rem] px-[1rem] py-[0.9rem] text-left text-[1.25rem] font-medium transition-colors',
+                              isLightTheme
+                                ? 'text-[#A84350] hover:bg-[#FAF0F1]'
+                                : 'text-[#E5A1A9] hover:bg-[rgba(229,161,169,0.1)]',
+                            )}
                             onClick={openLeaveConfirm}
                           >
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-[1.6rem] shrink-0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" />
+                              <path d="M14 8l4 4-4 4M18 12H9" />
+                            </svg>
                             채팅방 나가기
                           </button>
                         </div>
                       ) : null}
                     </div>
                     ) : (
-                      <span className="mr-[0.2rem] size-[2.8rem]" aria-hidden />
+                      <span className="mr-[0.2rem] size-[2.4rem]" aria-hidden />
                     )}
                     <button
                       type="button"
                       onClick={closeWidget}
-                      className={iconButtonClassName}
+                      className={cn(iconButtonClassName, 'size-[2.4rem]')}
                       aria-label="채팅창 닫기"
                     >
-                      <CloseIcon className="size-[1.4rem]" />
+                      <CloseIcon className="size-[1.2rem]" />
                     </button>
                   </div>
 
-                  <div className="px-[1.6rem] py-[1rem] text-center max-[389px]:px-[1.2rem]">
+                  <div className="px-[1.8rem] pt-[0.8rem] pb-[0.3rem] text-center max-[389px]:px-[1.4rem]">
                     <span className={datePillClassName}>{dateLabel}</span>
                   </div>
 
                   <div
                     ref={messageListRef}
                     onScroll={handleMessageListScroll}
-                    className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-[1.6rem] py-[0.6rem] max-[389px]:px-[1.2rem]"
+                    className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-[1.8rem] pt-[0.3rem] pb-[0.8rem] max-[389px]:px-[1.4rem]"
                   >
                     <div className="flex flex-col gap-[1.6rem]">
                       {chatRoom.isFetchingOlderMessages ? (
@@ -741,106 +860,102 @@ const FloatingChatWidget = () => {
                               isGroupedWithPrevious && 'mt-[-1rem]',
                             )}
                           >
-                            {isGroupedWithPrevious ? (
-                              <span className="mb-[0.2rem] size-[2.4rem] shrink-0 max-[389px]:size-[2rem]" aria-hidden />
+                            {isGroupedWithNext ? (
+                              <span className="size-[2.4rem] shrink-0 max-[389px]:size-[2rem]" aria-hidden />
                             ) : (
                               <ChatAvatar
                                 image={message.senderImage}
                                 name={message.senderNickname}
                                 isLightTheme={isLightTheme}
-                                className="mb-[0.2rem] size-[2.4rem] text-[1rem] max-[389px]:size-[2rem]"
+                                className="mb-[1.7rem] size-[2.4rem] text-[1rem] max-[389px]:size-[2rem]"
                               />
                             )}
-                            <div className="min-w-0 max-w-[70%] max-[389px]:max-w-[68%]">
-                              {!isGroupedWithPrevious ? (
-                                <p className="Caption1 mb-[0.6rem] font-medium text-[var(--ui-500)]">
-                                  {message.senderNickname}
-                                </p>
-                              ) : null}
-                              <div className={cn(receivedBubbleClassName, isGroupedWithPrevious && 'rounded-tl-[0.8rem]')}>
+                            <div className="min-w-0 max-w-[75%]">
+                              <div className={cn(
+                                receivedBubbleClassName,
+                                isGroupedWithPrevious && 'rounded-tl-[0.6rem]',
+                                isGroupedWithNext && 'rounded-bl-[0.6rem]',
+                              )}>
                                 <p className="break-words whitespace-pre-wrap text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-[var(--ui-900)]">
                                   {message.content}
                                 </p>
                               </div>
+                              {showMessageMeta ? (
+                                <p className="mt-[0.4rem] text-[1rem] leading-[1.3] text-[var(--ui-400)]">
+                                  {formatTime(message.createdAt)}
+                                </p>
+                              ) : null}
                             </div>
-                            {showMessageMeta ? (
-                              <span className="shrink-0 pb-[0.2rem] text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
-                                {formatTime(message.createdAt)}
-                              </span>
-                            ) : null}
                           </div>
                         ) : (
                           <div
                             key={message.messageId}
                             className={cn('flex justify-end', isGroupedWithPrevious && 'mt-[-1rem]')}
                           >
-                            <div className="flex max-w-[82%] items-end gap-[0.6rem] max-[389px]:max-w-[86%] max-[389px]:gap-[0.5rem]">
-                              {!showMessageMeta ? null : message.localStatus === 'failed' ? (
-                                <div
-                                  className="relative z-20 shrink-0 self-center"
-                                  ref={failedActionMessageId === message.messageId ? failedMenuRef : undefined}
-                                >
-                                  <button
-                                    type="button"
-                                    aria-label="전송 실패 메뉴"
-                                    aria-expanded={failedActionMessageId === message.messageId}
-                                    onClick={() => {
-                                      setFailedActionMessageId((prev) =>
-                                        prev === message.messageId ? null : message.messageId,
-                                      );
-                                    }}
-                                    className="flex size-[2rem] items-center justify-center rounded-full bg-[#FF4D4F] text-[1.2rem] font-bold leading-none text-white shadow-[0_0.4rem_1rem_rgba(255,77,79,0.35)]"
-                                  >
-                                    !
-                                  </button>
-                                  {failedActionMessageId === message.messageId ? (
-                                    <div
-                                      className={cn(
-                                        'absolute top-[calc(100%+0.6rem)] left-1/2 z-30 min-w-[9.6rem] -translate-x-1/2 overflow-hidden rounded-[1rem] border py-[0.4rem] shadow-[0_1rem_2.4rem_rgba(15,23,42,0.18)]',
-                                        isLightTheme
-                                          ? 'border-[rgba(212,218,231,0.95)] bg-white'
-                                          : 'border-[rgba(127,133,150,0.28)] bg-[rgba(33,35,40,0.98)]',
-                                      )}
-                                      role="menu"
-                                    >
-                                      <button
-                                        type="button"
-                                        role="menuitem"
-                                        className="flex w-full px-[1.2rem] py-[0.7rem] text-left text-[1.2rem] font-medium text-[#FF4D4F] hover:bg-[var(--ui-50)]"
-                                        onClick={() => handleRemoveFailed(message.messageId)}
-                                      >
-                                        삭제
-                                      </button>
-                                    </div>
-                                  ) : null}
-                                </div>
-                              ) : (
-                                <div className="flex shrink-0 flex-col items-end justify-end gap-[0.15rem] pb-[0.2rem]">
-                                  {!message.isRead && message.localStatus !== 'sending' ? (
-                                    <span
-                                      className="text-[1.05rem] font-semibold leading-none text-[#5B56FF]"
-                                      aria-label="상대가 아직 읽지 않음"
-                                    >
-                                      1
-                                    </span>
-                                  ) : null}
-                                  <span className="text-[1rem] leading-[1.334] tracking-[-0.02em] text-[var(--ui-400)]">
-                                    {formatTime(message.createdAt)}
-                                  </span>
-                                </div>
-                              )}
+                            <div className="flex min-w-0 max-w-[75%] flex-col items-end">
                               <div
                                 className={cn(
-                                  'rounded-[1.6rem] rounded-br-[0.6rem] bg-[linear-gradient(135deg,#5B56FF_0%,#6654F5_58%,#7C79FF_100%)] px-[1.2rem] py-[0.9rem] max-[389px]:px-[1rem] shadow-[0_1.2rem_2.4rem_rgba(102,84,245,0.22)]',
-                                  isGroupedWithPrevious && 'rounded-tr-[0.8rem]',
+                                  'rounded-[1.6rem] border px-[1.2rem] py-[0.9rem] max-[389px]:px-[1rem]',
+                                  isLightTheme
+                                    ? 'border-[rgba(112,85,245,0.14)] bg-[#EDEAF6]'
+                                    : 'border-[rgba(149,130,198,0.13)] bg-[rgba(108,91,153,0.22)]',
+                                  isGroupedWithPrevious && 'rounded-tr-[0.6rem]',
+                                  isGroupedWithNext && 'rounded-br-[0.6rem]',
                                   message.localStatus === 'sending' && 'opacity-70',
                                   message.localStatus === 'failed' && 'opacity-90',
                                 )}
                               >
-                                <p className="break-words whitespace-pre-wrap text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-white">
+                                <p className="break-words whitespace-pre-wrap text-[1.2rem] leading-[1.55] tracking-[0.0252em] text-[var(--ui-900)]">
                                   {message.content}
                                 </p>
                               </div>
+                              {showMessageMeta ? (
+                                <div className="mt-[0.4rem] flex items-center gap-[0.5rem] text-[1rem] leading-[1.3] text-[var(--ui-400)]">
+                                  {message.localStatus === 'failed' ? (
+                                    <div
+                                      className="relative z-20"
+                                      ref={failedActionMessageId === message.messageId ? failedMenuRef : undefined}
+                                    >
+                                      <button
+                                        type="button"
+                                        aria-label="전송 실패 메뉴"
+                                        aria-expanded={failedActionMessageId === message.messageId}
+                                        onClick={() => {
+                                          setFailedActionMessageId((prev) =>
+                                            prev === message.messageId ? null : message.messageId,
+                                          );
+                                        }}
+                                        className="flex size-[1.8rem] items-center justify-center rounded-full bg-[#FF4D4F] text-[1.1rem] font-bold text-white"
+                                      >
+                                        !
+                                      </button>
+                                      {failedActionMessageId === message.messageId ? (
+                                        <div
+                                          className={cn(
+                                            'absolute top-[calc(100%+0.6rem)] right-0 z-30 min-w-[9.6rem] overflow-hidden rounded-[1rem] border py-[0.4rem] shadow-[0_1rem_2.4rem_rgba(15,23,42,0.18)]',
+                                            isLightTheme
+                                              ? 'border-[rgba(212,218,231,0.95)] bg-white'
+                                              : 'border-[rgba(127,133,150,0.28)] bg-[rgba(33,35,40,0.98)]',
+                                          )}
+                                          role="menu"
+                                        >
+                                          <button
+                                            type="button"
+                                            role="menuitem"
+                                            className="flex w-full px-[1.2rem] py-[0.7rem] text-left text-[1.2rem] font-medium text-[#FF4D4F] hover:bg-[var(--ui-50)]"
+                                            onClick={() => handleRemoveFailed(message.messageId)}
+                                          >
+                                            삭제
+                                          </button>
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  ) : message.isRead && message.localStatus !== 'sending' ? (
+                                    <span>읽음</span>
+                                  ) : null}
+                                  <span>{formatTime(message.createdAt)}</span>
+                                </div>
+                              ) : null}
                             </div>
                           </div>
                         );
@@ -849,81 +964,85 @@ const FloatingChatWidget = () => {
                   </div>
 
                   <div className={footerClassName}>
-                    <div className="flex items-center gap-[0.8rem] max-[389px]:gap-[0.6rem]">
-                      <div className={inputFieldClassName}>
-                        <input
-                          type="text"
-                          value={messageDraft}
-                          onChange={(event) => setMessageDraft(event.target.value)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter') {
-                              void handleSend();
-                            }
-                          }}
-                          placeholder={isCreatingRoom ? '채팅방 만드는 중…' : '메시지 보내기'}
-                          disabled={isCreatingRoom}
-                          className="Label1 w-full bg-transparent font-medium text-[var(--ui-900)] placeholder:text-[var(--ui-400)] outline-none"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void handleSend();
+                    <div className={cn(inputFieldClassName, 'relative w-full pr-[6.4rem] max-[389px]:pr-[6.4rem]')}>
+                      <input
+                        type="text"
+                        value={messageDraft}
+                        onChange={(event) => setMessageDraft(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            void handleSend();
+                          }
                         }}
-                        disabled={sendingDisabled}
-                        className={cn(
-                          'flex size-[3rem] cursor-pointer items-center justify-center rounded-full transition-[transform,box-shadow,background-color,color] duration-200 max-[389px]:size-[2.8rem] disabled:cursor-not-allowed',
-                          !sendingDisabled
-                            ? 'bg-[var(--color-primary)] text-white shadow-[0_1rem_2rem_rgba(102,84,245,0.28)] hover:scale-[1.03]'
-                            : 'bg-[var(--ui-100)] text-[var(--ui-400)] shadow-none',
-                        )}
-                        aria-label="메시지 전송"
-                      >
-                        <svg
-                          viewBox="10 9 12 13"
-                          className="size-[1.7rem] max-[389px]:size-[1.6rem]"
-                          fill="none"
-                          aria-hidden="true"
+                        placeholder={isCreatingRoom ? '채팅방 만드는 중…' : '메시지 입력...'}
+                        disabled={isCreatingRoom}
+                        className="w-full bg-transparent text-[1.2rem] font-normal text-[var(--ui-900)] placeholder:text-[var(--ui-400)] outline-none"
+                      />
+                      {hasMessageDraft ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void handleSend();
+                          }}
+                          disabled={sendingDisabled}
+                          className={cn(
+                            'chat-send-button-enter absolute inset-y-0 right-[0.5rem] my-auto flex h-[3.2rem] w-[5.2rem] cursor-pointer items-center justify-center rounded-full transition-colors duration-200 disabled:cursor-not-allowed',
+                            !sendingDisabled
+                              ? 'bg-[#4F5FF2] text-white hover:bg-[#4655DF]'
+                              : isLightTheme
+                                ? 'bg-[var(--ui-100)] text-[var(--ui-400)]'
+                                : 'bg-[#25272D] text-[#666A76]',
+                          )}
+                          aria-label="메시지 전송"
                         >
-                          <path
-                            d="M20.7075 15.7075C20.6146 15.8005 20.5043 15.8742 20.3829 15.9246C20.2615 15.9749 20.1314 16.0008 20 16.0008C19.8686 16.0008 19.7385 15.9749 19.6171 15.9246C19.4957 15.8742 19.3854 15.8005 19.2925 15.7075L17 13.4137V21C17 21.2652 16.8946 21.5196 16.7071 21.7071C16.5196 21.8946 16.2652 22 16 22C15.7348 22 15.4804 21.8946 15.2929 21.7071C15.1054 21.5196 15 21.2652 15 21V13.4137L12.7075 15.7075C12.5199 15.8951 12.2654 16.0006 12 16.0006C11.7346 16.0006 11.4801 15.8951 11.2925 15.7075C11.1049 15.5199 10.9994 15.2654 10.9994 15C10.9994 14.7346 11.1049 14.4801 11.2925 14.2925L15.2925 10.2925C15.3854 10.1995 15.4957 10.1258 15.6171 10.0754C15.7385 10.0251 15.8686 9.99921 16 9.99921C16.1314 9.99921 16.2615 10.0251 16.3829 10.0754C16.5043 10.1258 16.6146 10.1995 16.7075 10.2925L20.7075 14.2925C20.8005 14.3854 20.8742 14.4957 20.9246 14.6171C20.9749 14.7385 21.0008 14.8686 21.0008 15C21.0008 15.1314 20.9749 15.2615 20.9246 15.3829C20.8742 15.5043 20.8005 15.6146 20.7075 15.7075Z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                      </button>
+                          <ChatSendPlaneIcon aria-hidden="true" className="size-[1.9rem]" />
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 </>
               ) : (
                 <>
-                  <div className={cn(headerClassName, 'px-[1.8rem]')}>
+                  <div
+                    className={cn(headerClassName, 'h-[5.6rem] px-[1.8rem]', canResizePanel && (isDragging ? 'cursor-grabbing select-none' : 'cursor-grab select-none'))}
+                    onPointerDown={beginWidgetDrag}
+                    style={{ touchAction: canResizePanel ? 'none' : undefined }}
+                  >
                     <span className="Heading2 font-semibold text-[var(--ui-900)]">메시지</span>
-                    {unreadRoomCount > 0 ? (
-                      <span className="ml-[0.7rem] rounded-full bg-[rgba(240,68,82,0.14)] px-[0.65rem] py-[0.2rem] text-[1.05rem] font-semibold leading-none text-[#F04452]">
-                        {unreadBadgeLabel}
-                      </span>
-                    ) : null}
+                    <span className="ml-[0.7rem] flex min-w-[1.8rem] items-center justify-center rounded-full bg-[var(--ui-100)] px-[0.5rem] py-[0.25rem] text-[1.05rem] font-medium leading-none text-[var(--ui-500)]">
+                      {rooms.length > 99 ? '99+' : rooms.length}
+                    </span>
                     <span className="flex-1" />
                     <button
                       type="button"
                       onClick={closeWidget}
                       className={cn(iconButtonClassName, 'size-[2.4rem]')}
-                      aria-label="채팅 목록 접기"
+                      aria-label="메시지 창 닫기"
                     >
-                      <ArrowDownIcon className="size-[1.6rem]" />
+                      <CloseIcon className="size-[1.3rem]" />
                     </button>
                   </div>
 
                   <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-[0.8rem] py-[0.8rem] max-[389px]:px-[0.6rem]">
-                    <div className="flex flex-col">
+                    <div className={cn('flex flex-col', isRoomsEmpty && 'min-h-full justify-center')}>
                       {isRoomsEmpty ? (
-                        <p className="py-[2.4rem] text-center text-[1.2rem] text-[var(--ui-500)]">
-                          대화를 시작해 보세요.
-                        </p>
+                        <div className="flex flex-col items-center px-[2rem] text-center">
+                          <span className="mb-[1.4rem] flex size-[4.8rem] items-center justify-center rounded-full bg-[var(--ui-100)] text-[var(--ui-500)]">
+                            <ChatPaperPlaneIcon aria-hidden="true" className="size-[2.2rem]" />
+                          </span>
+                          <p className="text-[1.4rem] font-semibold text-[var(--ui-900)]">대화를 시작해 보세요.</p>
+                          <p className="mt-[0.7rem] text-[1.2rem] leading-[1.6] text-[var(--ui-500)]">
+                            프로젝트나 개발자 페이지에서 메시지를 보내면<br />여기에 대화가 표시돼요.
+                          </p>
+                        </div>
                       ) : null}
                       {rooms.map((room) => {
-                        const unreadLabel =
-                          room.unreadCount > 99 ? '99+' : String(room.unreadCount);
+                        const avatarTone = room.roomId % 3;
+                        const preview = room.lastMessage?.trim();
+                        const isUnread = room.unreadCount > 0;
+                        const lastMessageAge = preview
+                          ? formatListLastContactLabel(room.lastMessageAt, relativeTimeNow)
+                          : '';
                         return (
                           <button
                             key={room.roomId}
@@ -934,12 +1053,17 @@ const FloatingChatWidget = () => {
                             }}
                             className={cn(
                               listItemClassName,
-                              'border-b border-[var(--ui-200)] last:border-b-0',
+                              isLightTheme
+                                ? 'border-b border-[rgba(15,23,42,0.06)] last:border-b-0'
+                                : 'border-b border-[rgba(255,255,255,0.06)] last:border-b-0',
                             )}
                           >
                             <span
                               className={cn(
-                                'flex size-[3.8rem] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[rgba(112,85,245,0.16)] text-[1.4rem] font-semibold text-[#B7A8FF] max-[389px]:size-[3.4rem]',
+                                'flex size-[3.8rem] shrink-0 items-center justify-center overflow-hidden rounded-full text-[1.4rem] font-semibold max-[389px]:size-[3.4rem]',
+                                isLightTheme
+                                  ? ['bg-[#EEE9FF] text-[#6552C9]', 'bg-[#E7E4F2] text-[#6552C9]', 'bg-[#DDD9EC] text-[#6552C9]'][avatarTone]
+                                  : ['bg-[#262230] text-[#C5B8E9]', 'bg-[#302B3C] text-[#C5B8E9]', 'bg-[#3A3547] text-[#C5B8E9]'][avatarTone],
                               )}
                             >
                               {room.otherMember.image ? (
@@ -954,26 +1078,28 @@ const FloatingChatWidget = () => {
                             </span>
                             <div className="ml-[1.2rem] flex min-w-0 flex-1 items-start gap-[0.8rem] max-[389px]:ml-[0.8rem] max-[389px]:gap-[0.6rem]">
                               <div className="min-w-0 flex-1">
-                                <span className="Label1 block truncate font-semibold text-[var(--ui-900)]">
-                                  {room.otherMember.nickname}
+                                <span className={cn('Label1 block truncate text-[var(--ui-900)]', isUnread ? 'font-semibold' : 'font-medium')}>
+                                  <span className="min-w-0 truncate">{room.otherMember.nickname}</span>
                                 </span>
-                                <p className="mt-[0.5rem] truncate text-[1.2rem] leading-[1.45] tracking-[0.0252em] text-[var(--ui-500)]">
-                                  {room.lastMessage?.trim() || '대화를 시작해 보세요.'}
-                                </p>
+                                <div className="mt-[0.5rem] flex min-w-0 items-baseline gap-[0.5rem]">
+                                  <p className={cn(
+                                    'min-w-0 truncate text-[1.2rem] leading-[1.45] tracking-[0.0252em]',
+                                    isUnread
+                                      ? isLightTheme ? 'font-medium text-[var(--ui-900)]' : 'font-medium text-white'
+                                      : preview ? 'text-[var(--ui-500)]' : 'text-[var(--ui-400)]',
+                                  )}>
+                                    {preview || '아직 메시지가 없어요'}
+                                  </p>
+                                  {lastMessageAge ? (
+                                    <span className="shrink-0 text-[1rem] leading-[1.4] text-[var(--ui-400)]">
+                                      · {lastMessageAge}
+                                    </span>
+                                  ) : null}
+                                </div>
                               </div>
-                              <div className="flex shrink-0 flex-col items-end gap-[0.55rem] pt-[0.15rem]">
-                                <span className="text-right text-[1.05rem] leading-[1.429] tracking-[0.0145em] text-[var(--ui-400)] max-[389px]:text-[1rem]">
-                                  {formatListLastContactLabel(room.lastMessageAt)}
-                                </span>
-                                {room.unreadCount > 0 ? (
-                                  <span
-                                    className="flex min-w-[2rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#5B56FF_0%,#6654F5_100%)] px-[0.7rem] py-[0.2rem] text-[1.1rem] font-semibold leading-[1.334] tracking-[0.02em] text-white shadow-[0_0.6rem_1.2rem_rgba(102,84,245,0.22)]"
-                                    aria-label={`안 읽은 메시지 ${room.unreadCount}개`}
-                                  >
-                                    {unreadLabel}
-                                  </span>
-                                ) : null}
-                              </div>
+                              {isUnread ? (
+                                <span className="mt-[0.6rem] size-[0.7rem] shrink-0 rounded-full bg-[#8F7AF7]" aria-label="읽지 않은 메시지 있음" />
+                              ) : null}
                             </div>
                           </button>
                         );
@@ -990,7 +1116,7 @@ const FloatingChatWidget = () => {
       {isLeaveConfirmOpen
         ? createPortal(
             <div
-              className="pointer-events-auto fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-[1.6rem]"
+              className="pointer-events-auto fixed inset-0 z-[70] flex items-center justify-center bg-black/55 px-[1.6rem]"
               role="presentation"
               onClick={closeLeaveConfirm}
             >
@@ -998,36 +1124,48 @@ const FloatingChatWidget = () => {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="leave-chat-room-title"
+                aria-describedby="leave-chat-room-description"
                 className={cn(
-                  'w-full max-w-[32rem] rounded-[1.6rem] px-[2rem] pt-[2.4rem] pb-[1.6rem] text-center shadow-[0_2rem_6rem_rgba(0,0,0,0.2)]',
-                  isLightTheme ? 'bg-white' : 'bg-[rgba(33,35,40,0.98)]',
+                  'w-full max-w-[34rem] rounded-[1.8rem] border px-[2.2rem] pt-[2.2rem] pb-[2rem] text-left shadow-[0_2rem_6rem_rgba(0,0,0,0.28)]',
+                  isLightTheme
+                    ? 'border-[rgba(212,218,231,0.8)] bg-white'
+                    : 'border-[rgba(127,133,150,0.24)] bg-[#22242A]',
                 )}
                 onClick={(event) => event.stopPropagation()}
               >
+                <span className={cn(
+                  'mb-[1.6rem] flex size-[3.8rem] items-center justify-center rounded-[1.1rem]',
+                  isLightTheme ? 'bg-[#FAF0F1] text-[#A84350]' : 'bg-[rgba(229,161,169,0.1)] text-[#E5A1A9]',
+                )} aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" className="size-[1.9rem]" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" />
+                    <path d="M14 8l4 4-4 4M18 12H9" />
+                  </svg>
+                </span>
                 <h2
                   id="leave-chat-room-title"
-                  className="text-[1.6rem] font-semibold leading-[1.4] text-[var(--ui-900)]"
+                  className="text-[1.7rem] font-semibold leading-[1.4] text-[var(--ui-900)]"
                 >
-                  채팅방에서 나가시겠습니까?
+                  채팅방을 나가시겠어요?
                 </h2>
-                <p className="mt-[0.8rem] text-[1.25rem] leading-[1.45] text-[var(--ui-500)]">
-                  나가면 이 채팅방 목록에서 사라집니다.
+                <p id="leave-chat-room-description" className="mt-[0.7rem] text-[1.25rem] leading-[1.55] text-[var(--ui-500)]">
+                  나가면 이 대화가 채팅 목록에서 사라집니다.
                 </p>
                 {leaveErrorMessage ? (
-                  <p className="mt-[0.8rem] text-[1.2rem] leading-[1.4] text-[#FF4D4F]">
+                  <p className="mt-[0.8rem] text-[1.2rem] leading-[1.4] text-[#E5A1A9]" role="alert">
                     {leaveErrorMessage}
                   </p>
                 ) : null}
-                <div className="mt-[1.8rem] flex gap-[0.8rem]">
+                <div className="mt-[2.4rem] flex gap-[0.8rem]">
                   <button
                     type="button"
                     onClick={closeLeaveConfirm}
                     disabled={leaveChatRoomMutation.isPending}
                     className={cn(
-                      'h-[4.4rem] flex-1 cursor-pointer rounded-[1rem] text-[1.4rem] font-semibold transition-opacity disabled:cursor-default disabled:opacity-60',
+                      'h-[4.2rem] flex-1 cursor-pointer rounded-[1rem] border text-[1.3rem] font-medium transition-colors disabled:cursor-default disabled:opacity-60',
                       isLightTheme
-                        ? 'bg-[var(--ui-50)] text-[var(--ui-700)] hover:bg-[var(--ui-100)]'
-                        : 'bg-[rgba(255,255,255,0.06)] text-[var(--ui-200)] hover:bg-[rgba(255,255,255,0.1)]',
+                        ? 'border-[rgba(212,218,231,0.8)] text-[var(--ui-700)] hover:bg-[var(--ui-50)]'
+                        : 'border-[rgba(127,133,150,0.26)] text-[#D4D4D8] hover:bg-[rgba(255,255,255,0.05)]',
                     )}
                   >
                     취소
@@ -1038,7 +1176,7 @@ const FloatingChatWidget = () => {
                       void handleConfirmLeave();
                     }}
                     disabled={leaveChatRoomMutation.isPending}
-                    className="h-[4.4rem] flex-1 cursor-pointer rounded-[1rem] bg-[#FF4D4F] text-[1.4rem] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-60"
+                    className="h-[4.2rem] flex-1 cursor-pointer rounded-[1rem] bg-[#B84D5C] text-[1.3rem] font-semibold text-white transition-colors hover:bg-[#A84350] disabled:cursor-default disabled:opacity-60"
                   >
                     {leaveChatRoomMutation.isPending ? '나가는 중…' : '나가기'}
                   </button>
