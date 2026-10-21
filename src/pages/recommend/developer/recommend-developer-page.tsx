@@ -276,7 +276,7 @@ const RecommendDeveloperPage = () => {
     (memberId: number, listItemId: string, next: boolean, _bookmarkId?: number) => {
       const dev = listRef.current.find((d) => d.id === listItemId);
       if (!dev) return;
-      void handleBookmarkChange(dev, next);
+      return handleBookmarkChange(dev, next);
     },
     [handleBookmarkChange],
   );

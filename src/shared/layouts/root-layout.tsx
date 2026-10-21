@@ -138,7 +138,7 @@ const RootLayout = () => {
   return (
     <div className="flex min-h-[100vh] flex-col">
       {!isSsoCallbackRoute && <Header navLocked={navLocked} onLogoClick={handleLogoClick} />}
-      <main className="min-h-[100svh] shrink-0 py-12">
+      <main className={`min-h-[100svh] shrink-0 ${location.pathname === '/' ? 'pt-6 pb-16' : 'py-12'}`}>
         <div key={location.key} className="page-transition">
           <Outlet
             context={{

@@ -1,10 +1,13 @@
 import { adminRoutes } from '@admin/routes/admin-router';
+import { BookmarkAnimationContext } from '@components/common/bookmark-animation-context';
 import ProtectedRoute from '@components/protected-route';
 import RootLayout from '@layouts/root-layout';
 import {
   AppliedPage,
   CompletedPage,
+  DeveloperDetailPage,
   DeveloperSearchPage,
+  DeveloperSuggestPage,
   InProgressPage,
   LoginPage,
   MainPage,
@@ -17,31 +20,30 @@ import {
   MyInfoSettingPage,
   MyPMPage,
   MyProjectPage,
+  PayPage,
   PmPage,
   ProjectCreateCompletePage,
   ProjectCreatePage,
   ProjectDetailPage,
   ProjectSearchPage,
   ProposedPage,
-  PayPage,
   RecommendDeveloperPage,
   RecommendPage,
   RecommendProjectPage,
-  DeveloperDetailPage,
-  DeveloperSuggestPage,
-  ReportDetailPage,
-  ReportResultPage,
-  ReportLoadingPage,
   ReportCreatePage,
+  ReportDetailPage,
+  ReportLoadingPage,
   ReportMainPage,
   ReportPage,
+  ReportResultPage,
   SearchPage,
+  ServicePage,
   SignupPage,
   SsoCallbackPage,
   TermsPage,
-  ServicePage,
 } from '@pages';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import HomePage from '../../pages/home/home-page';
 
 export const router = createBrowserRouter([
   ...adminRoutes,
@@ -52,7 +54,15 @@ export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
-      { index: true, element: <MainPage /> },
+      { index: true, element: <HomePage /> },
+      {
+        path: 'home-original',
+        element: (
+          <BookmarkAnimationContext.Provider value={false}>
+            <MainPage />
+          </BookmarkAnimationContext.Provider>
+        ),
+      },
       { path: 'signup', element: <SignupPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'sso-callback', element: <SsoCallbackPage /> },
@@ -94,7 +104,14 @@ export const router = createBrowserRouter([
         element: <ReportMainPage />,
         children: [
           { index: true, element: <ReportPage /> },
-          { path: 'create', element: <ProtectedRoute><ReportCreatePage /></ProtectedRoute> },
+          {
+            path: 'create',
+            element: (
+              <ProtectedRoute>
+                <ReportCreatePage />
+              </ProtectedRoute>
+            ),
+          },
           { path: 'loading', element: <ReportLoadingPage /> },
           { path: 'result', element: <ReportResultPage /> },
           { path: 'detail/:reportId', element: <ReportDetailPage /> },
@@ -119,8 +136,8 @@ export const router = createBrowserRouter([
           { path: 'project/create', element: <ProjectCreatePage /> },
           { path: 'project/create/complete', element: <ProjectCreateCompletePage /> },
 
-          { path: 'developer-detail/:memberNick', element: <DeveloperDetailPage/>},
-          { path: 'developer-detail/:memberNick/suggest', element: <DeveloperSuggestPage/>},
+          { path: 'developer-detail/:memberNick', element: <DeveloperDetailPage /> },
+          { path: 'developer-detail/:memberNick/suggest', element: <DeveloperSuggestPage /> },
           {
             path: 'my-info',
             element: <MyInfoPage />,
