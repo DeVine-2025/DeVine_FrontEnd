@@ -1,5 +1,4 @@
-import DarkLogo from '@assets/icons/logo-dark.svg?react';
-import LightLogo from '@assets/icons/logo-light.svg?react';
+import BrandLogo from '@assets/images/devine-symbol.png';
 import ModeDarkHoverIcon from '@assets/icons/mode-dark-hover.svg?react';
 import ModeLightIcon from '@assets/icons/mode-light.svg?react';
 import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
@@ -20,7 +19,7 @@ export function AdminHeader() {
         <div className="flex-items-center gap-[4.8rem] phone:gap-[2rem] tablet:gap-[3rem]">
           <div className="group relative ml-[-14px] flex-items-center gap-[0.4rem]">
             <Link aria-label="DeVine 관리자 홈" to="/admin/dashboard">
-              {theme === 'dark' ? <LightLogo /> : <DarkLogo />}
+              <img src={BrandLogo} alt="Devine" className="h-[44px] w-[44px] object-contain" />
             </Link>
             <span className="Caption1 -top-[4px] absolute left-[calc(100%+4px)] whitespace-nowrap font-semibold text-ui-500">
               관리자
@@ -51,7 +50,12 @@ export function AdminHeader() {
           <button
             aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
             className="group relative h-[3.6rem] w-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg"
-            onClick={toggleTheme}
+            onClick={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
+              const x = event.detail === 0 ? rect.left + rect.width / 2 : event.clientX;
+              const y = event.detail === 0 ? rect.top + rect.height / 2 : event.clientY;
+              toggleTheme({ x, y });
+            }}
             type="button"
           >
             {theme === 'dark' ? (

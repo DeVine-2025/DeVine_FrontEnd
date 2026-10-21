@@ -52,7 +52,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
     },
     {
       title: '나와 맞는 프로젝트와 개발자들',
-      body: '추천 프로젝트/개발자 탭에서 확인해보세요.',
+      body: '추천 탭에서 확인해보세요.',
     },
   ];
 

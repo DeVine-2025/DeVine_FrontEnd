@@ -1,6 +1,5 @@
+import BrandLogo from '@assets/images/devine-symbol.png';
 import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
-import LogoDark from '@assets/icons/logo-dark.svg?react';
-import LogoLight from '@assets/icons/logo-light.svg?react';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import { useThemeStore } from '@store/theme';
 import { getProfileImageKey, getUserRoleKey } from '@utils/storage';
@@ -185,7 +184,7 @@ const TermsDetailScreen = ({
             className="flex-items-center cursor-pointer gap-[0.4rem]"
             aria-label="메인으로 이동"
           >
-            {theme === 'dark' ? <LogoLight aria-hidden="true" /> : <LogoDark aria-hidden="true" />}
+            <img src={BrandLogo} alt="Devine" aria-hidden="true" className="h-[44px] w-[44px] object-contain" />
           </button>
         </div>
       </div>

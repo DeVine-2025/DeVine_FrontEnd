@@ -496,6 +496,8 @@ const MainPage = () => {
     return [];
   }, [weeklyProjects]);
   const recommendedProfiles = recommendedDevelopers;
+  const showProjectRegistrationBanner = isLoggedIn && isPm && hasProjects === false;
+
   const recommendTitle = !isLoggedIn
     ? '나에게 딱 맞는 추천 프로젝트/개발자'
     : isPm
@@ -538,9 +540,9 @@ const MainPage = () => {
       </Helmet>
       <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-14">
         <section className="flex flex-col gap-6">
-          <h2 className="Heading2 pt-5 font-semibold text-card-title">
+          {!showProjectRegistrationBanner && <h2 className="Heading2 pt-5 font-semibold text-card-title">
             이번주 모두가 주목하는 프로젝트
-          </h2>
+          </h2>}
           <div className="grid grid-cols-4 gap-6">
           {showWeeklySkeleton
             ? (
@@ -589,9 +591,9 @@ const MainPage = () => {
           !isLoggedIn ? 'mb-0 pt-8' : isEmptyRecommendedProjectsState ? 'mb-0' : 'mb-40'
         }`}
       >
-        <div className="flex items-center justify-between">
+        {!showProjectRegistrationBanner && <div className="flex items-center justify-between">
           <h2 className="Heading2 font-semibold text-card-title">{recommendTitle}</h2>
-        </div>
+        </div>}
         {isLoggedIn ? (
           <div className="relative">
             <div className="flex flex-col gap-6">

@@ -1,3 +1,4 @@
+import TicketIcon from '@assets/icons/ticket-neon.svg?react';
 import { reportQueries } from '@apis/report/report-queries';
 import { myCreditsQuery } from '@apis/payment/payment-queries';
 import { useAuth } from '@clerk/clerk-react';
@@ -25,26 +26,23 @@ const ReportPage = () => {
 
   return <div className="report-library">
     <section className="report-showcase" aria-labelledby="report-hero-title">
-      <div className="report-showcase-intro">
-        <div className="report-showcase-copy">
-          <span className="report-hero-eyebrow">MY REPORTS</span>
-          <h1 id="report-hero-title">경험을 정리하고,<br/>가능성을 발견하세요.</h1>
-          <p>GitHub 프로젝트가 나만의 리포트가 됩니다.</p>
+      <div className="report-analysis-hero">
+        <div className="report-analysis-copy">
+          <span className="report-hero-eyebrow">DEVINE REPORT</span>
+          <h1 id="report-hero-title">프로젝트의 모든 기록을,<br/><span>하나의 리포트로.</span></h1>
+          <p>GitHub 레포지토리를 분석해 구현 기능부터 기술 스택, 개선점까지 정리해 드려요.</p>
+          <div className="report-analysis-actions">
+            <Link to="/report/create" className="report-hero-cta">리포트 생성하기 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></Link>
+            <div className="report-analysis-credits" role="status">
+              <span className="report-analysis-ticket" aria-hidden="true"><TicketIcon /></span>
+              <div className="report-analysis-credit-copy">
+              {canReadCredits && <div className="report-analysis-credit-balance"><span>남은 이용권</span>{typeof remainingCredits === 'number' ? <strong>{remainingCredits.toLocaleString('ko-KR')}<small>장</small></strong> : <span>{creditsError ? '확인 불가' : '확인 중…'}</span>}</div>}
+              </div>
+            </div>
+          </div>
         </div>
-        <img className="report-showcase-art" src="/images/report-folder-illustration.png" width="1536" height="1024" alt="" />
+        <img className="report-analysis-art" src="/images/report-analysis-illustration.png" width="1536" height="1024" alt="" />
       </div>
-      <div className="report-launch-bar">
-        <svg className="report-launch-icon" width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 32V8a3 3 0 0 1 3-3h9l5 6h12a3 3 0 0 1 3 3v18a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3Z"/><path d="M20 18v11m-5-5.5h10"/></svg>
-        <div className="report-launch-copy"><h2>새로운 리포트</h2><p>프로젝트 주소로 분석을 시작하세요.</p></div>
-        <div className="report-launch-actions">
-          {canReadCredits && <div className="report-credit-status" role="status">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5h16v5a2 2 0 0 0 0 4v5H4v-5a2 2 0 0 0 0-4V5Z"/><path d="M15 8v2m0 4v2"/></svg>
-            <span>{typeof remainingCredits === 'number' ? <>남은 이용권 <strong>{remainingCredits.toLocaleString('ko-KR')}장</strong></> : creditsError ? '이용권 수량 확인 불가' : '이용권 확인 중…'}</span>
-          </div>}
-          <Link to="/report/create" className="report-hero-cta">새 리포트 만들기 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></Link>
-        </div>
-      </div>
-      <div className="report-purchase-row"><Link to="/pay">이용권 구매 <span aria-hidden="true">↗</span></Link></div>
     </section>
     <section className="report-library-results" aria-labelledby="recent-reports-heading">
       <div className="report-library-toolbar"><h2 id="recent-reports-heading">내 리포트 {!isPending && !isError && <span className="report-count-badge">{reports.length}</span>}</h2>

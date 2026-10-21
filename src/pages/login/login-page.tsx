@@ -1,11 +1,9 @@
+import BrandLogo from '@assets/images/devine-wordmark.png';
 import { useSignIn } from '@clerk/clerk-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import GithubIcon from '@assets/icons/github.svg?react';
 import GoogleIcon from '@assets/icons/google.svg?react';
-import LogoDark from '@assets/icons/logo-dark.svg?react';
-import LogoLight from '@assets/icons/logo-light.svg?react';
-import { useThemeStore } from '@store/theme';
 
 const UNLOCK_TIMEOUT_MS = 10_000; // 10초 후 자동 해제(리다이렉트가 막힌 특이 케이스 대비)
 
@@ -17,7 +15,6 @@ type LoginLocationState = {
 
 const LoginPage = () => {
   const { isLoaded, signIn } = useSignIn();
-  const { theme } = useThemeStore();
   const location = useLocation();
 
   // UI용: 어떤 provider로 진행 중인지
@@ -108,11 +105,7 @@ const LoginPage = () => {
     <div className="bg-[var(--color-auth-bg)] text-[var(--color-auth-text)]">
       <main className="mx-auto flex min-h-screen w-full max-w-[360px] -mt-12 flex-col items-center justify-center px-6 text-center sm:max-w-[600px] sm:px-10 lg:max-w-[1200px] lg:px-16">
         <div className="mb-4 -mt-24 flex items-center justify-center">
-          {theme === 'dark' ? (
-            <LogoLight className="h-30 w-auto" aria-hidden="true" />
-          ) : (
-            <LogoDark className="h-30 w-auto" aria-hidden="true" />
-          )}
+          <img src={BrandLogo} alt="Devine" className="h-30 w-auto" aria-hidden="true" />
         </div>
 
         <p className="-mt-4 w-full max-w-[320px] text-[16px] leading-[24px] text-[var(--color-auth-desc)] sm:max-w-[600px] font-semibold">

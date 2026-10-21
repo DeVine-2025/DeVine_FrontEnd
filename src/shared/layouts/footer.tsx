@@ -1,5 +1,4 @@
-import LightLogo from '@assets/icons/logo-light.svg?react';
-import DarkLogo from '@assets/icons/logo-dark.svg?react';
+import BrandLogo from '@assets/images/devine-wordmark.png';
 import { useThemeStore } from '@store/theme';
 import { useNavigate } from 'react-router-dom';
 
@@ -7,7 +6,6 @@ const Footer = () => {
   const navigate = useNavigate();
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
-  const Logo = isDark ? LightLogo : DarkLogo;
 
   return (
     <footer className="relative left-1/2 w-screen -translate-x-1/2">
@@ -29,7 +27,7 @@ const Footer = () => {
 
             {/* 좌: 로고 + 설명 */}
             <div className="flex flex-col gap-[1.25rem]">
-              <Logo className="h-[2.85rem] w-auto" style={{ maxWidth: '120px' }} />
+              <img src={BrandLogo} alt="Devine" className="h-auto w-[136px] object-contain" />
               <p className="text-[13px] leading-[1.8] text-[var(--ui-500)]">
                 GitHub 분석 기반 개발자 · PM 매칭 플랫폼<br />나에게 맞는 팀원을 만나보세요.
               </p>
@@ -45,8 +43,8 @@ const Footer = () => {
               </p>
               <ul className="flex flex-col gap-[0.9rem]">
                 {[
-                  { label: '프로젝트/개발자 보기', path: '/search' },
-                  { label: '추천 프로젝트/개발자', path: '/recommend' },
+                  { label: '탐색', path: '/search' },
+                  { label: '추천', path: '/recommend' },
                   { label: '리포트', path: '/report' },
                   { label: '서비스 소개', path: '/service' },
                 ].map(({ label, path }) => (

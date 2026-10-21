@@ -185,6 +185,11 @@ const FloatingChatWidget = () => {
   } | null>(null);
   const isLightTheme = theme === 'light';
   const canResizePanel = useDesktopChatResizeEnabled();
+  const openListVersion = useChatWidgetStore(s => s.openListVersion);
+  useEffect(() => {
+    if (!openListVersion) return;
+    setSelectedChatId(null); setDraftTarget(null); setIsExpanded(true);
+  }, [openListVersion]);
   const focusRoomId = useChatWidgetStore((s) => s.focusRoomId);
   const focusDraft = useChatWidgetStore((s) => s.focusDraft);
   const clearFocusRoom = useChatWidgetStore((s) => s.clearFocusRoom);
@@ -613,7 +618,7 @@ const FloatingChatWidget = () => {
   };
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[45]">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[45]" style={{ display: isExpanded ? undefined : 'none' }}>
       <div className="relative mx-auto w-full max-w-[144rem]">
         <section
           ref={widgetRef}

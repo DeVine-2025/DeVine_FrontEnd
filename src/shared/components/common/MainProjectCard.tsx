@@ -1,5 +1,5 @@
 import ProjectBase from '@components/common/ProjectBase';
-import DevineLogo from '@assets/images/Devine.svg';
+import DevineLogo from '@assets/images/devine-symbol.png';
 import { cn } from '@libs/cn';
 import type { ProjectCardProps } from '@t/project/ui';
 

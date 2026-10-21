@@ -1,5 +1,6 @@
+import { useCompanionStore } from '@store/companion';
 import PersonIcon from '@assets/icons/person.svg?react';
-import DevineLogo from '@assets/images/Devine.svg';
+import DevineLogo from '@assets/images/devine-symbol.png';
 import BookmarkButton from '@components/common/BookmarkButton';
 import { badgeToneToClass } from '@t/badgeTone';
 import type { ProjectCardBaseProps } from '@t/project/ui';
@@ -157,10 +158,11 @@ export default function ProjectBase(props: ProjectCardBaseProps) {
     ? {
         role: 'button' as const,
         tabIndex: 0,
-        onClick,
+        onClick: () => { useCompanionStore.getState().reactTo('card'); onClick(); },
         onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
+            useCompanionStore.getState().reactTo('card');
             onClick();
           }
         },

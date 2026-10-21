@@ -1,8 +1,7 @@
+import BrandLogo from '@assets/images/devine-symbol.png';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Lottie from 'lottie-react';
 import confettiAnimation from './Confetti.json';
-import LogoDark from '@assets/icons/logo-dark.svg?react';
-import LogoLight from '@assets/icons/logo-light.svg?react';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
@@ -161,7 +160,7 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
             className="flex items-center gap-[0.4rem] cursor-pointer"
             aria-label="메인으로 이동"
           >
-            {theme === 'dark' ? <LogoLight aria-hidden="true" /> : <LogoDark aria-hidden="true" />}
+            <img src={BrandLogo} alt="Devine" aria-hidden="true" className="h-[44px] w-[44px] object-contain" />
           </button>
         </div>
       </div>

@@ -1,9 +1,9 @@
 import { useUser } from '@clerk/clerk-react';
 import { useAuthMe } from '@hooks/useAuthMe';
+import DevineCompanion from '@components/companion/DevineCompanion';
 import FloatingChatWidget from '@components/chat/FloatingChatWidget';
-import FloatingProjectCreateCta from '@components/common/FloatingProjectCreateCta';
-import Footer from '@layouts/footer';
 import Header from '@layouts/header';
+import Footer from '@layouts/footer';
 import { trackPageView } from '@libs/analytics';
 import { type UserRole, useAuthStore } from '@store/auth';
 import { getStoredUserRole, setCurrentUserId } from '@utils/storage';
@@ -28,9 +28,7 @@ const RootLayout = () => {
   const onboardingIncomplete = Boolean(user) && memberQuery.data?.isRegistered === false;
   const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
   const isSsoCallbackRoute = location.pathname === '/sso-callback';
-  const hideFooterPaths = ['/signup', '/terms/2', '/terms/1'];
-  const shouldHideFooter = hideFooterPaths.includes(location.pathname);
-  const isReportPage = location.pathname === '/report' || location.pathname === '/';
+  const showFooter = !isSsoCallbackRoute && !['/signup', '/terms/1', '/terms/2'].includes(location.pathname);
   const isOnboardingCompleteNow = memberQuery.data?.isRegistered === true;
   const isAuthOnlyRoute =
     location.pathname === '/signup' ||
@@ -140,7 +138,7 @@ const RootLayout = () => {
   return (
     <div className="flex min-h-[100vh] flex-col">
       {!isSsoCallbackRoute && <Header navLocked={navLocked} onLogoClick={handleLogoClick} />}
-      <main className="min-h-0 flex-1 py-12">
+      <main className="min-h-[100svh] shrink-0 py-12">
         <div key={location.key} className="page-transition">
           <Outlet
             context={{
@@ -152,14 +150,10 @@ const RootLayout = () => {
           />
         </div>
       </main>
-      {!isSsoCallbackRoute && !shouldHideFooter && (
-        <div className={isReportPage ? 'mt-[45vh]' : ''}>
-          <Footer />
-        </div>
-      )}
+      {showFooter && <Footer />}
 
-      {showFloatingChat ? <FloatingProjectCreateCta /> : null}
       {showFloatingChat ? <FloatingChatWidget /> : null}
+      {!isAuthOnlyRoute && <DevineCompanion actionsEnabled={showFloatingChat} />}
 
       {showOnboardingModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">

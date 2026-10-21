@@ -1,3 +1,4 @@
+import BrandLogo from '@assets/images/devine-wordmark.png';
 import {
   getNotifications,
   getUnreadNotificationCount,
@@ -6,9 +7,6 @@ import {
   type NotificationItem,
   subscribeNotificationStream,
 } from '@apis/notifications';
-import DarkLogo from '@assets/icons/logo-dark.svg?react';
-import LightLogo from '@assets/icons/logo-light.svg?react';
-import MobileLogo from '@assets/icons/logo-mobile.svg?react';
 import MenuIcon from '@assets/icons/menu.svg?react';
 import MenuClosedIcon from '@assets/icons/menu-closed.svg?react';
 import TicketNeon from '@assets/icons/ticket-neon.svg?react';
@@ -255,8 +253,8 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   );
 
   const navItems = [
-    { path: '/search', label: '프로젝트/개발자 보기' },
-    { path: '/recommend', label: '추천 프로젝트/개발자' },
+    { path: '/search', label: '탐색' },
+    { path: '/recommend', label: '추천' },
     { path: '/report', label: '리포트' },
     { path: '/my-project', label: '지원 현황' },
   ];
@@ -294,10 +292,10 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                 }`}
               >
                 <span className="max-[391px]:hidden">
-                  {theme === 'dark' ? <LightLogo /> : <DarkLogo />}
+                  <img src={BrandLogo} alt="Devine" className="h-auto w-[136px] max-w-full object-contain" />
                 </span>
                 <span className="hidden max-[391px]:block">
-                  <MobileLogo />
+                  <img src={BrandLogo} alt="Devine" className="h-auto w-[136px] max-w-full object-contain" />
                 </span>
               </button>
               {navLocked && (
@@ -352,7 +350,12 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             {/* 다크모드 토글 */}
             <button
               type="button"
-              onClick={toggleTheme}
+              onClick={(event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                const x = event.detail === 0 ? rect.left + rect.width / 2 : event.clientX;
+                const y = event.detail === 0 ? rect.top + rect.height / 2 : event.clientY;
+                toggleTheme({ x, y });
+              }}
               aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
               title={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
               className="group max-[391px]:!hidden relative size-[4rem] flex-row-center shrink-0 cursor-pointer text-[var(--ui-500)] transition-colors duration-200 hover:text-[var(--ui-800)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"

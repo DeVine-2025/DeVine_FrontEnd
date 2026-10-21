@@ -1,4 +1,4 @@
-import DarkLogo from '@assets/icons/logo-dark.svg?react';
+import BrandLogo from '@assets/images/devine-wordmark.png';
 import { type FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +15,7 @@ export default function AdminLoginPage() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-[360px] flex-col items-center justify-center bg-white px-[24px] text-center sm:max-w-[600px] sm:px-[40px] lg:max-w-[1200px] lg:px-[64px]">
       <div className="flex flex-col items-center">
-        <DarkLogo aria-hidden="true" className="h-30 w-auto" />
+        <img src={BrandLogo} alt="Devine" aria-hidden="true" className="h-30 w-auto" />
         <h1 className="Title3 mt-[12px] font-bold text-[var(--ui-1000)]">관리자 페이지</h1>
       </div>
       <form

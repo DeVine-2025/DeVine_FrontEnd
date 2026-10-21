@@ -9,6 +9,95 @@
 @import "./tokens/profile-card-theme.css";
 @import "./tokens/auth-theme.css";
 
+@property --theme-reveal-radius-x {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 1px;
+}
+
+@property --theme-reveal-radius-y {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 1px;
+}
+
+@property --theme-reveal-radius-alt-x {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 1px;
+}
+
+@property --theme-reveal-radius-alt-y {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 1px;
+}
+
+@property --theme-reveal-trail-x {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+@property --theme-reveal-trail-y {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+::view-transition-group(root) {
+    animation-duration: 720ms;
+}
+
+::view-transition-old(root) {
+    animation: none;
+    z-index: 1;
+}
+
+::view-transition-new(root) {
+    animation: theme-ink-spread 720ms cubic-bezier(0.18, 0.72, 0.22, 1) both;
+    mask-image:
+        radial-gradient(
+            ellipse var(--theme-reveal-radius-x) var(--theme-reveal-radius-y)
+            at var(--theme-origin-x, 50vw) var(--theme-origin-y, 50vh),
+            #000 0 91%, transparent 100%
+        ),
+        radial-gradient(
+            ellipse var(--theme-reveal-radius-alt-x) var(--theme-reveal-radius-alt-y)
+            at calc(var(--theme-origin-x, 50vw) + var(--theme-reveal-trail-x))
+               calc(var(--theme-origin-y, 50vh) + var(--theme-reveal-trail-y)),
+            #000 0 91%, transparent 100%
+        );
+    mask-composite: add;
+    z-index: 2;
+}
+
+@keyframes theme-ink-spread {
+    from {
+        --theme-reveal-radius-x: 1px;
+        --theme-reveal-radius-y: 1px;
+        --theme-reveal-radius-alt-x: 1px;
+        --theme-reveal-radius-alt-y: 1px;
+        --theme-reveal-trail-x: 0px;
+        --theme-reveal-trail-y: 0px;
+    }
+    to {
+        --theme-reveal-radius-x: 200vmax;
+        --theme-reveal-radius-y: 132vmax;
+        --theme-reveal-radius-alt-x: 132vmax;
+        --theme-reveal-radius-alt-y: 200vmax;
+        --theme-reveal-trail-x: 220px;
+        --theme-reveal-trail-y: -120px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(root),
+    ::view-transition-new(root) {
+        animation-duration: 1ms;
+    }
+}
+
 @layer base {
     :root{
         --min-width: 390px;

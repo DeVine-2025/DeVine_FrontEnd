@@ -107,7 +107,7 @@ const ReportLoadingPage = () => {
         <p className="text-center font-medium text-ui-600 text-xl">
           나와 맞는 프로젝트와 개발자를
           <br />
-          추천 프로젝트/개발자 탭에서 확인해보세요.
+          추천 탭에서 확인해보세요.
         </p>
       </div>
     </div>
