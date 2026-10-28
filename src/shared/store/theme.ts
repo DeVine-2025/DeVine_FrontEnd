@@ -14,9 +14,10 @@ type ViewTransitionDocument = Document & {
 
 const THEME_KEY = 'theme';
 const DEFAULT_THEME: ThemeMode = 'dark';
-const initialTheme = (localStorage.getItem(THEME_KEY) as ThemeMode) ?? DEFAULT_THEME;
+const initialTheme: ThemeMode = DEFAULT_THEME;
 
 document.documentElement.dataset.theme = initialTheme;
+localStorage.setItem(THEME_KEY, initialTheme);
 
 export const useThemeStore = create<ThemeState>((set) => ({
   theme: initialTheme,

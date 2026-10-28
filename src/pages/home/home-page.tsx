@@ -1,11 +1,16 @@
 import ArrowIcon from '@assets/icons/arrow-left-admin.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
-import BrandSymbol from '@assets/images/devine-symbol.png';
+import CheckIcon from '@assets/icons/check.svg?react';
+import PersonIcon from '@assets/icons/person.svg?react';
+import ProfileDefaultImage from '@assets/images/Profile.svg';
+import ProfileDefaultDark from '@assets/images/Profile_dark.svg';
 import BookmarkButton from '@components/common/BookmarkButton';
-import { useEffect, useId, useRef, useState } from 'react';
+import { TechChips } from '@components/common/ProfileBase';
+import { useAuthStore } from '@store/auth';
+import { useThemeStore } from '@store/theme';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import EditorialArt from './assets/editorial-glass-panels.webp';
 import {
   editorials,
   featuredProjects,
@@ -13,8 +18,11 @@ import {
   type HomeProject,
   recentProjects,
   recommendedDevelopers,
+  recommendedProjects,
 } from './home-mock-data';
 import './home-page.css';
+import './home-cards.css';
+import './home-colors.css';
 
 type Preview = { kind: 'project'; item: HomeProject } | { kind: 'developer'; item: HomeDeveloper };
 
@@ -41,13 +49,15 @@ function SectionHeading({
   title,
   description,
   to,
+  accent = false,
 }: {
   title: string;
   description: string;
   to: string;
+  accent?: boolean;
 }) {
   return (
-    <div className="home-section-heading">
+    <div className={`home-section-heading${accent ? ' home-section-heading-accent' : ''}`}>
       <div>
         <h2>{title}</h2>
         <p>{description}</p>
@@ -63,6 +73,7 @@ function ProjectCard({
   project,
   featured,
   recent,
+  recommended,
   saved,
   onToggle,
   onOpen,
@@ -70,12 +81,14 @@ function ProjectCard({
   project: HomeProject;
   featured?: boolean;
   recent?: boolean;
+  recommended?: boolean;
   saved: boolean;
   onToggle: () => void;
   onOpen: () => void;
 }) {
   return (
     <article
+      style={{ backgroundImage: `url("${project.thumbnail}")` }}
       className={[
         'home-project-card',
         featured && 'home-project-featured',
@@ -91,25 +104,70 @@ function ProjectCard({
         aria-label={`${project.title} 프로젝트 미리보기`}
       >
         <div className="home-project-art">
-          <img src={BrandSymbol} alt="" />
+          {!recommended && (
+            <span className={`home-project-status home-project-status-${project.status}`}>
+              <span />{project.status === 'recruiting' ? '모집 중' : project.status === 'inProgress' ? '진행 중' : '완료'}
+            </span>
+          )}
+          <img src={project.thumbnail} alt="" loading={featured ? 'eager' : 'lazy'} decoding="async" />
         </div>
         <div className="home-project-content">
-          <div className="home-tags">
-            {project.tags.map((tag) => (
-              <span key={tag}>{tag}</span>
-            ))}
+          <div className="home-project-summary">
+            <div className="home-project-title-row">
+              <h3>{project.title}</h3>
+              {recommended && project.recommendation && (
+                <span className="home-project-match">
+                  <strong>{project.recommendation.score}점</strong>
+                  <span className="home-project-match-info" aria-label="점수 안내: 기술과 관심 분야를 바탕으로 만든 추천 예시 점수입니다" title="기술과 관심 분야를 바탕으로 만든 추천 예시 점수입니다">
+                    ⓘ
+                    <span className="home-project-match-tooltip" role="tooltip">기술과 관심 분야를 바탕으로 만든 추천 예시 점수입니다.</span>
+                  </span>
+                </span>
+              )}
+            </div>
+            <p>{project.description}</p>
           </div>
-          <h3>{project.title}</h3>
-          <p>{project.description}</p>
+          {recommended && project.recommendation && (
+            <div className="home-project-fit">
+              <progress aria-label="프로젝트 적합도 (샘플)" max={100} value={project.recommendation.score} />
+              <p><CheckIcon className="home-project-fit-check" aria-hidden="true" />{project.recommendation.reason}</p>
+            </div>
+          )}
+          <div className="home-project-details">
+            <div className="home-project-bottom-line">
+              <span className="home-project-domain-badge">{project.domain}</span>
+              <span className="home-project-members">
+                <span className="home-project-member-count" aria-label={`모집 인원 ${project.memberCount.current}명 중 ${project.memberCount.total}명`}>
+                  <PersonIcon aria-hidden="true" />{project.memberCount.current}/{project.memberCount.total}명
+                </span>
+                {!recommended && <progress aria-label="모집 인원 진행률" max={project.memberCount.total} value={project.memberCount.current} />}
+              </span>
+              <span className="home-project-deadline"><strong>D-{project.deadline.remaining}</strong></span>
+            </div>
+            <div className="home-project-meta">
+              <span className="home-project-conditions">
+                <span>{project.duration}</span>
+                <span>{project.workMode}</span>
+              </span>
+              {project.posted && <span className="home-project-posted">{project.posted}</span>}
+            </div>
+          </div>
         </div>
-        {project.posted && <span className="home-project-posted">{project.posted}</span>}
       </button>
       <Bookmark name={project.title} selected={saved} onToggle={onToggle} />
     </article>
   );
 }
 
-function PreviewDialog({ preview, onClose }: { preview: Preview; onClose: () => void }) {
+function PreviewDialog({
+  preview,
+  onClose,
+  defaultProfileImage,
+}: {
+  preview: Preview;
+  onClose: () => void;
+  defaultProfileImage: string;
+}) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   useEffect(() => {
@@ -152,7 +210,11 @@ function PreviewDialog({ preview, onClose }: { preview: Preview; onClose: () => 
         >
           <CloseIcon aria-hidden="true" />
         </button>
-        <img className="home-preview-symbol" src={BrandSymbol} alt="" />
+        <img
+          className={isProject ? 'home-preview-photo' : 'home-preview-avatar'}
+          src={isProject ? preview.item.thumbnail : defaultProfileImage}
+          alt=""
+        />
         <span className="home-preview-eyebrow">
           {isProject ? 'PROJECT PREVIEW' : 'DEVELOPER PREVIEW'}
         </span>
@@ -163,11 +225,19 @@ function PreviewDialog({ preview, onClose }: { preview: Preview; onClose: () => 
           ))}
         </div>
         <p>{preview.item.introduction}</p>
+        {isProject && (
+          <div className="home-preview-tech-stacks" aria-label="전체 기술 스택">
+            <TechChips
+              techStack={preview.item.techStacks.map((name) => ({ id: name, name }))}
+              max={preview.item.techStacks.length}
+            />
+          </div>
+        )}
         {isProject ? (
           <div className="home-preview-info">
             <strong>함께할 동료를 찾고 있어요</strong>
             <p>{preview.item.recruiting}</p>
-            <span>3~6개월 · 온라인 중심</span>
+            <span>{preview.item.duration} · {preview.item.workMode}</span>
           </div>
         ) : (
           <div className="home-preview-info">
@@ -189,6 +259,18 @@ function PreviewDialog({ preview, onClose }: { preview: Preview; onClose: () => 
 }
 
 export default function HomePage() {
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const previous = root.getAttribute('data-home-colors');
+    root.setAttribute('data-home-colors', 'charcoal');
+    return () => {
+      if (previous === null) root.removeAttribute('data-home-colors');
+      else root.setAttribute('data-home-colors', previous);
+    };
+  }, []);
+  const isDeveloper = useAuthStore((state) => state.role === 'dev');
+  const theme = useThemeStore((state) => state.theme);
+  const defaultProfileImage = theme === 'dark' ? ProfileDefaultDark : ProfileDefaultImage;
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
   const [hoveringBanner, setHoveringBanner] = useState(false);
@@ -219,12 +301,13 @@ export default function HomePage() {
       else next.add(id);
       return next;
     });
-  const projectCard = (project: HomeProject, featured = false, recent = false) => (
+  const projectCard = (project: HomeProject, featured = false, recent = false, recommended = false) => (
     <ProjectCard
       key={project.id}
       project={project}
       featured={featured}
       recent={recent}
+      recommended={recommended}
       saved={bookmarks.has(project.id)}
       onToggle={() => toggleBookmark(project.id)}
       onOpen={() => setPreview({ kind: 'project', item: project })}
@@ -243,6 +326,7 @@ export default function HomePage() {
       <div className="devine-home">
         <section
           className="home-editorial"
+          data-editorial={editorial.label.toLowerCase()}
           aria-label="Devine 에디토리얼"
           aria-roledescription="슬라이드 쇼"
           onMouseEnter={() => setHoveringBanner(true)}
@@ -252,53 +336,6 @@ export default function HomePage() {
             if (!event.currentTarget.contains(event.relatedTarget)) setFocusingBanner(false);
           }}
         >
-          <div className="home-editorial-copy" key={slide}>
-            <div className="home-editorial-meta">
-              <span>{editorial.label}</span>
-              <span>
-                0{slide + 1}
-                <i> / 03</i>
-              </span>
-            </div>
-            <h1>
-              {editorial.title.map((line) => (
-                <span key={line}>{line}</span>
-              ))}
-            </h1>
-            <p>
-              {editorial.description.map((line) => (
-                <span key={line}>{line}</span>
-              ))}
-            </p>
-            <Link className="home-editorial-cta" to={editorial.to}>
-              {editorial.action}
-              <ArrowIcon aria-hidden="true" />
-            </Link>
-          </div>
-          <img
-            key={`art-${slide}`}
-            className="home-editorial-art"
-            src={EditorialArt}
-            alt="Devine 로고가 담긴 겹쳐진 반투명 유리 패널"
-          />
-          <div className="home-editorial-words" aria-hidden="true">
-            IDEA
-            <br />
-            <span>/</span>
-            <br />
-            PROJECT
-            <br />
-            <span>/</span>
-            <br />
-            PEOPLE
-            <br />
-            <span>/</span>
-            <br />
-            OPPORTUNITY
-          </div>
-          <Link to={editorial.to} className="home-editorial-corner" aria-label={editorial.action}>
-            <ArrowIcon aria-hidden="true" />
-          </Link>
           <div className="home-editorial-controls">
             <button
               type="button"
@@ -310,7 +347,7 @@ export default function HomePage() {
               aria-pressed={paused || reduceMotion}
               onClick={() => setPaused((previous) => !previous)}
             >
-              {reduceMotion ? '자동 넘김 꺼짐' : paused ? '자동 재생' : '일시정지'}
+              <span aria-hidden="true">{paused || reduceMotion ? '▶' : 'Ⅱ'}</span>
             </button>
             <fieldset className="home-editorial-pagination" aria-label="배너 선택">
               {editorials.map((item, index) => (
@@ -329,24 +366,30 @@ export default function HomePage() {
         <section className="home-section" aria-label="주목받는 프로젝트">
           <SectionHeading
             title="지금 주목받는 프로젝트"
+            accent
             description="지금 많은 개발자들의 관심을 받고 있는 프로젝트를 만나보세요."
             to="/search/project"
           />
           <div className="home-featured-grid">
-            <div>{projectCard(featuredProjects[0], true)}</div>
-            <div className="home-featured-list">
-              {featuredProjects.slice(1).map((project) => projectCard(project))}
-            </div>
+            {featuredProjects.slice(0, 3).map((project) => projectCard(project))}
           </div>
         </section>
 
-        <section className="home-section" aria-label="추천 개발자">
+        <section className="home-section" aria-label={isDeveloper ? '추천 프로젝트' : '추천 개발자'}>
           <SectionHeading
-            title="나에게 딱 맞는 추천 개발자"
-            description="관심 분야와 기술 스택을 기반으로 추천하는 개발자예요."
-            to="/search/developer"
+            title={isDeveloper ? '나에게 딱 맞는 추천 프로젝트' : '나에게 딱 맞는 추천 개발자'}
+            accent={isDeveloper}
+            description={isDeveloper
+              ? '함께 성장할 팀과 나에게 맞는 프로젝트를 만나보세요.'
+              : '관심 분야와 기술 스택을 기반으로 추천하는 개발자예요.'}
+            to={isDeveloper ? '/search/project' : '/search/developer'}
           />
-          <div className="home-developers-grid">
+          {isDeveloper ? (
+            <div className="home-developers-grid home-recommended-projects">
+              {recommendedProjects.map((project) => projectCard(project, false, false, true))}
+            </div>
+          ) : (
+          <div className="home-developers-grid home-developer-roster">
             {recommendedDevelopers.map((developer) => (
               <article className="home-developer-card" key={developer.id}>
                 <button
@@ -355,11 +398,15 @@ export default function HomePage() {
                   aria-label={`${developer.name} 개발자 미리보기`}
                   onClick={() => setPreview({ kind: 'developer', item: developer })}
                 >
-                  <div className="home-developer-avatar">
-                    <img src={BrandSymbol} alt="" />
+                  <div className="home-developer-identity">
+                    <div className="home-developer-avatar">
+                      <img src={defaultProfileImage} alt="" decoding="async" />
+                    </div>
+                    <div className="home-developer-heading">
+                      <h3>{developer.name}</h3>
+                      <span className="home-developer-role">{developer.role}</span>
+                    </div>
                   </div>
-                  <h3>{developer.name}</h3>
-                  <span className="home-developer-role">{developer.role}</span>
                   <div className="home-skills">
                     {developer.skills.map((skill) => (
                       <span key={skill}>{skill}</span>
@@ -389,11 +436,13 @@ export default function HomePage() {
               </article>
             ))}
           </div>
+          )}
         </section>
 
         <section className="home-section" aria-label="새 프로젝트">
           <SectionHeading
             title="새롭게 올라온 프로젝트"
+            accent
             description="최근 등록된 프로젝트들을 빠르게 살펴보세요."
             to="/search/project"
           />
@@ -402,7 +451,13 @@ export default function HomePage() {
           </div>
         </section>
       </div>
-      {preview && <PreviewDialog preview={preview} onClose={() => setPreview(null)} />}
+      {preview && (
+        <PreviewDialog
+          preview={preview}
+          onClose={() => setPreview(null)}
+          defaultProfileImage={defaultProfileImage}
+        />
+      )}
     </>
   );
 }

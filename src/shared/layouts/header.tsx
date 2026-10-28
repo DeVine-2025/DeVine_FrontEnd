@@ -16,7 +16,6 @@ import NotificationModal from '@components/common/NotificationModal';
 import { myCreditsQuery } from '@apis/payment/payment-queries';
 import { useAuthMe } from '@hooks/useAuthMe';
 import { useNotificationStore } from '@store/notification';
-import { useThemeStore } from '@store/theme';
 import { getProfileImageKey, getStoredProfileImageUrl } from '@utils/storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -27,7 +26,6 @@ type HeaderProps = {
 };
 
 const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
-  const { theme, toggleTheme } = useThemeStore();
   const { getToken, isSignedIn } = useClerkAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -347,32 +345,6 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                   </Link>
               )}
             </SignedIn>
-            {/* 다크모드 토글 */}
-            <button
-              type="button"
-              onClick={(event) => {
-                const rect = event.currentTarget.getBoundingClientRect();
-                const x = event.detail === 0 ? rect.left + rect.width / 2 : event.clientX;
-                const y = event.detail === 0 ? rect.top + rect.height / 2 : event.clientY;
-                toggleTheme({ x, y });
-              }}
-              aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
-              title={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
-              className="group max-[391px]:!hidden relative size-[4rem] flex-row-center shrink-0 cursor-pointer text-[var(--ui-500)] transition-colors duration-200 hover:text-[var(--ui-800)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            >
-              {theme === 'dark' ? (
-                <svg aria-hidden="true" className="size-[2rem]" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="3.6" stroke="currentColor" strokeWidth="1.7" />
-                  <path d="M12 2.8v2M12 19.2v2M21.2 12h-2M4.8 12h-2m15.7-6.5-1.4 1.4M6.9 17.1l-1.4 1.4m13 0-1.4-1.4M6.9 6.9 5.5 5.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-                </svg>
-              ) : (
-                <svg aria-hidden="true" className="size-[2rem]" viewBox="0 0 24 24" fill="none">
-                  <path d="M20.3 15.2A8.4 8.4 0 0 1 8.8 3.7 8.6 8.6 0 1 0 20.3 15.2Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="m17.5 4 .4 1.1L19 5.5l-1.1.4-.4 1.1-.4-1.1-1.1-.4 1.1-.4.4-1.1Z" fill="currentColor" />
-                </svg>
-              )}
-            </button>
-
             {/* 알림 */}
             <button
               ref={alarmButtonRef}

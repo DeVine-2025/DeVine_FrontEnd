@@ -3,7 +3,9 @@ import { reportQueries } from '@apis/report/report-queries';
 import { myCreditsQuery } from '@apis/payment/payment-queries';
 import { useAuth } from '@clerk/clerk-react';
 import { useAuthMe } from '@hooks/useAuthMe';
-import ReportCard from '@components/report/ReportCard';
+import ReportFolderEntry from '@components/report/folder/ReportFolderEntry';
+import { groupReportFolders } from '@components/report/folder/groupReportFolders';
+import '@components/report/report-card.css';
 import { ReportCardSkeletonList } from '@components/report/ReportCardSkeleton';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -49,7 +51,7 @@ const ReportPage = () => {
         <select aria-label="리포트 정렬" value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">최신순</option><option value="oldest">오래된순</option></select>
       </div>
       {isPending ? <div className="report-list-grid"><ReportCardSkeletonList count={2}/></div> : isError ? <div className="report-library-empty" role="status">리포트 목록을 불러오지 못했어요.<button type="button" className="report-library-retry" disabled={isFetching} onClick={() => { void refetch(); }}>{isFetching ? '불러오는 중…' : '다시 시도'}</button></div> : visibleReports.length ?
-        <div className="report-list-grid">{visibleReports.map((report) => <ReportCard key={report.reportId} reportId={report.reportId} gitRepoId={report.gitRepoId} type="main" label={report.reportType} title={report.repoName} description={report.repoDescription} createdAt={report.createdAt}/>)}</div> :
+        <div className="report-list-grid rf-grid">{groupReportFolders(visibleReports).map((group) => <ReportFolderEntry key={group.key} group={group}/>)}</div> :
         <p className="report-library-empty">아직 생성한 리포트가 없어요. 첫 리포트를 만들어 보세요.</p>}
     </section>
   </div>;

@@ -1,6 +1,5 @@
 import { useUser } from '@clerk/clerk-react';
 import { useAuthMe } from '@hooks/useAuthMe';
-import DevineCompanion from '@components/companion/DevineCompanion';
 import FloatingChatWidget from '@components/chat/FloatingChatWidget';
 import Header from '@layouts/header';
 import Footer from '@layouts/footer';
@@ -153,7 +152,6 @@ const RootLayout = () => {
       {showFooter && <Footer />}
 
       {showFloatingChat ? <FloatingChatWidget /> : null}
-      {!isAuthOnlyRoute && <DevineCompanion actionsEnabled={showFloatingChat} />}
 
       {showOnboardingModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">

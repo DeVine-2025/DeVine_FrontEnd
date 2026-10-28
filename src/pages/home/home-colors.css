@@ -1,0 +1,94 @@
+/* Dark home only. The route marker is removed when HomePage unmounts. */
+:root[data-home-colors='charcoal']:not([data-theme='light']) {
+  --ui-bg: #0c0d12;
+  --ui-50: #181a20;
+  --ui-100: #22252d;
+  --ui-200: #262a33;
+  --ui-300: #9097a5;
+  --ui-400: #9097a5;
+  --ui-500: #b5bac5;
+  --ui-600: #b5bac5;
+  --ui-700: #f1f2f5;
+  --ui-800: #f1f2f5;
+  --ui-900: #f1f2f5;
+  --ui-1000: #f1f2f5;
+}
+:root[data-home-colors='charcoal']:not([data-theme='light']) .devine-home {
+  --home-panel: #171a21;
+  --home-text: #f1f2f5;
+  --home-muted: #b5bac5;
+  --home-border: #2c303b;
+  --home-card-title: #f1f2f5;
+  --home-card-body: #b5bac5;
+  --home-card-meta: #9097a5;
+  --home-card-surface: #171a21;
+  --home-card-border: #2c303b;
+  --home-card-border-hover: #454b58;
+  --home-card-chip: #242832;
+  --home-card-shadow: inset 0 1px 0 #f1f2f506, 0 2px 4px #00000014, 0 4px 8px #00000014;
+}
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial {
+  --editorial-glow: #22252d66;
+  border-color: #30343e;
+  background: radial-gradient(ellipse at 75% 52%, var(--editorial-glow), transparent 57%), linear-gradient(115deg, #181a20, #0b0c0f);
+  box-shadow: inset 0 1px 0 #f1f2f50a, 0 8px 24px #00000024;
+}
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial h1,
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial h1 span:last-child { color: #f1f2f5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-copy > p { color: #b5bac5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-meta > span:first-child { color: #b5bac5; background: #22252d; border-color: #30343e; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-meta > span:first-child::before { background: #9097a5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-meta > span:last-child,
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-meta i { color: #9097a5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-cta {
+  background: #8b75f5;
+  border-color: #8b75f5;
+  color: #0b0c0f;
+  box-shadow: inset 0 1px 0 #f1f2f51a, 0 4px 8px #00000024;
+  transition: background-color 200ms ease-out;
+}
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-cta:hover { background: #9c89ff; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-orbit,
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-orbit::before { border-color: #9097a51f; background: transparent; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-orbit::after { background: #9097a5; box-shadow: none; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-scene-tag { color: #9097a5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-scene-caption { color: #b5bac5; border-color: #30343e; background: #22252de8; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-scene-caption > span { background: #9097a5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-pause { color: #b5bac5; background: #181a20; border-color: #30343e; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-pagination button { background: #505764; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-editorial-pagination button[aria-pressed='true'] { background: #8b75f5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .devine-home .home-project-card .home-project-art { background: var(--ui-200); }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-preview-dialog { background: #22252d; color: #f1f2f5; border-color: #30343e; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-preview-info { background: #181a20; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) :is(.home-preview-inner > p, .home-preview-info p) { color: #b5bac5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) :is(.home-preview-info span, .home-preview-inner .home-preview-note, .home-preview-eyebrow, .home-preview-close) { color: #9097a5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .home-primary-link { background: #8b75f5; color: #0b0c0f; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) :is(.home-editorial-cta, .home-card-open, .home-primary-link):focus-visible { outline-color: #8b75f5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .eye-tracker-panel { background: #22252d; color: #f1f2f5; border-color: #30343e; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .eye-tracker-settings { background: #181a20; color: #9097a5; border-color: #30343e; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .eye-tracker-choices { background: #181a20; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .eye-tracker-choices input:checked + span { background: #30343e; color: #f1f2f5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) :is(.eye-tracker-panel > p, .eye-tracker-panel legend, .eye-tracker-range > span, .eye-tracker-idle) { color: #b5bac5; }
+:root[data-home-colors='charcoal']:not([data-theme='light']) .eye-tracker-panel input { accent-color: #8b75f5; }
+
+/* Shared solid surfaces for the dark home project and developer cards. */
+:root[data-home-colors='charcoal']:not([data-theme='light']) .devine-home .home-project-card .home-project-content {
+  background: #171a21;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+:root[data-home-colors='charcoal']:not([data-theme='light']) .devine-home .home-project-card .home-tech-stacks img {
+  background: #242832;
+}
+
+/* Plain banner surface after removing artwork and copy. */
+:root[data-home-colors='charcoal'] .devine-home .home-editorial,
+:root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] {
+  background: #171a21;
+  background-image: none;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-editorial::before {
+  content: none;
+  background: none;
+}
+
