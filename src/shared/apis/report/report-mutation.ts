@@ -1,4 +1,3 @@
-import { useCompanionStore } from '@store/companion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createReportSync } from '@apis/reports';
 import type { ReportDetailRequest, ReportPatchVisibilityRequest } from '@apis/report/report';
@@ -14,8 +13,7 @@ export const patchReportVisibility = async ({ reportId, visibility }: ReportPatc
 
 export const useCreateReportMutation = () => {
   return useMutation({
-    mutationKey: ['companion-report-create'],
-    onSuccess: () => useCompanionStore.getState().celebrate(),
+    mutationKey: ['report-create'],
     mutationFn: ({ gitRepoId, token }: ReportDetailRequest & { token: string }) =>
       createReportSync(gitRepoId, token),
   });

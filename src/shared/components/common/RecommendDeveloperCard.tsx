@@ -1,4 +1,3 @@
-import { useCompanionStore } from '@store/companion';
 import { memo } from 'react';
 import BookmarkButton from '@components/common/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
@@ -127,8 +126,8 @@ function RecommendDeveloperCard({
 
   const handleClick =
     onNavigateToDeveloper && nickname
-      ? () => { useCompanionStore.getState().reactTo('card'); onNavigateToDeveloper(nickname); }
-      : onClick ? () => { useCompanionStore.getState().reactTo('card'); onClick(); } : undefined;
+      ? () => onNavigateToDeveloper(nickname)
+      : onClick;
 
   const handleBookmark =
     onBookmarkChangeById && listItemId != null

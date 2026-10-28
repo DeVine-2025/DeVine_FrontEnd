@@ -1,16 +1,14 @@
 import { create } from 'zustand';
+import { revealTheme } from '../libs/theme-transition';
 
 export type ThemeMode = 'light' | 'dark';
 
 interface ThemeState {
   theme: ThemeMode;
+  transitioning: boolean;
   setTheme: (theme: ThemeMode) => void;
   toggleTheme: (origin?: { x: number; y: number }) => void;
 }
-
-type ViewTransitionDocument = Document & {
-  startViewTransition?: (callback: () => void) => { finished: Promise<void> };
-};
 
 const THEME_KEY = 'theme';
 const DEFAULT_THEME: ThemeMode = 'dark';
@@ -21,6 +19,7 @@ localStorage.setItem(THEME_KEY, initialTheme);
 
 export const useThemeStore = create<ThemeState>((set) => ({
   theme: initialTheme,
+  transitioning: false,
 
   setTheme: (theme) => {
     document.documentElement.dataset.theme = theme;
@@ -28,11 +27,10 @@ export const useThemeStore = create<ThemeState>((set) => ({
     set({ theme });
   },
 
-  toggleTheme: (origin) => {
+  toggleTheme: async () => {
+    if (useThemeStore.getState().transitioning) return;
     const next: ThemeMode = useThemeStore.getState().theme === 'dark' ? 'light' : 'dark';
     const root = document.documentElement;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const transitionDocument = document as ViewTransitionDocument;
 
     const applyTheme = () => {
       root.dataset.theme = next;
@@ -40,18 +38,11 @@ export const useThemeStore = create<ThemeState>((set) => ({
       set({ theme: next });
     };
 
-    if (!origin || reduceMotion || !transitionDocument.startViewTransition) {
-      applyTheme();
-      return;
+    set({ transitioning: true });
+    try {
+      await revealTheme(applyTheme);
+    } finally {
+      set({ transitioning: false });
     }
-
-    root.style.setProperty('--theme-origin-x', `${origin.x}px`);
-    root.style.setProperty('--theme-origin-y', `${origin.y}px`);
-    const transition = transitionDocument.startViewTransition(applyTheme);
-    const clearOrigin = () => {
-      root.style.removeProperty('--theme-origin-x');
-      root.style.removeProperty('--theme-origin-y');
-    };
-    void transition.finished.then(clearOrigin, clearOrigin);
   },
 }));

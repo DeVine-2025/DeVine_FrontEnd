@@ -1,6 +1,5 @@
 import BookmarkColorIcon from '@assets/icons/bookmark-color.svg?react';
 import BookmarkFilledIcon from '@assets/icons/bookmark-filled.svg?react';
-import { useCompanionStore } from '@store/companion';
 
 type BookmarkButtonProps = {
   bookmarked: boolean;
@@ -31,7 +30,6 @@ export default function LegacyBookmarkButton({
       onClick={(e) => {
         e.stopPropagation();
         onBookmarkChange?.(!bookmarked);
-        if (!bookmarked && onBookmarkChange) useCompanionStore.getState().reactTo('bookmark');
       }}
       className={`group/bookmark flex shrink-0 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--ui-300)] focus-visible:outline-offset-2 ${className}`}
     >

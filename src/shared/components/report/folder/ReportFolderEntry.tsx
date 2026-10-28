@@ -14,13 +14,30 @@ export default function ReportFolderEntry({ group }: { group: ReportFolderGroup 
     queryFn: async () => { const token = (await getToken()) ?? undefined; return isMain ? getReportMain(first.gitRepoId, token) : getReportDetail(first.gitRepoId, token); },
     enabled: !!first.gitRepoId && !!isSignedIn, staleTime: 5 * 60 * 1000, retry: false,
   });
+  const { data: companion } = useQuery({
+    queryKey: ['report-detail', first.gitRepoId, isMain ? 'DETAIL' : 'MAIN'],
+    queryFn: async () => {
+      const token = (await getToken()) ?? undefined;
+      return isMain ? getReportDetail(first.gitRepoId, token) : getReportMain(first.gitRepoId, token);
+    },
+    enabled: !!first.gitRepoId && !!isSignedIn, staleTime: 5 * 60 * 1000, retry: false,
+  });
   let username = first.repoName.includes('/') ? first.repoName.split('/')[0] : 'GitHub 사용자';
   if (data?.gitRepoUrl) {
     try { const url = new URL(data.gitRepoUrl); if (url.hostname === 'github.com') username = url.pathname.split('/').filter(Boolean)[0] || username; } catch { /* Keep source label when the URL is unavailable. */ }
   }
-  const documents = group.reports.map(report => ({
-    id: String(report.reportId), title: report.reportType === 'MAIN' ? '종합 분석' : '상세 분석',
-    description: report.reportType === 'MAIN' ? '프로젝트 구조와 핵심 성과' : '구현 기능과 코드 인사이트',
+  const availableReports = [...group.reports];
+  // Offer an existing repository report through its existing endpoint, without merging analysis records.
+  if (companion?.gitRepoId === first.gitRepoId && !availableReports.some(report => report.reportId === companion.reportId)) {
+    availableReports.push({ ...first, reportId: companion.reportId, reportType: companion.reportType, createdAt: companion.createdAt });
+  }
+  const selectedReports = [
+    availableReports.find(report => report.reportType === 'MAIN'),
+    availableReports.find(report => report.reportType !== 'MAIN'),
+  ].filter((report): report is NonNullable<typeof report> => report !== undefined);
+  const documents = selectedReports.map(report => ({
+    id: String(report.reportId), title: report.reportType === 'MAIN' ? '메인' : '상세',
+    description: `${report.reportType === 'MAIN' ? '종합 분석' : '상세 분석'} · ${new Date(report.createdAt).toLocaleDateString('ko-KR')}`,
     to: `/report/detail/${report.gitRepoId}?type=${encodeURIComponent(report.reportType)}`,
   }));
   const date = new Date(first.createdAt);
@@ -30,7 +47,7 @@ export default function ReportFolderEntry({ group }: { group: ReportFolderGroup 
     detail: `GitHub 분석 리포트 · ${documents.length}개`,
     category: Number.isNaN(date.getTime()) ? 'REPORT' : date.toLocaleDateString('ko-KR'),
     variant: 'ice',
-    papers: [documents[0]?.title ?? '', documents[1]?.title ?? '', 'GitHub 분석 리포트'],
+    papers: documents.map(document => document.title),
     documents,
   }]}/>;
 }

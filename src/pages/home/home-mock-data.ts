@@ -231,7 +231,6 @@ export const editorials = [
   {
     label: 'EDITORIAL',
     sceneTag: 'BUILD TOGETHER',
-    sceneCaption: '혼자보다, 함께 더 멀리',
     title: ['함께 만드는', '더 나은 개발 문화'],
     description: ['아이디어가 프로젝트가 되고,', '프로젝트가 새로운 기회로 이어지는 공간.'],
     action: '프로젝트 살펴보기',
@@ -240,7 +239,6 @@ export const editorials = [
   {
     label: 'PEOPLE',
     sceneTag: 'FIND YOUR PEOPLE',
-    sceneCaption: '같은 열정, 새로운 연결',
     title: ['서로의 가능성을', '더 크게 만드는 만남'],
     description: ['나와 같은 열정을 가진 동료와,', '함께 성장할 다음 여정을 시작하세요.'],
     action: '개발자 만나보기',
@@ -249,7 +247,6 @@ export const editorials = [
   {
     label: 'PROJECT',
     sceneTag: 'MAKE IT REAL',
-    sceneCaption: '작은 아이디어에서 시작되는 가능성',
     title: ['머릿속 아이디어를', '우리의 프로젝트로'],
     description: ['당신의 아이디어에 동료의 경험을 더해,', '다음 가능성을 함께 만들어 보세요.'],
     action: '프로젝트 시작하기',

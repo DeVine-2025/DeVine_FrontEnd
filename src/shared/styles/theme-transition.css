@@ -1,0 +1,102 @@
+/* Animated alpha-mask reveal, adapted from rudrodip/theme-toggle-effect.
+   The supplied GIF is 2 seconds long; hold its silhouette before expanding. */
+@property --theme-pullcord-size {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+html[data-theme-reveal='pullcord']::view-transition-group(root) {
+    animation: none;
+    z-index: 0;
+}
+
+html[data-theme-reveal='pullcord']::view-transition-group(theme-pullcord-silhouette) {
+    animation: none;
+    z-index: 1;
+}
+
+html[data-theme-reveal='pullcord']::view-transition-new(theme-pullcord-silhouette) {
+    mix-blend-mode: normal;
+    /* Original 960px GIF: lamp stem centered at x=679, starting at y=30.
+       Join a narrow ceiling wire to that point at every animated scale. */
+    mask-image: var(--theme-pullcord-mask), linear-gradient(#000, #000);
+    mask-mode: alpha;
+    mask-repeat: no-repeat;
+    mask-composite: add;
+    mask-size:
+        var(--theme-pullcord-size) auto,
+        calc(var(--theme-pullcord-size) * 0.00625)
+        max(0px, calc(50vh - var(--theme-pullcord-size) * 0.46875 + 1px));
+    mask-position:
+        center,
+        calc(50vw + var(--theme-pullcord-size) * 0.204166667) top;
+    animation: theme-pullcord-silhouette 2800ms linear both;
+}
+
+@keyframes theme-pullcord-silhouette {
+    0% {
+        opacity: 1;
+        --theme-pullcord-size: 0px;
+        animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    7.143%, 82.143% { opacity: 1; --theme-pullcord-size: min(50vmax, 88vmin); }
+    100% { opacity: 0; --theme-pullcord-size: min(50vmax, 88vmin); }
+}
+
+html[data-theme-reveal='pullcord']::view-transition-image-pair(root) {
+    isolation: isolate;
+}
+
+html[data-theme-reveal='pullcord']::view-transition-old(root) {
+    animation: none;
+    mix-blend-mode: normal;
+    z-index: 1;
+}
+
+html[data-theme-reveal='pullcord']::view-transition-new(root) {
+    mix-blend-mode: normal;
+    z-index: 2;
+    mask-image: var(--theme-pullcord-mask);
+    mask-mode: alpha;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    animation: theme-reveal-pullcord 2800ms linear both;
+}
+
+@keyframes theme-reveal-pullcord {
+    0% {
+        mask-size: 0;
+        animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    7.143% { mask-size: min(50vmax, 88vmin); }
+    82.143% {
+        mask-size: min(50vmax, 88vmin);
+        animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+    }
+    /* The final frame's opaque central patch is only 40px wide in a 960px GIF.
+       4000vmax covers the entire viewport, including corners, through that patch. */
+    100% { mask-size: 4000vmax; }
+}
+
+.theme-toggle-icon {
+    display: inline-flex;
+    animation: theme-toggle-icon-in 200ms cubic-bezier(0.77, 0, 0.175, 1) both;
+}
+
+@keyframes theme-toggle-icon-in {
+    from {
+        opacity: 0;
+        transform: scale(0.25);
+        filter: blur(8px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .theme-toggle-icon { animation: none; }
+    html[data-theme-reveal='pullcord']::view-transition-new(root),
+    html[data-theme-reveal='pullcord']::view-transition-new(theme-pullcord-silhouette) {
+        animation: none;
+        mask-image: none;
+    }
+}

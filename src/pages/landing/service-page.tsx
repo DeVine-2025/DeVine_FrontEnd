@@ -52,7 +52,7 @@ const RevealText = ({ children, direction = 'left', className, delayMs = 0 }: Re
 };
 
 const ServicePage = () => {
-  const landingImage: string[] = Object.values(landingImages);
+  const landingImage = landingImages;
   const textColor = "text-[#F8F9FB]";
   const navigate = useNavigate();
 
@@ -108,7 +108,7 @@ const ServicePage = () => {
       <div className="mx-auto w-full max-w-[1080px] flex-col gap-[20rem] px-[8rem]">
 
         <section className="flex-col gap-[4rem] pt-[12rem]">
-          <RevealImage className="w-[30rem]" src={landingImage[0]} alt="랜딩페이지 아이콘" delayMs={0} />
+          <RevealImage className="w-[30rem]" src={landingImage['landing-1-0']} alt="랜딩페이지 아이콘" delayMs={0} />
           <div>
             <RevealText direction="left" className="flex-col gap-[2rem]" delayMs={0}>
               <p
@@ -119,7 +119,7 @@ const ServicePage = () => {
                 기반<br />
                 사이드 프로젝트 매칭 플랫폼</p>
             </RevealText>
-            <RevealImage src={landingImage[1]} alt="노트북 이미지" delayMs={60} />
+            <RevealImage src={landingImage['landing-1']} alt="노트북 이미지" delayMs={60} />
           </div>
         </section>
 
@@ -148,9 +148,9 @@ const ServicePage = () => {
               </p>
             </RevealText>
             <div className="relative">
-              <RevealImage src={landingImage[2]} className="absolute top-20 z-0 w-220" alt="프로젝트 분석 리포트" delayMs={120} />
-              <RevealImage src={landingImage[3]} className="absolute right-0 z-0 w-220" alt="프로젝트 분석 리포트" delayMs={180} />
-              <RevealImage src={landingImage[4]} className="relative z-10 pt-60" alt="프로젝트 분석 리포트" delayMs={240} />
+              <RevealImage src={landingImage['landing-3-1']} className="absolute top-20 z-0 w-220" alt="프로젝트 분석 리포트" delayMs={120} />
+              <RevealImage src={landingImage['landing-3-2']} className="absolute right-0 z-0 w-220" alt="프로젝트 분석 리포트" delayMs={180} />
+              <RevealImage src={landingImage['landing-3-3']} className="relative z-10 pt-60" alt="프로젝트 분석 리포트" delayMs={240} />
             </div>
           </div>
         </section>
@@ -165,9 +165,9 @@ const ServicePage = () => {
               </p>
             </RevealText>
             <div className="relative">
-              <RevealImage src={landingImage[5]} className="absolute top-0 left-0 w-300" alt="프로젝트 분석 리포트" delayMs={300} />
-              <RevealImage src={landingImage[6]} className="absolute top-70 right-0 w-300" alt="프로젝트 분석 리포트" delayMs={360} />
-              <RevealImage src={landingImage[7]} className="relative mx-auto mt-140" alt="프로젝트 분석 리포트" delayMs={420} />
+              <RevealImage src={landingImage['landing-4-1']} className="absolute top-0 left-0 w-300" alt="프로젝트 분석 리포트" delayMs={300} />
+              <RevealImage src={landingImage['landing-4-2']} className="absolute top-70 right-0 w-300" alt="프로젝트 분석 리포트" delayMs={360} />
+              <RevealImage src={landingImage['landing-4-3']} className="relative mx-auto mt-140" alt="프로젝트 분석 리포트" delayMs={420} />
             </div>
           </div>
         </section>
@@ -183,8 +183,8 @@ const ServicePage = () => {
               </p>
             </RevealText>
             <div className="relative">
-              <RevealImage src={landingImage[8]} alt="프로젝트 분석 리포트" delayMs={480} />
-              <RevealImage src={landingImage[11]} className="absolute top-160 right-5 w-30" alt="프로젝트 분석 리포트" delayMs={540} />
+              <RevealImage src={landingImage['landing-5-0']} alt="프로젝트 분석 리포트" delayMs={480} />
+              <RevealImage src={landingImage['landing-5-3']} className="absolute top-160 right-5 w-30" alt="프로젝트 분석 리포트" delayMs={540} />
             </div>
           </div>
         </section>
@@ -208,7 +208,7 @@ const ServicePage = () => {
             </p>
           </RevealText>
           <div className="flex h-180 w-full justify-end">
-            <RevealImage src={landingImage[10]} className="h-200 w-200" alt="프로젝트 분석 리포트"/>
+            <RevealImage src={landingImage['landing-5-2']} className="h-200 w-200" alt="프로젝트 분석 리포트"/>
           </div>
         </section>
 

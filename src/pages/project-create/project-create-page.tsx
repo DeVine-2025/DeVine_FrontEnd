@@ -1,4 +1,3 @@
-import { useCompanionStore } from '@store/companion';
 import { confirmImage, getPresignedUrl } from '@apis/images';
 import { getProjectDetail } from '@apis/project-detail';
 import { createProject, updateProject } from '@apis/projects';
@@ -883,7 +882,6 @@ const ProjectCreatePage = () => {
       if (isEditMode) {
         navigate(`/project/${result.projectId}`, { replace: true });
       } else {
-        useCompanionStore.getState().celebrate();
         navigate('/project/create/complete', { state: { projectId: result.projectId } });
       }
     } catch (e) {

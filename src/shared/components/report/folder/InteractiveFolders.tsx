@@ -7,8 +7,8 @@ export type FolderData = {
   detail: string;
   category: string;
   variant: 'ice' | 'lilac' | 'ember';
-  papers: [string, string, string];
-  documents?: { id: string; title: string; to: string }[];
+  papers: string[];
+  documents?: { id: string; title: string; description?: string; to: string }[];
 };
 
 const folders: FolderData[] = [
@@ -115,6 +115,7 @@ export default function InteractiveFolders({ items = folders, embedded = false, 
                           <span className="if-paper-glow" />
                           {paperIndex === 2 && <span className="if-paper-dot" />}
                           <span className="if-paper-mark">{title}</span>
+                          {folder.documents?.[paperIndex] && <span className="if-paper-open-label">{folder.documents[paperIndex].description}<small>리포트 보기 ↗</small></span>}
                         </div>
                       ))}
                       <div className="if-front">

@@ -1,4 +1,3 @@
-import { useCompanionStore } from '@store/companion';
 import { memo } from 'react';
 import BookmarkButton from '@components/common/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
@@ -100,13 +99,12 @@ function BookmarkDeveloperCard({
     <article
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
-      onClick={onClick ? () => { useCompanionStore.getState().reactTo('card'); onClick(); } : undefined}
+      onClick={onClick}
       onKeyDown={
         onClick
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                useCompanionStore.getState().reactTo('card');
                 onClick();
               }
             }

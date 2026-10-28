@@ -143,3 +143,31 @@
 .if-embedded .if-paper[role='link']:hover {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--folder-primary) 60%, transparent);
 }
+
+/* Avoid rasterized drop-shadow edges on the transformed folder silhouette. */
+.if-embedded .if-folder-stage { filter: none; }
+.if-embedded .if-front,
+.if-embedded .if-back { backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform; }
+.if-embedded .if-front::after { box-shadow: none; }
+.if-embedded .if-back { box-shadow: none; }
+.if-embedded .if-inner-pocket { border-color: #ffffff16; box-shadow: none; }
+.if-embedded .if-paper { box-shadow: 0 -1px 3px #13112218; }
+.if-embedded .if-front::before { opacity: .55; }
+.if-embedded .if-paper-open-label { position: absolute; top: 26px; left: 20px; right: 20px; display: flex; flex-direction: column; gap: 12px; font-size: 11px; line-height: 1.5; color: var(--ui-900, #fff); opacity: 0; transition: opacity .2s; }
+.if-embedded .if-paper-open-label small { font-size: 11px; color: #b9b0ff; }
+.if-embedded .if-is-open .if-paper-open-label { opacity: 1; }
+.if-embedded .if-is-open .if-front { pointer-events: none; }
+.if-embedded .if-is-open .if-paper--c { pointer-events: none; transform: translate(0,-12px); }
+
+.if-embedded .if-closed-document-labels { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.if-embedded .if-closed-document-labels > span { padding: 3px 8px; border: 1px solid #ffffff20; border-radius: 5px; background: #ffffff08; color: var(--label-color); font-size: 11px; line-height: 16px; }
+
+/* Paper titles remain above the closed cover; opened documents sit side by side. */
+.if-embedded .if-paper-mark { top: 10px; bottom: auto; left: 16px; opacity: 1; font-size: 12px; line-height: 18px; }
+.if-embedded .if-paper--a { transform: translateY(-42px) rotate(0deg); }
+.if-embedded .if-paper--b { transform: translateY(-20px) rotate(0deg); }
+.if-embedded .if-paper--b .if-paper-mark { left: auto; right: 16px; }
+.if-embedded .if-paper-open-label { top: 46px; }
+.if-embedded .if-folder-button.if-is-open .if-paper--a { width: 154px; left: 10px; transform: translateY(-80px) rotate(0deg); }
+.if-embedded .if-folder-button.if-is-open .if-paper--b { width: 154px; left: 176px; transform: translateY(-80px) rotate(0deg); }
+.if-embedded .if-is-open .if-paper--b .if-paper-mark { left: 16px; right: auto; }

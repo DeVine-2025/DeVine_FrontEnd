@@ -1,4 +1,3 @@
-import { useCompanionStore } from '@store/companion';
 import { useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
 import { BookmarkAnimationContext } from './bookmark-animation-context';
 import { BOOKMARK_PATHS, createBookmarkMotion } from './bookmark-motion';
@@ -155,7 +154,6 @@ function MorphingBookmarkButton({
         animateTo(next);
         try {
           await onBookmarkChange(next);
-          if (next && mounted.current) useCompanionStore.getState().reactTo('bookmark');
         } catch {
           if (mounted.current) setErrorMessage('북마크 변경에 실패했습니다. 다시 시도해 주세요.');
         } finally {

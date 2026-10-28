@@ -2,6 +2,7 @@ import ArrowIcon from '@assets/icons/arrow-left-admin.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
 import CheckIcon from '@assets/icons/check.svg?react';
 import PersonIcon from '@assets/icons/person.svg?react';
+import CalendarIcon from '@assets/icons/calendar-clock.svg?react';
 import ProfileDefaultImage from '@assets/images/Profile.svg';
 import ProfileDefaultDark from '@assets/images/Profile_dark.svg';
 import BookmarkButton from '@components/common/BookmarkButton';
@@ -11,6 +12,8 @@ import { useThemeStore } from '@store/theme';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import { CircularProgressbarWithChildren, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 import {
   editorials,
   featuredProjects,
@@ -86,6 +89,53 @@ function ProjectCard({
   onToggle: () => void;
   onOpen: () => void;
 }) {
+  if (recommended && project.recommendation) {
+    const { score, reason } = project.recommendation;
+    return (
+      <article className="home-project-card home-project-recommended">
+        <button type="button" className="home-card-open" onClick={onOpen} aria-label={`${project.title} 프로젝트 미리보기`}>
+          <div className="home-project-art">
+            <img src={project.thumbnail} alt="" loading="lazy" decoding="async" />
+          </div>
+          <div className="home-recommended-content">
+            <div className="home-recommended-summary">
+              <span className="home-project-domain-badge">{project.domain}</span>
+              <h3>{project.title}</h3>
+              <p>{project.description}</p>
+            </div>
+            <p className="home-recommended-reason"><CheckIcon aria-hidden="true" />{reason}</p>
+            <div className="home-recommended-stats">
+              <div className="home-recommended-stat home-recommended-score" aria-label={`추천 적합도 예시 ${score}점`}>
+                <span className="home-recommended-label">추천 적합도</span>
+                <div className="home-recommended-ring" aria-hidden="true">
+                  <CircularProgressbarWithChildren value={score} strokeWidth={9} styles={buildStyles({ pathColor: '#a993ff', trailColor: '#343945', strokeLinecap: 'round' })}>
+                    <strong>{score}</strong>
+                  </CircularProgressbarWithChildren>
+                </div>
+              </div>
+              <div className="home-recommended-stat home-recommended-members">
+                <span className="home-recommended-label">모집 현황</span>
+                <strong aria-label={`모집 인원 ${project.memberCount.total}명 중 ${project.memberCount.current}명`}>{project.memberCount.current} / {project.memberCount.total}명</strong>
+                {project.memberCount.total > 0 && (
+                  <span className="home-project-progress" aria-hidden="true">
+                    {Array.from({ length: project.memberCount.total }, (_, index) => (
+                      <span key={index} className={index < project.memberCount.current ? 'is-filled' : undefined} />
+                    ))}
+                  </span>
+                )}
+              </div>
+              <div className="home-recommended-stat home-recommended-deadline">
+                <strong>D-{project.deadline.remaining}</strong>
+                <span className="home-recommended-date"><CalendarIcon aria-hidden="true" />{project.deadline.date}</span>
+              </div>
+            </div>
+          </div>
+        </button>
+        <Bookmark name={project.title} selected={saved} onToggle={onToggle} />
+      </article>
+    );
+  }
+
   return (
     <article
       style={{ backgroundImage: `url("${project.thumbnail}")` }}
@@ -113,6 +163,7 @@ function ProjectCard({
         </div>
         <div className="home-project-content">
           <div className="home-project-summary">
+            <span className="home-project-domain-badge">{project.domain}</span>
             <div className="home-project-title-row">
               <h3>{project.title}</h3>
               {recommended && project.recommendation && (
@@ -135,14 +186,22 @@ function ProjectCard({
           )}
           <div className="home-project-details">
             <div className="home-project-bottom-line">
-              <span className="home-project-domain-badge">{project.domain}</span>
               <span className="home-project-members">
-                <span className="home-project-member-count" aria-label={`모집 인원 ${project.memberCount.current}명 중 ${project.memberCount.total}명`}>
-                  <PersonIcon aria-hidden="true" />{project.memberCount.current}/{project.memberCount.total}명
+                <span className="home-project-member-count" aria-label={`모집 인원 ${project.memberCount.total}명 중 ${project.memberCount.current}명`}>
+                  <PersonIcon aria-hidden="true" />{project.memberCount.current}/{project.memberCount.total}명 모집
                 </span>
-                {!recommended && <progress aria-label="모집 인원 진행률" max={project.memberCount.total} value={project.memberCount.current} />}
+                {!recommended && project.memberCount.total > 0 && (
+                  <span className="home-project-progress" aria-hidden="true">
+                    {Array.from({ length: project.memberCount.total }, (_, index) => (
+                      <span key={index} className={index < project.memberCount.current ? 'is-filled' : undefined} />
+                    ))}
+                  </span>
+                )}
               </span>
-              <span className="home-project-deadline"><strong>D-{project.deadline.remaining}</strong></span>
+              <span className="home-project-deadline" aria-label={`마감까지 D-${project.deadline.remaining}, ${project.deadline.date}`}>
+                <strong>D-{project.deadline.remaining}</strong>
+                <small><CalendarIcon aria-hidden="true" />{project.deadline.date}</small>
+              </span>
             </div>
             <div className="home-project-meta">
               <span className="home-project-conditions">
@@ -336,6 +395,22 @@ export default function HomePage() {
             if (!event.currentTarget.contains(event.relatedTarget)) setFocusingBanner(false);
           }}
         >
+          <div className="home-editorial-copy" key={editorial.label}>
+            <div className="home-editorial-meta">
+              <span>{editorial.label}</span>
+              <i>{editorial.sceneTag}</i>
+            </div>
+            <h1>
+              {editorial.title.map((line) => <span key={line}>{line}</span>)}
+            </h1>
+            <p>
+              {editorial.description.map((line) => <span key={line}>{line}</span>)}
+            </p>
+            <Link className="home-editorial-cta" to={editorial.to}>
+              {editorial.action}
+              <ArrowIcon aria-hidden="true" />
+            </Link>
+          </div>
           <div className="home-editorial-controls">
             <button
               type="button"
