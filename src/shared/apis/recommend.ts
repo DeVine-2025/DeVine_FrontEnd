@@ -57,6 +57,9 @@ type RecommendProjectsResponse = {
 
 /** 추천 페이지 카드용 아이템 (RecommendProjectCard props용) */
 export type ProjectListItem = {
+  status?: string;
+  recruitmentDeadline?: string;
+  daysUntilDeadline?: number;
   id: string;
   categoryLabel: string;
   deadlineLabel: string;
@@ -101,6 +104,9 @@ export function mapRecommendProjectToListItem(dto: RecommendProjectDto): Project
   const rawThumbnail = dto.thumbnailUrl?.trim();
   const thumbnailUrl = rawThumbnail ? resolveThumbnailUrl(rawThumbnail) : undefined;
   return {
+    status: dto.status,
+    recruitmentDeadline: dto.recruitmentDeadline,
+    daysUntilDeadline: dto.daysUntilDeadline,
     id: String(dto.projectId),
     categoryLabel: dto.projectFieldName ?? '',
     deadlineLabel: dto.categoryName ?? '',

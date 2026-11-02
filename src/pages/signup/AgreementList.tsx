@@ -1,7 +1,5 @@
 import BrandLogo from '@assets/images/devine-symbol.png';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Lottie from 'lottie-react';
-import confettiAnimation from './Confetti.json';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
@@ -197,11 +195,6 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
         </div>
       ) : step === 'signupComplete' ? (
         <div className="relative mx-auto mt-[104px] flex h-[560px] w-[680px] flex-col items-center justify-center gap-8 px-10 py-14 text-center">
-          <Lottie
-            animationData={confettiAnimation}
-            loop
-            className="pointer-events-none absolute left-1/2 top-1/2 h-full w-[980px] -translate-x-1/2 -translate-y-1/2"
-          />
           <div className="-mt-6 flex flex-col gap-4 text-[var(--ui-1000)]">
             <h2 className="text-[28px] font-semibold">회원가입이 완료되었어요!</h2>
             <p className="text-[16px] leading-7 text-[var(--ui-400)]">

@@ -1,9 +1,11 @@
 import { useAuth } from '@clerk/clerk-react';
 import LoginRequiredCard from '@components/common/LoginRequiredCard';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 const ReportMainPage = () => {
   const { isSignedIn, isLoaded } = useAuth();
+  const location = useLocation();
+  const fullWidthReport = location.pathname.startsWith('/report/detail/') && new URLSearchParams(location.search).get('type') === 'MAIN';
   // const { search } = useLocation();
   // const isOthersReport = search.includes('isOwner=others');
   const showLoginGate = isLoaded && !isSignedIn;
@@ -11,7 +13,7 @@ const ReportMainPage = () => {
   if (showLoginGate) {
     return (
       <div className="flex h-full flex-col">
-        <section className="mx-auto flex min-h-0 w-full max-w-[1180px] flex-1 flex-col gap-6">
+        <section className={`mx-auto flex min-h-0 w-full flex-1 flex-col gap-6 ${fullWidthReport ? 'max-w-none' : 'max-w-[1180px]'}`}>
           <div className="relative min-h-[calc(100vh-6rem)] w-full">
             <div className="min-h-full pointer-events-none select-none blur-sm flex flex-col">
               <Outlet />
@@ -27,7 +29,7 @@ const ReportMainPage = () => {
 
   return (
     <div className="flex h-full flex-col">
-      <section className="mx-auto flex min-h-0 w-full max-w-[1180px] flex-1 flex-col gap-6">
+      <section className={`mx-auto flex min-h-0 w-full flex-1 flex-col gap-6 ${fullWidthReport ? 'max-w-none' : 'max-w-[1180px]'}`}>
         <Outlet />
       </section>
     </div>

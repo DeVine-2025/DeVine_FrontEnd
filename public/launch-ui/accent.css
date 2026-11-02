@@ -1,0 +1,30 @@
+:root {
+  --brand: #6654f5;
+  --brand-foreground: #a69bff;
+  --primary: #6654f5;
+}
+
+html.dark {
+  --brand: #a69bff;
+  --brand-foreground: #8d7bff;
+  --primary: #a69bff;
+  --primary-foreground: #1b1735;
+}
+
+body > main > header { display: none; }
+body > main > section[data-slot="section"] { border-color: #ffffff12; }
+body > main > section:has(h1) { padding: 0 32px; overflow: hidden; mask-image: none; }
+body > main > section:has(h1) > div { max-width: 1200px; padding-top: 150px; }
+body > main > section:has(h1) > div > div { align-items: flex-start; gap: 0; text-align: left; }
+body > main h1 { max-width: 860px; margin: 0; font-size: clamp(44px, 5.1vw, 68px); font-weight: 600; line-height: 1.2; letter-spacing: -.055em; word-break: keep-all; text-align: left; }
+.service-hero-accent { color: #a69bff; -webkit-text-fill-color: #a69bff; }
+body > main > section:has(h1) h1 + p { max-width: 520px; margin-top: 32px; color: #9596a2; font-size: 16px; line-height: 1.6; text-align: left; }
+body > main > section:has(h1) h1 + p + div { justify-content: flex-start; gap: 10px; margin-top: 30px; }
+body > main > section:has(h1) h1 + p + div a { min-height: 42px; padding: 0 17px; border-radius: 7px; font-size: 13px; }
+body > main > section:has(h1) h1 + p + div + div { margin-top: 72px; padding-top: 0; }
+body > main > section:has(h1) [data-slot="mockup-frame"] { padding: 5px; border: 1px solid #ffffff1c; border-radius: 12px; background: #ffffff09; box-shadow: 0 26px 90px #0009; }
+body > main > section:has(h1) [data-slot="glow"] { opacity: .35; }
+body > main > section[data-slot="section"]:not(:has(h1)) { padding-top: 120px; padding-bottom: 120px; }
+body > main > section:not(:has(h1)) h2 { letter-spacing: -.045em; line-height: 1.16; }
+body > main > section:not(:has(h1)) [data-slot="card"] { border-color: #ffffff14; }
+@media (max-width: 800px) { body > main > section:has(h1) { padding: 0 24px; } body > main > section:has(h1) > div { padding-top: 95px; } }

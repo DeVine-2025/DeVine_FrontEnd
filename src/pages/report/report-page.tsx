@@ -10,6 +10,7 @@ import { ReportCardSkeletonList } from '@components/report/ReportCardSkeleton';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FileText, ArrowRight } from 'lucide-react';
 
 const ReportPage = () => {
   const [sort, setSort] = useState('newest');
@@ -46,6 +47,7 @@ const ReportPage = () => {
         <img className="report-analysis-art" src="/images/report-analysis-illustration.png" width="1536" height="1024" alt="" />
       </div>
     </section>
+    {import.meta.env.DEV && <Link to="/report/detail/178?type=MAIN&preview=sample" className="report-sample-entry"><span className="report-sample-icon" aria-hidden="true"><FileText size={20} /></span><span className="report-sample-copy"><span className="report-sample-label">샘플 리포트</span><strong>Eternal-FE 프로젝트 리포트</strong><span>프로젝트 분석 리포트 미리보기</span></span><span className="report-sample-action">살펴보기 <ArrowRight size={16} aria-hidden="true" /></span></Link>}
     <section className="report-library-results" aria-labelledby="recent-reports-heading">
       <div className="report-library-toolbar"><h2 id="recent-reports-heading">내 리포트 {!isPending && !isError && <span className="report-count-badge">{reports.length}</span>}</h2>
         <select aria-label="리포트 정렬" value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">최신순</option><option value="oldest">오래된순</option></select>

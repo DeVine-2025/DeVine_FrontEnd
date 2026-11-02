@@ -27,13 +27,14 @@ const RootLayout = () => {
   const onboardingIncomplete = Boolean(user) && memberQuery.data?.isRegistered === false;
   const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
   const isSsoCallbackRoute = location.pathname === '/sso-callback';
-  const showFooter = !isSsoCallbackRoute && !['/signup', '/terms/1', '/terms/2'].includes(location.pathname);
+  const isReportWorkspace = location.pathname.startsWith('/report/detail/') && new URLSearchParams(location.search).get('type') === 'MAIN';
+  const showFooter = !isReportWorkspace && !isSsoCallbackRoute && !['/signup', '/terms/1', '/terms/2'].includes(location.pathname);
   const isOnboardingCompleteNow = memberQuery.data?.isRegistered === true;
   const isAuthOnlyRoute =
     location.pathname === '/signup' ||
     location.pathname === '/login' ||
     location.pathname === '/sso-callback';
-  const showFloatingChat = Boolean(user) && isOnboardingCompleteNow && !isAuthOnlyRoute;
+  const showFloatingChat = !isReportWorkspace && Boolean(user) && !onboardingIncomplete && !isAuthOnlyRoute;
   const shouldRedirectToSignupImmediately = onboardingIncomplete &&
     !isAuthOnlyRoute && !location.pathname.startsWith('/terms/');
 
@@ -137,8 +138,8 @@ const RootLayout = () => {
   return (
     <div className="flex min-h-[100vh] flex-col">
       {!isSsoCallbackRoute && <Header navLocked={navLocked} onLogoClick={handleLogoClick} />}
-      <main className={`min-h-[100svh] shrink-0 ${location.pathname === '/' ? 'pt-6 pb-16' : 'py-12'}`}>
-        <div key={location.key} className="page-transition">
+      <main className={`min-h-[100svh] shrink-0 ${isReportWorkspace ? 'report-workspace-main' : location.pathname === '/' ? 'pt-6 pb-16' : 'py-12'}`}>
+        <div key={location.pathname === '/search/projects' || location.pathname === '/search/developers' ? 'explore' : location.pathname.startsWith('/recommend') ? 'recommend' : location.key} className="page-transition">
           <Outlet
             context={{
               setNavLocked,

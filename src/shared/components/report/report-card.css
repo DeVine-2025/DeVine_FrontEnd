@@ -105,3 +105,14 @@
 .report-library .report-folder-bottom svg { display: none; }
 @media(max-width:1050px) { .report-analysis-hero { padding: 30px; } .report-analysis-copy { width: 60%; } .report-analysis-copy h1 { font-size: 30px; } .report-analysis-copy > p { font-size: 14px; } .report-analysis-actions { gap: 14px; } .report-analysis-actions .report-hero-cta { padding: 13px 18px; font-size: 15px; } .report-analysis-credits { font-size: 13px; } }
 @media(max-width:700px) { .report-analysis-hero { flex-direction: column; align-items: stretch; padding: 26px 22px 0; } .report-analysis-copy { width: 100%; } .report-analysis-copy h1 { font-size: clamp(23px,5.6vw,30px); letter-spacing: -.7px; } .report-analysis-copy > p { font-size: 14px; } .report-analysis-actions { margin-top: 22px; } .report-analysis-art { position: relative; width: 100%; right: auto; bottom: auto; margin: -12px 0 -45px; } .report-analysis-credits p { font-size: 12px; } }
+
+.report-sample-entry {display:flex;align-items:center;gap:16px;margin-top:32px;padding:20px 22px;border:1px solid var(--project-divider);border-radius:12px;background:var(--surface-filter);text-decoration:none;transition:border-color .18s ease,background .18s ease;}
+.report-sample-entry:hover {border-color:var(--project-border-hover);background:var(--surface-card);}
+.report-sample-entry:focus-visible {outline:2px solid var(--project-accent);outline-offset:3px;}
+.report-sample-icon {display:grid;place-items:center;width:42px;height:42px;flex:none;border-radius:10px;background:color-mix(in srgb,var(--project-accent) 13%,transparent);color:var(--project-accent);font-size:20px;}
+.report-sample-copy {display:flex;flex:1;min-width:0;flex-direction:column;gap:3px;color:var(--text-secondary);font-size:12px;}
+.report-sample-copy strong {font-size:15px;font-weight:650;color:var(--text-main);}
+.report-sample-label {color:var(--project-accent);font-size:11px;font-weight:600;}
+.report-sample-action {display:flex;align-items:center;gap:8px;color:var(--text-secondary);font-size:13px;white-space:nowrap;}
+.report-sample-entry:hover .report-sample-action {color:var(--project-accent);}
+@media(max-width:600px) {.report-sample-entry {padding:16px;gap:12px;} .report-sample-action {font-size:0;} .report-sample-action span {font-size:16px;}}

@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import NotificationModal from '@components/common/NotificationModal';
 import { myCreditsQuery } from '@apis/payment/payment-queries';
 import { useAuthMe } from '@hooks/useAuthMe';
+import { useElasticUnderline } from '@hooks/useElasticUnderline';
 import { useNotificationStore } from '@store/notification';
 import { getProfileImageKey, getStoredProfileImageUrl } from '@utils/storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -28,6 +29,7 @@ type HeaderProps = {
 const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const { getToken, isSignedIn } = useClerkAuth();
   const location = useLocation();
+  const { navRef, indicatorRef } = useElasticUnderline(location.pathname);
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -251,14 +253,15 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   );
 
   const navItems = [
-    { path: '/search', label: '탐색' },
+    { path: '/search/projects', label: '탐색' },
     { path: '/recommend', label: '추천' },
     { path: '/report', label: '리포트' },
     { path: '/my-project', label: '지원 현황' },
+    { path: '/project/create', label: '프로젝트 등록' },
   ];
 
   const isActive = (path: string) => {
-    return location.pathname.startsWith(path);
+    return path === '/search/projects' ? location.pathname.startsWith('/search') : location.pathname.startsWith(path);
   };
 
   const toggleMenu = () => {
@@ -304,7 +307,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             </div>
 
             {/* 네비게이션 - 데스크톱 */}
-            <nav className="max-[743px]:!hidden ml-[28px] flex-items-center shrink-0 flex-nowrap gap-[2.6rem] phone:gap-[2rem] tablet:gap-[2.6rem]">
+            <nav ref={navRef} className="relative max-[743px]:!hidden ml-[28px] flex-items-center shrink-0 flex-nowrap gap-[2.6rem] phone:gap-[2rem] tablet:gap-[2.6rem]">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
@@ -318,12 +321,13 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                   <span
                     className={`-translate-x-1/2 absolute bottom-0 left-1/2 h-[2px] rounded-full transition-all duration-300 ease-out ${
                       isActive(item.path)
-                        ? 'w-full opacity-100'
+                        ? 'w-0 opacity-0'
                         : 'w-0 opacity-0 group-hover:w-full group-hover:opacity-100'
                     } bg-primary`}
                   />
                 </Link>
               ))}
+              <span ref={indicatorRef} aria-hidden="true" className="pointer-events-none invisible absolute bottom-0 left-0 h-[2px] rounded-full bg-primary" />
             </nav>
           </div>
 

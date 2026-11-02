@@ -8,11 +8,17 @@ import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useParams, useSearchParams } from 'react-router-dom';
 import PdfIcon from '@assets/icons/create-project/pdf.svg?react';
+import { sampleMainReport } from './report-sample-data';
 
 const ReportDetailPage = () => {
   const { getToken } = useAuth();
   const { reportId } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isSamplePreview = import.meta.env.DEV && searchParams.get('preview') === 'sample';
+  const isSample = isSamplePreview && searchParams.get('type') === 'MAIN';
+  const isSampleDetail = isSamplePreview && searchParams.get('type') === 'DETAIL';
+  const selectType = (nextType: 'MAIN' | 'DETAIL') => { const next = new URLSearchParams(searchParams); next.set('type', nextType); setSearchParams(next); };
+  const reportTabs = <nav className="report-type-tabs" aria-label="리포트 종류"><button type="button" aria-current={searchParams.get('type') === 'MAIN' ? 'page' : undefined} onClick={() => selectType('MAIN')}>메인 리포트</button><button type="button" aria-current={searchParams.get('type') === 'DETAIL' ? 'page' : undefined} onClick={() => selectType('DETAIL')}>상세 리포트</button></nav>;
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
@@ -69,17 +75,20 @@ const ReportDetailPage = () => {
   };
 
   const {
-    data: report,
+    data: apiReport,
     isLoading,
     isError,
   } = useQuery<Report, Error>({
     queryKey: ['report-detail', gitRepoId, type],
     queryFn: fetchReport,
-    enabled: !!gitRepoId && !!type,
+    enabled: !!gitRepoId && !!type && !isSample && !isSampleDetail,
   });
+  const report = isSample ? sampleMainReport : apiReport;
 
-  if (isLoading) return null;
-  if (isError || !report) return null;
+  if (isSampleDetail) return <div className="report-type-shell">{reportTabs}<section className="report-type-placeholder"><h1>상세 리포트</h1><p>샘플 상세 리포트를 준비 중입니다.</p></section></div>;
+
+  if (!isSample && isLoading) return <div className="report-type-shell">{reportTabs}<div className="report-type-message" role="status">리포트를 불러오고 있어요…</div></div>;
+  if ((!isSample && isError) || !report) return <div className="report-type-shell">{reportTabs}<div className="report-type-message" role="alert">리포트를 불러오지 못했어요. 리포트가 생성되었는지 확인하거나 잠시 후 다시 시도해 주세요.{import.meta.env.DEV && <button className="rw-preview-link" onClick={() => setSearchParams({ type: 'MAIN', preview: 'sample' })}>샘플 리포트 보기</button>}</div></div>;
 
   const content = report?.content;
   if (!content) return null;
@@ -89,42 +98,43 @@ const ReportDetailPage = () => {
       ? (content as { projectInfo?: { projectName?: string } })?.projectInfo?.projectName
       : (content as { reportTitle?: string })?.reportTitle;
 
+  if (report.reportType === 'MAIN') return (
+    <div className="rw-full-page">
+      {reportTabs}
+      <div ref={printRef} className="report-print-content report-print-main"><MainDetail data={content as unknown as ReportMainContent} onPrint={handlePrint} repoUrl={report.gitRepoUrl} /></div>
+    </div>
+  );
+
   return (
-    <div className="mx-auto flex w-full max-w-[900px] flex-col gap-10">
+    <div className="rw-page mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-5">
+      {reportTabs}
+      {isSample && <div className="rw-sample-notice" role="status"><span><strong>샘플 리포트</strong> 화면 확인을 위한 목데이터이며 실제 코드 분석 결과가 아닙니다.</span><button onClick={() => { const next = new URLSearchParams(searchParams); next.delete('preview'); setSearchParams(next); }}>실제 리포트 보기</button></div>}
       {/* 제목 */}
       <section className="relative flex flex-col gap-3">
         <button
           type="button"
           onClick={() => handlePrint()}
           title="인쇄 창에서 '머리글 및 바닥글' 옵션을 끄면 날짜, URL이 출력되지 않습니다."
-          className="group absolute right-0 top-[70px] flex h-12 w-[150px] items-center justify-center gap-3 rounded-lg bg-[var(--ui-50)] text-ui-600 transition-[color,opacity] hover:opacity-90"
+          className="rw-print-button group absolute right-0 top-0 flex h-12 w-[150px] items-center justify-center gap-3 rounded-lg bg-[var(--ui-50)] text-ui-600 transition-[color,opacity] hover:opacity-90"
         >
           <PdfIcon className="h-6 w-5 shrink-0 [&_path]:stroke-[var(--ui-500)] group-hover:[&_path]:stroke-[var(--ui-1000)]" />
           <span className="text-base font-medium transition-colors group-hover:font-semibold group-hover:text-ui-1000">PDF로 출력하기</span>
         </button>
         <div
           ref={printRef}
-          className={`report-print-content report-print-${report.reportType === 'MAIN' ? 'main' : 'detail'} flex flex-col gap-10`}
+          className="report-print-content report-print-detail flex flex-col gap-10"
           style={{ overflow: 'visible' }}
         >
-          <div className="mb-20 flex flex-col gap-3">
-            <p className="text-center font-bold text-4xl text-ui-1000">
+          <div className="rw-page-heading">
+            <h1>
               {displayTitle ?? '리포트'}{' '}
               {title} 리포트
-            </p>
-            <p className="text-center text-lg text-ui-500">
-              프로젝트 분석 리포트 | {title} 리포트
-            </p>
+            </h1>
           </div>
-          <hr className="border-ui-200 py-[0.6rem]"/>
-          {report.reportType === 'MAIN' ? (
-            <MainDetail data={content as unknown as ReportMainContent} />
-          ) : (
-            <ReportDetail data={content as unknown as ReportDetailContent} />
-          )}
+          <ReportDetail data={content as unknown as ReportDetailContent} />
         </div>
         <hr className="border-ui-300"/>
-        <p className="pt-[3.3rem] text-center text-ui-400">본 리포트는 Devine의 AI 코드 분석 시스템이 생성했습니다.<br/>
+        <p className="pt-[3.3rem] text-center text-ui-400">{isSample ? '디자인 미리보기용 샘플 데이터입니다.' : '본 리포트는 Devine의 AI 코드 분석 시스템이 생성했습니다.'}<br/>
           상세한 분석 내용은 상세 리포트를 확인하세요.</p>
       </section>
     </div>

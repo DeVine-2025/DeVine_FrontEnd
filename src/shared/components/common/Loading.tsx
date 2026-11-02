@@ -1,6 +1,3 @@
-import Lottie from "lottie-react";
-import LoadingAnimation from "@assets/animation/loading.json";
-
 type LoadingProps = {
   className?: string;
 }
@@ -8,11 +5,7 @@ type LoadingProps = {
 const Loading = ({ className }: LoadingProps) => {
   return (
     <div className="flex items-center justify-center w-full h-full overflow-hidden">
-      <Lottie
-        animationData={LoadingAnimation}
-        loop
-        className={`scale-250 ${className ?? ""}`}
-      />
+      <span role="status" aria-label="불러오는 중" className={`block h-10 w-10 animate-spin rounded-full border-4 border-[var(--surface-badge)] border-t-[var(--color-primary)] motion-reduce:animate-none ${className ?? ""}`} />
     </div>
   );
 };

@@ -42,19 +42,39 @@
 
     --color-form-error: var(--form-error);
 
-    /* UI Dark */
-    --ui-bg: #090A0D;
-    --ui-50: #191B21;
-    --ui-100: #252832;
-    --ui-200: #373B47;
-    --ui-300: #606673;
-    --ui-400: #7F8596;
-    --ui-500: #939AAE;
-    --ui-600: #9EA6BA;
-    --ui-700: #D4DAE7;
-    --ui-800: #F3F5FC;
-    --ui-900: #F8F9FB;
-    --ui-1000: #FFFFFF;
+    /* Shared dark surfaces and text */
+    --surface-page: #0F1116;
+    --surface-filter: #17191F;
+    --surface-card: #1B1D24;
+    --surface-image: #272A33;
+    --surface-input: #1D2028;
+    --surface-badge: #292D37;
+    --text-main: #F2F4FC;
+    --text-secondary: #AEB5C2;
+    --project-accent: #A69BFF;
+    --project-progress: #A99AFF;
+    --project-control: #6B5ED1;
+    --project-checkbox: #9987F8;
+    --project-control-height: 36px;
+    --project-control-border: color-mix(in srgb, var(--text-secondary) 20%, var(--surface-badge));
+    --project-border-hover: color-mix(in srgb, var(--project-accent) 38%, var(--surface-badge));
+    --project-divider: color-mix(in srgb, var(--text-secondary) 12%, transparent);
+    --project-badge-height: 22px;
+    --project-badge-radius: 6px;
+
+    /* UI Dark: retain the existing token names for other screens. */
+    --ui-bg: var(--surface-page);
+    --ui-50: var(--surface-filter);
+    --ui-100: var(--surface-card);
+    --ui-200: var(--surface-badge);
+    --ui-300: color-mix(in srgb, var(--text-secondary) 50%, var(--surface-page));
+    --ui-400: color-mix(in srgb, var(--text-secondary) 75%, var(--surface-page));
+    --ui-500: var(--text-secondary);
+    --ui-600: var(--text-secondary);
+    --ui-700: color-mix(in srgb, var(--text-main) 60%, var(--text-secondary));
+    --ui-800: var(--text-main);
+    --ui-900: var(--text-main);
+    --ui-1000: var(--text-main);
 
     /* Badge Tokens Dark */
     --badge-text-primary: #7B6BFF;
@@ -92,6 +112,18 @@
 }
 
 [data-theme='light'] {
+    --surface-page: #FFFFFF;
+    --surface-filter: #F8F9FB;
+    --surface-card: #FFFFFF;
+    --surface-image: #F3F5FC;
+    --surface-input: #F8F9FB;
+    --surface-badge: #F3F5FC;
+    --text-main: #191B1E;
+    --text-secondary: #606673;
+    --project-accent: #6654F5;
+    --project-progress: #6654F5;
+    --project-control: #6654F5;
+    --project-checkbox: #6654F5;
     --ui-bg: #FFFFFF;
     --ui-50: #F8F9FB;
     --ui-100: #F3F5FC;

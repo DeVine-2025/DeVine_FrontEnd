@@ -1,7 +1,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
-import Lottie from 'lottie-react';
-import reportAnimation from './Data _ Bundling.json';
+import Loading from '@components/common/Loading';
 import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
 import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import GithubRepoListSkeleton from '@components/report/GithubRepoListSkeleton';
@@ -187,8 +186,8 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
     return (
     <div className="mx-auto flex h-[660px] w-full max-w-[632px] -translate-y-12 flex-col items-center justify-start pt-0 text-center">
         <div className="flex flex-col items-center gap-3">
-          <Lottie animationData={reportAnimation} loop className="-mt-20 h-[550px] w-[550px]" />
-          <h2 className="-mt-74 text-[24px] font-semibold text-[var(--ui-1000)]">
+          <div className="mb-10 mt-24 h-20 w-20"><Loading /></div>
+          <h2 className="text-[24px] font-semibold text-[var(--ui-1000)]">
             리포트를 생성하는 중이에요
           </h2>
           <div className="mt-12 flex flex-col items-center gap-3">

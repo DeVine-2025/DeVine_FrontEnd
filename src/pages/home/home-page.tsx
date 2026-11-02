@@ -6,6 +6,10 @@ import CalendarIcon from '@assets/icons/calendar-clock.svg?react';
 import ProfileDefaultImage from '@assets/images/Profile.svg';
 import ProfileDefaultDark from '@assets/images/Profile_dark.svg';
 import BookmarkButton from '@components/common/BookmarkButton';
+import DomainBadge from '@components/common/DomainBadge';
+import ExploreProjectCard from '../search/project/explore-project-card';
+import DeveloperCollaborationCard from '../search/developer/developer-collaboration-card';
+import '../search/developer/developer-explore-page.css';
 import { TechChips } from '@components/common/ProfileBase';
 import { useAuthStore } from '@store/auth';
 import { useThemeStore } from '@store/theme';
@@ -55,7 +59,7 @@ function SectionHeading({
   accent = false,
 }: {
   title: string;
-  description: string;
+  description?: string;
   to: string;
   accent?: boolean;
 }) {
@@ -63,7 +67,7 @@ function SectionHeading({
     <div className={`home-section-heading${accent ? ' home-section-heading-accent' : ''}`}>
       <div>
         <h2>{title}</h2>
-        <p>{description}</p>
+        {description && <p>{description}</p>}
       </div>
       <Link to={to}>
         전체보기 <ArrowIcon aria-hidden="true" />
@@ -99,11 +103,11 @@ function ProjectCard({
           </div>
           <div className="home-recommended-content">
             <div className="home-recommended-summary">
-              <span className="home-project-domain-badge">{project.domain}</span>
+              <DomainBadge className="home-project-domain-badge" domain={project.domain} />
               <h3>{project.title}</h3>
               <p>{project.description}</p>
             </div>
-            <p className="home-recommended-reason"><CheckIcon aria-hidden="true" />{reason}</p>
+            <p className="home-recommended-reason"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m8 12 2.6 2.6L16 9.5" /></svg>{reason}</p>
             <div className="home-recommended-stats">
               <div className="home-recommended-stat home-recommended-score" aria-label={`추천 적합도 예시 ${score}점`}>
                 <span className="home-recommended-label">추천 적합도</span>
@@ -163,7 +167,7 @@ function ProjectCard({
         </div>
         <div className="home-project-content">
           <div className="home-project-summary">
-            <span className="home-project-domain-badge">{project.domain}</span>
+            <DomainBadge className="home-project-domain-badge" domain={project.domain} />
             <div className="home-project-title-row">
               <h3>{project.title}</h3>
               {recommended && project.recommendation && (
@@ -306,7 +310,7 @@ function PreviewDialog({
         )}
         <p className="home-preview-note">현재 화면은 샘플 데이터로 구성된 미리보기입니다.</p>
         <Link
-          to={isProject ? '/search/project' : '/search/developer'}
+          to={isProject ? '/search/projects' : '/search/developers'}
           className="home-primary-link"
         >
           {isProject ? '프로젝트 탐색하기' : '개발자 탐색하기'}
@@ -396,10 +400,7 @@ export default function HomePage() {
           }}
         >
           <div className="home-editorial-copy" key={editorial.label}>
-            <div className="home-editorial-meta">
-              <span>{editorial.label}</span>
-              <i>{editorial.sceneTag}</i>
-            </div>
+            <div className="home-banner-eyebrow">{editorial.sceneTag}</div>
             <h1>
               {editorial.title.map((line) => <span key={line}>{line}</span>)}
             </h1>
@@ -438,91 +439,49 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="home-section" aria-label="주목받는 프로젝트">
+        <section className="home-section home-section-featured" aria-label="주목받는 프로젝트">
           <SectionHeading
             title="지금 주목받는 프로젝트"
-            accent
             description="지금 많은 개발자들의 관심을 받고 있는 프로젝트를 만나보세요."
-            to="/search/project"
+            to="/search/projects"
           />
-          <div className="home-featured-grid">
-            {featuredProjects.slice(0, 3).map((project) => projectCard(project))}
+          <div className="home-featured-grid explore-projects-grid">
+            {featuredProjects.slice(0, 3).map((project) => <ExploreProjectCard key={project.id} project={project} saved={bookmarks.has(project.id)} onOpen={() => setPreview({ kind: 'project', item: project })} onBookmarkChange={() => toggleBookmark(project.id)} />)}
           </div>
         </section>
 
-        <section className="home-section" aria-label={isDeveloper ? '추천 프로젝트' : '추천 개발자'}>
+        <section className="home-section home-section-personalized" aria-label={isDeveloper ? '추천 프로젝트' : '추천 개발자'}>
           <SectionHeading
             title={isDeveloper ? '나에게 딱 맞는 추천 프로젝트' : '나에게 딱 맞는 추천 개발자'}
-            accent={isDeveloper}
+            accent
             description={isDeveloper
               ? '함께 성장할 팀과 나에게 맞는 프로젝트를 만나보세요.'
               : '관심 분야와 기술 스택을 기반으로 추천하는 개발자예요.'}
-            to={isDeveloper ? '/search/project' : '/search/developer'}
+            to={isDeveloper ? '/search/projects' : '/search/developers'}
           />
           {isDeveloper ? (
             <div className="home-developers-grid home-recommended-projects">
               {recommendedProjects.map((project) => projectCard(project, false, false, true))}
             </div>
           ) : (
-          <div className="home-developers-grid home-developer-roster">
+          <div className="home-developers-grid developer-explore-grid">
             {recommendedDevelopers.map((developer) => (
-              <article className="home-developer-card" key={developer.id}>
-                <button
-                  className="home-card-open"
-                  type="button"
-                  aria-label={`${developer.name} 개발자 미리보기`}
-                  onClick={() => setPreview({ kind: 'developer', item: developer })}
-                >
-                  <div className="home-developer-identity">
-                    <div className="home-developer-avatar">
-                      <img src={defaultProfileImage} alt="" decoding="async" />
-                    </div>
-                    <div className="home-developer-heading">
-                      <h3>{developer.name}</h3>
-                      <span className="home-developer-role">{developer.role}</span>
-                    </div>
-                  </div>
-                  <div className="home-skills">
-                    {developer.skills.map((skill) => (
-                      <span key={skill}>{skill}</span>
-                    ))}
-                  </div>
-                  {developer.recommendation?.reasons.length ? (
-                    <div className="home-recommendation">
-                      <span className="home-recommendation-label">
-                        추천 이유
-                        {developer.recommendation.source === 'mock' && <small>예시</small>}
-                      </span>
-                      <ul>
-                        {developer.recommendation.reasons.map((reason) => (
-                          <li key={reason}>{reason}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : (
-                    <p>{developer.introduction}</p>
-                  )}
-                </button>
-                <Bookmark
-                  name={developer.name}
-                  selected={bookmarks.has(developer.id)}
-                  onToggle={() => toggleBookmark(developer.id)}
-                />
-              </article>
+              <DeveloperCollaborationCard key={developer.id}
+                developer={{ member: { nickname: developer.name, address: null, disclosure: true, mainType: 'DEVELOPER', imageUrl: null, body: developer.introduction, used: '', createdAt: '' }, domains: [], techstacks: developer.skills.map((name, index) => ({ techstackId: index, name, genre: 'skill', source: 'MANUAL' })) }}
+                roleLabel={developer.role} bookmarked={bookmarks.has(developer.id)} pending={false}
+                onBookmarkChange={() => toggleBookmark(developer.id)} onOpen={() => setPreview({ kind: 'developer', item: developer })} />
             ))}
           </div>
           )}
         </section>
 
-        <section className="home-section" aria-label="새 프로젝트">
+        <section className="home-section home-section-recent" aria-label="새 프로젝트">
           <SectionHeading
             title="새롭게 올라온 프로젝트"
-            accent
-            description="최근 등록된 프로젝트들을 빠르게 살펴보세요."
-            to="/search/project"
+            to="/search/projects"
           />
-          <div className="home-recent-grid">
-            {recentProjects.map((project) => projectCard(project, false, true))}
+          <div className="home-recent-grid explore-projects-list">
+            {recentProjects.map((project) => <ExploreProjectCard key={project.id} project={project} saved={bookmarks.has(project.id)} onOpen={() => setPreview({ kind: 'project', item: project })} onBookmarkChange={() => toggleBookmark(project.id)} />)}
           </div>
         </section>
       </div>

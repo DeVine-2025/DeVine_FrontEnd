@@ -43,7 +43,7 @@ const Footer = () => {
               </p>
               <ul className="flex flex-col gap-[0.9rem]">
                 {[
-                  { label: '탐색', path: '/search' },
+                  { label: '탐색', path: '/search/projects' },
                   { label: '추천', path: '/recommend' },
                   { label: '리포트', path: '/report' },
                   { label: '서비스 소개', path: '/service' },

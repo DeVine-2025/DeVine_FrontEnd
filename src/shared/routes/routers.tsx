@@ -27,9 +27,6 @@ import {
   ProjectDetailPage,
   ProjectSearchPage,
   ProposedPage,
-  RecommendDeveloperPage,
-  RecommendPage,
-  RecommendProjectPage,
   ReportCreatePage,
   ReportDetailPage,
   ReportLoadingPage,
@@ -44,6 +41,11 @@ import {
 } from '@pages';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import HomePage from '../../pages/home/home-page';
+import ProjectExplorePage from '../../pages/search/project/project-explore-page';
+import DeveloperExplorePage from '../../pages/search/developer/developer-explore-page';
+import RecommendationLayout from '../../pages/recommend/recommendation-layout';
+import RecommendationProjects from '../../pages/recommend/recommendation-projects';
+import RecommendationDevelopers from '../../pages/recommend/recommendation-developers';
 
 export const router = createBrowserRouter([
   ...adminRoutes,
@@ -69,6 +71,8 @@ export const router = createBrowserRouter([
       { path: 'terms/:termsId', element: <TermsPage /> },
       { path: 'pay', element: <PayPage /> },
       { path: 'project/:projectId', element: <ProjectDetailPage /> },
+      { path: 'search/projects', element: <ProjectExplorePage /> },
+      { path: 'search/developers', element: <DeveloperExplorePage /> },
       {
         path: 'search',
         element: <SearchPage />,
@@ -81,11 +85,11 @@ export const router = createBrowserRouter([
 
       {
         path: 'recommend',
-        element: <RecommendPage />,
+      element: <RecommendationLayout />,
         children: [
           { index: true, element: <Navigate to="project" replace /> },
-          { path: 'project', element: <RecommendProjectPage /> },
-          { path: 'developer', element: <RecommendDeveloperPage /> },
+        { path: 'project', element: <RecommendationProjects /> },
+        { path: 'developer', element: <RecommendationDevelopers /> },
         ],
       },
 

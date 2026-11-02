@@ -1,0 +1,6 @@
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('/launch-ui/_next/static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2') format('woff2'); }
+.launch-ui-shell { position: fixed; inset: 0; display: flex; flex-direction: column; background: #09090b; }
+.launch-ui-header { position: relative; z-index: 10; width: min(100%, 1440px); margin: 0 auto; flex: none; }
+.launch-ui-header > header { background: #09090b; }
+.launch-ui-page { display: block; flex: 1; min-height: 0; width: 100%; overflow: auto; background: #09090b; }
+.launch-ui-page > footer > div:first-child { background: #09090b !important; border-color: rgba(255, 255, 255, .06) !important; }

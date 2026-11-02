@@ -618,13 +618,13 @@ const FloatingChatWidget = () => {
   };
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[45]" style={{ display: isExpanded ? undefined : 'none' }}>
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[45]">
       <div className="relative mx-auto w-full max-w-[144rem]">
         <section
           ref={widgetRef}
           aria-label="전역 채팅 위젯"
           className={cn(
-            'pointer-events-auto fixed left-[1.4rem] transition-none max-[743px]:left-[1rem] max-[389px]:left-[1rem]',
+            'pointer-events-auto fixed left-[2.4rem] transition-none max-[743px]:left-[1.6rem]',
             isExpanded
               ? cn(
                   'bottom-[2rem] max-[389px]:right-[1rem]',
@@ -634,7 +634,7 @@ const FloatingChatWidget = () => {
                     ? 'h-[45.8rem] max-[743px]:h-[42rem] max-[389px]:h-[40rem]'
                     : null,
                 )
-              : 'bottom-[3.4rem] h-[5.6rem] w-[18rem] max-[743px]:bottom-[3rem] max-[389px]:w-[min(18rem,calc(100vw-2rem))]',
+              : 'bottom-[2.4rem] h-[4.8rem] w-[15rem] max-[743px]:bottom-[1.6rem] max-[389px]:w-[min(15rem,calc(100vw-2rem))]',
             (isResizing || isDragging) && 'transition-none select-none',
           )}
           style={{
@@ -684,11 +684,11 @@ const FloatingChatWidget = () => {
               }}
               style={{ touchAction: canResizePanel ? 'none' : undefined }}
               className={cn(
-                'flex h-full w-full items-center gap-[0.8rem] rounded-full border px-[1.4rem] text-left transition-colors',
+                'devine-floating-action devine-floating-action-secondary flex h-full w-full items-center gap-[0.8rem] rounded-full border px-[1.4rem] text-left',
                 canResizePanel && (isDragging ? 'cursor-grabbing' : 'cursor-grab'),
                 isLightTheme
                   ? 'border-[rgba(212,218,231,0.95)] bg-[rgba(255,255,255,0.98)] shadow-[0_0.8rem_2rem_rgba(15,23,42,0.12)] hover:bg-[#F8F9FB]'
-                  : 'border-[rgba(127,133,150,0.22)] bg-[rgba(24,26,31,0.98)] shadow-[0_0.8rem_2rem_rgba(0,0,0,0.28)] hover:bg-[#202228]',
+                  : 'border-[rgba(166,155,255,0.25)] bg-[#1b1d24] shadow-[0_0.8rem_2rem_rgba(0,0,0,0.25)] hover:bg-[#262834]',
               )}
             >
               <span className="relative flex size-[2rem] shrink-0 items-center justify-center text-[var(--ui-700)]">
