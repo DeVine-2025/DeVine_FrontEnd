@@ -7,8 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useParams, useSearchParams } from 'react-router-dom';
-import PdfIcon from '@assets/icons/create-project/pdf.svg?react';
-import { sampleMainReport } from './report-sample-data';
+import { sampleMainReport, sampleDetailReport } from './report-sample-data';
 
 const ReportDetailPage = () => {
   const { getToken } = useAuth();
@@ -58,8 +57,6 @@ const ReportDetailPage = () => {
 
   const type = searchParams.get('type');
   const gitRepoId = Number(reportId);
-  const title = type === 'MAIN' ? '메인' : '상세';
-
   const fetchReport = async (): Promise<Report> => {
     const token = (await getToken()) ?? undefined;
 
@@ -83,62 +80,29 @@ const ReportDetailPage = () => {
     queryFn: fetchReport,
     enabled: !!gitRepoId && !!type && !isSample && !isSampleDetail,
   });
-  const report = isSample ? sampleMainReport : apiReport;
+  const report = isSample ? sampleMainReport : isSampleDetail ? sampleDetailReport : apiReport;
 
-  if (isSampleDetail) return <div className="report-type-shell">{reportTabs}<section className="report-type-placeholder"><h1>상세 리포트</h1><p>샘플 상세 리포트를 준비 중입니다.</p></section></div>;
 
-  if (!isSample && isLoading) return <div className="report-type-shell">{reportTabs}<div className="report-type-message" role="status">리포트를 불러오고 있어요…</div></div>;
-  if ((!isSample && isError) || !report) return <div className="report-type-shell">{reportTabs}<div className="report-type-message" role="alert">리포트를 불러오지 못했어요. 리포트가 생성되었는지 확인하거나 잠시 후 다시 시도해 주세요.{import.meta.env.DEV && <button className="rw-preview-link" onClick={() => setSearchParams({ type: 'MAIN', preview: 'sample' })}>샘플 리포트 보기</button>}</div></div>;
+
+  if (!isSamplePreview && isLoading) return <div className="report-type-shell">{reportTabs}<div className="report-type-message" role="status">리포트를 불러오고 있어요…</div></div>;
+  if ((!isSamplePreview && isError) || !report) return <div className="report-type-shell">{reportTabs}<div className="report-type-message" role="alert">리포트를 불러오지 못했어요. 리포트가 생성되었는지 확인하거나 잠시 후 다시 시도해 주세요.{import.meta.env.DEV && <button className="rw-preview-link" onClick={() => setSearchParams({ type: 'MAIN', preview: 'sample' })}>샘플 리포트 보기</button>}</div></div>;
 
   const content = report?.content;
   if (!content) return null;
 
-  const displayTitle =
-    report.reportType === 'MAIN'
-      ? (content as { projectInfo?: { projectName?: string } })?.projectInfo?.projectName
-      : (content as { reportTitle?: string })?.reportTitle;
-
   if (report.reportType === 'MAIN') return (
     <div className="rw-full-page">
       {reportTabs}
+      {isSamplePreview && <p className="rw-sample-notice" role="status">디자인 미리보기 · Eternal-FE 이터널마케팅 샘플 데이터</p>}
       <div ref={printRef} className="report-print-content report-print-main"><MainDetail data={content as unknown as ReportMainContent} onPrint={handlePrint} repoUrl={report.gitRepoUrl} /></div>
     </div>
   );
 
-  return (
-    <div className="rw-page mx-auto flex w-full max-w-[1200px] flex-col gap-10 px-5">
-      {reportTabs}
-      {isSample && <div className="rw-sample-notice" role="status"><span><strong>샘플 리포트</strong> 화면 확인을 위한 목데이터이며 실제 코드 분석 결과가 아닙니다.</span><button onClick={() => { const next = new URLSearchParams(searchParams); next.delete('preview'); setSearchParams(next); }}>실제 리포트 보기</button></div>}
-      {/* 제목 */}
-      <section className="relative flex flex-col gap-3">
-        <button
-          type="button"
-          onClick={() => handlePrint()}
-          title="인쇄 창에서 '머리글 및 바닥글' 옵션을 끄면 날짜, URL이 출력되지 않습니다."
-          className="rw-print-button group absolute right-0 top-0 flex h-12 w-[150px] items-center justify-center gap-3 rounded-lg bg-[var(--ui-50)] text-ui-600 transition-[color,opacity] hover:opacity-90"
-        >
-          <PdfIcon className="h-6 w-5 shrink-0 [&_path]:stroke-[var(--ui-500)] group-hover:[&_path]:stroke-[var(--ui-1000)]" />
-          <span className="text-base font-medium transition-colors group-hover:font-semibold group-hover:text-ui-1000">PDF로 출력하기</span>
-        </button>
-        <div
-          ref={printRef}
-          className="report-print-content report-print-detail flex flex-col gap-10"
-          style={{ overflow: 'visible' }}
-        >
-          <div className="rw-page-heading">
-            <h1>
-              {displayTitle ?? '리포트'}{' '}
-              {title} 리포트
-            </h1>
-          </div>
-          <ReportDetail data={content as unknown as ReportDetailContent} />
-        </div>
-        <hr className="border-ui-300"/>
-        <p className="pt-[3.3rem] text-center text-ui-400">{isSample ? '디자인 미리보기용 샘플 데이터입니다.' : '본 리포트는 Devine의 AI 코드 분석 시스템이 생성했습니다.'}<br/>
-          상세한 분석 내용은 상세 리포트를 확인하세요.</p>
-      </section>
-    </div>
-  );
+  return <div className="rw-full-page">
+    {reportTabs}
+    {isSamplePreview && <p className="rw-sample-notice" role="status">디자인 미리보기 · 기존 메인 리포트를 바탕으로 구성한 예시이며 새 코드 분석 결과가 아닙니다.</p>}
+    <div ref={printRef} className="report-print-content report-print-detail"><ReportDetail data={content as unknown as ReportDetailContent} onPrint={handlePrint} repoUrl={report.gitRepoUrl}/></div>
+  </div>;
 };
 
 export default ReportDetailPage;

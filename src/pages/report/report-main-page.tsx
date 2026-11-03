@@ -5,7 +5,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 const ReportMainPage = () => {
   const { isSignedIn, isLoaded } = useAuth();
   const location = useLocation();
-  const fullWidthReport = location.pathname.startsWith('/report/detail/') && new URLSearchParams(location.search).get('type') === 'MAIN';
+  const fullWidthReport = location.pathname.startsWith('/report/detail/');
   // const { search } = useLocation();
   // const isOthersReport = search.includes('isOwner=others');
   const showLoginGate = isLoaded && !isSignedIn;

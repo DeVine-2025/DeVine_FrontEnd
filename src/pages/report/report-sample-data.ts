@@ -1,4 +1,4 @@
-import type { ReportMain } from '@apis/report/report';
+import type { ReportMain, ReportDetail } from '@apis/report/report';
 /** Development preview transcribed from the existing Eternal-FE report. */
 export const sampleMainReport: ReportMain = {
   reportId: 0, gitRepoId: 0, gitRepoUrl: '', reportType: 'MAIN', visibility: 'PRIVATE', createdAt: '', completedAt: '',
@@ -21,5 +21,29 @@ export const sampleMainReport: ReportMain = {
       { title: '프로젝트 기여도 및 책임감', details: ['총 커밋 수 97개 중 67개, 기여율 69.1%로 프로젝트의 핵심적인 부분에 기여했습니다.', '35,892줄 추가, 10,297줄 삭제, 258개 파일 수정 등 광범위한 코드 변경을 통해 프로젝트 전반에 걸친 높은 참여도를 보였습니다.', 'SEO, 관리자 기능, UI/UX 개선 등 다양한 영역에서 주도적인 개발을 수행하며 프로젝트 완수에 대한 높은 책임감을 증명했습니다.'] },
     ],
     recommendations: ['웹 프론트엔드 개발', '마케팅 SaaS 솔루션 개발', '콘텐츠 관리 시스템(CMS) 개발'],
+  },
+};
+
+/** Design fixture derived from the existing Eternal-FE main report, not a new analysis. */
+export const sampleDetailReport: ReportDetail = {
+  reportId: 0, gitRepoId: 0, gitRepoUrl: '', reportType: 'DETAIL', visibility: 'PRIVATE', createdAt: '', completedAt: '',
+  content: {
+    reportTitle: 'Eternal-FE', reportSubtitle: '이터널마케팅 웹사이트 상세 분석',
+    projectOverview: {
+      purpose: sampleMainReport.content.overview.summary,
+      projectScale: { totalCodeLines: 12223, mainCodeFiles: 82, developmentPeriod: '약 4개월', architecturePattern: 'Next.js 기반 컴포넌트 중심의 프론트엔드 구조' },
+      techStack: [
+        { title: '언어', content: 'TypeScript' },
+        { title: '프레임워크', content: 'Next.js · React' },
+        { title: '스타일링', content: 'Tailwind CSS' },
+        { title: '라이브러리', content: 'Tiptap · Heroicons · Sharp · CountUp' },
+        { title: '외부 서비스', content: 'Google APIs' },
+      ],
+    },
+    implementedFeatures: sampleMainReport.content.keyImplementations.map((item, index) => ({ categoryNumber: index + 1, category: item.title, features: [{ name: item.title, details: [item.description], codeLocation: [], implementation: item.capabilities }] })),
+    codeInsights: sampleMainReport.content.aiEvaluation.map((item, index) => ({ number: index + 1, title: item.title, points: item.details, codeLocation: [] })),
+    projectSummary: { implemented: sampleMainReport.content.keyImplementations.map(item => item.title), notImplemented: ['기존 메인 리포트에 미구현 항목이 명시되어 있지 않습니다.'] },
+    improvements: [],
+    nextSteps: sampleMainReport.content.recommendations.map((title, index) => ({ number: index + 1, title, description: ['기존 프로젝트 경험을 활용할 수 있는 추천 분야입니다.'], recommendKeyword: [] })),
   },
 };
