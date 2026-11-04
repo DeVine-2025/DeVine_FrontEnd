@@ -1,0 +1,71 @@
+/* Hallmark · scope: component · brand: DeVine · redesign: polish */
+/* Self-contained recommended card; no dependency on home page ancestors. */
+.home-project-card.home-project-recommended { position: relative; min-width: 0; overflow: hidden; border: 1px solid var(--surface-badge); border-radius: 12px; background: var(--surface-card); color: var(--text-main); }
+.home-project-card.home-project-recommended .home-card-open { width: 100%; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.home-project-card.home-project-recommended .home-project-art { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.home-project-card.home-project-recommended .home-project-art img { width: 24%; max-width: 100px; height: auto; object-fit: contain; }
+.home-project-card.home-project-recommended .home-bookmark { position: absolute; z-index: 2; width: 40px; height: 40px; padding: 0; }
+/* Match the ribbon animation mask and backing to the SVG viewBox. */
+.home-project-card.home-project-recommended .home-bookmark .bookmark-ribbon-svg { width: 36px; height: 36px; }
+.home-project-card.home-project-recommended .home-project-domain-badge { align-items: center; gap: 4px; padding: 3px 7px; border: 1px solid var(--surface-badge); border-radius: 5px; color: var(--text-secondary); font-size: 11px; line-height: 16px; }
+.home-project-card.home-project-recommended .home-project-domain-badge svg { width: 12px; height: 12px; flex: none; }
+.home-project-card.home-project-recommended .home-project-progress { display: flex; gap: 3px; }
+.home-project-card.home-project-recommended .home-project-progress > span { flex: 1; height: 4px; border-radius: 2px; background: var(--surface-badge); }
+.home-project-card.home-project-recommended .home-project-progress > span.is-filled { background: var(--project-accent); }
+.home-project-card.home-project-recommended :is(button,a):focus-visible { outline: 2px solid var(--project-accent); outline-offset: -3px; }
+.home-project-card.home-project-recommended:hover { border-color: var(--text-secondary); }
+.home-project-card.home-project-recommended .home-bookmark,
+.home-project-card.home-project-recommended .home-bookmark:is(:hover, :active, [aria-pressed='true']) {
+  background: transparent;
+}
+.home-project-card.home-project-recommended .home-bookmark:hover { color: var(--project-accent); }
+/* Recommended project cards: score, recruitment and deadline at a glance. */
+.home-project-card.home-project-recommended .home-card-open {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: 100%;
+  padding: 0;
+}
+.home-project-card.home-project-recommended .home-project-art {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--surface-image);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
+}
+.home-project-card.home-project-recommended .home-bookmark {
+  top: 12px;
+  right: 12px;
+  bottom: auto;
+}
+.home-project-card.home-project-recommended .home-recommended-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px 18px 20px;
+  background: var(--surface-card);
+  min-width: 0;
+}
+.home-project-card.home-project-recommended .home-recommended-summary h3 { margin: 0; color: var(--text-main); font-size: 20px; font-weight: 700; line-height: 1.3; letter-spacing: -.04em; }
+.home-project-card.home-project-recommended .home-recommended-summary p { margin: 4px 0 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+.home-project-card.home-project-recommended .home-recommended-summary .home-project-domain-badge { display: inline-flex; margin-bottom: 10px; }
+.home-project-card.home-project-recommended .home-recommended-reason { display: flex; align-items: flex-start; gap: 8px; margin: 0; color: var(--text-main); font-size: 12px; line-height: 1.5; }
+.home-project-card.home-project-recommended .home-recommended-reason svg { flex: 0 0 15px; width: 15px; height: 15px; margin-top: 2px; color: var(--project-accent); }
+.home-project-card.home-project-recommended .home-recommended-reason svg path { stroke: currentColor; }
+.home-project-card.home-project-recommended .home-recommended-stats { display: grid; grid-template-columns: 1fr 1.1fr .85fr; margin-top: auto; }
+.home-project-card.home-project-recommended .home-recommended-stat { min-width: 0; display: grid; grid-template-rows: 16px 24px 30px; row-gap: 6px; align-items: start; justify-items: start; padding: 0 12px; }
+.home-project-card.home-project-recommended .home-recommended-stat:first-child { justify-items: center; padding-left: 0; }
+.home-project-card.home-project-recommended .home-recommended-stat:last-child { padding-left: 28px; padding-right: 0; }
+.home-project-card.home-project-recommended .home-recommended-stat + .home-recommended-stat { border-left: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent); }
+.home-project-card.home-project-recommended .home-recommended-label { color: var(--text-secondary); font-size: 11px; line-height: 1.3; white-space: nowrap; }
+.home-project-card.home-project-recommended .home-recommended-label small { font-size: 9px; color: var(--text-secondary); }
+.home-project-card.home-project-recommended .home-recommended-ring { grid-row: 2 / 4; width: 62px; height: 62px; }
+.home-project-card.home-project-recommended .home-recommended-ring strong { color: var(--text-main); font-size: 18px; line-height: 1; }
+.home-project-card.home-project-recommended .home-recommended-ring small { color: var(--text-secondary); font-size: 10px; line-height: 1; margin-top: 3px; }
+.home-project-card.home-project-recommended .home-recommended-members > strong { color: var(--text-main); font-size: 15px; line-height: 24px; white-space: nowrap; }
+.home-project-card.home-project-recommended .home-recommended-members .home-project-progress { width: 100%; max-width: 90px; height: 6px; margin-top: 3px; }
+.home-project-card.home-project-recommended .home-recommended-deadline > strong { grid-row: 2; color: var(--project-accent); font-size: 20px; line-height: 1.2; }
+.home-project-card.home-project-recommended .home-recommended-date { grid-row: 3; display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; margin-left: -4px; color: var(--text-secondary); font-size: 11px; line-height: 16px; white-space: nowrap; }
+.home-project-card.home-project-recommended .home-recommended-date svg { width: 14px; height: 14px; flex: none; }
+.home-project-card.home-project-recommended .home-recommended-date svg path { fill: currentColor; }

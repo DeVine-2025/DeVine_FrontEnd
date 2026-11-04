@@ -1,23 +1,16 @@
 import ArrowIcon from '@assets/icons/arrow-left-admin.svg?react';
 import CloseIcon from '@assets/icons/close.svg?react';
-import CheckIcon from '@assets/icons/check.svg?react';
-import PersonIcon from '@assets/icons/person.svg?react';
-import CalendarIcon from '@assets/icons/calendar-clock.svg?react';
 import ProfileDefaultImage from '@assets/images/Profile.svg';
 import ProfileDefaultDark from '@assets/images/Profile_dark.svg';
-import BookmarkButton from '@components/common/BookmarkButton';
-import DomainBadge from '@components/common/DomainBadge';
-import ExploreProjectCard from '../search/project/explore-project-card';
-import DeveloperCollaborationCard from '../search/developer/developer-collaboration-card';
-import '../search/developer/developer-explore-page.css';
+import ProjectCard from '@components/cards/ProjectCard';
+import HomeRecommendedProjectCard from '@components/cards/HomeRecommendedProjectCard';
+import DeveloperCard from '@components/cards/DeveloperCard';
 import { TechChips } from '@components/common/ProfileBase';
 import { useAuthStore } from '@store/auth';
 import { useThemeStore } from '@store/theme';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { CircularProgressbarWithChildren, buildStyles } from 'react-circular-progressbar';
-import 'react-circular-progressbar/dist/styles.css';
 import {
   editorials,
   featuredProjects,
@@ -29,28 +22,10 @@ import {
 } from './home-mock-data';
 import './home-page.css';
 import './home-cards.css';
+import '@components/cards/home-recommended-project-card.css';
 import './home-colors.css';
 
 type Preview = { kind: 'project'; item: HomeProject } | { kind: 'developer'; item: HomeDeveloper };
-
-function Bookmark({
-  name,
-  selected,
-  onToggle,
-}: {
-  name: string;
-  selected: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <BookmarkButton
-      className="home-bookmark"
-      aria-label={name}
-      bookmarked={selected}
-      onBookmarkChange={onToggle}
-    />
-  );
-}
 
 function SectionHeading({
   title,
@@ -73,152 +48,6 @@ function SectionHeading({
         전체보기 <ArrowIcon aria-hidden="true" />
       </Link>
     </div>
-  );
-}
-
-function ProjectCard({
-  project,
-  featured,
-  recent,
-  recommended,
-  saved,
-  onToggle,
-  onOpen,
-}: {
-  project: HomeProject;
-  featured?: boolean;
-  recent?: boolean;
-  recommended?: boolean;
-  saved: boolean;
-  onToggle: () => void;
-  onOpen: () => void;
-}) {
-  if (recommended && project.recommendation) {
-    const { score, reason } = project.recommendation;
-    return (
-      <article className="home-project-card home-project-recommended">
-        <button type="button" className="home-card-open" onClick={onOpen} aria-label={`${project.title} 프로젝트 미리보기`}>
-          <div className="home-project-art">
-            <img src={project.thumbnail} alt="" loading="lazy" decoding="async" />
-          </div>
-          <div className="home-recommended-content">
-            <div className="home-recommended-summary">
-              <DomainBadge className="home-project-domain-badge" domain={project.domain} />
-              <h3>{project.title}</h3>
-              <p>{project.description}</p>
-            </div>
-            <p className="home-recommended-reason"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m8 12 2.6 2.6L16 9.5" /></svg>{reason}</p>
-            <div className="home-recommended-stats">
-              <div className="home-recommended-stat home-recommended-score" aria-label={`추천 적합도 예시 ${score}점`}>
-                <span className="home-recommended-label">추천 적합도</span>
-                <div className="home-recommended-ring" aria-hidden="true">
-                  <CircularProgressbarWithChildren value={score} strokeWidth={9} styles={buildStyles({ pathColor: '#a993ff', trailColor: '#343945', strokeLinecap: 'round' })}>
-                    <strong>{score}</strong>
-                  </CircularProgressbarWithChildren>
-                </div>
-              </div>
-              <div className="home-recommended-stat home-recommended-members">
-                <span className="home-recommended-label">모집 현황</span>
-                <strong aria-label={`모집 인원 ${project.memberCount.total}명 중 ${project.memberCount.current}명`}>{project.memberCount.current} / {project.memberCount.total}명</strong>
-                {project.memberCount.total > 0 && (
-                  <span className="home-project-progress" aria-hidden="true">
-                    {Array.from({ length: project.memberCount.total }, (_, index) => (
-                      <span key={index} className={index < project.memberCount.current ? 'is-filled' : undefined} />
-                    ))}
-                  </span>
-                )}
-              </div>
-              <div className="home-recommended-stat home-recommended-deadline">
-                <strong>D-{project.deadline.remaining}</strong>
-                <span className="home-recommended-date"><CalendarIcon aria-hidden="true" />{project.deadline.date}</span>
-              </div>
-            </div>
-          </div>
-        </button>
-        <Bookmark name={project.title} selected={saved} onToggle={onToggle} />
-      </article>
-    );
-  }
-
-  return (
-    <article
-      style={{ backgroundImage: `url("${project.thumbnail}")` }}
-      className={[
-        'home-project-card',
-        featured && 'home-project-featured',
-        recent && 'home-project-recent',
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      <button
-        type="button"
-        className="home-card-open"
-        onClick={onOpen}
-        aria-label={`${project.title} 프로젝트 미리보기`}
-      >
-        <div className="home-project-art">
-          {!recommended && (
-            <span className={`home-project-status home-project-status-${project.status}`}>
-              <span />{project.status === 'recruiting' ? '모집 중' : project.status === 'inProgress' ? '진행 중' : '완료'}
-            </span>
-          )}
-          <img src={project.thumbnail} alt="" loading={featured ? 'eager' : 'lazy'} decoding="async" />
-        </div>
-        <div className="home-project-content">
-          <div className="home-project-summary">
-            <DomainBadge className="home-project-domain-badge" domain={project.domain} />
-            <div className="home-project-title-row">
-              <h3>{project.title}</h3>
-              {recommended && project.recommendation && (
-                <span className="home-project-match">
-                  <strong>{project.recommendation.score}점</strong>
-                  <span className="home-project-match-info" aria-label="점수 안내: 기술과 관심 분야를 바탕으로 만든 추천 예시 점수입니다" title="기술과 관심 분야를 바탕으로 만든 추천 예시 점수입니다">
-                    ⓘ
-                    <span className="home-project-match-tooltip" role="tooltip">기술과 관심 분야를 바탕으로 만든 추천 예시 점수입니다.</span>
-                  </span>
-                </span>
-              )}
-            </div>
-            <p>{project.description}</p>
-          </div>
-          {recommended && project.recommendation && (
-            <div className="home-project-fit">
-              <progress aria-label="프로젝트 적합도 (샘플)" max={100} value={project.recommendation.score} />
-              <p><CheckIcon className="home-project-fit-check" aria-hidden="true" />{project.recommendation.reason}</p>
-            </div>
-          )}
-          <div className="home-project-details">
-            <div className="home-project-bottom-line">
-              <span className="home-project-members">
-                <span className="home-project-member-count" aria-label={`모집 인원 ${project.memberCount.total}명 중 ${project.memberCount.current}명`}>
-                  <PersonIcon aria-hidden="true" />{project.memberCount.current}/{project.memberCount.total}명 모집
-                </span>
-                {!recommended && project.memberCount.total > 0 && (
-                  <span className="home-project-progress" aria-hidden="true">
-                    {Array.from({ length: project.memberCount.total }, (_, index) => (
-                      <span key={index} className={index < project.memberCount.current ? 'is-filled' : undefined} />
-                    ))}
-                  </span>
-                )}
-              </span>
-              <span className="home-project-deadline" aria-label={`마감까지 D-${project.deadline.remaining}, ${project.deadline.date}`}>
-                <strong>D-{project.deadline.remaining}</strong>
-                <small><CalendarIcon aria-hidden="true" />{project.deadline.date}</small>
-              </span>
-            </div>
-            <div className="home-project-meta">
-              <span className="home-project-conditions">
-                <span>{project.duration}</span>
-                <span>{project.workMode}</span>
-              </span>
-              {project.posted && <span className="home-project-posted">{project.posted}</span>}
-            </div>
-          </div>
-        </div>
-      </button>
-      <Bookmark name={project.title} selected={saved} onToggle={onToggle} />
-    </article>
   );
 }
 
@@ -365,7 +194,7 @@ export default function HomePage() {
       return next;
     });
   const projectCard = (project: HomeProject, featured = false, recent = false, recommended = false) => (
-    <ProjectCard
+    <HomeRecommendedProjectCard
       key={project.id}
       project={project}
       featured={featured}
@@ -442,11 +271,12 @@ export default function HomePage() {
         <section className="home-section home-section-featured" aria-label="주목받는 프로젝트">
           <SectionHeading
             title="지금 주목받는 프로젝트"
+            accent
             description="지금 많은 개발자들의 관심을 받고 있는 프로젝트를 만나보세요."
             to="/search/projects"
           />
           <div className="home-featured-grid explore-projects-grid">
-            {featuredProjects.slice(0, 3).map((project) => <ExploreProjectCard key={project.id} project={project} saved={bookmarks.has(project.id)} onOpen={() => setPreview({ kind: 'project', item: project })} onBookmarkChange={() => toggleBookmark(project.id)} />)}
+            {featuredProjects.slice(0, 3).map((project) => <ProjectCard key={project.id} project={project} saved={bookmarks.has(project.id)} variant="grid" showProfiles showTechStacks={false} onOpen={() => setPreview({ kind: 'project', item: project })} onBookmarkChange={() => toggleBookmark(project.id)} />)}
           </div>
         </section>
 
@@ -464,11 +294,11 @@ export default function HomePage() {
               {recommendedProjects.map((project) => projectCard(project, false, false, true))}
             </div>
           ) : (
-          <div className="home-developers-grid developer-explore-grid">
+          <div className="home-developers-grid home-developer-card-grid">
             {recommendedDevelopers.map((developer) => (
-              <DeveloperCollaborationCard key={developer.id}
+              <DeveloperCard key={developer.id}
                 developer={{ member: { nickname: developer.name, address: null, disclosure: true, mainType: 'DEVELOPER', imageUrl: null, body: developer.introduction, used: '', createdAt: '' }, domains: [], techstacks: developer.skills.map((name, index) => ({ techstackId: index, name, genre: 'skill', source: 'MANUAL' })) }}
-                roleLabel={developer.role} bookmarked={bookmarks.has(developer.id)} pending={false}
+                roleLabel={developer.role} bookmarked={bookmarks.has(developer.id)} pending={false} variant="grid" showTechStacks={false}
                 onBookmarkChange={() => toggleBookmark(developer.id)} onOpen={() => setPreview({ kind: 'developer', item: developer })} />
             ))}
           </div>
@@ -478,10 +308,11 @@ export default function HomePage() {
         <section className="home-section home-section-recent" aria-label="새 프로젝트">
           <SectionHeading
             title="새롭게 올라온 프로젝트"
+            accent
             to="/search/projects"
           />
           <div className="home-recent-grid explore-projects-list">
-            {recentProjects.map((project) => <ExploreProjectCard key={project.id} project={project} saved={bookmarks.has(project.id)} onOpen={() => setPreview({ kind: 'project', item: project })} onBookmarkChange={() => toggleBookmark(project.id)} />)}
+            {recentProjects.map((project) => <ProjectCard key={project.id} project={project} saved={bookmarks.has(project.id)} variant="list" wideImage showTechStacks={false} onOpen={() => setPreview({ kind: 'project', item: project })} onBookmarkChange={() => toggleBookmark(project.id)} />)}
           </div>
         </section>
       </div>

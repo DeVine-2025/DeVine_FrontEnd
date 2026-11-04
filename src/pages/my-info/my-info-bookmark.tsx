@@ -6,7 +6,6 @@ import BackIcon from '@assets/icons/back.svg?react';
 import profileDefaultIconUrl from '@assets/icons/profile-default.svg?url';
 import { useAuth } from '@clerk/clerk-react';
 import BookmarkDeveloperCard from '@components/common/BookmarkDeveloperCard';
-import LoadingSpinner from '@components/common/LoadingSpinner';
 import ProjectLg from '@components/common/ProjectLg';
 import { mapProjectItemToCard } from '@mappers/project';
 import type { ProjectItem } from '@t/project/api';
@@ -214,7 +213,7 @@ const MyInfoBookmark = () => {
 
       {loading && (
         <div className="flex justify-center py-12">
-          <LoadingSpinner size="lg" />
+          <span role="status" className="text-sm text-[var(--text-secondary)]">불러오는 중...</span>
         </div>
       )}
       {error && <p className="text-red-500">{error}</p>}
@@ -231,7 +230,7 @@ const MyInfoBookmark = () => {
                     key={bookmarkId}
                     className="flex min-h-[120px] items-center justify-center rounded-2xl border border-card-border bg-card-bg p-6"
                   >
-                    <LoadingSpinner size="md" />
+                    <span role="status" className="text-sm text-[var(--text-secondary)]">불러오는 중...</span>
                   </div>
                 );
               }

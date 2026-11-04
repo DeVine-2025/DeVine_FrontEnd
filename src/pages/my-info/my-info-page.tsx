@@ -1,83 +1,55 @@
-import { useAuth } from '@clerk/clerk-react';
-import { cn } from '@libs/cn';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import ImagePreview from '@components/profileDetail/ImagePreview';
+import { DOMAIN_REVERSE_MAP } from '@constants/domain';
+import { useQuery } from '@tanstack/react-query';
+import { Heart, Pencil } from 'lucide-react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
+import './my-info-workspace.css';
 
-type MenuItem = {
-  path: string;
-  name: string;
-};
-
-const MENU: MenuItem[] = [
-  { path: '', name: '내 프로필' },
-  { path: 'setting', name: '설정' },
-  { path: 'bookmark', name: '저장한 프로젝트/개발자' },
+const tabs = [
+  { to: '/my-info', label: '개요' },
+  { to: '/my-info?tab=projects', label: '프로젝트' },
+  { to: '/my-info?tab=reports', label: '리포트' },
+  { to: '/my-info/bookmark', label: '저장함' },
+  { to: '/my-info/setting', label: '설정' },
 ];
 
-const MyInfoPage = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const currentPath = location.pathname;
-
-  const { signOut } = useAuth();
+export default function MyInfoPage() {
+  const { pathname, search } = useLocation();
+  const { data } = useQuery(myInfoQueries.profile());
+  const profile = data?.result;
+  const member = profile?.member;
+  const tab = new URLSearchParams(search).get('tab');
+  const activePath = pathname === '/my-info' && (tab === 'projects' || tab === 'reports')
+    ? '/my-info?tab=' + tab
+    : pathname;
 
   return (
-    <div className="flex pt-3">
-      <div className="mx-auto flex w-full max-w-[1180px] justify-between">
-        <Outlet />
-
-        <div>
-          <ul className="flex min-w-[270px] flex-col gap-[3.2rem] font-semibold text-3xl">
-            {MENU.map((item) => {
-              const isSelected =
-                item.path === 'bookmark'
-                  ? currentPath.startsWith('/bookmark')
-                  : item.path === ''
-                    ? currentPath === '/my-info'
-                    : currentPath.startsWith(`/my-info/${item.path}`);
-
-              return (
-                <li key={item.path}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (item.path === 'bookmark') {
-                        navigate('/bookmark');
-                      } else if (item.path === '') {
-                        navigate('/my-info');
-                      } else {
-                        navigate(`/my-info/${item.path}`);
-                      }
-                    }}
-                    className={cn(
-                      'w-full cursor-pointer text-left transition-colors',
-                      isSelected ? 'text-ui-900' : 'text-ui-400',
-                    )}
-                  >
-                    {item.name}
-                  </button>
-                </li>
-              );
-            })}
-
-            <li>
-              <hr className="border-ui-400" />
-            </li>
-
-            <li
-              className="cursor-pointer text-ui-400 hover:text-ui-900"
-              onClick={() => {
-                signOut();
-                navigate('/');
-              }}
-            >
-              로그아웃
-            </li>
-          </ul>
+    <section className="my-info-workspace" aria-label="내 프로필">
+      <header className="my-info-hero">
+        <ImagePreview isExist={Boolean(member?.imageUrl)} imageUrl={member?.imageUrl} className="my-info-avatar" alt="내 프로필 사진" />
+        <div className="my-info-identity">
+          <div className="my-info-name-row">
+            <h1>{member?.nickname || member?.name || '내 프로필'}</h1>
+            <Link className="my-info-control my-info-edit" to="/profile-edit">
+              <Pencil size={14} aria-hidden="true" /> 프로필 수정
+            </Link>
+          </div>
+          {!!profile?.domains?.length && (
+            <div className="my-info-domains">
+              <Heart size={16} aria-hidden="true" /> 관심 도메인
+              {profile.domains.map(domain => <span key={domain}>{DOMAIN_REVERSE_MAP[domain] ?? domain}</span>)}
+            </div>
+          )}
+          <p>{member?.body || '아직 작성한 소개가 없어요.'}</p>
         </div>
-      </div>
-    </div>
+      </header>
+      <nav className="my-info-tabs" aria-label="내 프로필 메뉴">
+        {tabs.map(({ to, label }) => (
+          <Link key={to} to={to} aria-current={activePath === to ? 'page' : undefined}>{label}</Link>
+        ))}
+      </nav>
+      <Outlet />
+    </section>
   );
-};
-
-export default MyInfoPage;
+}

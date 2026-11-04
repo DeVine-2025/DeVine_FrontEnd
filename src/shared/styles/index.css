@@ -65,6 +65,42 @@
     width: 100%;
 }
 
+/* 컬렉션 화면과 리포트 목록이 공유하는 진입 동작 */
+@keyframes collection-entrance {
+    0% { opacity: 0; transform: translate(-18px, 16px) scale(.94); }
+    72% { opacity: 1; transform: translate(1px, -2px) scale(1.005); }
+    100% { opacity: 1; transform: none; }
+}
+@keyframes collection-page-entrance {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+.page-transition--collection .devine-home > .home-editorial,
+.page-transition--collection .devine-home > .home-section,
+.page-transition--collection .project-explore > .explore-sidebar,
+.page-transition--collection .project-explore > .explore-main,
+.page-transition--collection .recommendation-page > .recommendation-heading,
+.page-transition--collection .recommendation-page > .rec-basis,
+.page-transition--collection .recommendation-page > .rec-grid {
+    animation: collection-page-entrance 320ms cubic-bezier(.22,1,.36,1) both;
+    transform-origin: 50% 85%;
+}
+.page-transition--collection .devine-home > .home-section:nth-of-type(2),
+.page-transition--collection .project-explore > .explore-main,
+.page-transition--collection .recommendation-page > .rec-basis { animation-delay: 35ms; }
+.page-transition--collection .devine-home > .home-section:nth-of-type(3),
+.page-transition--collection .recommendation-page > .rec-grid { animation-delay: 70ms; }
+.page-transition--collection .devine-home > .home-section:nth-of-type(4) { animation-delay: 105ms; }
+@media (prefers-reduced-motion: reduce) {
+    .page-transition--collection .devine-home > .home-editorial,
+    .page-transition--collection .devine-home > .home-section,
+    .page-transition--collection .project-explore > .explore-sidebar,
+    .page-transition--collection .project-explore > .explore-main,
+    .page-transition--collection .recommendation-page > .recommendation-heading,
+    .page-transition--collection .recommendation-page > .rec-basis,
+    .page-transition--collection .recommendation-page > .rec-grid { animation: none; }
+}
+
 @layer utilities {
     .scroll-reveal {
         opacity: 0;

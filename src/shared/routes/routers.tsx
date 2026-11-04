@@ -148,6 +148,7 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <MyInfoProfilePage /> },
               { path: 'setting', element: <MyInfoSettingPage /> },
+              { path: 'bookmark', element: <MyInfoBookMarkPage /> },
             ],
           },
           { path: 'profile-edit', element: <MyInfoProfileEdit /> },

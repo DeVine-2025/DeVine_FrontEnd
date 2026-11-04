@@ -1,5 +1,5 @@
 import type { ReportMainContent } from '@apis/report/report';
-import { useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { FileText, Code2, Layers, ScanSearch, Compass, ChevronRight, ArrowRight, ExternalLink, Printer, CalendarDays, LayoutList } from 'lucide-react';
 import Github from '@assets/icons/github.svg?react';
 import './report-workspace.css';
@@ -37,11 +37,13 @@ function getScaleMetrics(primary?: string, secondary?: string) {
   return { metrics: [...metrics.values()], extras };
 }
 
-export default function MainDetail({ data, onPrint, repoUrl }: { data: ReportMainContent; onPrint?: () => void; repoUrl?: string }) {
-  const [active, setActive] = useState(0);
+export default function MainDetail({ data, onPrint, repoUrl, preview }: { data: ReportMainContent; onPrint?: () => void; repoUrl?: string; preview?: { active: number; onSelect: (index: number) => void } }) {
+  const [internalActive, setActive] = useState(0);
+  const active = preview?.active ?? internalActive;
   const id = useId();
   const panel = useRef<HTMLDivElement>(null);
-  const select = (index: number) => { setActive(index); panel.current?.scrollTo({ top: 0 }); window.scrollTo({ top: 0, behavior: 'auto' }); };
+  useEffect(() => { if (preview) panel.current?.scrollTo({ top: 0 }); }, [preview?.active]);
+  const select = (index: number) => { if (preview) preview.onSelect(index); else { setActive(index); panel.current?.scrollTo({ top: 0 }); window.scrollTo({ top: 0, behavior: 'auto' }); } };
   const onKey = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     let next = index;
     if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = (index + 1) % sections.length;
@@ -64,7 +66,7 @@ export default function MainDetail({ data, onPrint, repoUrl }: { data: ReportMai
   return <div className="report-workspace report-redesign">
     <aside className="rw-sidebar"><div className="rw-project"><Github aria-hidden="true"/><div><strong title={projectName}>{projectName.split('/').pop()}</strong>{projectName.includes('/') && <span className="report-repo-path" title={projectName}>{projectName}</span>}<span>프로젝트 분석 리포트</span></div></div>
       <div className="rw-tablist" role="tablist" aria-label="리포트 목차" aria-orientation="vertical">{sections.map(({ title, icon: Icon }, i) => <button key={title} type="button" role="tab" id={`${id}-tab-${i}`} aria-controls={`${id}-panel-${i}`} aria-selected={active === i} tabIndex={active === i || (active === -1 && i === 0) ? 0 : -1} onClick={() => select(i)} onKeyDown={e => onKey(e, i)}><Icon aria-hidden="true"/><span>{title}</span>{active === i && <ChevronRight className="rw-chevron" aria-hidden="true"/>}</button>)}</div>
-      <div className="rw-sidebar-actions"><button type="button" className="rw-sidebar-action" aria-pressed={active === -1} aria-controls={`${id}-all-panel`} onClick={() => select(-1)}><LayoutList aria-hidden="true" />전체 리포트 보기</button>{onPrint && <button type="button" className="rw-sidebar-action" onClick={onPrint}><Printer aria-hidden="true" />PDF로 출력하기</button>}</div><p className="rw-disclaimer">분석 결과는 제공된 코드를 바탕으로 작성되었습니다. 실제 구현과 함께 확인해 주세요.</p>
+      {!preview && <><div className="rw-sidebar-actions"><button type="button" className="rw-sidebar-action" aria-pressed={active === -1} aria-controls={`${id}-all-panel`} onClick={() => select(-1)}><LayoutList aria-hidden="true" />전체 리포트 보기</button>{onPrint && <button type="button" className="rw-sidebar-action" onClick={onPrint}><Printer aria-hidden="true" />PDF로 출력하기</button>}</div><p className="rw-disclaimer">분석 결과는 제공된 코드를 바탕으로 작성되었습니다. 실제 구현과 함께 확인해 주세요.</p></>}
     </aside>
     <div className={`rw-content ${active === -1 ? 'report-all-view' : ''}`} ref={panel}><div id={`${id}-all-panel`} role={active === -1 ? "region" : undefined} aria-label={active === -1 ? "전체 리포트" : undefined}>{sections.map(({ title, description }, i) => <section key={title} className="rw-panel report-section-panel" id={`${id}-panel-${i}`} role={active === -1 ? undefined : "tabpanel"} aria-labelledby={active === -1 ? undefined : `${id}-tab-${i}`} tabIndex={active === -1 ? undefined : 0} hidden={active !== -1 && active !== i}><header><div className="rw-breadcrumb"><span>리포트</span><ChevronRight aria-hidden="true"/><span>{projectName}</span><ChevronRight aria-hidden="true"/><span>{title}</span></div><><div className="report-panel-kicker">PROJECT REPORT <span>/ {String(i + 1).padStart(2, '0')}</span></div><h2>{title}</h2><p>{description}</p></></header><div className="rw-section-body">{contents[i]}</div>{active !== -1 && i > 0 && i < sections.length - 1 && <div className="report-page-next"><button type="button" onClick={() => select(i + 1)}>다음: {sections[i + 1].title} <ArrowRight aria-hidden="true" /></button></div>}</section>)}</div></div>
   </div>;

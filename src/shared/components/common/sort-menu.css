@@ -1,0 +1,13 @@
+.shared-sort { position:relative; }
+.shared-sort-trigger { display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:98px;height:var(--project-control-height);padding:0 12px;border:1px solid var(--project-divider);border-radius:8px;background:color-mix(in srgb,var(--surface-input) 50%,var(--surface-page));color:var(--text-main);font-size:12px;cursor:pointer;transition:background .2s ease,border-color .2s ease; }
+.shared-sort-trigger:hover,.shared-sort-trigger[aria-expanded=true] { border-color:color-mix(in srgb,var(--project-accent) 50%,var(--surface-badge)); }
+.shared-sort-trigger svg { width:14px;height:14px;transition:transform .24s cubic-bezier(.2,.7,.2,1); }
+.shared-sort-trigger[aria-expanded=true] svg { transform:rotate(180deg); }
+.shared-sort-menu { position:absolute;z-index:20;top:calc(100% + 7px);right:0;min-width:170px;padding:5px;border:1px solid var(--project-divider);border-radius:10px;background:color-mix(in srgb,var(--surface-card) 85%,var(--surface-page));box-shadow:0 12px 28px #0007;transform-origin:top right;animation:shared-sort-enter .22s cubic-bezier(.2,.75,.25,1) both; }
+.shared-sort-menu button { display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:10px 12px;border:0;border-radius:6px;background:transparent;color:var(--text-secondary);font-size:12px;text-align:left;cursor:pointer;transition:background .16s ease,color .16s ease; }
+.shared-sort-menu button:hover,.shared-sort-menu button:focus-visible { background:var(--surface-badge);color:var(--text-main); }
+.shared-sort-menu button[aria-pressed=true] { color:var(--text-main); }
+.shared-sort-menu button span { color:var(--project-accent); }
+.shared-sort button:focus-visible { outline:2px solid var(--project-accent);outline-offset:2px; }
+@keyframes shared-sort-enter {from {opacity:0;transform:translateY(-5px) scale(.97);} to {opacity:1;transform:translateY(0) scale(1);}}
+@media(prefers-reduced-motion:reduce) {.shared-sort-trigger,.shared-sort-trigger svg,.shared-sort-menu button {transition:none;} .shared-sort-menu {animation:none;}}

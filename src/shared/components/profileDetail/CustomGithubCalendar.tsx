@@ -15,9 +15,9 @@ interface CustomGithubCalendarProps {
   onYearChange?: (year: number) => void;
 }
 
-const GITHUB_THEME: ThemeInput = {
-  light: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
-  dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
+const DEVINE_ACTIVITY_THEME: ThemeInput = {
+  light: ['#eeedf3', '#dfd9ff', '#b8adff', '#8272fa', '#6654f5'],
+  dark: ['#1c1e27', '#39305f', '#57469a', '#7b68e2', '#a69bff'],
 };
 
 const calculateLevel = (count: number): 0 | 1 | 2 | 3 | 4 => {
@@ -128,7 +128,7 @@ const CustomGithubCalendar = ({
       <div className="calendar-container">
         <ActivityCalendar
           data={calendarData}
-          theme={GITHUB_THEME}
+          theme={DEVINE_ACTIVITY_THEME}
           blockSize={12}
           blockRadius={2}
           blockMargin={4}

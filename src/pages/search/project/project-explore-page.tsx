@@ -1,8 +1,10 @@
-import ExploreProjectCard from './explore-project-card';
+import ViewToggle from '@components/common/ViewToggle';
+import ProjectCard from '@components/cards/ProjectCard';
 import ChevronIcon from '@assets/icons/chevron-down.svg?react';
 import SearchIcon from '@assets/icons/search.svg?react';
 import DomainBadge from '@components/common/DomainBadge';
-import ExploreTechBadges from './explore-tech-badges';
+import SortMenu from '@components/common/SortMenu';
+import TechStackBadges from '@components/cards/TechStackBadges';
 import ExploreTabs from '../explore-tabs';
 import ExploreSelectedFilters from '../explore-selected-filters';
 import { DOMAIN_OPTIONS } from '@constants/domain';
@@ -44,32 +46,6 @@ function FilterGroup({ label, initiallyOpen, children }: { label: string; initia
   </section>;
 }
 
-function SortMenu({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onOutsideClick = (event: PointerEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const onEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { setOpen(false); triggerRef.current?.focus(); }
-    };
-    document.addEventListener('pointerdown', onOutsideClick);
-    document.addEventListener('keydown', onEscape);
-    return () => { document.removeEventListener('pointerdown', onOutsideClick); document.removeEventListener('keydown', onEscape); };
-  }, [open]);
-  return <div ref={containerRef} className="explore-sort">
-    <button ref={triggerRef} type="button" className="explore-sort-trigger" aria-label={`정렬: ${sortOptions.find(option => option.value === value)?.label}`} aria-expanded={open} aria-controls="explore-sort-options" onClick={() => setOpen(current => !current)}>
-      {sortOptions.find(option => option.value === value)?.label}<ChevronIcon aria-hidden="true" />
-    </button>
-    {open && <div id="explore-sort-options" className="explore-sort-menu" role="group" aria-label="정렬 방식">
-      {sortOptions.map(option => <button type="button" key={option.value} aria-pressed={option.value === value} onClick={() => { onChange(option.value); setOpen(false); triggerRef.current?.focus(); }}>{option.label}{option.value === value && <span aria-hidden="true">✓</span>}</button>)}
-    </div>}
-  </div>;
-}
-
 function matches(project: HomeProject, key: FilterKey, value: string) {
   switch (key) {
     case 'status': return statusLabels[project.status] === value;
@@ -88,7 +64,7 @@ function matches(project: HomeProject, key: FilterKey, value: string) {
   }
 }
 
-export default function ProjectExplorePage() {
+export default function ProjectExplorePage({ mode = 'search' }: { mode?: 'search' | 'recommend' }) {
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [query, setQuery] = useState('');
   const [techQuery, setTechQuery] = useState('');
@@ -161,7 +137,7 @@ export default function ProjectExplorePage() {
   }, [hasMore, visibleCount, filtered.length]);
 
   return <div className="project-explore">
-    <Helmet><title>프로젝트 탐색 | Devine</title></Helmet>
+    <Helmet><title>프로젝트 {mode === 'recommend' ? '추천' : '탐색'} | Devine</title></Helmet>
     <aside className="explore-sidebar" aria-label="프로젝트 필터">
       <div className="explore-sidebar-title"><strong>필터</strong><button type="button" onClick={reset}>전체 초기화</button></div>
       {keys.map(key => <FilterGroup key={key} label={labels[key]} initiallyOpen={key === 'status' || key === 'domain' || key === 'tech'}>
@@ -172,19 +148,19 @@ export default function ProjectExplorePage() {
       </FilterGroup>)}
     </aside>
     <div className="explore-main">
-      <ExploreTabs />
-      <div className="explore-title"><h1>프로젝트 탐색</h1><p>새로운 아이디어와 함께할 팀원을 찾아보세요.</p></div>
+      <div className="explore-title"><h1>{mode === 'recommend' ? '추천' : '탐색'}</h1><p>프로젝트와 함께할 팀원을 찾아보세요.</p></div>
+      <ExploreTabs mode={mode} />
       <label className="explore-search"><SearchIcon aria-hidden="true" /><input ref={searchRef} value={query} onChange={event => { capturePositions(); setVisibleCount(PROJECT_BATCH_SIZE); setQuery(event.target.value); }} placeholder="프로젝트명, 키워드, 기술 스택을 검색해보세요." aria-label="프로젝트 검색" /><kbd>Ctrl / ⌘ K</kbd></label>
       <ExploreSelectedFilters items={keys.flatMap(key => filters[key].map(value => ({ id: `${key}:${value}`, label: value, group: labels[key], onRemove: () => toggle(key, value) })))} onClear={() => { capturePositions(); setVisibleCount(PROJECT_BATCH_SIZE); setFilters(emptyFilters()); }} />
       <div className="explore-toolbar">
-        <div className="explore-view-controls"><SortMenu value={sort} onChange={value => { setVisibleCount(PROJECT_BATCH_SIZE); setSort(value); }} /><div className="explore-view-toggle" aria-label="보기 방식"><button type="button" aria-label="리스트 보기" title="리스트 보기" aria-pressed={view === 'list'} onClick={() => changeView('list')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01" strokeWidth="3"/></svg></button><button type="button" aria-label="그리드 보기" title="그리드 보기" aria-pressed={view === 'grid'} onClick={() => changeView('grid')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></button></div></div>
+        <div className="explore-view-controls"><SortMenu options={sortOptions} value={sort} onChange={value => { setVisibleCount(PROJECT_BATCH_SIZE); setSort(value); }} /><ViewToggle value={view} onChange={changeView} /></div>
       </div>
       <div ref={projectsRef} className={`explore-projects explore-projects-${view}`}>
-        {filtered.slice(0, visibleCount).map(project => <ExploreProjectCard key={project.id} project={project} saved={saved.has(project.id)} onOpen={() => setPreview(project)} onBookmarkChange={(next) => setSaved(current => { const updated = new Set(current); if (next) updated.add(project.id); else updated.delete(project.id); return updated; })} />)}
+        {filtered.slice(0, visibleCount).map(project => <ProjectCard key={project.id} project={project} saved={saved.has(project.id)} variant={view} showTechStacks={false} onOpen={() => setPreview(project)} onBookmarkChange={(next) => setSaved(current => { const updated = new Set(current); if (next) updated.add(project.id); else updated.delete(project.id); return updated; })} />)}
         {filtered.length === 0 && <div className="explore-empty"><strong>조건에 맞는 프로젝트가 없어요.</strong><p>검색어나 필터를 바꿔 다시 찾아보세요.</p><button type="button" onClick={reset}>필터 초기화</button></div>}
       </div>
       {hasMore && <div ref={loadMoreRef} className="explore-load-more">{typeof IntersectionObserver === 'undefined' && <button type="button" onClick={() => setVisibleCount(count => Math.min(count + PROJECT_BATCH_SIZE, filtered.length))}>프로젝트 더 보기</button>}</div>}
     </div>
-    {preview && <div className="explore-modal-backdrop" onClick={() => setPreview(null)}><section className="explore-modal" role="dialog" aria-modal="true" aria-labelledby="explore-modal-title" onClick={event => event.stopPropagation()}><button className="explore-modal-close" type="button" onClick={() => setPreview(null)} aria-label="닫기">×</button><DomainBadge className="explore-domain" domain={preview.domain} /><h2 id="explore-modal-title">{preview.title}</h2><p>{preview.introduction}</p><dl><dt>모집 직군</dt><dd>{preview.recruiting}</dd><dt>진행 방식</dt><dd>{preview.workMode}</dd><dt>예상 기간</dt><dd>{preview.duration}</dd></dl><ExploreTechBadges stacks={preview.techStacks} /></section></div>}
+    {preview && <div className="explore-modal-backdrop" onClick={() => setPreview(null)}><section className="explore-modal" role="dialog" aria-modal="true" aria-labelledby="explore-modal-title" onClick={event => event.stopPropagation()}><button className="explore-modal-close" type="button" onClick={() => setPreview(null)} aria-label="닫기">×</button><DomainBadge className="explore-domain" domain={preview.domain} /><h2 id="explore-modal-title">{preview.title}</h2><p>{preview.introduction}</p><dl><dt>모집 직군</dt><dd>{preview.recruiting}</dd><dt>진행 방식</dt><dd>{preview.workMode}</dd><dt>예상 기간</dt><dd>{preview.duration}</dd></dl><TechStackBadges stacks={preview.techStacks} /></section></div>}
   </div>;
 }

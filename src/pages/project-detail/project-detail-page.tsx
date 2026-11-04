@@ -3,7 +3,6 @@ import PersonIcon from '@assets/icons/person.svg?react';
 import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
 import TalkBalloonIcon from '@assets/icons/detail-page/talkBalloon.svg?react';
 import BookmarkButton from '@components/common/BookmarkButton';
-import LoadingSpinner from '@components/common/LoadingSpinner';
 import { useAuth } from '@clerk/clerk-react';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import { CHAT_ROOMS_QUERY_KEY } from '@hooks/useChatRooms';
@@ -153,7 +152,7 @@ const isAccepted = appliedStatus === 'COMPLETED';
   if (!project) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+        <span role="status" className="text-sm text-[var(--text-secondary)]">불러오는 중...</span>
       </div>
     );
   }

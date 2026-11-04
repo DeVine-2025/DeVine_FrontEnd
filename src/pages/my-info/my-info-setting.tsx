@@ -2,13 +2,15 @@ import type { UpdateProfileRequest } from '@apis/myInfo/myInfo';
 import { myInfoQueries, updateMyProfile } from '@apis/myInfo/myInfo-queries';
 import GithubIcon from '@assets/icons/github.svg?react';
 import GoogleIcon from '@assets/icons/google.svg?react';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import Switch from '@components/myInfo/Switch';
 import TabMenu from '@components/myInfo/TabMenu';
 import { cn } from '@libs/cn';
 import { useAuthStore } from '@store/auth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { LogOut } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface SettingMenuProps {
   title: string;
@@ -55,6 +57,12 @@ const MyInfoSetting = () => {
   const [loadingProvider, setLoadingProvider] = useState<'github' | 'google' | null>(null);
   const tabs = ['PM', '개발자'];
   const { user, isLoaded } = useUser();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  const logout = useMutation({
+    mutationFn: () => signOut(),
+    onSuccess: () => navigate('/', { replace: true }),
+  });
   const queryClient = useQueryClient();
   const setRole = useAuthStore((state) => state.setRole);
 
@@ -203,8 +211,8 @@ const MyInfoSetting = () => {
   };
 
   return (
-    <div className="mt-[4rem] flex-col gap-[6rem]">
-      <div className="flex items-center justify-between gap-[5rem]">
+    <div className="my-info-panel my-info-settings">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <SettingMenu
           title={'메인 권한 설정'}
           description={'선택한 권한에 맞춰 가장 필요한 정보를 메인 화면에 먼저 확인할 수 있습니다.'}
@@ -240,7 +248,7 @@ const MyInfoSetting = () => {
         <div className="flex justify-between items-center">
           <SettingMenu title={'계정 설정'} description={'연동된 계정'} />
         </div>
-        <div className="flex justify-between gap-[20rem]">
+        <div className="my-info-settings-accounts">
           <div className="flex flex-1 items-center justify-between">
             <div className="flex items-center gap-[1.6rem]">
               <GithubIcon className="w-11 h-11" />
@@ -268,6 +276,13 @@ const MyInfoSetting = () => {
             />
           </div>
         </div>
+      </div>
+      <div className="my-info-session">
+        <SettingMenu title="로그인 세션" description="현재 기기에서 로그아웃합니다." />
+        <button className="my-info-control my-info-logout" type="button" disabled={!isLoaded || logout.isPending} onClick={() => logout.mutate()}>
+          <LogOut size={16} aria-hidden="true" /> {logout.isPending ? '로그아웃 중…' : '로그아웃'}
+        </button>
+        {logout.isError && <p className="my-info-logout-error" role="alert">로그아웃에 실패했어요. 다시 시도해 주세요.</p>}
       </div>
     </div>
   );

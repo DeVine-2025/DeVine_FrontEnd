@@ -1,0 +1,42 @@
+.developer-explore-card { position: relative; display: grid; grid-template-columns: minmax(0, .45fr) minmax(0, .55fr); column-gap: 28px; padding: 22px 32px 0; min-width: 0; overflow: hidden; border: 1px solid var(--project-divider); border-radius: 18px; background: var(--surface-filter); color: var(--text-main); transition: border-color .2s ease; }
+.developer-explore-card:hover { border-color: var(--project-border-hover); }
+.developer-card-identity { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: 24px; min-width: 0; padding: 0 48px 0 0; }
+.developer-explore-avatar { width: 88px; height: 88px; margin-top: 5px; flex: none; border: 1px solid var(--project-divider); border-radius: 50%; background: var(--surface-image); object-fit: cover; }
+.developer-card-person { min-width: 0; padding-top: 4px; }
+.developer-card-person h2 { margin: 0; overflow-wrap: anywhere; text-wrap: balance; color: var(--text-main); font-size: 20px; font-weight: 600; letter-spacing: -.025em; line-height: 1.4; }
+.developer-card-person .position-badge { margin-bottom: 8px; }
+.developer-explore-card .developer-explore-bookmark { position: absolute; top: 20px; right: 16px; z-index: 2; width: 40px; height: 40px; }
+.developer-card-introduction { margin-top: 12px; min-width: 0; }
+.developer-card-introduction > p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin: 0; max-width: 42ch; color: var(--text-secondary); font-size: 14px; font-weight: 400; letter-spacing: -.015em; line-height: 1.65; word-break: keep-all; overflow-wrap: anywhere; white-space: pre-line; }
+.developer-card-experience { min-width: 0; min-height: 128px; padding: 0 48px 0 24px; }
+.developer-card-work-toggle { position: relative; z-index: 2; display: flex; align-items: center; gap: 14px; width: 100%; padding: 0; border: 0; background: transparent; color: var(--text-main); text-align: left; cursor: pointer; }
+.developer-card-work-label { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+.developer-card-work-toggle strong { display: block; color: var(--text-main); font-size: 18px; font-weight: 600; line-height: 1.45; letter-spacing: -.02em; word-break: keep-all; overflow-wrap: anywhere; }
+.developer-card-work-toggle:hover strong { color: var(--project-accent); }
+.developer-card-work-description { margin-top: 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.7; }
+.developer-card-skills { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; margin: 0; padding: 0 48px 0 24px; }
+.developer-card-skills > div { min-width: 0; }
+.developer-explore-card .explore-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.developer-explore-card .explore-tech-badge, .developer-card-skills-more { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; gap: 6px; padding: 4px 10px; border: 1px solid color-mix(in srgb, var(--project-accent) 24%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--surface-badge) 35%, var(--surface-filter)); color: var(--text-main); font-size: 12px; font-weight: 500; line-height: 1.5; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-main) 4%, transparent); }
+.developer-explore-card .explore-tech-badge img { display: block; width: 14px; height: 14px; flex: none; object-fit: contain; }
+.developer-card-skills-more { position: relative; z-index: 2; cursor: pointer; }
+.developer-card-skills-more { color: var(--text-secondary); transition: border-color .18s ease, color .18s ease, background-color .18s ease; }
+.developer-card-skills-more:hover { border-color: var(--project-border-hover); background: color-mix(in srgb, var(--project-accent) 8%, var(--surface-filter)); color: var(--project-accent); }
+.developer-card-skills-empty { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+.developer-card-footer { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, .45fr) minmax(0, .55fr); column-gap: 28px; align-items: center; min-width: 0; min-height: 48px; padding: 8px 0; margin-top: 14px; border-top: 1px solid color-mix(in srgb, var(--project-divider) 50%, transparent); }
+.developer-card-conditions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 20px; color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.developer-card-conditions > span { display: inline-flex; align-items: center; gap: 8px; }
+.developer-card-conditions svg { width: 15px; height: 15px; flex: none; }
+.developer-card-work-toggle:active, .developer-card-skills-more:active { opacity: .75; }
+.developer-card-work-toggle:focus-visible, .developer-card-skills-more:focus-visible, .developer-explore-bookmark:focus-visible { outline: 2px solid var(--project-accent); outline-offset: 4px; border-radius: 4px; }
+.developer-card--grid { grid-template-columns: minmax(0, 1fr); padding: 24px 24px 0; }
+.developer-card--grid .developer-card-identity { padding-right: 32px; }
+.developer-card--grid .developer-card-experience { margin-top: 20px; padding: 16px 0 0; border-left: 0; border-top: 1px solid color-mix(in srgb, var(--project-divider) 50%, transparent); }
+.developer-card--grid .developer-card-footer { align-self: end; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 12px 0; }
+.developer-card--grid .developer-card-skills { padding: 0; }
+
+.developer-card-profile-link { color: inherit; text-decoration: none; }
+.developer-card-profile-link::after { content: ''; position: absolute; inset: 0; z-index: 1; border-radius: inherit; cursor: pointer; }
+.developer-card-profile-link:focus-visible { outline: none; }
+.developer-card-profile-link:focus-visible::after { outline: 2px solid var(--project-accent); outline-offset: -3px; }
+@media (prefers-reduced-motion: reduce) { .developer-explore-card, .developer-card-skills-more { transition: none; } }

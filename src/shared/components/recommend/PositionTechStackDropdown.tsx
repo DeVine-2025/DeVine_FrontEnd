@@ -1,5 +1,4 @@
 import SelectAllIcon from '@assets/icons/select-all.svg?react';
-import LoadingSpinner from '@components/common/LoadingSpinner';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import {
   formatTechstackKey,
@@ -395,7 +394,7 @@ export default function PositionTechStackDropdown({
       >
         {isLoading ? (
           <div className="flex justify-center py-10">
-            <LoadingSpinner size="md" />
+            <span role="status" className="text-sm text-[var(--text-secondary)]">불러오는 중...</span>
           </div>
         ) : genreGroups.length === 0 ? (
           <p className="Caption1 text-[var(--ui-400)]">기술스택 목록이 없습니다.</p>

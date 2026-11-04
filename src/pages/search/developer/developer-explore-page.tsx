@@ -1,3 +1,4 @@
+import ViewToggle from '@components/common/ViewToggle';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -13,8 +14,8 @@ import { normalizeTechstackKey, TECHSTACK_KEY_TO_NAME, PROJECT_TYPE_TO_FIELD } f
 import { DOMAIN_LABEL_TO_CODE } from '@t/member';
 import ExploreTabs from '../explore-tabs';
 import ExploreSelectedFilters from '../explore-selected-filters';
-import { getTechDisplayName } from '../project/explore-tech-badges';
-import DeveloperCollaborationCard from './developer-collaboration-card';
+import { getTechDisplayName } from '@components/cards/TechStackBadges';
+import DeveloperCard from '@components/cards/DeveloperCard';
 import '../project/project-explore-page.css';
 import './developer-explore-page.css';
 
@@ -33,7 +34,7 @@ function FilterGroup({ title, children, initialOpen = false }: { title: string; 
   </section>;
 }
 
-export default function DeveloperExplorePage() {
+export default function DeveloperExplorePage({ mode = 'search' }: { mode?: 'search' | 'recommend' }) {
   const { getToken } = useAuth();
   const navigate = useNavigate();
   const [techs, setTechs] = useState<string[]>([]);
@@ -140,7 +141,7 @@ export default function DeveloperExplorePage() {
   };
 
   return <div className="project-explore developer-explore">
-    <Helmet><title>개발자 탐색 | Devine</title></Helmet>
+    <Helmet><title>개발자 {mode === 'recommend' ? '추천' : '탐색'} | Devine</title></Helmet>
     <aside className="explore-sidebar" aria-label="개발자 필터">
       <div className="explore-sidebar-title"><strong>필터</strong><button type="button" onClick={() => { setTechs([]); setDomains([]); setSelectedPositions([]); setTechQuery(''); }}>전체 초기화</button></div>
       <FilterGroup title="포지션" initialOpen>
@@ -165,8 +166,8 @@ export default function DeveloperExplorePage() {
       </FilterGroup>
     </aside>
     <main className="explore-main">
-      <ExploreTabs />
-      <div className="explore-title"><h1>개발자 탐색</h1><p>함께 성장할 개발자를 찾아보세요.</p></div>
+      <div className="explore-title"><h1>{mode === 'recommend' ? '추천' : '탐색'}</h1><p>프로젝트와 함께할 팀원을 찾아보세요.</p></div>
+      <ExploreTabs mode={mode} />
       <label className="explore-search"><SearchIcon aria-hidden="true" /><input ref={searchRef} value={search} onChange={event => setSearch(event.target.value)} placeholder="개발자 이름, 소개, 기술 스택을 검색해보세요." aria-label="개발자 검색" /><kbd>Ctrl / ⌘ K</kbd></label>
       <ExploreSelectedFilters items={[
         ...selectedPositions.map(value => ({ id: 'position:' + value, label: positions.find(position => position.code === value)?.label ?? value, group: '포지션', onRemove: () => toggle(value, setSelectedPositions) })),
@@ -175,13 +176,13 @@ export default function DeveloperExplorePage() {
       ]} onClear={() => { setTechs([]); setDomains([]); setSelectedPositions([]); }} />
       <div className="explore-toolbar developer-explore-toolbar">
         <span className="developer-results-caption" aria-live="polite">{(searchTerm || selectedPositions.length > 0) && query.isFetchNextPageError ? `불러온 목록의 검색 결과 ${developers.length}명` : (searchTerm || selectedPositions.length > 0) && query.hasNextPage ? '전체 개발자 목록에서 검색 중...' : searchTerm ? `검색 결과 ${developers.length}명` : techs.length || domains.length || selectedPositions.length ? '선택한 조건에 맞는 개발자' : ''}</span>
-        <div className="explore-view-toggle" aria-label="보기 방식"><button type="button" aria-label="리스트 보기" title="리스트 보기" aria-pressed={view === 'list'} onClick={() => changeView('list')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01" strokeWidth="3"/></svg></button><button type="button" aria-label="그리드 보기" title="그리드 보기" aria-pressed={view === 'grid'} onClick={() => changeView('grid')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></button></div>
+        <ViewToggle value={view} onChange={changeView} />
       </div>
       <div ref={listRef} className={`developer-explore-list developer-explore-${view}`}>
         {query.isPending && <p className="developer-list-message" role="status">개발자를 불러오고 있어요.</p>}
         {query.isError && !query.data && <div className="developer-list-message" role="alert">개발자를 불러오지 못했어요. <button type="button" onClick={() => void query.refetch()}>다시 시도</button></div>}
         {!query.isPending && !query.isError && !query.hasNextPage && developers.length === 0 && <div className="explore-empty"><strong>조건에 맞는 개발자가 없어요.</strong><p>검색어나 필터를 바꿔 다시 찾아보세요.</p><button type="button" onClick={() => { setTechs([]); setDomains([]); setSelectedPositions([]); setSearch(''); }}>검색 및 필터 초기화</button></div>}
-        {developers.map(developer => <DeveloperCollaborationCard key={developer.member.nickname} developer={developer} bookmarked={bookmarks[developer.member.nickname] != null} pending={pending.has(developer.member.nickname)} onBookmarkChange={next => changeBookmark(developer.member.nickname, next)} />)}
+        {developers.map(developer => <DeveloperCard key={developer.member.nickname} developer={developer} bookmarked={bookmarks[developer.member.nickname] != null} pending={pending.has(developer.member.nickname)} variant={view} showTechStacks={false} onBookmarkChange={next => changeBookmark(developer.member.nickname, next)} />)}
       </div>
       {query.hasNextPage && <div ref={loadMoreRef} className="explore-load-more"><button type="button" disabled={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>{query.isFetchingNextPage ? '불러오는 중...' : '개발자 더 보기'}</button></div>}
       {query.isFetchNextPageError && <p className="developer-list-message" role="alert">추가 결과를 불러오지 못했어요. 더 보기로 다시 시도해 주세요.</p>}

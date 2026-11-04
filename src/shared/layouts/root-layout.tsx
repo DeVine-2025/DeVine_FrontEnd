@@ -27,7 +27,7 @@ const RootLayout = () => {
   const onboardingIncomplete = Boolean(user) && memberQuery.data?.isRegistered === false;
   const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
   const isSsoCallbackRoute = location.pathname === '/sso-callback';
-  const isReportWorkspace = location.pathname.startsWith('/report/detail/') && new URLSearchParams(location.search).get('type') === 'MAIN';
+  const isReportWorkspace = location.pathname.startsWith('/report/detail/');
   const showFooter = !isReportWorkspace && !isSsoCallbackRoute && !['/signup', '/terms/1', '/terms/2'].includes(location.pathname);
   const isOnboardingCompleteNow = memberQuery.data?.isRegistered === true;
   const isAuthOnlyRoute =
@@ -139,7 +139,7 @@ const RootLayout = () => {
     <div className="flex min-h-[100vh] flex-col">
       {!isSsoCallbackRoute && <Header navLocked={navLocked} onLogoClick={handleLogoClick} />}
       <main className={`min-h-[100svh] shrink-0 ${isReportWorkspace ? 'report-workspace-main' : location.pathname === '/' ? 'pt-6 pb-16' : 'py-12'}`}>
-        <div key={location.pathname === '/search/projects' || location.pathname === '/search/developers' ? 'explore' : location.pathname.startsWith('/recommend') ? 'recommend' : location.key} className="page-transition">
+        <div key={location.pathname === '/search/projects' || location.pathname === '/search/developers' ? 'explore' : location.pathname.startsWith('/recommend') ? 'recommend' : location.pathname.startsWith('/report/detail/') ? location.pathname : location.key} className={`page-transition ${location.pathname === '/' || location.pathname.startsWith('/search/') || location.pathname.startsWith('/recommend') ? 'page-transition--collection' : ''}`}>
           <Outlet
             context={{
               setNavLocked,

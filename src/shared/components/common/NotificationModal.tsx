@@ -1,6 +1,5 @@
 import AlarmIcon from '@assets/icons/alarm.svg?react';
 import AlarmLightIcon from '@assets/icons/alarm-light.svg?react';
-import LoadingSpinner from '@components/common/LoadingSpinner';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useThemeStore } from '@store/theme';
 
@@ -141,7 +140,7 @@ const NotificationModal = ({
         >
           {loading ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10" aria-live="polite" aria-busy="true">
-              <LoadingSpinner size="md" />
+              <span role="status" className="text-sm text-[var(--text-secondary)]">불러오는 중...</span>
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 py-8">

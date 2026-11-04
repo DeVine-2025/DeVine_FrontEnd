@@ -1,23 +1,26 @@
 import type { Report, ReportDetailContent, ReportMainContent } from '@apis/report/report';
 import { reportQueries } from '@apis/report/report-queries';
+import { useElasticUnderline } from '@hooks/useElasticUnderline';
 import { useAuth } from '@clerk/clerk-react';
 import MainDetail from '@components/report/MainDetail';
 import ReportDetail from '@components/report/ReportDetail';
 import { useQuery } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { sampleMainReport, sampleDetailReport } from './report-sample-data';
 
 const ReportDetailPage = () => {
   const { getToken } = useAuth();
   const { reportId } = useParams();
+  const location = useLocation();
+  const fromFolder = Boolean((location.state as { fromReportFolder?: boolean } | null)?.fromReportFolder);
   const [searchParams, setSearchParams] = useSearchParams();
+  const { navRef, indicatorRef } = useElasticUnderline(searchParams.get('type') || '');
   const isSamplePreview = import.meta.env.DEV && searchParams.get('preview') === 'sample';
   const isSample = isSamplePreview && searchParams.get('type') === 'MAIN';
   const isSampleDetail = isSamplePreview && searchParams.get('type') === 'DETAIL';
   const selectType = (nextType: 'MAIN' | 'DETAIL') => { const next = new URLSearchParams(searchParams); next.set('type', nextType); setSearchParams(next); };
-  const reportTabs = <nav className="report-type-tabs" aria-label="리포트 종류"><button type="button" aria-current={searchParams.get('type') === 'MAIN' ? 'page' : undefined} onClick={() => selectType('MAIN')}>메인 리포트</button><button type="button" aria-current={searchParams.get('type') === 'DETAIL' ? 'page' : undefined} onClick={() => selectType('DETAIL')}>상세 리포트</button></nav>;
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
@@ -81,27 +84,31 @@ const ReportDetailPage = () => {
     enabled: !!gitRepoId && !!type && !isSample && !isSampleDetail,
   });
   const report = isSample ? sampleMainReport : isSampleDetail ? sampleDetailReport : apiReport;
+  const otherType = type === 'MAIN' ? 'DETAIL' : 'MAIN';
+  const otherReport = useQuery({
+    queryKey: ['report-detail', gitRepoId, otherType],
+    queryFn: async () => {
+      const token = (await getToken()) ?? undefined;
+      return otherType === 'MAIN' ? reportQueries.main({ gitRepoId, token }).queryFn() : reportQueries.detail({ gitRepoId, token }).queryFn();
+    },
+    enabled: !!gitRepoId && (type === 'MAIN' || type === 'DETAIL') && !isSamplePreview,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+  const otherMissing = !isSamplePreview && ((otherReport.isSuccess && !otherReport.data) || (otherReport.isError && /: 404$/.test(otherReport.error.message)));
+  const reportTabs = <nav ref={navRef} className="report-type-tabs" aria-label="리포트 종류">{(['MAIN', 'DETAIL'] as const).map(tabType => <button key={tabType} type="button" aria-current={type === tabType ? 'page' : undefined} disabled={tabType === otherType && otherMissing} title={tabType === otherType && otherMissing ? '아직 생성되지 않은 리포트입니다' : undefined} onClick={() => selectType(tabType)}>{tabType === 'MAIN' ? '메인 리포트' : '상세 리포트'}</button>)}<span ref={indicatorRef} className="report-type-indicator" aria-hidden="true" /></nav>;
 
 
 
-  if (!isSamplePreview && isLoading) return <div className="report-type-shell">{reportTabs}<div className="report-type-message" role="status">리포트를 불러오고 있어요…</div></div>;
-  if ((!isSamplePreview && isError) || !report) return <div className="report-type-shell">{reportTabs}<div className="report-type-message" role="alert">리포트를 불러오지 못했어요. 리포트가 생성되었는지 확인하거나 잠시 후 다시 시도해 주세요.{import.meta.env.DEV && <button className="rw-preview-link" onClick={() => setSearchParams({ type: 'MAIN', preview: 'sample' })}>샘플 리포트 보기</button>}</div></div>;
-
-  const content = report?.content;
-  if (!content) return null;
-
-  if (report.reportType === 'MAIN') return (
-    <div className="rw-full-page">
-      {reportTabs}
-      {isSamplePreview && <p className="rw-sample-notice" role="status">디자인 미리보기 · Eternal-FE 이터널마케팅 샘플 데이터</p>}
-      <div ref={printRef} className="report-print-content report-print-main"><MainDetail data={content as unknown as ReportMainContent} onPrint={handlePrint} repoUrl={report.gitRepoUrl} /></div>
-    </div>
-  );
-
-  return <div className="rw-full-page">
+  return <div className={`rw-full-page ${fromFolder ? 'report-folder-arrival' : ''}`}>
     {reportTabs}
-    {isSamplePreview && <p className="rw-sample-notice" role="status">디자인 미리보기 · 기존 메인 리포트를 바탕으로 구성한 예시이며 새 코드 분석 결과가 아닙니다.</p>}
-    <div ref={printRef} className="report-print-content report-print-detail"><ReportDetail data={content as unknown as ReportDetailContent} onPrint={handlePrint} repoUrl={report.gitRepoUrl}/></div>
+    {!isSamplePreview && isLoading ? <div className="report-type-message" role="status">리포트를 불러오고 있어요…</div> :
+      ((!isSamplePreview && isError) || !report) ? <div className="report-type-message" role="alert">리포트를 불러오지 못했어요. 리포트가 생성되었는지 확인하거나 잠시 후 다시 시도해 주세요.{import.meta.env.DEV && <button className="rw-preview-link" onClick={() => setSearchParams({ type: 'MAIN', preview: 'sample' })}>샘플 리포트 보기</button>}</div> :
+      report.reportType === 'MAIN' ? <>
+        <div ref={printRef} className="report-print-content report-print-main"><MainDetail data={report.content as ReportMainContent} onPrint={handlePrint} repoUrl={report.gitRepoUrl} /></div>
+      </> : <>
+        <div ref={printRef} className="report-print-content report-print-detail"><ReportDetail data={report.content as ReportDetailContent} onPrint={handlePrint} repoUrl={report.gitRepoUrl}/></div>
+      </>}
   </div>;
 };
 

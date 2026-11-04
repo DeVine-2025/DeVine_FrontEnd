@@ -106,7 +106,7 @@ export default function PositionBasedTechStackDropdown({
         type="button"
         onClick={() => toggle(b.key)}
         className={`inline-flex h-[36px] items-center gap-[8px] rounded-[24px] border px-[12px] py-[8px] text-left transition-transform duration-150 ease-out active:scale-[0.98] ${
-          isOn ? 'border-[#6654F5] bg-ui-100' : 'border-ui-200 bg-ui-100'
+          isOn ? 'border-[var(--project-create-accent,#6654F5)] bg-ui-100' : 'border-ui-200 bg-ui-100'
         }`}
       >
         <span className="Caption1 font-medium text-ui-800">{b.label}</span>
@@ -130,8 +130,8 @@ export default function PositionBasedTechStackDropdown({
           onClick={toggleAll}
           className={`inline-flex items-center gap-[4px] transition-colors duration-150 ${
             allSelected
-              ? 'text-[#6654F5] [&_path]:!stroke-[#6654F5]'
-              : 'text-[var(--ui-500)] hover:text-[#6654F5] hover:[&_path]:!stroke-[#6654F5]'
+              ? 'text-[var(--project-create-accent,#6654F5)] [&_path]:!stroke-[var(--project-create-accent,#6654F5)]'
+              : 'text-[var(--ui-500)] hover:text-[var(--project-create-accent,#6654F5)] hover:[&_path]:!stroke-[var(--project-create-accent,#6654F5)]'
           }`}
         >
           <span aria-hidden className="inline-flex h-[20px] w-[20px] items-center justify-center">
@@ -202,7 +202,7 @@ export default function PositionBasedTechStackDropdown({
             onApply?.();
             onClose();
           }}
-          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-[#6654F5] px-[10px] text-white"
+          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-[var(--project-create-accent,#6654F5)] px-[10px] text-[var(--project-create-accent-foreground,white)]"
         >
           저장
         </button>

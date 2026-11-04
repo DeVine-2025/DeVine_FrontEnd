@@ -1,0 +1,66 @@
+.my-info-workspace { width: min(calc(100% - 48px), 1280px); margin: 24px auto 64px; color: var(--text-main); }
+.my-info-hero { display: flex; align-items: flex-start; gap: 24px; margin-bottom: 28px; }
+.my-info-hero .my-info-avatar { width: 96px; height: 96px; }
+.my-info-identity { flex: 1; min-width: 0; }
+.my-info-identity h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.my-info-identity p { margin: 8px 0 0; color: var(--text-secondary); font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.my-info-domains { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 13px; color: var(--text-secondary); }
+.my-info-domains span { padding: 2px 8px; border-radius: 12px; background: var(--surface-badge); color: var(--text-main); }
+.my-info-control { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 14px; border: 1px solid var(--project-control-border); border-radius: 9px; color: var(--text-main); background: var(--surface-filter); font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.my-info-control:hover { background: var(--surface-badge); }
+.my-info-tabs { display: flex; gap: 12px; overflow-x: auto; margin-bottom: 24px; border-bottom: 1px solid var(--surface-badge); }
+.my-info-tabs a { min-width: 72px; padding: 12px 14px; border-bottom: 2px solid transparent; color: var(--text-secondary); font-size: 14px; font-weight: 600; text-align: center; text-decoration: none; white-space: nowrap; }
+.my-info-tabs a:hover { color: var(--text-main); }
+.my-info-tabs a[aria-current='page'] { border-bottom-color: var(--project-accent); color: var(--text-main); }
+.my-info-dashboard { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: 24px; }
+.my-info-dashboard--single { grid-template-columns: minmax(0, 1fr); }
+.my-info-column { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.my-info-panel { min-width: 0; padding: 20px; border: 1px solid var(--surface-badge); border-radius: 14px; background: var(--surface-filter); }
+.my-info-panel h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; font-size: 17px; font-weight: 650; }
+.my-info-panel h2 svg { color: var(--project-accent); flex: none; }
+.my-info-activity > div { border: 0; padding: 0; }
+.my-info-panel-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.my-info-panel-header h2 { margin: 0; }
+.my-info-panel-header a, .my-info-accounts a { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 12px; text-decoration: none; white-space: nowrap; }
+.my-info-panel-header a:hover, .my-info-accounts a:hover { color: var(--project-accent); }
+.my-info-repos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.my-info-repo { position: relative; padding: 14px 40px 14px 14px; border: 1px solid var(--surface-badge); border-radius: 10px; background: var(--surface-card); }
+.my-info-repo h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; font-weight: 650; overflow-wrap: anywhere; }
+.my-info-repo h3 svg { flex: none; color: var(--project-accent); }
+.my-info-repo p, .my-info-muted { margin: 8px 0 0; color: var(--text-secondary); font-size: 13px; overflow-wrap: anywhere; }
+.my-info-repo > a { position: absolute; top: 14px; right: 14px; color: var(--text-secondary); }
+.my-info-load { margin-top: 12px; }
+.my-info-report-list { padding: 0; margin: 0; list-style: none; }
+.my-info-report-list a { display: flex; align-items: center; gap: 12px; padding: 10px 4px; border-top: 1px solid var(--surface-badge); color: var(--text-main); text-decoration: none; font-size: 13px; }
+.my-info-report-list a:hover { background: var(--surface-card); }
+.my-info-report-list strong { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.my-info-report-list time, .my-info-report-list svg { color: var(--text-secondary); flex: none; }
+.my-info-report-badge { flex: none; padding: 3px 8px; border-radius: 6px; background: color-mix(in srgb, var(--project-accent) 15%, var(--surface-filter)); color: var(--project-accent); font-size: 12px; }
+.my-info-accounts { display: grid; gap: 12px; margin: 0; }
+.my-info-accounts > div { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; }
+.my-info-accounts dt { display: flex; align-items: center; gap: 8px; flex: none; }
+.my-info-accounts dd { margin: 0; color: var(--text-secondary); text-align: right; overflow-wrap: anywhere; }
+.my-info-workspace :is(a, button, summary):focus-visible { outline: 2px solid var(--project-accent); outline-offset: 2px; }
+@media (max-width: 800px) { .my-info-dashboard { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 540px) {
+  .my-info-workspace { width: calc(100% - 32px); }
+  .my-info-hero { flex-wrap: wrap; gap: 12px; }
+  .my-info-hero .my-info-avatar { width: 64px; height: 64px; }
+  .my-info-tabs { gap: 0; }
+  .my-info-repos { grid-template-columns: minmax(0, 1fr); }
+}
+
+.my-info-settings { display: grid; }
+.my-info-settings > div { padding: 16px 0; gap: 16px; }
+.my-info-settings > div + div { border-top: 1px solid var(--surface-badge); }
+.my-info-settings-accounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 20px; }
+.my-info-settings-accounts > div { gap: 12px; }
+
+.my-info-name-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 8px; }
+.my-info-control.my-info-edit { min-height: 34px; padding: 6px 10px; color: var(--project-accent); background: color-mix(in srgb, var(--project-accent) 8%, var(--surface-filter)); }
+.my-info-control.my-info-edit:hover { border-color: var(--project-accent); }
+.my-info-session { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.my-info-control.my-info-logout, .my-info-logout-error { color: var(--form-error); }
+.my-info-control.my-info-logout:hover { border-color: var(--form-error); }
+.my-info-control.my-info-logout:disabled { opacity: .6; cursor: default; }
+.my-info-logout-error { flex-basis: 100%; font-size: 13px; }

@@ -1,4 +1,3 @@
-import LoadingSpinner from '@components/common/LoadingSpinner';
 
 type Props = {
   type: 'loading' | 'error' | 'empty';
@@ -9,7 +8,7 @@ export default function ProjectListState({ type, onRetry }: Props) {
   if (type === 'loading') {
     return (
       <div className="flex justify-center pt-48 pb-20">
-        <LoadingSpinner size="lg" />
+        <span role="status" className="text-sm text-[var(--text-secondary)]">불러오는 중...</span>
       </div>
     );
   }

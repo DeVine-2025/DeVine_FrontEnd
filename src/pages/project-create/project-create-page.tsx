@@ -49,6 +49,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { MY_RECRUITING_PROJECTS_QUERY_KEY } from '@hooks/useMyRecruitingProjects';
 import { cn } from '@libs/cn';
+import './project-create-colors.css';
 
 type SvgIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -89,7 +90,7 @@ function InputLike({ placeholder, value }: { placeholder: string; value?: string
       value={value ?? ''}
       placeholder={placeholder}
       onChange={() => {}}
-      className="Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:border-[#6654F5] focus:outline-none"
+      className="Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:border-[var(--project-create-accent,#6654F5)] focus:outline-none"
     />
   );
 }
@@ -117,8 +118,8 @@ function InputField({
       className={cn(
         'Caption1 h-[48px] w-full rounded-[12px] border bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:outline-none',
         error
-          ? 'border-form-error focus:border-[#6654F5]'
-          : 'border-[var(--ui-200)] focus:border-[#6654F5]',
+          ? 'border-form-error focus:border-[var(--project-create-accent,#6654F5)]'
+          : 'border-[var(--ui-200)] focus:border-[var(--project-create-accent,#6654F5)]',
       )}
     />
   );
@@ -907,7 +908,7 @@ const ProjectCreatePage = () => {
   };
 
   return (
-    <div className="-mx-6 -my-8">
+    <div className="project-create-colors -mx-6 -my-8">
       <section className="bg-[var(--ui-bg)]">
         <div className="mx-auto w-full max-w-[1018px] px-6 py-[36px]">
           <h1 className="Title3 font-bold text-[var(--ui-900)]">
@@ -926,7 +927,7 @@ const ProjectCreatePage = () => {
         </div>
       </section>
 
-      <section className="-translate-x-1/2 relative left-1/2 w-screen bg-[var(--ui-50)] py-[64px]">
+      <section className="-translate-x-1/2 relative left-1/2 w-screen bg-[var(--surface-page)] py-[64px]">
         <div className="mx-auto w-full max-w-[1018px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-6 py-[40px]">
           <div className="mx-auto w-full max-w-[922px]">
             <div className="flex flex-col gap-[64px]">
@@ -1127,7 +1128,7 @@ const ProjectCreatePage = () => {
                               disabled={!positionKey}
                               onClick={() => setTechStackOpen((v) => !v)}
                               className={`relative flex h-[44px] w-full items-center rounded-[12px] border bg-ui-bg px-[12px] text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-                                techStackOpen ? 'border-[#6654F5]' : 'border-ui-200'
+                                techStackOpen ? 'border-[var(--project-create-accent,#6654F5)]' : 'border-ui-200'
                               }`}
                             >
                               {techStack.length ? (
@@ -1166,12 +1167,12 @@ const ProjectCreatePage = () => {
                           disabled={!canSaveRecruitment}
                           onClick={onSaveRecruitment}
                           className={`flex h-[44px] w-[80px] items-center justify-center rounded-[12px] px-[12px] py-[10px] max-[1100px]:w-full ${
-                            canSaveRecruitment ? 'cursor-pointer bg-[#6654F5]' : 'bg-[var(--ui-50)]'
+                            canSaveRecruitment ? 'cursor-pointer bg-[var(--project-create-accent,#6654F5)]' : 'bg-[var(--ui-50)]'
                           }`}
                         >
                           <span
                             className={`Body1 font-base ${
-                              canSaveRecruitment ? 'text-white' : 'text-[var(--ui-400)]'
+                              canSaveRecruitment ? 'text-[var(--surface-page)]' : 'text-[var(--ui-400)]'
                             }`}
                           >
                             저장
@@ -1426,7 +1427,7 @@ const ProjectCreatePage = () => {
                       type="button"
                       disabled={submitLoading}
                       onClick={handleSubmit}
-                      className="Body1 h-[48px] w-[270px] cursor-pointer rounded-[12px] bg-[#6654F5] font-medium text-white transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
+                      className="Body1 h-[48px] w-[270px] cursor-pointer rounded-[12px] bg-[var(--project-create-accent,#6654F5)] font-medium text-[var(--surface-page)] transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
                     >
                       {submitLoading
                         ? isEditMode

@@ -1,4 +1,5 @@
 import react from '@assets/stackLogo/React.svg';
+import './tech-stack-badges.css';
 import reactNative from '@assets/stackLogo/Reactnative.svg';
 import typescript from '@assets/stackLogo/Typescript.svg';
 import node from '@assets/stackLogo/Nodejs.svg';
@@ -50,7 +51,7 @@ export function getTechDisplayName(name: string) {
   return displayNames[name.toLowerCase().replace(/[\s._-]/g, '')] ?? name;
 }
 
-export default function ExploreTechBadges({ stacks }: { stacks: string[] }) {
+export default function TechStackBadges({ stacks }: { stacks: string[] }) {
   return <div className="explore-tags">{stacks.map(name => {
     return <span className="explore-tech-badge" key={name}><ExploreTechIcon name={name} /><span>{getTechDisplayName(name)}</span></span>;
   })}</div>;

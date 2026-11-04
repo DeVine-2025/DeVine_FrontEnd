@@ -1,0 +1,20 @@
+.project-create-colors {
+  --project-create-accent: var(--project-accent);
+  --project-create-accent-foreground: var(--surface-page);
+}
+
+.project-create-colors .date-picker-popover .rdp-root {
+  --rdp-accent-color: var(--project-create-accent);
+  --rdp-accent-background-color: var(--project-create-accent);
+  --rdp-today-color: var(--project-create-accent);
+  --rdp-range_start-date-background-color: var(--project-create-accent);
+  --rdp-range_end-date-background-color: var(--project-create-accent);
+  --rdp-range_middle-background-color: color-mix(in srgb, var(--project-create-accent) 20%, transparent);
+}
+
+.project-create-colors .date-picker-popover .rdp-selected .rdp-day_button,
+.project-create-colors .date-picker-popover .rdp-day_button.rdp-selected {
+  color: var(--project-create-accent-foreground) !important;
+}
+
+.project-create-colors .date-picker-popover .text-primary { color: var(--project-create-accent); }

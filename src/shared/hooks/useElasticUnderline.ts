@@ -16,7 +16,7 @@ export function animateElasticUnderline(indicator: HTMLElement, from: Edges, tar
 }
 
 /** Animates one shared underline between the active links in a navigation group. */
-export function useElasticUnderline(activeKey: string) {
+export function useElasticUnderline(activeKey: string, activeSelector = '[aria-current="page"]') {
   const navRef = useRef<HTMLElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
@@ -26,7 +26,7 @@ export function useElasticUnderline(activeKey: string) {
     const nav = navRef.current;
     const indicator = indicatorRef.current;
     if (!nav || !indicator) return;
-    const active = nav.querySelector<HTMLElement>('[aria-current="page"]');
+    const active = nav.querySelector<HTMLElement>(activeSelector);
     if (!active) {
       timelineRef.current?.kill();
       targetRef.current = null;
@@ -48,14 +48,14 @@ export function useElasticUnderline(activeKey: string) {
     }
 
     timelineRef.current = animateElasticUnderline(indicator, { left: current.left - navRect.left - nav.clientLeft, right: current.right - navRect.left - nav.clientLeft }, target);
-  }, [activeKey]);
+  }, [activeKey, activeSelector]);
 
   useLayoutEffect(() => {
     const nav = navRef.current;
     const indicator = indicatorRef.current;
     if (!nav || !indicator) return;
     const resize = () => {
-      const active = nav.querySelector<HTMLElement>('[aria-current="page"]');
+      const active = nav.querySelector<HTMLElement>(activeSelector);
       if (!active) return;
       const navRect = nav.getBoundingClientRect();
       const rect = active.getBoundingClientRect();
@@ -67,14 +67,14 @@ export function useElasticUnderline(activeKey: string) {
     };
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resize);
     observer?.observe(nav);
-    nav.querySelectorAll('a').forEach(link => observer?.observe(link));
+    nav.querySelectorAll('a, button').forEach(item => observer?.observe(item));
     window.addEventListener('resize', resize);
     return () => {
       observer?.disconnect();
       window.removeEventListener('resize', resize);
       timelineRef.current?.kill();
     };
-  }, []);
+  }, [activeSelector]);
 
   return { navRef, indicatorRef };
 }

@@ -6,7 +6,7 @@ import './explore-tabs.css';
 
 let pendingIndicator: { target: string; left: number; width: number } | null = null;
 
-export default function ExploreTabs() {
+export default function ExploreTabs({ mode = 'search' }: { mode?: 'search' | 'recommend' }) {
   const navRef = useRef<HTMLElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const transitionRef = useRef<typeof pendingIndicator>(null);
@@ -89,9 +89,11 @@ export default function ExploreTabs() {
     pendingIndicator = { target, left: rect.left - nav.getBoundingClientRect().left, width: rect.width };
   };
 
-  return <nav ref={navRef} className="explore-tabs" aria-label="탐색 대상">
-    <NavLink to="/search/projects" onClick={event => rememberPosition(event, '/search/projects')} className={({ isActive }) => isActive ? 'is-active' : undefined}>프로젝트</NavLink>
-    <NavLink to="/search/developers" onClick={event => rememberPosition(event, '/search/developers')} className={({ isActive }) => isActive ? 'is-active' : undefined}>개발자</NavLink>
+  const projectPath = mode === 'recommend' ? '/recommend/project' : '/search/projects';
+  const developerPath = mode === 'recommend' ? '/recommend/developer' : '/search/developers';
+  return <nav ref={navRef} className="explore-tabs" aria-label={mode === 'recommend' ? '추천 대상' : '탐색 대상'}>
+    <NavLink to={projectPath} onClick={event => rememberPosition(event, projectPath)} className={({ isActive }) => isActive ? 'is-active' : undefined}>프로젝트</NavLink>
+    <NavLink to={developerPath} onClick={event => rememberPosition(event, developerPath)} className={({ isActive }) => isActive ? 'is-active' : undefined}>개발자</NavLink>
     <span ref={indicatorRef} className="explore-tabs-indicator" aria-hidden="true" />
   </nav>;
 }

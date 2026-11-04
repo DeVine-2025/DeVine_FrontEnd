@@ -87,6 +87,5 @@ const previewAssignments: Record<string, number> = {
 export function getCollaborationPreview(nickname: string): CollaborationPreview {
   const hash = Array.from(nickname).reduce((value, character) => ((value * 31) + (character.codePointAt(0) ?? 0)) >>> 0, 0);
   const index = Object.hasOwn(previewAssignments, nickname) ? previewAssignments[nickname] : hash % previews.length;
-  return previews[index];
+  return nickname === '서지민' ? { ...previews[index], method: '오프라인 협업' } : previews[index];
 }
-
