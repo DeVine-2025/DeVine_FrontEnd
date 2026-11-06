@@ -41,13 +41,13 @@ export default function HorizonBackground() {
   }, []);
   return <svg ref={svgRef} className="horizon-background" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true" focusable="false">
     <defs>
-      <radialGradient id={`${id}-sky`} cx="56%" cy="60%" r="50%"><stop stopColor="#4E49FF" stopOpacity=".13"/><stop offset=".65" stopColor="#252052" stopOpacity=".06"/><stop offset="1" stopColor="#0B0C0F" stopOpacity="0"/></radialGradient>
+      <radialGradient id={`${id}-sky`} cx="56%" cy="60%" r="50%"><stop stopColor="#4E49FF" stopOpacity=".13"/><stop offset=".65" stopColor="#252052" stopOpacity=".06"/><stop offset="1" stopColor="#101116" stopOpacity="0"/></radialGradient>
       <linearGradient id={`${id}-rim`} x1="0" y1="0" x2="1440" y2="0" gradientUnits="userSpaceOnUse"><stop stopColor="#847aff" stopOpacity=".55"/><stop offset=".35" stopColor="#bdb6ff" stopOpacity=".9"/><stop offset=".57" stopColor="#e3e0ff"/><stop offset=".8" stopColor="#afa7ff" stopOpacity=".85"/><stop offset="1" stopColor="#847aff" stopOpacity=".55"/></linearGradient>
       <radialGradient id={`${id}-sun`}><stop stopColor="#ddd8ff" stopOpacity=".42"/><stop offset=".2" stopColor="#aaa0ff" stopOpacity=".22"/><stop offset=".65" stopColor="#4E49FF" stopOpacity=".05"/><stop offset="1" stopColor="#4E49FF" stopOpacity="0"/></radialGradient>
       <filter id={`${id}-soft`} x="-30%" y="-80%" width="160%" height="260%"><feGaussianBlur stdDeviation="30"/></filter>
       <filter id={`${id}-near`} x="-10%" y="-40%" width="120%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
       <filter id={`${id}-aurora`} x="-20%" y="-30%" width="140%" height="160%"><feTurbulence type="fractalNoise" baseFrequency=".008 .035" numOctaves="2" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="28" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur stdDeviation="12"/></filter>
-      <linearGradient id={`${id}-planet`} x1="0" y1="500" x2="0" y2="900" gradientUnits="userSpaceOnUse"><stop stopColor="#0a090f"/><stop offset=".6" stopColor="#0B0C0F"/></linearGradient>
+      <linearGradient id={`${id}-planet`} x1="0" y1="500" x2="0" y2="900" gradientUnits="userSpaceOnUse"><stop stopColor="#101116"/><stop offset=".6" stopColor="#101116"/></linearGradient>
     </defs>
     <rect width="1440" height="900" fill={`url(#${id}-sky)`}/>
     <g className="horizon-atmosphere" fill="none">

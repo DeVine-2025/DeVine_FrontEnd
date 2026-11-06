@@ -52,11 +52,11 @@ const DEFAULT_HERO_BADGE = (
 
 const DEFAULT_HERO_MOCKUP = (
   <Screenshot
-    srcLight="/launch-ui/dashboard-light.png"
-    srcDark="/launch-ui/dashboard-dark.png"
-    alt="Launch UI app screenshot"
-    width={1248}
-    height={765}
+    srcLight="/launch-ui/devine-explore.png"
+    srcDark="/launch-ui/devine-explore.png"
+    alt="DeVine 프로젝트 탐색 화면 미리보기"
+    width={1440}
+    height={900}
     loading="eager"
     className="w-full"
   />
