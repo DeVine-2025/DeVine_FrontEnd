@@ -39,16 +39,29 @@ import {
   SsoCallbackPage,
   TermsPage,
 } from '@pages';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import HomePage from '../../pages/home/home-page';
 import ProjectExplorePage from '../../pages/search/project/project-explore-page';
 import DeveloperExplorePage from '../../pages/search/developer/developer-explore-page';
 import RecommendationLayout from '../../pages/recommend/recommendation-layout';
 import RecommendationProjects from '../../pages/recommend/recommendation-projects';
 import RecommendationDevelopers from '../../pages/recommend/recommendation-developers';
+import AgreementList from '../../pages/signup/AgreementList';
+
+function HomeEntry() {
+  const { isLoaded, isSignedIn } = useAuth();
+  if (!isLoaded) return null;
+  return isSignedIn ? <HomePage /> : <Navigate to="/service" replace />;
+}
 
 export const router = createBrowserRouter([
   ...adminRoutes,
+  ...(import.meta.env.DEV ? [{
+    path: '/signup-preview',
+    element: <Outlet context={{ setNavLocked: () => {}, setLogoClickHandler: () => {}, onboardingIncomplete: false, openOnboardingModal: () => {} }} />,
+    children: [{ index: true, element: <AgreementList preview loginProvider="github" onConfirm={() => {}} /> }],
+  }] : []),
   {
     path: '/service',
     element: <ServicePage />,
@@ -56,7 +69,8 @@ export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
-      { index: true, element: <HomePage /> },
+      { index: true, element: <HomeEntry /> },
+      { path: 'home', element: <HomePage /> },
       {
         path: 'home-original',
         element: (

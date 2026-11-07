@@ -22,6 +22,7 @@ export default function CommonTabs<T extends string>({
           <button
             key={t.value}
             type="button"
+            aria-pressed={active}
             onClick={() => onChange(t.value)}
             className={[
               'cursor-pointer rounded-full border px-7 py-3 font-medium text-[15px] transition',

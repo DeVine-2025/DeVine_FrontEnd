@@ -6,17 +6,24 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
 import { useBookmarks } from '@hooks/useBookmarks';
 import { getRecommendMembers } from '@apis/members';
+import { normalizeTechstackName } from '@apis/techstacks';
 import { createBookmark, deleteBookmark } from '@apis/bookmarks';
 import { getCollaborationPreview } from '@components/cards/developer-collaboration-preview';
-import { ExploreTechIcon } from '@components/cards/TechStackBadges';
 import DeveloperCard from '@components/cards/DeveloperCard';
+import TechStackPicker from '@components/common/TechStackPicker';
 import ViewToggle from '@components/common/ViewToggle';
-import { ArrowRight, Folder, Check, SearchX } from 'lucide-react';
+import {
+  ArrowRight, CalendarClock, CalendarDays, CalendarRange, Check, ChevronDown, Clock3,
+  CodeXml, Folder, Globe, Layers2, MapPin, Monitor, SearchX, Server, UsersRound,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SearchIcon from '@assets/icons/search.svg?react';
 import '../search/project/project-explore-page.css';
 import '../search/developer/developer-explore-page.css';
 import { RecommendationMenu, RecommendationSkeleton, RecommendationState } from './recommendation-ui';
+
+const emptyFilters = { method: '', schedule: '', position: '', stack: [] as string[] };
+const stackKey = (name: string) => normalizeTechstackName(name).replace(/_/g, '');
 
 export default function RecommendationDevelopers() {
   const { isSignedIn, isLoaded, getToken, userId } = useAuth();
@@ -25,10 +32,12 @@ export default function RecommendationDevelopers() {
   const [selected, setSelected] = useState('');
   const [view, setView] = useState<'list' | 'grid'>('grid');
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState({ method: '', schedule: '', position: '', stack: '' });
-  const filtersActive = Object.values(filters).some(Boolean);
+  const [filters, setFilters] = useState(emptyFilters);
+  const [stackPickerOpen, setStackPickerOpen] = useState(false);
+  const selectedStacks = new Set(filters.stack.map(stackKey));
+  const filtersActive = Boolean(filters.method || filters.schedule || filters.position || selectedStacks.size);
   const hasSearchConditions = filtersActive || Boolean(search.trim());
-  const resetFilters = () => setFilters({ method: '', schedule: '', position: '', stack: '' });
+  const resetFilters = () => setFilters(emptyFilters);
   const options = [...sampleTeamProjects, ...(projects.data ?? [])];
   const [sampleBookmarks, setSampleBookmarks] = useState<string[]>([]);
   const [sampleDeveloper, setSampleDeveloper] = useState<RecommendDeveloperListItem | null>(null);
@@ -58,12 +67,32 @@ export default function RecommendationDevelopers() {
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage]);
   const candidates = isSample ? getSampleTeamDevelopers(project.projectId) : realList;
-  const stackOptions = [...new Set(candidates.flatMap(developer => developer.techStack.map(stack => stack.name)))].sort((a, b) => a.localeCompare(b));
   const filterGroups = [
-    { key: 'schedule', label: '가능 시간대', options: ['평일 저녁', '주말 중심', '일정 협의'] },
-    { key: 'stack', label: '기술 스택', options: stackOptions },
-    { key: 'position', label: '포지션', options: ['프론트엔드', '백엔드', '인프라'] },
-    { key: 'method', label: '협업 방식', options: ['온라인 협업', '오프라인 협업', '온·오프라인 협업'] },
+    {
+      key: 'schedule', label: '가능 시간대', Icon: Clock3,
+      options: [
+        { label: '평일 저녁', Icon: CalendarClock },
+        { label: '주말 중심', Icon: CalendarDays },
+        { label: '일정 협의', Icon: CalendarRange },
+      ],
+    },
+    { key: 'stack', label: '기술 스택' },
+    {
+      key: 'position', label: '포지션', Icon: Layers2,
+      options: [
+        { label: '프론트엔드', Icon: Monitor },
+        { label: '백엔드', Icon: CodeXml },
+        { label: '인프라', Icon: Server },
+      ],
+    },
+    {
+      key: 'method', label: '협업 방식', Icon: UsersRound,
+      options: [
+        { label: '온라인 협업', Icon: Globe },
+        { label: '오프라인 협업', Icon: MapPin },
+        { label: '온·오프라인 협업', Icon: Layers2 },
+      ],
+    },
   ] as const;
   const filtered = candidates.filter(developer => {
     const { method, schedule } = getCollaborationPreview(developer.nickname);
@@ -73,7 +102,7 @@ export default function RecommendationDevelopers() {
     return (!filters.method || method === filters.method)
       && (!filters.schedule || schedule === filters.schedule)
       && (!filters.position || position === filters.position)
-      && (!filters.stack || developer.techStack.some(stack => stack.name === filters.stack))
+      && (!selectedStacks.size || developer.techStack.some(stack => selectedStacks.has(stackKey(stack.name))))
       && [developer.nickname, developer.introduction ?? '', ...developer.techStack.map(stack => stack.name)]
         .some(value => value.toLowerCase().includes(search.trim().toLowerCase()));
   });
@@ -97,14 +126,36 @@ export default function RecommendationDevelopers() {
             <ViewToggle value={view} onChange={setView} />
           </div>
           <div className="recommend-position-bar" role="group" aria-label="추천 개발자 필터">
-            {filterGroups.map(({ key, label, options }) => <RecommendationMenu
-              developerFilter
-              key={key}
-              label={filters[key] ? `${label}: ${filters[key]}` : label}
-              value={filters[key]}
-              options={options.map(value => ({ value, label: value, icon: key === 'stack' ? <ExploreTechIcon name={value} className="rec-menu-stack-icon" /> : undefined }))}
-              onChange={value => setFilters(current => ({ ...current, [key]: value }))}
-            />)}
+            {filterGroups.map((group) => group.key === 'stack' ? (
+              <button
+                key={group.key}
+                type="button"
+                className="rec-menu-trigger"
+                aria-haspopup="dialog"
+                data-filter-active={selectedStacks.size > 0 || undefined}
+                onClick={() => setStackPickerOpen(true)}
+              >
+                <span className="rec-menu-trigger-content">
+                  <CodeXml size={14} aria-hidden="true" />
+                  <span className="rec-menu-trigger-label">{group.label}{selectedStacks.size > 0 && ` (${selectedStacks.size})`}</span>
+                </span>
+                <ChevronDown size={14} aria-hidden="true" />
+              </button>
+            ) : (
+              <RecommendationMenu
+                developerFilter
+                key={group.key}
+                label={filters[group.key] ? `${group.label}: ${filters[group.key]}` : group.label}
+                value={filters[group.key]}
+                icon={<group.Icon size={14} aria-hidden="true" />}
+                options={group.options.map(({ label, Icon }) => ({
+                  value: label,
+                  label,
+                  icon: <Icon size={14} aria-hidden="true" />,
+                }))}
+                onChange={value => setFilters(current => ({ ...current, [group.key]: value }))}
+              />
+            ))}
             {filtersActive && <button className="recommend-filter-reset" type="button" onClick={resetFilters}>필터 초기화</button>}
           </div>
       {(!isSample && developers.isPending || (!filtered.length && !!hasNextPage && !isFetchNextPageError)) ? <RecommendationSkeleton /> : !isSample && developers.isError && !developers.data ? <RecommendationState title="추천 개발자를 불러오지 못했어요" description="연결 상태를 확인한 후 다시 시도해 주세요." retry={() => void developers.refetch()} /> : !filtered.length ? <section className="recommend-developer-empty" aria-labelledby="recommend-empty-title">
@@ -119,10 +170,19 @@ export default function RecommendationDevelopers() {
         </div>
       </section> : <div className={`developer-explore-list developer-explore-${view}`}>{filtered.map(developer => {
         const bookmark = bookmarks.find(item => item.targetType === 'DEVELOPER' && (item.targetNickname === developer.nickname || (developer.memberId != null && item.targetId === developer.memberId)));
-        return <DeveloperCard key={developer.nickname} developer={{ member: { nickname: developer.nickname, address: null, disclosure: true, mainType: 'DEVELOPER', imageUrl: developer.profileImageUrl || null, body: developer.introduction || null, used: '', createdAt: '' }, domains: (developer.domains ?? []).map(domain => domain.label), techstacks: developer.techStack.map((stack, index) => ({ techstackId: index, name: stack.name, genre: 'skill', source: 'MANUAL' })) }} roleLabel={developer.role} variant={view} showTechStacks={!!filters.stack} onOpen={isSample ? () => { setSampleDeveloper(developer); sampleDialog.current?.showModal(); } : undefined} bookmarked={isSample ? sampleBookmarks.includes(developer.id) : !!bookmark} pending={false} onBookmarkChange={async next => { if (isSample) { setSampleBookmarks(current => next ? [...current, developer.id] : current.filter(id => id !== developer.id)); return; } const token = await getToken(); if (!token) throw new Error('로그인이 필요합니다.'); if (next) await createBookmark({ targetType: 'DEVELOPER', targetNickname: developer.nickname }, token); else if (bookmark) await deleteBookmark(bookmark.bookmarkId, token); await client.invalidateQueries({ queryKey: ['bookmarks'] }); }} />;
+        return <DeveloperCard key={developer.nickname} developer={{ member: { nickname: developer.nickname, address: null, disclosure: true, mainType: 'DEVELOPER', imageUrl: developer.profileImageUrl || null, body: developer.introduction || null, used: '', createdAt: '' }, domains: (developer.domains ?? []).map(domain => domain.label), techstacks: developer.techStack.map((stack, index) => ({ techstackId: index, name: stack.name, genre: 'skill', source: 'MANUAL' })) }} roleLabel={developer.role} variant={view} showTechStacks={selectedStacks.size > 0} onOpen={isSample ? () => { setSampleDeveloper(developer); sampleDialog.current?.showModal(); } : undefined} bookmarked={isSample ? sampleBookmarks.includes(developer.id) : !!bookmark} pending={false} onBookmarkChange={async next => { if (isSample) { setSampleBookmarks(current => next ? [...current, developer.id] : current.filter(id => id !== developer.id)); return; } const token = await getToken(); if (!token) throw new Error('로그인이 필요합니다.'); if (next) await createBookmark({ targetType: 'DEVELOPER', targetNickname: developer.nickname }, token); else if (bookmark) await deleteBookmark(bookmark.bookmarkId, token); await client.invalidateQueries({ queryKey: ['bookmarks'] }); }} />;
       })}</div>}
       <div ref={loader} className="rec-load-more" role="status">{isFetchingNextPage ? '추천 개발자를 더 불러오고 있어요…' : isFetchNextPageError ? <button className="rec-menu-trigger" onClick={() => void fetchNextPage()}>추가 추천 다시 불러오기</button> : !hasNextPage && filtered.length > 0 ? '추천 개발자를 모두 살펴봤어요.' : null}</div>
     </div></div></>}
+    {stackPickerOpen && (
+      <TechStackPicker
+        title="기술 스택 선택"
+        description="추천 개발자 목록에서 찾을 기술을 선택하세요."
+        value={filters.stack}
+        onApply={(stack) => setFilters((current) => ({ ...current, stack }))}
+        onClose={() => setStackPickerOpen(false)}
+      />
+    )}
     <dialog ref={sampleDialog} className="rec-preview-dialog" aria-label="샘플 개발자 프로필">
       <span className="rec-preview-label">샘플 개발자</span><h2>{sampleDeveloper?.nickname}</h2>
       <p>{sampleDeveloper?.role}</p><p>{sampleDeveloper?.introduction}</p>

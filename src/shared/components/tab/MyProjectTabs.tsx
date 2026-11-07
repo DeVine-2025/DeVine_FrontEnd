@@ -1,28 +1,20 @@
-import { NavLink } from 'react-router-dom';
+import { useElasticUnderline } from '@hooks/useElasticUnderline';
+import { BriefcaseBusiness, CodeXml } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
 
-const MyProjectTabs = () => {
-  const baseTabClass = 'rounded-xl py-3 text-2xl text-center font-semibold transition-colors';
-  const activeClass = 'bg-tab-bg-active text-tab-text-active';
-  const inactiveClass = 'text-tab-text-inactive hover:text-tab-text-active';
-  return (
-    <div className="mb-5 w-[280px] rounded-2xl bg-surface-tab p-2">
-      <div className="grid grid-cols-2 gap-2">
-        <NavLink
-          to="pm"
-          className={({ isActive }) => `${baseTabClass} ${isActive ? activeClass : inactiveClass}`}
-        >
-          PM
-        </NavLink>
+export default function MyProjectTabs() {
+  const { pathname } = useLocation();
+  const { navRef, indicatorRef } = useElasticUnderline(pathname);
+  const links = [
+    { path: 'pm', label: 'PM', Icon: BriefcaseBusiness },
+    { path: 'dev', label: '개발자', Icon: CodeXml },
+  ];
 
-        <NavLink
-          to="dev"
-          className={({ isActive }) => `${baseTabClass} ${isActive ? activeClass : inactiveClass}`}
-        >
-          개발자
-        </NavLink>
-      </div>
-    </div>
-  );
-};
-
-export default MyProjectTabs;
+  return <nav ref={navRef} aria-label="지원 현황 역할" className="relative flex gap-8 border-b border-[var(--project-divider)]">
+    {links.map(({ path, label, Icon }) => <NavLink key={path} to={path}
+      className={({ isActive }) => `inline-flex min-h-[48px] items-center gap-2 px-1 text-[14px] font-semibold transition-colors hover:text-[var(--text-main)] ${isActive ? 'text-[var(--text-main)]' : 'text-[var(--text-secondary)]'}`}>
+      <Icon size={16} aria-hidden="true" />{label}
+    </NavLink>)}
+    <span ref={indicatorRef} aria-hidden="true" className="pointer-events-none invisible absolute bottom-[-1px] left-0 h-[2px] rounded-full bg-[var(--project-accent)]" />
+  </nav>;
+}

@@ -27,7 +27,7 @@ import UnderVectorIcon from '@assets/icons/create-project/under-vector.svg?react
 import XIcon from '@assets/icons/create-project/x.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import DatePickerPopover from '@components/common/DatePickerPopover';
-import PositionBasedTechStackDropdown from '@components/common/PositionBasedTechStackDropdown';
+import TechStackPicker from '@components/common/TechStackPicker';
 import SelectDropdown from '@components/common/SelectDropdown';
 import {
   getKeysByPosition,
@@ -61,6 +61,10 @@ type RecruitmentItem = {
 };
 
 const makeId = () => `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const recruitCountOptions = Array.from({ length: 8 }, (_, index) => ({
+  value: String(index + 1),
+  label: `${index + 1}명`,
+}));
 
 function Label({ children }: { children: string }) {
   return <p className="Headline1 font-medium text-[var(--ui-700)]">{children}</p>;
@@ -500,54 +504,52 @@ const ProjectCreatePage = () => {
     return null;
   }, [recruitPosition]);
 
-  const canSaveRecruitment = Boolean(recruitPosition && recruitCount && techStack.length > 0);
+  const savedCount = recruitCount?.replace(/명$/, '');
+  const selectedRecruitCount = recruitCountOptions.find(({ value }) => value === savedCount)?.value ?? null;
 
-  const onSaveRecruitment = () => {
-    if (!recruitPosition || !recruitCount || techStack.length === 0) return;
+  const addCompleteRecruitment = (position: string | null, count: string | null, stackKeys: string[]) => {
+    if (!position || !count || stackKeys.length === 0) return;
 
     const nextItem: RecruitmentItem = {
       id: makeId(),
-      positionLabel: recruitPosition,
-      countLabel: recruitCount,
-      techStackKeys: [...techStack],
+      positionLabel: position,
+      countLabel: `${count}명`,
+      techStackKeys: stackKeys,
     };
-
     setRecruitments((prev) => {
-      const same = prev.some(
-        (r) =>
-          r.positionLabel === nextItem.positionLabel &&
-          r.countLabel === nextItem.countLabel &&
-          r.techStackKeys.join('|') === nextItem.techStackKeys.join('|'),
+      const same = prev.some((item) =>
+        item.positionLabel === position &&
+        item.countLabel === nextItem.countLabel &&
+        item.techStackKeys.length === stackKeys.length &&
+        stackKeys.every((key) => item.techStackKeys.includes(key)),
       );
       return same ? prev : [...prev, nextItem];
     });
 
-    setFieldErrors((prev) => {
-      if (!prev.recruitments) return prev;
-      const next = { ...prev };
-      delete next.recruitments;
-      return next;
-    });
-
-    setTechStackOpen(false);
+    clearFieldError('recruitments');
     setRecruitPosition(null);
     setRecruitCount(null);
     setTechStack([]);
   };
 
+  const handleRecruitCountChange = (value: string) => {
+    setRecruitCount(value);
+    addCompleteRecruitment(recruitPosition, value, techStack);
+  };
+
+  const handleRecruitPositionChange = (position: string) => {
+    if (position !== recruitPosition) setTechStack([]);
+    setRecruitPosition(position);
+  };
+
+  const handleRecruitStackApply = (stackKeys: string[]) => {
+    setTechStack(stackKeys);
+    addCompleteRecruitment(recruitPosition, selectedRecruitCount, stackKeys);
+  };
+
   const onRemoveRecruitment = (id: string) => {
     setRecruitments((prev) => prev.filter((r) => r.id !== id));
   };
-
-  useEffect(() => {
-    if (!positionKey) {
-      if (techStack.length) setTechStack([]);
-      return;
-    }
-    const allowed = new Set(getKeysByPosition(positionKey));
-    const next = techStack.filter((k) => allowed.has(k));
-    if (next.length !== techStack.length) setTechStack(next);
-  }, [positionKey, techStack]);
 
   const editor = useEditor({
     extensions: [
@@ -910,24 +912,17 @@ const ProjectCreatePage = () => {
   return (
     <div className="project-create-colors -mx-6 -my-8">
       <section className="bg-[var(--ui-bg)]">
-        <div className="mx-auto w-full max-w-[1018px] px-6 py-[36px]">
-          <h1 className="Title3 font-bold text-[var(--ui-900)]">
-            {isEditMode ? (
-              <>
-                <span className="block">프로젝트 정보를 수정하고</span>
-                <span className="block">업데이트해 보세요</span>
-              </>
-            ) : (
-              <>
-                <span className="block">프로젝트를 등록하고</span>
-                <span className="block">함께 성장할 개발자들을 만나보세요</span>
-              </>
-            )}
+        <div className="mx-auto w-full max-w-[1018px] px-6 py-[32px]">
+          <h1 className="text-[32px] leading-tight font-bold tracking-tight text-[var(--ui-900)] sm:text-[38px]">
+            {isEditMode ? '프로젝트 수정' : '프로젝트 등록'}
           </h1>
+          <p className="mt-[10px] text-[16px] leading-relaxed text-[var(--text-secondary)] sm:text-[18px]">
+            {isEditMode ? '프로젝트 정보를 수정하고 업데이트해 보세요.' : '프로젝트를 등록하고 함께 성장할 개발자들을 만나보세요.'}
+          </p>
         </div>
       </section>
 
-      <section className="-translate-x-1/2 relative left-1/2 w-screen bg-[var(--surface-page)] py-[64px]">
+      <section className="-translate-x-1/2 relative left-1/2 w-screen bg-[var(--surface-page)] pt-[32px] pb-[64px]">
         <div className="mx-auto w-full max-w-[1018px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-6 py-[40px]">
           <div className="mx-auto w-full max-w-[922px]">
             <div className="flex flex-col gap-[64px]">
@@ -1092,7 +1087,7 @@ const ProjectCreatePage = () => {
                           <SelectDropdown
                             placeholder="포지션"
                             value={recruitPosition}
-                            onChange={setRecruitPosition}
+                            onChange={handleRecruitPositionChange}
                             options={[
                               { label: '프론트엔드', value: '프론트엔드' },
                               { label: '백엔드', value: '백엔드' },
@@ -1105,18 +1100,9 @@ const ProjectCreatePage = () => {
                           <SubLabel>모집 인원</SubLabel>
                           <SelectDropdown
                             placeholder="모집 인원"
-                            value={recruitCount}
-                            onChange={setRecruitCount}
-                            options={[
-                              { label: '1명', value: '1명' },
-                              { label: '2명', value: '2명' },
-                              { label: '3명', value: '3명' },
-                              { label: '4명', value: '4명' },
-                              { label: '5명', value: '5명' },
-                              { label: '6명', value: '6명' },
-                              { label: '7명', value: '7명' },
-                              { label: '8명', value: '8명' },
-                            ]}
+                            value={selectedRecruitCount}
+                            onChange={handleRecruitCountChange}
+                            options={recruitCountOptions}
                           />
                         </div>
 
@@ -1126,7 +1112,9 @@ const ProjectCreatePage = () => {
                             <button
                               type="button"
                               disabled={!positionKey}
-                              onClick={() => setTechStackOpen((v) => !v)}
+                              aria-haspopup="dialog"
+                              aria-label="기술 스택 선택"
+                              onClick={() => setTechStackOpen(true)}
                               className={`relative flex h-[44px] w-full items-center rounded-[12px] border bg-ui-bg px-[12px] text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                                 techStackOpen ? 'border-[var(--project-create-accent,#6654F5)]' : 'border-ui-200'
                               }`}
@@ -1150,35 +1138,19 @@ const ProjectCreatePage = () => {
                               </span>
                             </button>
 
-                            {positionKey ? (
-                              <PositionBasedTechStackDropdown
-                                open={techStackOpen}
-                                position={positionKey}
-                                value={techStack}
-                                onChange={setTechStack}
-                                onClose={() => setTechStackOpen(false)}
-                              />
-                            ) : null}
                           </div>
                         </div>
-
-                        <button
-                          type="button"
-                          disabled={!canSaveRecruitment}
-                          onClick={onSaveRecruitment}
-                          className={`flex h-[44px] w-[80px] items-center justify-center rounded-[12px] px-[12px] py-[10px] max-[1100px]:w-full ${
-                            canSaveRecruitment ? 'cursor-pointer bg-[var(--project-create-accent,#6654F5)]' : 'bg-[var(--ui-50)]'
-                          }`}
-                        >
-                          <span
-                            className={`Body1 font-base ${
-                              canSaveRecruitment ? 'text-[var(--surface-page)]' : 'text-[var(--ui-400)]'
-                            }`}
-                          >
-                            저장
-                          </span>
-                        </button>
                       </div>
+                      {positionKey && techStackOpen && (
+                        <TechStackPicker
+                          title="기술 스택 선택"
+                          description={`${recruitPosition} 모집에 필요한 기술을 선택하세요.`}
+                          position={positionKey}
+                          value={techStack}
+                          onApply={handleRecruitStackApply}
+                          onClose={() => setTechStackOpen(false)}
+                        />
+                      )}
 
                       <div
                         className={cn(

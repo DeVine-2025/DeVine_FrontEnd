@@ -1,22 +1,27 @@
-import type { TechstackDto } from '@t/profileCard.types';
 import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
 import { reportQueries } from '@apis/report/report-queries';
+import ReportFolderEntry from '@components/report/folder/ReportFolderEntry';
+import { groupReportFolders } from '@components/report/folder/groupReportFolders';
+import '@components/report/report-card.css';
+import '../report/report-library-redesign.css';
+import '@components/tab/underline-tabs.css';
+import { featuredProjects } from '../home/home-mock-data';
 import MyBottomSection, { type ProjectTab } from '@components/myProject/MyBottomSection';
 import CustomGithubCalendar from '@components/profileDetail/CustomGithubCalendar';
-import TechStackBadges from '@components/cards/TechStackBadges';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { ArrowRight, ExternalLink, FileText, Folder, GitBranch, Layers, Link2, Mail } from 'lucide-react';
+import { ChevronLeft, ArrowRight, ExternalLink, Folder } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+
+const sampleStatusByTab = { ongoing: 'inProgress', recruiting: 'recruiting', done: 'completed' } as const;
 
 export default function MyInfoProfile() {
   const [params] = useSearchParams();
   const tab = params.get('tab');
-  const overview = tab !== 'projects' && tab !== 'reports';
+  const overview = tab !== 'projects' && tab !== 'reports' && tab !== 'my-projects';
   const [year, setYear] = useState(new Date().getFullYear());
   const [projectTab, setProjectTab] = useState<ProjectTab>('ongoing');
   const { data: profile } = useQuery(myInfoQueries.profile());
-  const { data: skills } = useQuery(myInfoQueries.getMyTechStacks());
   const { data: contributions } = useQuery(myInfoQueries.getMyContributions(year));
   const repos = useInfiniteQuery(myInfoQueries.reposInfinite());
   const { data: reports } = useQuery(reportQueries.report());
@@ -26,92 +31,91 @@ export default function MyInfoProfile() {
     ? activity
     : (activity as { contributionList?: typeof activity } | undefined)?.contributionList;
   const repositories = repos.data?.pages.flatMap(page => page.result?.content ?? []) ?? [];
+
   const reportRows = [...(reports?.result?.reports ?? [])].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
-  const techStacks = [...new Set(((skills?.result?.techstacks ?? []) as TechstackDto[]).filter(stack => stack.genre != null).map(stack => stack.name))];
+  const reportGroups = groupReportFolders(reportRows);
 
   return (
-    <div className={overview ? 'my-info-dashboard' : 'my-info-dashboard my-info-dashboard--single'}>
+    <div className="my-info-dashboard">
       <div className="my-info-column">
+        {!overview && tab !== 'my-projects' && (
+          <Link className="my-info-back" to="/my-info" aria-label="프로필로 돌아가기" title="프로필로 돌아가기">
+            <ChevronLeft size={24} strokeWidth={3} aria-hidden="true" />
+          </Link>
+        )}
+        {overview && (
+          <section className="my-info-panel my-info-intro">
+            <h2>소개</h2>
+            <p>{profile?.result?.member?.body || '아직 작성한 소개가 없어요.'}</p>
+          </section>
+        )}
+        {tab !== 'reports' && tab !== 'my-projects' && (
+        <section className="my-info-panel">
+          <header className="my-info-panel-header">
+            <h2>{overview ? '대표 프로젝트' : 'GitHub 저장소'}</h2>
+            {overview && <Link to="/my-info?tab=projects">전체 보기 <ArrowRight size={16} aria-hidden="true" /></Link>}
+          </header>
+          {repositories.length ? (
+            <div className="my-info-repos">
+              {(overview ? repositories.slice(0, 2) : repositories).map(repo => (
+                <article key={repo.gitRepoId} className="my-info-repo">
+                  <span className="my-info-repo-icon"><Folder size={21} aria-hidden="true" /></span>
+                  <div className="my-info-repo-copy">
+                    <h3>{repo.name}</h3>
+                    {repo.description?.trim() && <p>{repo.description}</p>}
+                  </div>
+                  {/^https?:\/\//i.test(repo.gitUrl) && (
+                    <a className="my-info-repo-link" href={repo.gitUrl} target="_blank" rel="noreferrer" aria-label={repo.name + ' GitHub에서 보기'}>
+                      <ExternalLink size={17} aria-hidden="true" />
+                    </a>
+                  )}
+                </article>
+              ))}
+            </div>
+          ) : <p className="my-info-muted">{repos.isPending ? '저장소를 불러오는 중이에요.' : '표시할 저장소가 없어요.'}</p>}
+          {!overview && repos.hasNextPage && (
+            <button className="my-info-control my-info-load" type="button" disabled={repos.isFetchingNextPage} onClick={() => void repos.fetchNextPage()}>
+              {repos.isFetchingNextPage ? '불러오는 중…' : '저장소 더 보기'}
+            </button>
+          )}
+        </section>
+        )}
+        {tab === 'my-projects' && (
+          <div className="my-info-panel my-info-project-status">
+            <MyBottomSection
+              projectTab={projectTab}
+              onChangeProjectTab={setProjectTab}
+              animatedTabs
+              sampleProjects={import.meta.env.DEV
+                ? featuredProjects.filter(project => project.status === sampleStatusByTab[projectTab])
+                : undefined}
+            />
+          </div>
+        )}
         {overview && (
           <section className="my-info-panel my-info-activity">
-            <h2><GitBranch size={20} aria-hidden="true" /> GitHub 활동</h2>
-            <CustomGithubCalendar data={activityRows ?? []} year={year} onYearChange={setYear} />
+            <CustomGithubCalendar data={activityRows ?? []} year={year} onYearChange={setYear} heading="GitHub 활동" />
           </section>
         )}
-        {tab !== 'reports' && (
+        {tab !== 'projects' && tab !== 'my-projects' && (
           <section className="my-info-panel">
             <header className="my-info-panel-header">
-              <h2><Layers size={20} aria-hidden="true" /> {overview ? 'GitHub 프로젝트' : 'GitHub 저장소'}</h2>
-              {overview && <Link to="/my-info?tab=projects">전체 보기 <ArrowRight size={16} aria-hidden="true" /></Link>}
-            </header>
-            {repositories.length ? (
-              <div className="my-info-repos">
-                {(overview ? repositories.slice(0, 2) : repositories).map(repo => (
-                  <article key={repo.gitRepoId} className="my-info-repo">
-                    <h3><Folder size={18} aria-hidden="true" /> {repo.name}</h3>
-                    {repo.description && <p>{repo.description}</p>}
-                    {/^https?:\/\//i.test(repo.gitUrl) && (
-                      <a href={repo.gitUrl} target="_blank" rel="noreferrer" aria-label={repo.name + ' GitHub에서 보기'}><ExternalLink size={16} aria-hidden="true" /></a>
-                    )}
-                  </article>
-                ))}
-              </div>
-            ) : <p className="my-info-muted">{repos.isPending ? '저장소를 불러오는 중이에요.' : '표시할 저장소가 없어요.'}</p>}
-            {!overview && repos.hasNextPage && (
-              <button className="my-info-control my-info-load" type="button" disabled={repos.isFetchingNextPage} onClick={() => void repos.fetchNextPage()}>
-                {repos.isFetchingNextPage ? '불러오는 중…' : '저장소 더 보기'}
-              </button>
-            )}
-          </section>
-        )}
-        {tab === 'projects' && (
-          <MyBottomSection projectTab={projectTab} onChangeProjectTab={setProjectTab} />
-        )}
-        {tab !== 'projects' && (
-          <section className="my-info-panel">
-            <header className="my-info-panel-header">
-              <h2><FileText size={20} aria-hidden="true" /> {overview ? '최근 리포트' : '내 리포트'}</h2>
-              {overview && <Link to="/my-info?tab=reports">전체 보기 <ArrowRight size={16} aria-hidden="true" /></Link>}
+              <h2>내 리포트</h2>
+              {overview && <Link to="/report">전체 보기 <ArrowRight size={16} aria-hidden="true" /></Link>}
             </header>
             {reportRows.length ? (
-              <ul className="my-info-report-list">
-                {(overview ? reportRows.slice(0, 3) : reportRows).map(report => {
-                  const type = report.reportType === 'SUB' ? 'DETAIL' : report.reportType;
-                  return <li key={report.reportId}>
-                    <Link to={'/report/detail/' + report.gitRepoId + '?type=' + encodeURIComponent(type) + '&isOwner=mine'}>
-                      <span className="my-info-report-badge">{type === 'MAIN' ? '메인' : '상세'}</span>
-                      <strong>{report.repoName}</strong>
-                      {Number.isFinite(Date.parse(report.createdAt)) && <time dateTime={report.createdAt}>{new Date(report.createdAt).toLocaleDateString('ko-KR')}</time>}
-                      <ExternalLink size={16} aria-hidden="true" />
-                    </Link>
-                  </li>;
-                })}
-              </ul>
+              <div className="report-library my-info-report-library">
+                <div className="report-list-head"><span>프로젝트</span><span>생성일</span><span aria-hidden="true" /></div>
+                <div className="report-folder-list">
+                  {(overview ? reportGroups.slice(0, 2) : reportGroups).map(group => (
+                    <ReportFolderEntry key={group.key} group={group} view="list" />
+                  ))}
+                </div>
+              </div>
             ) : <p className="my-info-muted">표시할 리포트가 없어요.</p>}
           </section>
         )}
       </div>
-      {overview && (
-        <aside className="my-info-column" aria-label="프로필 부가 정보">
-          <section className="my-info-panel">
-            <h2><Link2 size={20} aria-hidden="true" /> 연결된 계정</h2>
-            <dl className="my-info-accounts">
-              {['GitHub', 'LinkedIn', 'Email'].map(label => {
-                const contact = profile?.result?.contacts?.find(item => item.type.toUpperCase() === label.toUpperCase());
-                const Icon = label === 'Email' ? Mail : label === 'GitHub' ? GitBranch : Link2;
-                return <div key={label}>
-                  <dt><Icon size={16} aria-hidden="true" /> {label}</dt>
-                  <dd>{contact?.value || <Link to={label === 'GitHub' ? '/my-info/setting' : '/profile-edit'}>등록하기 <ArrowRight size={14} aria-hidden="true" /></Link>}</dd>
-                </div>;
-              })}
-            </dl>
-          </section>
-          <section className="my-info-panel">
-            <h2><Layers size={20} aria-hidden="true" /> 보유 스택</h2>
-            {techStacks.length ? <TechStackBadges stacks={techStacks} /> : <p className="my-info-muted">등록한 기술 스택이 없어요.</p>}
-          </section>
-        </aside>
-      )}
     </div>
   );
 }

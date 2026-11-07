@@ -5,7 +5,8 @@ import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
 import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
-import { useThemeStore } from '@store/theme';
+import HorizonBackground from '@pages/landing/launch-ui/components/ui/horizon-background';
+import landingAccentCss from '@pages/landing/launch-ui/launch-accent.css?raw';
 import { getProfileImageKey } from '@utils/storage';
 import BasicProfileSection from './BasicProfileSection';
 import AdditionalProfileSection from './AdditionalProfileSection';
@@ -28,10 +29,10 @@ type ProfileData = {
 type AgreementListProps = {
   onConfirm: () => Promise<void> | void;
   loginProvider: 'github' | 'google';
+  preview?: boolean;
 };
 
-const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
-  const { theme } = useThemeStore();
+const AgreementList = ({ onConfirm, loginProvider, preview = false }: AgreementListProps) => {
   const navigate = useNavigate();
   const { user } = useUser();
   const onboardingConfirmedRef = useRef(false);
@@ -71,6 +72,17 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
   );
 
   useEffect(() => {
+    if (preview) {
+      const sampleTerms: MemberTermsItem[] = [
+        { termsId: 1, title: '서비스 이용약관 동의', content: '', required: true },
+        { termsId: 2, title: '개인정보 수집 및 이용 동의', content: '', required: true },
+        { termsId: 3, title: '마케팅 정보 수신 동의', content: '', required: false },
+      ];
+      setTerms(sampleTerms);
+      setAgreedByTermsId(Object.fromEntries(sampleTerms.map((term) => [term.termsId, false])));
+      setIsTermsLoading(false);
+      return;
+    }
     const controller = new AbortController();
     setIsTermsLoading(true);
 
@@ -91,7 +103,7 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
       });
 
     return () => controller.abort();
-  }, []);
+  }, [preview]);
 
   const handleAllChange = (checked: boolean) => {
     setAgreedByTermsId(Object.fromEntries(terms.map((term) => [term.termsId, checked])));
@@ -120,21 +132,12 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
     logoSubmitHandlerRef.current = handler;
   }, []);
 
-  const backgroundStyle =
-    theme === 'dark'
-      ? {
-          backgroundColor: 'var(--ui-bg)',
-          backgroundImage:
-            'radial-gradient(circle at top center, rgba(102,84,245,0.18) 0%, rgba(102,84,245,0.08) 25%, rgba(102,84,245,0) 70%)',
-        }
-      : {
-          backgroundColor: 'var(--ui-bg)',
-          backgroundImage:
-            'radial-gradient(circle at top center, rgba(102,84,245,0.2) 0%, rgba(102,84,245,0.06) 25%, rgba(102,84,245,0) 70%)',
-        };
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" style={backgroundStyle}>
+    <div className="fixed inset-0 z-50 isolate overflow-y-auto bg-[#101116]">
+      <style>{landingAccentCss.slice(landingAccentCss.indexOf('.horizon-background'), landingAccentCss.indexOf('.launch-content > main > section:has(h1) > div'))}</style>
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden opacity-60 [&_.horizon-background]:!top-[26%] [&_.horizon-background]:!z-0 [&_.horizon-background]:!h-full">
+        <HorizonBackground />
+      </div>
 
       <div className="absolute left-1/2 top-0 h-[6rem] w-screen -translate-x-1/2">
         <div className="mx-auto flex h-full max-w-[144rem] items-center px-[12rem]">
@@ -162,16 +165,18 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           </button>
         </div>
       </div>
+      <div className="flex min-h-[100svh] items-center justify-center px-4 pb-[124px] pt-[84px]">
       {step === 'basicProfile' ? (
-        <div className="mx-auto mt-[104px] w-full max-w-[632px]">
+        <div className="mx-auto w-full max-w-[632px]">
           <BasicProfileSection
+            preview={preview}
             onNext={(data) => {
               setBasicProfile(data);
               const profileImageKey = getProfileImageKey(user?.id ?? null);
-              if (data.imageUrl) {
+              if (!preview && data.imageUrl) {
                 localStorage.setItem(profileImageKey, data.imageUrl);
                 window.dispatchEvent(new Event('profile-image-updated'));
-              } else {
+              } else if (!preview) {
                 localStorage.removeItem(profileImageKey);
                 window.dispatchEvent(new Event('profile-image-updated'));
               }
@@ -182,8 +187,9 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           />
         </div>
       ) : step === 'profilePage' ? (
-        <div className="mx-auto mt-[104px] w-full max-w-[632px]">
+        <div className="mx-auto w-full max-w-[632px]">
           <ProfilePage
+            preview={preview}
             onNext={(data) => {
               setProfileInfo(data);
               setStep('additionalProfile');
@@ -194,7 +200,7 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           />
         </div>
       ) : step === 'signupComplete' ? (
-        <div className="relative mx-auto mt-[104px] flex h-[560px] w-[680px] flex-col items-center justify-center gap-8 px-10 py-14 text-center">
+        <div className="relative mx-auto flex h-[560px] w-full max-w-[680px] flex-col items-center justify-center gap-8 px-10 py-14 text-center">
           <div className="-mt-6 flex flex-col gap-4 text-[var(--ui-1000)]">
             <h2 className="text-[28px] font-semibold">회원가입이 완료되었어요!</h2>
             <p className="text-[16px] leading-7 text-[var(--ui-400)]">
@@ -223,8 +229,9 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           </div>
         </div>
       ) : step === 'githubRepos' ? (
-        <div className="mx-auto mt-[104px] w-full max-w-[632px]">
+        <div className="mx-auto w-full max-w-[632px]">
           <GithubRepoSelectionSection
+            preview={preview}
             onBack={() => setStep('signupComplete')}
             onNext={async () => {
               if (await confirmOnboardingOnce()) navigate('/');
@@ -232,9 +239,10 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           />
         </div>
       ) : step === 'additionalProfile' ? (
-        <div className="mx-auto mt-[104px] w-full max-w-[632px]">
+        <div className="mx-auto w-full max-w-[632px]">
           {terms.length > 0 ? (
             <AdditionalProfileSection
+              preview={preview}
               onBack={() => setStep('profilePage')}
               setLogoSubmitHandler={setAdditionalLogoHandler}
               signupData={{
@@ -261,39 +269,38 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           ) : null}
         </div>
       ) : (
-      <div className="mx-auto mt-[104px] flex h-[660px] w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] px-8 pb-20 pt-8 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
-        <div className="flex flex-col gap-8">
-          <div className="flex flex-col gap-2 text-[var(--ui-1000)]">
-            <h2 className="Heading2 font-semibold">서비스 이용을 위해</h2>
-            <h2 className="Heading2 font-semibold">약관에 동의해주세요</h2>
+      <div className="mx-auto w-full max-w-[515px] text-[#f5f5f7]">
+        <div className="flex flex-col gap-10">
+          <div>
+            <h2 className="text-[clamp(26px,3vw,36px)] font-bold leading-[1.3] tracking-[-.04em]">서비스 이용을 위해<br />약관에 동의해주세요</h2>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             <button
               type="button"
               role="checkbox"
               aria-checked={allChecked}
               onClick={() => handleAllChange(!allChecked)}
-              className="relative flex items-center gap-3 rounded-2xl bg-[var(--ui-50)] px-6 py-5 text-left"
+              className="flex min-h-[56px] w-full items-center gap-4 rounded-[10px] border border-white/[0.12] bg-white/[0.035] px-5 text-left transition-colors duration-200 hover:border-[#ada1fa]/50 hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--project-accent)]"
             >
               {allChecked ? (
                 <CheckboxCheckedIcon
-                  className="h-8 w-8 shrink-0 text-[var(--color-primary)]"
+                  className="h-7 w-7 shrink-0 [&_rect]:fill-[color-mix(in_srgb,var(--project-accent)_80%,#30285b)] [&_path]:stroke-[#191824]"
                   aria-hidden="true"
                 />
               ) : (
-                <CheckboxUncheckedIcon className="h-8 w-8 shrink-0" aria-hidden="true" />
+                <CheckboxUncheckedIcon className="h-7 w-7 shrink-0 [&_rect]:fill-[#171821] [&_rect]:stroke-[#858ba5]" aria-hidden="true" />
               )}
-              <span className="text-[17px] font-semibold text-[var(--ui-900)]">전체 동의</span>
+              <span className="text-[17px] font-semibold text-[#f5f5f7]">전체 동의</span>
             </button>
 
-            <div className="flex flex-col gap-4 rounded-2xl border border-[var(--ui-100)] px-6 py-5">
+            <div className="flex flex-col px-5">
               {terms.map((term, index) => {
                 const checked = agreedByTermsId[term.termsId] === true;
                 return (
                   <div
                     key={term.termsId}
-                    className={`${index === 0 ? 'mt-1' : 'mt-4'} flex items-center justify-between gap-3`}
+                    className={`flex min-h-[60px] items-center justify-between gap-3 ${index > 0 ? 'border-t border-white/[0.08]' : ''}`}
                   >
                     <button
                       type="button"
@@ -305,24 +312,24 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
                           [term.termsId]: !checked,
                         }))
                       }
-                      className="flex items-center gap-3 text-left"
+                      className="flex min-h-[60px] flex-1 items-center gap-5 text-left"
                     >
                       {checked ? (
                         <CheckboxCheckedIcon
-                          className="h-8 w-8 shrink-0 text-[var(--color-primary)]"
+                          className="h-7 w-7 shrink-0 [&_rect]:fill-[color-mix(in_srgb,var(--project-accent)_80%,#30285b)] [&_path]:stroke-[#191824]"
                           aria-hidden="true"
                         />
                       ) : (
-                        <CheckboxUncheckedIcon className="h-8 w-8 shrink-0" aria-hidden="true" />
+                        <CheckboxUncheckedIcon className="h-7 w-7 shrink-0 [&_rect]:fill-[#171821] [&_rect]:stroke-[#858ba5]" aria-hidden="true" />
                       )}
-                      <span className="text-[16px] font-semibold text-[var(--ui-900)]">
-                        {term.title} ({term.required ? '필수' : '선택'})
+                      <span className="text-[16px] font-medium text-[#f0f0f5]">
+                        <span className={term.required ? 'text-[#f0f0f5]' : 'text-[#999caf]'}>[{term.required ? '필수' : '선택'}]</span> {term.title}
                       </span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => setActiveTermsId(term.termsId)}
-                      className="cursor-pointer text-[var(--ui-400)] hover:text-[var(--ui-600)]"
+                      onClick={() => { if (!preview) setActiveTermsId(term.termsId); }}
+                      className="flex h-10 w-10 cursor-pointer items-center justify-center text-[#b5b7c8] hover:text-white"
                       aria-label={`${term.title} 보기`}
                     >
                       <ChevronLeftIcon className="h-5 w-5 rotate-180" aria-hidden="true" />
@@ -334,23 +341,24 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           </div>
         </div>
 
-        <div className="mt-auto mb-24 flex flex-col gap-3">
+        <div className="mt-8 flex flex-col gap-6">
           <button
             type="button"
             onClick={handleConfirm}
             disabled={!requiredAgreed || terms.length === 0 || isTermsLoading}
-            className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
+            className={`h-[52px] w-full rounded-[10px] text-[15px] font-semibold tracking-[-.01em] transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--project-accent)] ${
               requiredAgreed && terms.length > 0 && !isTermsLoading
-                ? 'cursor-pointer bg-[var(--color-primary)] text-white'
-                : 'cursor-not-allowed bg-[var(--ui-50)] text-[var(--ui-300)]'
+                ? 'cursor-pointer border border-transparent bg-[var(--project-accent)] text-[#191824] hover:bg-[color-mix(in_srgb,var(--project-accent)_85%,white)]'
+                : 'cursor-not-allowed border border-white/[0.10] bg-white/[0.035] text-[#8f92a3]'
             }`}
           >
-            다음
+            동의하고 계속하기
           </button>
         </div>
       </div>
       )}
 
+      </div>
       {isStayModalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">
           <div className="w-full max-w-[360px] rounded-[24px] bg-[var(--ui-bg)] px-8 pb-8 pt-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]">

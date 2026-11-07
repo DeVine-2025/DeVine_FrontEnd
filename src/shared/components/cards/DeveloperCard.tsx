@@ -14,14 +14,16 @@ type Props = {
   developer: DeveloperSearchContentDto;
   bookmarked: boolean;
   pending: boolean;
-  onBookmarkChange: (next: boolean) => void;
+  onBookmarkChange?: (next: boolean) => void;
   onOpen?: () => void;
   roleLabel?: string;
   showTechStacks?: boolean;
+  showProfileLink?: boolean;
+  showConditions?: boolean;
   variant: 'list' | 'grid';
 };
 
-export default function DeveloperCard({ developer, bookmarked, pending, onBookmarkChange, onOpen, roleLabel, showTechStacks = true, variant }: Props) {
+export default function DeveloperCard({ developer, bookmarked, pending, onBookmarkChange, onOpen, roleLabel, showTechStacks = true, showProfileLink = true, showConditions = true, variant }: Props) {
   const { member } = developer;
   const techstacks = developer.techstacks ?? [];
   const [skillsOpen, setSkillsOpen] = useState(false);
@@ -36,14 +38,14 @@ export default function DeveloperCard({ developer, bookmarked, pending, onBookma
       <img className="developer-explore-avatar" src={member.imageUrl || ProfileDefaultDark} alt="" width="80" height="80" />
       <div className="developer-card-person">
         <PositionBadge position={roleLabel ?? ROLE_LABEL[role]} />
-        <h2><Link className="developer-card-profile-link" to={`/developer-detail/${encodeURIComponent(member.nickname)}`} onClick={onOpen ? event => { event.preventDefault(); onOpen(); } : undefined} aria-label={`${member.nickname} 프로필 보기`}>{member.nickname}</Link></h2>
+        <h2>{showProfileLink ? <Link className="developer-card-profile-link" to={`/developer-detail/${encodeURIComponent(member.nickname)}`} onClick={onOpen ? event => { event.preventDefault(); onOpen(); } : undefined} aria-label={`${member.nickname} 프로필 보기`}>{member.nickname}</Link> : member.nickname}</h2>
         <div className="developer-card-introduction"><p>{member.body?.trim() || '아직 작성된 소개가 없어요.'}</p></div>
       </div>
     </div>
-    <BookmarkButton className="developer-explore-bookmark" aria-label={member.nickname} bookmarked={bookmarked} pending={pending} onBookmarkChange={onBookmarkChange} />
+    {onBookmarkChange && <BookmarkButton className="developer-explore-bookmark" aria-label={member.nickname} bookmarked={bookmarked} pending={pending} onBookmarkChange={onBookmarkChange} />}
 
     <div className="developer-card-footer">
-      <div className="developer-card-conditions" aria-label="협업 조건"><span><Clock3 aria-hidden="true" />{preview.schedule}</span><span><Monitor aria-hidden="true" />{preview.method}</span></div>
+      {showConditions && <div className="developer-card-conditions" aria-label="협업 조건"><span><Clock3 aria-hidden="true" />{preview.schedule}</span><span><Monitor aria-hidden="true" />{preview.method}</span></div>}
       {showTechStacks && <div className="developer-card-skills" aria-label="보유 기술 스택">
         {skills.length ? <>
           <div id={skillsId}><TechStackBadges stacks={skillsOpen ? skills : skills.slice(0, 3)} /></div>

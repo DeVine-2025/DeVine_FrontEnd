@@ -289,7 +289,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                     onLogoClick();
                     return;
                   }
-                  navigate('/');
+                  navigate('/home');
                 }}
                 disabled={navLocked}
                 aria-disabled={navLocked}
@@ -312,6 +312,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             </div>
 
             {/* 네비게이션 - 데스크톱 */}
+            {import.meta.env.DEV && <Link to="/signup-preview" className="text-[13px] text-[#ada1fa] hover:text-white">회원가입 미리보기</Link>}
             <nav ref={navRef} className="relative max-[743px]:!hidden ml-[28px] flex-items-center shrink-0 flex-nowrap gap-[2.6rem] phone:gap-[2rem] tablet:gap-[2.6rem]">
               {navItems.map((item) => (
                 <Link

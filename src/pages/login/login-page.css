@@ -1,0 +1,47 @@
+.login-page {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  position: relative;
+  padding: 110px 24px 64px;
+  background: #101116;
+  color: #f5f5f7;
+}
+.login-header {
+  position: absolute;
+  top: 26px;
+  left: 44px;
+  right: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.login-header img { display: block; width: 145px; height: auto; }
+.login-content { width: min(100%, 464px); text-align: center; }
+.login-logo { display: block; width: 100px; height: auto; margin: 0 auto 34px; }
+.login-content h1 { margin: 0; color: #f5f5f7; font-size: clamp(28px, 3vw, 42px); font-weight: 700; line-height: 1.2; letter-spacing: -0.045em; }
+.login-description { margin: 14px 0 0; color: #b5b7c2; font-size: 18px; line-height: 1.6; }
+.login-actions { display: grid; gap: 16px; margin-top: 36px; }
+.login-provider {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  width: 100%; min-height: 60px; border: 1px solid transparent; border-radius: 14px;
+  font-size: 17px; font-weight: 650; cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+.login-provider svg { width: 24px; height: 24px; flex: none; }
+.login-provider--github { background: #f5f5f7; color: #101116; }
+.login-provider--github:hover:not(:disabled) { background: #dedee6; }
+.login-provider--google { background: #1b1c23; border-color: #41424c; color: #f5f5f7; }
+.login-provider--google:hover:not(:disabled) { background: #252630; border-color: #5a5b68; }
+.login-provider:focus-visible, .login-header a:focus-visible { outline: 2px solid #b8a9ff; outline-offset: 3px; }
+.login-provider:disabled { opacity: .6; cursor: not-allowed; }
+.login-note { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 30px 0 0; color: #b5b7c2; font-size: 15px; line-height: 1.6; }
+.login-note svg { width: 21px; height: 21px; color: #a897ff; flex: none; }
+@media (max-width: 600px) {
+  .login-header { top: 22px; left: 24px; right: 24px; }
+  .login-header img { width: 120px; }
+  .login-description { font-size: 15px; }
+  .login-provider { min-height: 54px; font-size: 15px; }
+  .login-note { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) { .login-provider { transition: none; } }

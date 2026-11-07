@@ -1,4 +1,6 @@
 import { axiosInstance } from '@apis/instance';
+import type { ApiResponse } from '@apis/base/api';
+import type { TechstackItem } from '@apis/techstacks';
 import { GitRepoRequest, MyProfileResponse, MyReposResponse, MyContributionsResponse, UpdateProfileRequest } from '@apis/myInfo/myInfo';
 
 export const getMyProfile = async (): Promise<MyProfileResponse> => {
@@ -10,14 +12,18 @@ export const getMemberProfile = async (nickname: string) => {
   const { data } = await axiosInstance.get(`/api/v1/members/${nickname}`);
   return data;
 }
-export const updateMyProfile = async (profileData: UpdateProfileRequest): Promise<MyProfileResponse> => {
+export const updateMyProfile = async (profileData: Partial<UpdateProfileRequest>): Promise<MyProfileResponse> => {
   const { data } = await axiosInstance.patch('/api/v1/members/me', profileData);
   return data;
 };
 
 // 보유 기술 추가
+type MyTechStacksResponse = ApiResponse<{
+  techstacks: Array<Omit<TechstackItem, 'genre'> & { genre: string | null; source: 'AUTO' | 'MANUAL' }>;
+}>;
+
 export const addMyTechStacks = async (techstackIds: number[]) => {
-  const { data } = await axiosInstance.post('/api/v1/members/me/techstacks', {
+  const { data } = await axiosInstance.post<MyTechStacksResponse>('/api/v1/members/me/techstacks', {
     techstackIds
   });
   return data;
@@ -56,7 +62,7 @@ export const getMemberRepo = async (
 };
 
 export const getMyTechStacks = async () => {
-  const { data } = await axiosInstance.get('/api/v1/members/me/techstacks');
+  const { data } = await axiosInstance.get<MyTechStacksResponse>('/api/v1/members/me/techstacks');
   return data;
 }
 

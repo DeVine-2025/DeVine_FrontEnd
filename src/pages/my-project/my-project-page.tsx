@@ -9,7 +9,7 @@ export default function MyProjectPage() {
 
   if (showLoginGate) {
     return (
-      <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-6">
+      <section className="mx-auto flex w-full max-w-[1040px] flex-col gap-6">
         <div className="relative min-h-[calc(100vh-6rem)] w-full">
           <div className="min-h-full flex flex-col gap-6 pointer-events-none select-none blur-sm">
             <MyProjectTabs />
@@ -26,7 +26,11 @@ export default function MyProjectPage() {
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-6">
+    <section className="mx-auto flex w-full max-w-[1040px] flex-col gap-[14px] px-[16px] sm:px-[24px]">
+      <header className="pt-2">
+        <h1 className="text-[30px] font-bold tracking-tight text-[var(--text-main)]">지원 현황</h1>
+        <p className="mt-2 text-[14px] text-[var(--text-secondary)]">받은 지원과 제안에 응답하고, 보낸 내역의 결과를 확인하세요.</p>
+      </header>
       <MyProjectTabs />
       <div>
         <Outlet />

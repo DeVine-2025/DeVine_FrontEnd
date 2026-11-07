@@ -1,9 +1,12 @@
-import BrandLogo from '@assets/images/devine-wordmark.png';
+import BrandLogo from '@assets/images/devine-symbol.png';
+import BrandWordmark from '@assets/images/devine-wordmark.png';
+import { Gift } from 'lucide-react';
 import { useSignIn } from '@clerk/clerk-react';
 import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import GithubIcon from '@assets/icons/github.svg?react';
 import GoogleIcon from '@assets/icons/google.svg?react';
+import './login-page.css';
 
 const UNLOCK_TIMEOUT_MS = 10_000; // 10초 후 자동 해제(리다이렉트가 막힌 특이 케이스 대비)
 
@@ -102,54 +105,34 @@ const LoginPage = () => {
   const isAnyLoading = loadingProvider !== null;
 
   return (
-    <div className="bg-[var(--color-auth-bg)] text-[var(--color-auth-text)]">
-      <main className="mx-auto flex min-h-screen w-full max-w-[360px] -mt-12 flex-col items-center justify-center px-6 text-center sm:max-w-[600px] sm:px-10 lg:max-w-[1200px] lg:px-16">
-        <div className="mb-4 -mt-24 flex items-center justify-center">
-          <img src={BrandLogo} alt="Devine" className="h-30 w-auto" aria-hidden="true" />
-        </div>
-
-        <p className="-mt-4 w-full max-w-[320px] text-[16px] leading-[24px] text-[var(--color-auth-desc)] sm:max-w-[600px] font-semibold">
-          코드로 증명하고, 데이터로 연결하다.
-          <br />
-          사이드 프로젝트 매칭 플랫폼
-        </p>
-
-        <div className="mt-30 flex w-full max-w-[360px] flex-col gap-3 font-semibold text-[16px] sm:max-w-[420px]">
-          <button
-            type="button"
-            onClick={() => void handleOAuthSignIn('github')}
-            disabled={!isLoaded || isAnyLoading}
-            aria-busy={loadingProvider === 'github'}
-            className={`relative flex h-[48px] w-full items-center justify-center gap-4 rounded-[12px] px-4 overflow-visible whitespace-nowrap bg-[var(--color-auth-btn-dark-bg)] text-[var(--color-auth-btn-dark-text)]
-              ${isAnyLoading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-          >
-            <span className="pointer-events-none absolute -top-16 left-[110%] -translate-x-1/2 rounded-full rounded-bl-[6px] bg-[var(--badge-bg-primary)] px-6 py-2 text-[14px] font-semibold text-[var(--badge-text-primary)] shadow-[0_3px_14px_rgba(102,84,245,0.1)]">
-              깃허브 로그인 시 1회 무료 리포트 생성
-            </span>
-            <GithubIcon className="h-9 w-9" aria-hidden="true" />
-            {loadingProvider === 'github' ? '로그인 진행 중…' : '깃허브 계정으로 계속하기'}
+    <div className="login-page">
+      <header className="login-header">
+        <Link to="/" aria-label="DeVine 홈으로"><img src={BrandWordmark} alt="" /></Link>
+      </header>
+      <section className="login-content" aria-labelledby="login-title">
+        <img src={BrandLogo} alt="DeVine" className="login-logo" />
+        <h1 id="login-title">DeVine 시작하기</h1>
+        <p className="login-description">코드로 증명하고, 데이터로 연결하다.</p>
+        <div className="login-actions">
+          <button type="button" onClick={() => void handleOAuthSignIn('github')}
+            disabled={!isLoaded || isAnyLoading} aria-busy={loadingProvider === 'github'}
+            className="login-provider login-provider--github">
+            <GithubIcon aria-hidden="true" />
+            {loadingProvider === 'github' ? '로그인 진행 중…' : 'GitHub로 계속하기'}
           </button>
-
-          <button
-            type="button"
-            onClick={() => void handleOAuthSignIn('google')}
-            disabled={!isLoaded || isAnyLoading}
-            aria-busy={loadingProvider === 'google'}
-            className={`flex h-[48px] w-full items-center justify-center gap-4 rounded-[12px] px-4 whitespace-nowrap bg-[var(--color-auth-btn-light-bg)] text-[var(--color-auth-btn-light-text)] border border-[var(--color-auth-btn-light-border)]
-              ${isAnyLoading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-          >
-            <GoogleIcon className="h-7 w-7" aria-hidden="true" />
-            {loadingProvider === 'google' ? '로그인 진행 중…' : '구글 계정으로 계속하기'}
+          <button type="button" onClick={() => void handleOAuthSignIn('google')}
+            disabled={!isLoaded || isAnyLoading} aria-busy={loadingProvider === 'google'}
+            className="login-provider login-provider--google">
+            <GoogleIcon aria-hidden="true" />
+            {loadingProvider === 'google' ? '로그인 진행 중…' : 'Google로 계속하기'}
           </button>
-
-          {/* 진행 중 안내 문구 */}
-          {isAnyLoading && (
-            <p className="mt-2 text-[12px] text-[var(--color-auth-desc)]">
-              로그인 창으로 이동 중입니다. 잠시만 기다려주세요.
-            </p>
-          )}
         </div>
-      </main>
+        {isAnyLoading ? (
+          <p className="login-note" role="status">로그인 창으로 이동 중입니다. 잠시만 기다려주세요.</p>
+        ) : (
+          <p className="login-note"><Gift aria-hidden="true" /> GitHub 로그인 시 무료 리포트 1회 제공</p>
+        )}
+      </section>
     </div>
   );
 };

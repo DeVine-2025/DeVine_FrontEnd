@@ -1,26 +1,17 @@
-import AlarmIcon from '@assets/icons/alarm.svg?react';
-import AlarmLightIcon from '@assets/icons/alarm-light.svg?react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useThemeStore } from '@store/theme';
-
-interface NotificationItem {
-  id: string;
-  title: string;
-  description: string;
-  timestamp: string;
-  isRead: boolean;
-}
+import type { NotificationItem } from '@apis/notifications';
+import UnderlineTabs from '@components/tab/UnderlineTabs';
+import { Bell, CheckCheck, X } from 'lucide-react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import './notification-modal.css';
 
 interface NotificationModalProps {
   isOpen: boolean;
   onClose: () => void;
   notifications: NotificationItem[];
-
   anchorRef?: React.RefObject<HTMLElement | null>;
   loading?: boolean;
   onMarkAsRead?: (notificationId: string) => void;
   onMarkAllAsRead?: () => void;
-  /** 알림 클릭 시 호출 (이동 + 읽음/제거는 이 콜백에서 처리) */
   onNotificationClick?: (notification: NotificationItem) => void;
   hasMore?: boolean;
   onLoadMore?: () => void;
@@ -28,8 +19,17 @@ interface NotificationModalProps {
 }
 
 const GAP_PX = 8;
+const EDGE_PX = 12;
+const PANEL_WIDTH_PX = 384;
+const notificationFilters = [
+  { value: 'all', label: '전체' },
+  { value: 'unread', label: '안 읽음' },
+  { value: 'read', label: '읽음' },
+] as const;
 
-const NotificationModal = ({
+type NotificationFilter = (typeof notificationFilters)[number]['value'];
+
+export default function NotificationModal({
   isOpen,
   onClose,
   notifications,
@@ -41,29 +41,28 @@ const NotificationModal = ({
   hasMore = false,
   onLoadMore,
   loadingMore = false,
-}: NotificationModalProps) => {
-  const { theme } = useThemeStore();
-  const modalRef = useRef<HTMLDivElement>(null);
-  const [isClosing, setIsClosing] = useState(false);
+}: NotificationModalProps) {
+  const panelRef = useRef<HTMLElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const [filter, setFilter] = useState<NotificationFilter>('all');
   const [position, setPosition] = useState<{ top: number; right: number } | null>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsClosing(false);
-    }
-  }, [isOpen]);
-
-  const updatePosition = () => {
-    if (!anchorRef?.current) return;
-    const rect = anchorRef.current.getBoundingClientRect();
-    setPosition({
-      top: rect.bottom + GAP_PX,
-      right: window.innerWidth - rect.right,
-    });
-  };
+  const ready = !anchorRef || position !== null;
 
   useLayoutEffect(() => {
     if (!isOpen || !anchorRef) return;
+
+    const updatePosition = () => {
+      const anchor = anchorRef.current;
+      if (!anchor) return;
+      const rect = anchor.getBoundingClientRect();
+      const width = Math.min(PANEL_WIDTH_PX, window.innerWidth - EDGE_PX * 2);
+      const top = Math.max(EDGE_PX, rect.bottom + GAP_PX);
+      const right = Math.min(Math.max(EDGE_PX, window.innerWidth - rect.right), window.innerWidth - width - EDGE_PX);
+      setPosition((current) => current?.top === top && current.right === right ? current : { top, right });
+    };
+
     updatePosition();
     window.addEventListener('resize', updatePosition);
     window.addEventListener('scroll', updatePosition, true);
@@ -74,160 +73,125 @@ const NotificationModal = ({
   }, [isOpen, anchorRef]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        handleClose();
-      }
+    if (isOpen && ready) closeRef.current?.focus({ preventScroll: true });
+  }, [isOpen, ready]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleOutside = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (!panelRef.current?.contains(target) && !anchorRef?.current?.contains(target)) onClose();
     };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
-
-  const handleClose = () => {
-    setIsClosing(true);
-    setTimeout(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
       onClose();
-      setIsClosing(false);
-    }, 200);
+      anchorRef?.current?.focus({ preventScroll: true });
+    };
+
+    document.addEventListener('pointerdown', handleOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('pointerdown', handleOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose, anchorRef]);
+
+  if (!isOpen || !ready) return null;
+
+  const unread = notifications.filter((item) => !item.isRead).length;
+  const visibleNotifications = filter === 'all'
+    ? notifications
+    : notifications.filter((item) => item.isRead === (filter === 'read'));
+  const closeAndRestoreFocus = () => {
+    onClose();
+    anchorRef?.current?.focus({ preventScroll: true });
   };
 
-  if (!isOpen && !isClosing) return null;
-  if (anchorRef && position === null) return null;
-
-  const useAnchor = anchorRef?.current && position !== null;
-  const count = notifications.length;
-  const hasMarkAllRead = onMarkAllAsRead && notifications.some((n) => !n.isRead);
-  // 알림 1개일 때: 헤더 + 아이템 1개 + (전체 읽음 버튼 있으면) 버튼 영역만큼만 높이 지정
-  const modalHeight =
-    count === 0
-      ? 200
-      : count === 1
-        ? hasMarkAllRead
-          ? 200
-          : 185
-        : count <= 3
-          ? 260 + (count - 1) * 88
-          : 260 + 2 * 88;
-
   return (
-    <div className="pointer-events-none fixed inset-0 z-50">
-      <div
-        ref={modalRef}
-        className={`pointer-events-auto flex w-[360px] flex-col overflow-hidden rounded-xl border border-[var(--ui-200)] bg-[var(--ui-bg)] ${
-          !useAnchor ? 'absolute top-[7.6rem] right-[2rem]' : ''
-        } ${isClosing ? 'animate-modal-pop-out' : 'animate-modal-pop-in'}`}
-        style={
-          useAnchor
-            ? { position: 'fixed', top: position.top, right: position.right, width: 360, height: modalHeight }
-            : { height: modalHeight }
-        }
-      >
-        <div className="shrink-0 flex items-center border-b border-[var(--ui-200)] bg-[var(--ui-50)]/50 px-4 py-3" aria-label="알림">
-          {theme === 'dark' ? (
-            <AlarmIcon className="size-8 shrink-0" aria-hidden />
-          ) : (
-            <AlarmLightIcon className="size-8 shrink-0" aria-hidden />
-          )}
-        </div>
-        <div
-          className={`flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 ${!loading && notifications.length === 1 ? 'justify-center' : ''}`}
-        >
-          {loading ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 py-10" aria-live="polite" aria-busy="true">
-              <span role="status" className="text-sm text-[var(--text-secondary)]">불러오는 중...</span>
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 py-8">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--ui-100)] text-[var(--ui-400)]">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                </svg>
-              </div>
-              <p className="text-[15px] font-medium text-[var(--ui-600)]">아직 새 알림이 없어요</p>
-              <p className="text-[13px] text-[var(--ui-400)]">새 소식이 오면 여기에 표시돼요</p>
-            </div>
-          ) : (
-            notifications.map((notification, index) => (
-              <button
-                key={notification.id}
-                type="button"
-                style={{ animationDelay: `${index * 45}ms` }}
-                onClick={() => {
-                  if (onNotificationClick) {
-                    onNotificationClick(notification);
-                    handleClose();
-                  } else {
-                    if (!notification.isRead && onMarkAsRead) onMarkAsRead(notification.id);
-                    handleClose();
-                  }
-                }}
-                className={`animate-notification-item-in opacity-0 group relative flex min-h-[84px] flex-col justify-center gap-1.5 rounded-lg px-3.5 py-4 text-left transition-colors duration-150 ${
-                  !notification.isRead
-                    ? 'bg-[var(--ui-50)] hover:bg-[var(--ui-100)]'
-                    : 'hover:bg-[var(--ui-50)]'
-                }`}
-              >
-                {!notification.isRead && (
-                  <span className="absolute left-1.5 top-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[#6654F5]" />
-                )}
-                <div className="flex items-start justify-between gap-2 pl-0.5">
-                  <h3
-                    className={`min-w-0 flex-1 truncate text-[14px] font-semibold leading-tight ${
-                      !notification.isRead ? 'text-[var(--ui-900)]' : 'text-[var(--ui-600)]'
-                    }`}
-                  >
-                    {notification.title}
-                  </h3>
-                  <span className="shrink-0 text-[11px] text-[var(--ui-400)]">{notification.timestamp}</span>
-                </div>
-                <p className="line-clamp-2 pl-0.5 text-[13px] leading-snug text-[var(--ui-600)]">
-                  {notification.description.includes('프로젝트에') ? (
-                    <>
-                      {notification.description.split('프로젝트에')[0]}
-                      프로젝트에
-                      <br />
-                      {notification.description.split('프로젝트에').slice(1).join('프로젝트에')}
-                    </>
-                  ) : (
-                    notification.description
-                  )}
-                </p>
-              </button>
-            ))
-          )}
-          {hasMore && onLoadMore && (
-            <div className="shrink-0 border-t border-[var(--ui-200)] px-3 py-2">
-              <button
-                type="button"
-                onClick={onLoadMore}
-                disabled={loadingMore}
-                className="w-full rounded-lg py-2.5 text-[13px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#6654F5] disabled:opacity-60"
-              >
-                {loadingMore ? '불러오는 중…' : '더 보기'}
-              </button>
-            </div>
-          )}
-        </div>
-        {onMarkAllAsRead && notifications.some((n) => !n.isRead) && (
-          <div className="shrink-0 border-t border-[var(--ui-200)] bg-[var(--ui-50)]/30 px-3 py-2.5">
-            <button
-              type="button"
-              onClick={() => onMarkAllAsRead()}
-              className="w-full rounded-lg py-2.5 text-[13px] font-medium text-[var(--ui-500)] transition-colors hover:text-[#6654F5]"
-            >
-              전체 읽음 처리
-            </button>
+    <section
+      ref={panelRef}
+      className="notification-panel"
+      aria-labelledby={titleId}
+      style={position ? { ...position, maxHeight: `calc(100dvh - ${position.top + EDGE_PX}px)` } : undefined}
+    >
+      <header className="notification-panel-header">
+        <span className="notification-panel-icon"><Bell size={18} aria-hidden="true" /></span>
+        <h2 id={titleId}>알림</h2>
+        {unread > 0 && <span className="notification-panel-count" aria-label={`목록의 읽지 않은 알림 ${unread}개`}>{unread}</span>}
+        <button ref={closeRef} type="button" className="notification-panel-close" aria-label="알림 닫기" onClick={closeAndRestoreFocus}>
+          <X size={18} aria-hidden="true" />
+        </button>
+      </header>
+
+      <div className="notification-panel-filter-row">
+        <UnderlineTabs
+          label="알림 필터"
+          className="notification-panel-filters"
+          value={filter}
+          items={notificationFilters.map(({ value, label }) => ({
+            value,
+            label: value === 'unread' && unread > 0
+              ? <>{label}<span className="notification-panel-count">{unread}</span></>
+              : label,
+          }))}
+          onChange={(value) => {
+            setFilter(value);
+            if (listRef.current) listRef.current.scrollTop = 0;
+          }}
+        />
+      </div>
+
+      <div ref={listRef} className="notification-panel-body" aria-busy={loading}>
+        {loading ? (
+          <p className="notification-panel-state" role="status">알림을 불러오는 중이에요.</p>
+        ) : visibleNotifications.length === 0 ? (
+          <div className="notification-panel-state">
+            <Bell size={22} aria-hidden="true" />
+            <strong>{hasMore ? '현재 목록에 해당하는 알림이 없어요' : filter === 'unread' ? '안 읽은 알림이 없어요' : filter === 'read' ? '읽은 알림이 없어요' : '아직 새 알림이 없어요'}</strong>
+            {hasMore ? <span>이전 알림은 더 보기에서 확인할 수 있어요.</span>
+              : filter === 'all' && <span>새 소식이 오면 여기에 표시돼요.</span>}
           </div>
+        ) : (
+          <ul className="notification-panel-list">
+            {visibleNotifications.map((notification) => (
+              <li key={notification.id}>
+                <button
+                  type="button"
+                  className="notification-panel-item"
+                  data-unread={!notification.isRead}
+                  onClick={() => {
+                    if (onNotificationClick) onNotificationClick(notification);
+                    else if (!notification.isRead) onMarkAsRead?.(notification.id);
+                    closeAndRestoreFocus();
+                  }}
+                >
+                  <span className="notification-panel-dot" aria-hidden="true" />
+                  {!notification.isRead && <span className="sr-only">읽지 않음</span>}
+                  <span className="notification-panel-summary">
+                    <span className="notification-panel-title">{notification.title}</span>
+                    <span className="notification-panel-description">{notification.description}</span>
+                  </span>
+                  <span className="notification-panel-time">{notification.timestamp}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {hasMore && onLoadMore && (
+          <button type="button" className="notification-panel-more" disabled={loadingMore} onClick={onLoadMore}>
+            {loadingMore ? '불러오는 중…' : '더 보기'}
+          </button>
         )}
       </div>
-    </div>
-  );
-};
 
-export default NotificationModal;
+      {onMarkAllAsRead && unread > 0 && (
+        <footer className="notification-panel-footer">
+          <button type="button" onClick={onMarkAllAsRead}>
+            <CheckCheck size={16} aria-hidden="true" /> 전체 읽음 처리
+          </button>
+        </footer>
+      )}
+    </section>
+  );
+}

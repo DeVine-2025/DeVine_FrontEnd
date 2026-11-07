@@ -1,3 +1,4 @@
+import { useThemeStore } from '@store/theme';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { ActivityCalendar, type Activity, type ThemeInput } from 'react-activity-calendar';
 import ChevronRightIcon from "@assets/icons/chevron-right.svg?react";
@@ -13,6 +14,7 @@ interface CustomGithubCalendarProps {
   initialYear?: number;
   year?: number;
   onYearChange?: (year: number) => void;
+  heading?: string;
 }
 
 const DEVINE_ACTIVITY_THEME: ThemeInput = {
@@ -51,9 +53,11 @@ const CustomGithubCalendar = ({
   data = [],
   initialYear = new Date().getFullYear(),
   year: yearProp,
-  onYearChange
+  onYearChange,
+  heading,
 }: CustomGithubCalendarProps) => {
 
+  const theme = useThemeStore(state => state.theme);
   const [internalYear, setInternalYear] = useState(initialYear);
   // year prop이 있으면 prop을 사용하고, 없으면 내부 상태 사용
   const year = yearProp !== undefined ? yearProp : internalYear;
@@ -86,49 +90,56 @@ const CustomGithubCalendar = ({
   return (
     <div className="p-[2rem] border border-ui-200 rounded-xl w-full">
       <style>{`
-        .calendar-container > * > :not(:first-child) {
-          display: none !important;
-        }
-
         .calendar-container text {
           fill: var(--color-ui-700) !important;
           font-size: 12px;
           font-weight: 600;
         }
 
-        .calendar-container svg {
+        .calendar-container .react-activity-calendar__calendar {
           width: 100% !important;
           height: auto !important;
         }
       `}</style>
 
       {/* 헤더 */}
-      <div className="flex items-center gap-[1.6rem] mb-[2rem]">
-        <button
-          onClick={() => moveYear(-1)}
-          className={chevronButtonStyle}
-        >
-          <ChevronLeftIcon className={chevronStyle} />
-        </button>
+      <div className="github-calendar-header">
+        {heading && <h2>{heading}</h2>}
+        <div className="github-calendar-year flex items-center gap-[1.6rem] mb-[2rem]">
+          <button
+            type="button"
+            aria-label="이전 연도"
+            onClick={() => moveYear(-1)}
+            className={chevronButtonStyle}
+          >
+            <ChevronLeftIcon className={chevronStyle} />
+          </button>
 
-        <span className="font-bold text-ui-1000 text-2xl select-none">
-          {year}년
-        </span>
+          <span className="font-bold text-ui-1000 text-2xl select-none">
+            {year}년
+          </span>
 
-        <button
-          onClick={() => moveYear(1)}
-          className={chevronButtonStyle}
-          disabled={year >= new Date().getFullYear()}
-        >
-          <ChevronRightIcon className={chevronStyle} />
-        </button>
+          <button
+            type="button"
+            aria-label="다음 연도"
+            onClick={() => moveYear(1)}
+            className={chevronButtonStyle}
+            disabled={year >= new Date().getFullYear()}
+          >
+            <ChevronRightIcon className={chevronStyle} />
+          </button>
+        </div>
       </div>
 
       {/* 캘린더 컨테이너 */}
-      <div className="calendar-container">
+      <div key={heading ? year : undefined} className={heading ? 'calendar-container calendar-container-animated' : 'calendar-container'}>
         <ActivityCalendar
           data={calendarData}
           theme={DEVINE_ACTIVITY_THEME}
+          colorScheme={theme}
+          showWeekdayLabels={heading ? ['mon', 'wed', 'fri'] : false}
+          showTotalCount={false}
+          showColorLegend={Boolean(heading)}
           blockSize={12}
           blockRadius={2}
           blockMargin={4}

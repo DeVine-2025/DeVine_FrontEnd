@@ -12,6 +12,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import type { RootLayoutOutletContext } from '@layouts/root-layout';
 
 type GithubRepoSelectionSectionProps = {
+  preview?: boolean;
   onBack: () => void;
   onNext: () => void;
 };
@@ -29,7 +30,7 @@ type ReportCardData = {
   desc: string;
 };
 
-const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSectionProps) => {
+const GithubRepoSelectionSection = ({ onBack, onNext, preview = false }: GithubRepoSelectionSectionProps) => {
   const [selectedRepo, setSelectedRepo] = useState<number | null>(null);
   const [phase, setPhase] = useState<'select' | 'generating' | 'complete'>('select');
   const [tipIndex, setTipIndex] = useState(0);
@@ -97,6 +98,14 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
   const handleGenerate = () => {
     if (!canProceed || phase !== 'select') return;
     if (!selectedRepo) return;
+    if (preview) {
+      const selected = repoOptions.find((repo) => repo.id === selectedRepo);
+      const sample = { title: selected?.name ?? 'DeVine', desc: selected?.desc ?? '프로젝트 분석 예시입니다.' };
+      setMainReport(sample);
+      setDetailReport(sample);
+      setPhase('complete');
+      return;
+    }
     createReportMutation.mutate(selectedRepo);
   };
 
@@ -148,6 +157,11 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
   }, [setLogoClickHandler]);
 
   useEffect(() => {
+    if (preview) {
+      setRepoOptions([{ id: 1, name: 'DeVine', desc: '사이드 프로젝트 매칭 플랫폼', url: '#', hasReport: false }, { id: 2, name: 'sample-project', desc: '프로젝트 미리보기 예시', url: '#', hasReport: false }]);
+      setIsLoading(false);
+      return;
+    }
     let isActive = true;
     setIsLoading(true);
     setLoadError(null);
@@ -180,7 +194,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext }: GithubRepoSelectionSecti
     return () => {
       isActive = false;
     };
-  }, [getToken]);
+  }, [getToken, preview]);
 
   if (phase === 'generating') {
     return (

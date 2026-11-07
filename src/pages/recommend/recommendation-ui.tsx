@@ -3,8 +3,41 @@ import * as Dropdown from '@radix-ui/react-dropdown-menu';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
-export function RecommendationMenu({ label, value, options, onChange, developerFilter = false }: { label: string; value: string; options: { value: string; label: string; icon?: ReactNode }[]; onChange: (value: string) => void; developerFilter?: boolean }) {
-  return <Dropdown.Root modal={false}><Dropdown.Trigger className="rec-menu-trigger" aria-label={label} data-filter-active={developerFilter && !!value ? true : undefined}><span className="rec-menu-trigger-label">{options.find(option => option.value === value)?.label ?? label}</span><ChevronDown size={14} aria-hidden="true" /></Dropdown.Trigger><Dropdown.Portal><Dropdown.Content className={developerFilter ? "rec-menu rec-menu--developer-filter" : "rec-menu"} sideOffset={8} align={developerFilter ? "start" : "end"}><Dropdown.RadioGroup value={value} onValueChange={onChange}>{options.map(option => <Dropdown.RadioItem className="rec-menu-item" value={option.value} key={option.value}><span className="rec-menu-option-label">{option.icon}{option.label}</span><Dropdown.ItemIndicator><Check size={14} /></Dropdown.ItemIndicator></Dropdown.RadioItem>)}</Dropdown.RadioGroup></Dropdown.Content></Dropdown.Portal></Dropdown.Root>;
+type RecommendationMenuProps = {
+  label: string;
+  value: string;
+  options: { value: string; label: string; icon?: ReactNode }[];
+  onChange: (value: string) => void;
+  developerFilter?: boolean;
+  icon?: ReactNode;
+};
+
+export function RecommendationMenu({ label, value, options, onChange, developerFilter = false, icon }: RecommendationMenuProps) {
+  const selectedOption = options.find((option) => option.value === value);
+
+  return (
+    <Dropdown.Root modal={false}>
+      <Dropdown.Trigger className="rec-menu-trigger" aria-label={label} data-filter-active={developerFilter && !!value ? true : undefined}>
+        <span className="rec-menu-trigger-content">
+          {selectedOption?.icon ?? icon}
+          <span className="rec-menu-trigger-label">{selectedOption?.label ?? label}</span>
+        </span>
+        <ChevronDown size={14} aria-hidden="true" />
+      </Dropdown.Trigger>
+      <Dropdown.Portal>
+        <Dropdown.Content className={developerFilter ? 'rec-menu rec-menu--developer-filter' : 'rec-menu'} sideOffset={8} align={developerFilter ? 'start' : 'end'}>
+          <Dropdown.RadioGroup value={value} onValueChange={onChange}>
+            {options.map((option) => (
+              <Dropdown.RadioItem className="rec-menu-item" value={option.value} key={option.value}>
+                <span className="rec-menu-option-label">{option.icon}{option.label}</span>
+                <Dropdown.ItemIndicator><Check size={14} /></Dropdown.ItemIndicator>
+              </Dropdown.RadioItem>
+            ))}
+          </Dropdown.RadioGroup>
+        </Dropdown.Content>
+      </Dropdown.Portal>
+    </Dropdown.Root>
+  );
 }
 
 export function RecommendationBasis({ developer = false, title, children }: { developer?: boolean; title?: string; children?: ReactNode }) {

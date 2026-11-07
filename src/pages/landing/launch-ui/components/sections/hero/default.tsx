@@ -26,7 +26,7 @@ interface HeroProps {
 
 const DEFAULT_HERO_BUTTONS: HeroButtonProps[] = [
   {
-    href: "/",
+    href: "/login",
     text: "DeVine 시작하기",
     variant: "default",
   },

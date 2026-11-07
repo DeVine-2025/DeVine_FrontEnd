@@ -24,6 +24,11 @@ type GetTechstacksResponse = {
 export const normalizeTechstackName = (value: string) =>
   value.trim().toUpperCase().replace(/[^A-Z0-9_]+/g, '_');
 
+const positionNames = new Set(['FRONTEND', 'BACKEND', 'INFRA']);
+
+export const isTechnologySkill = ({ name, genre }: { name: string; genre: string | null }) =>
+  Boolean(genre?.trim()) && !positionNames.has(normalizeTechstackName(name).replace(/_/g, ''));
+
 export const formatTechstackKey = (name: string) => {
   const normalized = normalizeTechstackName(name);
   const alias: Record<string, string> = {

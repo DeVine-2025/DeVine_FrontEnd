@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, type MouseEvent } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { animateElasticUnderline } from '@hooks/useElasticUnderline';
 import { gsap } from 'gsap';
-import './explore-tabs.css';
+import '@components/tab/underline-tabs.css';
 
 let pendingIndicator: { target: string; left: number; width: number } | null = null;
 

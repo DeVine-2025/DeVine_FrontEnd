@@ -1,4 +1,5 @@
 import { useUser } from '@clerk/clerk-react';
+import DevineSymbol from '@assets/images/devine-symbol.png';
 import { useAuthMe } from '@hooks/useAuthMe';
 import FloatingChatWidget from '@components/chat/FloatingChatWidget';
 import Header from '@layouts/header';
@@ -16,6 +17,28 @@ export type RootLayoutOutletContext = {
   setLogoClickHandler: (handler: (() => void) | null) => void;
 };
 
+const AuthLoadingScreen = () => {
+  const [showMessage, setShowMessage] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowMessage(true), 2000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  return (
+    <div role="status" aria-live="polite" className="flex min-h-[100svh] flex-col items-center justify-center bg-[#101116] px-6 text-center">
+      <span className="sr-only">회원 정보를 확인하고 있어요.</span>
+      <img src={DevineSymbol} alt="" className="h-auto w-[56px] motion-safe:animate-pulse" />
+      <div aria-hidden="true" className="mt-7 flex h-1 items-center gap-1.5 motion-safe:animate-pulse">
+        <span className="h-1 w-1 rounded-full bg-[#ADA1FA]" />
+        <span className="h-1 w-1 rounded-full bg-[#ADA1FA]/70" />
+        <span className="h-1 w-1 rounded-full bg-[#ADA1FA]/40" />
+      </div>
+      {showMessage && <p aria-hidden="true" className="absolute mt-32 text-sm text-[#a9aab6]">회원 정보를 확인하고 있어요.</p>}
+    </div>
+  );
+};
+
 const RootLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -27,8 +50,9 @@ const RootLayout = () => {
   const onboardingIncomplete = Boolean(user) && memberQuery.data?.isRegistered === false;
   const [logoClickHandler, setLogoClickHandler] = useState<(() => void) | null>(null);
   const isSsoCallbackRoute = location.pathname === '/sso-callback';
+  const isLoginRoute = location.pathname === '/login';
   const isReportWorkspace = location.pathname.startsWith('/report/detail/');
-  const showFooter = !isReportWorkspace && !isSsoCallbackRoute && !['/signup', '/terms/1', '/terms/2'].includes(location.pathname);
+  const showFooter = !isReportWorkspace && !isSsoCallbackRoute && !isLoginRoute && !['/signup', '/terms/1', '/terms/2'].includes(location.pathname);
   const isOnboardingCompleteNow = memberQuery.data?.isRegistered === true;
   const isAuthOnlyRoute =
     location.pathname === '/signup' ||
@@ -111,12 +135,12 @@ const RootLayout = () => {
         return;
       }
     }
-    navigate('/');
+    navigate('/home');
   };
 
   // 회원 확인 전에는 하위 화면의 회원 전용 API를 실행하지 않습니다.
   if (!isSsoCallbackRoute && (!isLoaded || (user && memberQuery.isPending))) {
-    return <p role="status" className="py-24 text-center text-ui-600">회원 정보를 확인하고 있어요.</p>;
+    return <AuthLoadingScreen />;
   }
 
   if (!isSsoCallbackRoute && user && memberQuery.isError) {
@@ -136,10 +160,10 @@ const RootLayout = () => {
   }
 
   return (
-    <div className="flex min-h-[100vh] flex-col">
-      {!isSsoCallbackRoute && <Header navLocked={navLocked} onLogoClick={handleLogoClick} />}
-      <main className={`min-h-[100svh] shrink-0 ${isReportWorkspace ? 'report-workspace-main' : location.pathname === '/' ? 'pt-6 pb-16' : 'py-12'}`}>
-        <div key={location.pathname === '/search/projects' || location.pathname === '/search/developers' ? 'explore' : location.pathname.startsWith('/recommend') ? 'recommend' : location.pathname.startsWith('/report/detail/') ? location.pathname : location.key} className={`page-transition ${location.pathname === '/' || location.pathname.startsWith('/search/') || location.pathname.startsWith('/recommend') ? 'page-transition--collection' : ''}`}>
+    <div className={`flex min-h-[100vh] flex-col ${isLoginRoute ? "bg-[#101116]" : ""}`}>
+      {!isSsoCallbackRoute && !isLoginRoute && <Header navLocked={navLocked} onLogoClick={handleLogoClick} />}
+      <main className={`min-h-[100svh] shrink-0 ${isReportWorkspace ? 'report-workspace-main' : isLoginRoute ? '' : location.pathname === '/' || location.pathname === '/home' ? 'pt-6 pb-16' : 'py-12'}`}>
+        <div key={location.pathname === '/search/projects' || location.pathname === '/search/developers' ? 'explore' : location.pathname.startsWith('/recommend') ? 'recommend' : location.pathname === '/my-info' || location.pathname.startsWith('/my-info/') ? 'my-info' : isReportWorkspace ? location.pathname : location.key} className={`page-transition ${location.pathname === '/' || location.pathname === '/home' || location.pathname.startsWith('/search/') || location.pathname.startsWith('/recommend') ? 'page-transition--collection' : ''}`}>
           <Outlet
             context={{
               setNavLocked,

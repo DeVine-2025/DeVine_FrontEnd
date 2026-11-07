@@ -48,7 +48,7 @@ export interface UpdateProfileRequest {
   imageUrl?: string;
   address: string;
   body: string;
-  domains: string[];
+  domains?: string[];
   contacts: {
     type: string;
     value: string;
