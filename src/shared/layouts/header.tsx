@@ -276,10 +276,10 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   return (
     <>
       <header className="w-full border-b border-white/[0.04] bg-ui-bg">
-        <div className="relative mx-auto h-[7rem] w-full max-w-none flex-row-between px-8 max-[391px]:px-2 max-[743px]:px-4">
+        <div className="desktop-content relative mx-auto h-[7rem] w-[var(--desktop-content-width,100%)] max-w-none flex-row-between px-8 max-[391px]:px-2 max-[743px]:px-4 lg:max-2xl:px-0">
           {/* 왼쪽: 로고 + 네비게이션 */}
           <div className="flex-items-center gap-[4.8rem] phone:gap-[2rem] tablet:gap-[3rem]">
-            <div className="group relative ml-[-14px] flex-items-center gap-[0.4rem]">
+            <div className="group relative ml-[-14px] flex-items-center gap-[0.4rem] lg:max-2xl:ml-0">
               {/* 데스크톱/태블릿 로고 */}
               <button
                 type="button"
@@ -312,7 +312,6 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             </div>
 
             {/* 네비게이션 - 데스크톱 */}
-            {import.meta.env.DEV && <Link to="/signup-preview" className="text-[13px] text-[#ada1fa] hover:text-white">회원가입 미리보기</Link>}
             <nav ref={navRef} className="relative max-[743px]:!hidden ml-[28px] flex-items-center shrink-0 flex-nowrap gap-[2.6rem] phone:gap-[2rem] tablet:gap-[2.6rem]">
               {navItems.map((item) => (
                 <Link

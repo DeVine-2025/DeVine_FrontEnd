@@ -1,10 +1,8 @@
 import { ArrowRightIcon } from "lucide-react";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
-import { siteConfig } from "@pages/landing/launch-ui/config/site";
 import { cn } from "@libs/cn";
 
-import { Badge } from "../../ui/badge";
 import HorizonBackground from "../../ui/horizon-background";
 import { LinkButton, type LinkButtonProps } from "../../ui/link-button";
 import { Mockup, MockupFrame } from "../../ui/mockup";
@@ -31,29 +29,16 @@ const DEFAULT_HERO_BUTTONS: HeroButtonProps[] = [
     variant: "default",
   },
   {
-    href: "/search/projects",
+    href: "/home",
     text: "프로젝트 둘러보기",
     variant: "glow",
     iconRight: <ArrowRightIcon className="size-4" />,
   },
 ];
 
-const DEFAULT_HERO_BADGE = (
-  <Badge variant="outline" className="animate-appear">
-    <span className="text-muted-foreground">
-      New version of Launch UI is out!
-    </span>
-    <a href={siteConfig.getStartedUrl} className="flex items-center gap-1">
-      Get started
-      <ArrowRightIcon className="size-3" />
-    </a>
-  </Badge>
-);
-
 const DEFAULT_HERO_MOCKUP = (
   <Screenshot
-    srcLight="/launch-ui/devine-explore.png"
-    srcDark="/launch-ui/devine-explore.png"
+    src="/launch-ui/devine-explore.png"
     alt="DeVine 프로젝트 탐색 화면 미리보기"
     width={1440}
     height={900}
@@ -73,13 +58,13 @@ export default function Hero({
   return (
     <Section
       className={cn(
-        "fade-bottom overflow-hidden pb-0 sm:pb-0 md:pb-0",
+        "fade-bottom overflow-hidden pb-0 sm:pb-0 md:pb-0 lg:max-2xl:[--landing-hero-top:clamp(64px,11svh,108px)] lg:max-2xl:[--landing-hero-font:clamp(46px,4.5vw,68px)] lg:max-2xl:[--landing-preview-gap:clamp(120px,22svh,190px)]",
         className,
       )}
     >
       <HorizonBackground />
-      <div className="max-w-container mx-auto flex flex-col gap-12 pt-16 sm:gap-24">
-        <div className="flex flex-col items-center gap-6 text-center sm:gap-12">
+      <div className="max-w-container mx-auto flex flex-col gap-12 pt-16 sm:gap-24 lg:max-2xl:pt-[clamp(32px,6svh,56px)] lg:max-2xl:gap-[48px]">
+        <div className="flex flex-col items-center gap-6 text-center sm:gap-12 lg:max-2xl:gap-[clamp(20px,3svh,30px)]">
           {badge !== false && badge}
           <h1 className="service-hero-title hero-enter hero-enter-title relative z-10 inline-block">
             {title}
@@ -104,7 +89,7 @@ export default function Hero({
             </div>
           )}
           {mockup !== false && (
-            <div className="relative w-full pt-12">
+            <div className="relative w-full pt-12 lg:max-2xl:pt-[clamp(28px,5svh,44px)]">
               <MockupFrame
                 className="hero-enter hero-enter-preview"
                 size="small"

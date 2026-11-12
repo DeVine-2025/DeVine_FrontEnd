@@ -1,6 +1,6 @@
 /* Hallmark · redesign: app screen · brand: DeVine tokens · signature: project report folders */
 /* Critique: The library controls competed with the reports; the revised workspace makes the collection the focal point. */
-.report-library {gap:0;padding-top:12px;color:var(--text-main);}
+.report-library {color:var(--text-main);}
 .report-library .report-compact-header {display:flex;align-items:flex-end;justify-content:space-between;gap:28px;padding:12px 0 32px;border-bottom:0;}
 .report-library-heading-copy {min-width:0;}
 .report-library .report-compact-header h1 {margin:0;font-size:32px;font-weight:700;line-height:1.25;letter-spacing:-.035em;overflow-wrap:break-word;color:var(--text-main);}
@@ -21,8 +21,6 @@
 .report-library .report-library-tabs button:hover,.report-library .report-library-tabs button[aria-pressed=true] {color:var(--text-main);}
 .report-library .report-tabs-indicator {position:absolute;bottom:0;left:0;height:2px;margin:0;padding:0;border-radius:2px;background:var(--project-accent);transform-origin:left center;pointer-events:none;visibility:hidden;}
 .report-library .report-library-tabs button span {margin-left:4px;padding:0;background:transparent;color:var(--text-secondary);font-size:12px;font-variant-numeric:tabular-nums;}
-.report-library .report-shared-heading {display:flex;align-items:center;gap:12px;margin-top:28px;}
-.report-library .report-shared-heading h2 {margin:0;color:var(--text-main);font-size:16px;font-weight:650;}
 .report-library .report-shared-help {position:relative;display:inline-flex;}
 .report-library .report-shared-help button {display:grid;place-items:center;width:26px;height:26px;border-radius:6px;color:var(--text-secondary);}
 .report-library .report-shared-help button svg {width:16px;height:16px;}
@@ -33,12 +31,10 @@
 .report-library .report-shared-tooltip span {margin:0;color:var(--text-secondary);font-size:12px;line-height:1.55;}
 .report-library .report-shared-help:hover .report-shared-tooltip,.report-library .report-shared-help:focus-within .report-shared-tooltip {opacity:1;visibility:visible;transform:translate(-50%,0);}
 @media (prefers-reduced-motion:reduce) {.report-library .report-shared-tooltip {transition:none;}}
-.report-library .report-view-controls {display:flex;align-items:center;gap:12px;flex:none;}
 .report-library .report-library-toolbar select {min-height:36px;padding:0 28px 0 12px;border:1px solid var(--text-secondary);border-radius:7px;background:var(--surface-input);color:var(--text-main);font-size:12px;}
 .report-library .report-view-toggle {gap:2px;padding:4px;border:1px solid var(--project-divider);border-radius:8px;background:var(--surface-filter);}
 .report-library .report-view-toggle button {width:34px;height:30px;border-radius:5px;color:var(--text-secondary);}
 .report-library .report-view-toggle button[aria-pressed=true] {background:var(--surface-badge);color:var(--text-main);}
-.report-library .report-list-grid.rf-grid {width:100%;max-width:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 24px;padding-top:16px;}
 .report-library .report-folder-list {margin-top:0;gap:0;}
 .report-library .report-list-head {display:grid;grid-template-columns:minmax(0,1fr) 150px 40px;align-items:center;gap:20px;}
 .report-library .report-list-head {margin-top:20px;padding:10px 18px;border-bottom:1px solid var(--project-divider);color:var(--text-secondary);font-size:12px;}
@@ -67,9 +63,8 @@
 .report-library :is(a,button,select):focus-visible {outline:2px solid var(--project-accent);outline-offset:3px;}
 .report-library :is(a,button):active {transform:scale(.98);}
 .report-library button:disabled {opacity:.55;cursor:not-allowed;}
-@media(max-width:1000px) {.report-library .report-list-grid.rf-grid {grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:760px) {.report-library .report-compact-header {align-items:flex-start;flex-direction:column;gap:16px;} .report-library .report-header-actions {flex-wrap:wrap;} .report-library .report-library-toolbar {align-items:flex-start;flex-direction:column;gap:12px;padding-bottom:16px;} .report-library .report-library-tabs {gap:16px;} .report-library .report-library-tabs button {min-height:46px;} }
-@media(max-width:600px) {.report-library .report-list-grid.rf-grid {grid-template-columns:minmax(0,1fr);} .report-library .report-credit-pill {flex-wrap:wrap;} }
+@media(max-width:600px) { .report-library .report-credit-pill {flex-wrap:wrap;} }
 @media(prefers-reduced-motion:reduce) {.report-library :is(a,button) {transition:none;} .report-library :is(a,button):active {transform:none;}}
 
 html:has(.report-library),body:has(.report-library) {overflow-x:clip;}
@@ -77,3 +72,9 @@ html:has(.report-library),body:has(.report-library) {overflow-x:clip;}
 body:has(.report-library) header :is(a,button):focus-visible {outline:2px solid var(--project-accent);outline-offset:3px;}
 .report-library .report-compact-header h1 {text-wrap:balance;}
 @media(max-width:389px) {body:has(.report-library) header .group.relative {margin-left:0;}}
+
+@media screen and (1024px <= width < 1536px) {
+  .desktop-content .report-library .report-compact-header { padding-bottom: 24px; }
+  .desktop-content .report-library .dv-folder { max-width: clamp(260px, 20vw, 306px); padding-top: 20px; }
+  .desktop-content .report-library :is(.report-compact-row, .report-row-main) { min-height: 64px; }
+}

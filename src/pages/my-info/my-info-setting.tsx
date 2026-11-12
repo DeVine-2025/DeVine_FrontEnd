@@ -1,4 +1,4 @@
-import { myInfoQueries, updateMyProfile } from '@apis/myInfo/myInfo-queries';
+import { myInfoQueries, updateMyProfile } from '@apis/myInfo/my-info.queries';
 import GithubIcon from '@assets/icons/github.svg?react';
 import GoogleIcon from '@assets/icons/google.svg?react';
 import { useAuth, useUser } from '@clerk/clerk-react';

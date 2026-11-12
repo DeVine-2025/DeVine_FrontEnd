@@ -1,3 +1,4 @@
+import AdminModalFrame from './common/admin-modal-frame';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { type FormEvent, useEffect, useState } from 'react';
@@ -115,16 +116,7 @@ export function MemberStatusModal({ action, nickname, onClose }: MemberStatusMod
   };
 
   return (
-    <div
-      aria-label={copy.title}
-      aria-modal="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-[20px]"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !mutation.isPending) onClose();
-      }}
-      role="dialog"
-    >
-      <div className="w-full max-w-[480px] rounded-[16px] bg-[var(--ui-bg)] p-[28px] text-center shadow-xl">
+    <AdminModalFrame label={copy.title} size="member" busy={mutation.isPending} onClose={onClose}>
         <h2 className="Title3 font-bold text-[var(--ui-1000)]">{copy.title}</h2>
         <p className="Body1 mt-[8px] text-[var(--ui-700)]">
           <strong>{nickname}</strong> 계정에 대해 {copy.description}
@@ -135,7 +127,7 @@ export function MemberStatusModal({ action, nickname, onClose }: MemberStatusMod
             <label className="flex flex-col gap-[8px]">
               <span className="Body1 font-semibold text-[var(--ui-1000)]">처리 사유</span>
               <textarea
-                className={cn(INPUT_CLASS, 'h-[120px] resize-y')}
+                className={cn(INPUT_CLASS, 'h-[120px] resize-y lg:max-2xl:h-[100px]')}
                 maxLength={500}
                 onChange={(event) => setReason(event.target.value)}
                 placeholder="처리 사유를 입력해주세요"
@@ -182,7 +174,6 @@ export function MemberStatusModal({ action, nickname, onClose }: MemberStatusMod
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </AdminModalFrame>
   );
 }

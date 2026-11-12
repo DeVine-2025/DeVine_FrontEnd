@@ -8,7 +8,6 @@ import {
   type TechstackItem,
 } from '@apis/techstacks';
 import { useTechstacks } from '@hooks/useTechstacks';
-import { useThemeStore } from '@store/theme';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { PositionKey as TabKey } from '@constants/position-tech-stack';
 import { buildGenreGroups, TAB_GROUP_NAME, TAB_LABEL } from '../common/tech-stack-groups';
@@ -38,7 +37,6 @@ export default function PositionTechStackDropdown({
   showCloseButton = false,
   valueType = 'key',
 }: PositionTechStackDropdownProps) {
-  const { theme } = useThemeStore();
   const { data: techstackGroups = [], isLoading, isError, refetch } = useTechstacks();
   const ref = useRef<HTMLDivElement | null>(null);
   const wasOpenRef = useRef(false);
@@ -135,8 +133,8 @@ export default function PositionTechStackDropdown({
     const badge = getTechBadgeByName(item.name);
 
     if (badge) {
-      const offSrc = theme === 'dark' ? badge.offDark ?? badge.off : badge.off;
-      const onSrc = theme === 'dark' ? badge.onDark ?? badge.on : badge.on;
+      const offSrc = badge.offDark ?? badge.off;
+      const onSrc = badge.onDark ?? badge.on;
       return (
         <button
           key={`${item.techstackId}-${key}`}

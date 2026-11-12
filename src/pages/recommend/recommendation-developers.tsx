@@ -1,13 +1,11 @@
 import { sampleTeamProjects, getSampleTeamDevelopers } from './recommendation-team-samples';
-import type { RecommendDeveloperListItem } from '@apis/members';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@clerk/clerk-react';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
-import { useBookmarks } from '@hooks/useBookmarks';
+import { useBookmarks, useChangeBookmark } from '@hooks/useBookmarks';
 import { getRecommendMembers } from '@apis/members';
 import { normalizeTechstackName } from '@apis/techstacks';
-import { createBookmark, deleteBookmark } from '@apis/bookmarks';
 import { getCollaborationPreview } from '@components/cards/developer-collaboration-preview';
 import DeveloperCard from '@components/cards/DeveloperCard';
 import TechStackPicker from '@components/common/TechStackPicker';
@@ -16,19 +14,21 @@ import {
   ArrowRight, CalendarClock, CalendarDays, CalendarRange, Check, ChevronDown, Clock3,
   CodeXml, Folder, Globe, Layers2, MapPin, Monitor, SearchX, Server, UsersRound,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import SearchIcon from '@assets/icons/search.svg?react';
-import '../search/project/project-explore-page.css';
+import '../search/explore-shared.css';
 import '../search/developer/developer-explore-page.css';
 import { RecommendationMenu, RecommendationSkeleton, RecommendationState } from './recommendation-ui';
+import { useMockData } from '../../shared/config/data-mode';
 
 const emptyFilters = { method: '', schedule: '', position: '', stack: [] as string[] };
 const stackKey = (name: string) => normalizeTechstackName(name).replace(/_/g, '');
 
 export default function RecommendationDevelopers() {
+  const navigate = useNavigate();
   const { isSignedIn, isLoaded, getToken, userId } = useAuth();
-  const client = useQueryClient();
-  const projects = useMyRecruitingProjects();
+  const saveBookmark = useChangeBookmark();
+  const projects = useMyRecruitingProjects({ enabled: !useMockData && !!isSignedIn });
   const [selected, setSelected] = useState('');
   const [view, setView] = useState<'list' | 'grid'>('grid');
   const [search, setSearch] = useState('');
@@ -38,17 +38,15 @@ export default function RecommendationDevelopers() {
   const filtersActive = Boolean(filters.method || filters.schedule || filters.position || selectedStacks.size);
   const hasSearchConditions = filtersActive || Boolean(search.trim());
   const resetFilters = () => setFilters(emptyFilters);
-  const options = [...sampleTeamProjects, ...(projects.data ?? [])];
+  const options = useMockData ? sampleTeamProjects : projects.data ?? [];
   const [sampleBookmarks, setSampleBookmarks] = useState<string[]>([]);
-  const [sampleDeveloper, setSampleDeveloper] = useState<RecommendDeveloperListItem | null>(null);
-  const sampleDialog = useRef<HTMLDialogElement>(null);
   const project = options.find(item => String(item.projectId) === selected) ?? options[0];
   const isSample = !!project && project.projectId < 0;
-  const { data: bookmarks = [] } = useBookmarks();
+  const { data: bookmarks = [] } = useBookmarks({ enabled: !useMockData && !!isSignedIn });
   const loader = useRef<HTMLDivElement>(null);
   const developers = useInfiniteQuery({
     queryKey: ['recommendation-developers', userId, project?.projectId],
-    enabled: !!isSignedIn && !!project && project.projectId > 0,
+    enabled: !useMockData && !!isSignedIn && !!project && project.projectId > 0,
     initialPageParam: 1,
     queryFn: async ({ pageParam, signal }) => { const token = await getToken(); if (!token || !project || project.projectId <= 0) throw new Error('추천 기준을 확인해 주세요.'); return getRecommendMembers(token, { projectId: project.projectId, page: pageParam, size: 9 }, signal); },
     getNextPageParam: page => page.last || page.page >= page.totalPages ? undefined : page.page + 1,
@@ -111,7 +109,7 @@ export default function RecommendationDevelopers() {
       <div className="recommend-workspace">
         <aside className="recommend-project-rail" aria-label="추천 기준 프로젝트">
           <div className="recommend-rail-heading"><h2>내 프로젝트</h2><p>팀원을 찾을 프로젝트를 선택하세요.</p></div>
-          <nav aria-label="내 프로젝트 선택" className="recommend-project-list">
+          <nav aria-label="내 프로젝트 선택" className="my-[8px] grid max-h-[420px] gap-[4px] overflow-y-auto p-[4px] [@media(max-width:760px)]:max-h-[192px]">
             {options.map(item => <button type="button" key={item.projectId} aria-pressed={item.projectId === project.projectId} onClick={() => { if (item.projectId !== project.projectId) { setSelected(String(item.projectId)); resetFilters(); } }} className="recommend-project-option">
               <Folder size={18} strokeWidth={1.6} aria-hidden="true" />
               <span>{item.title}</span>
@@ -126,7 +124,7 @@ export default function RecommendationDevelopers() {
             <ViewToggle value={view} onChange={setView} />
           </div>
           <div className="recommend-position-bar" role="group" aria-label="추천 개발자 필터">
-            {filterGroups.map((group) => group.key === 'stack' ? (
+            {filterGroups.filter(group => isSample || (group.key !== 'schedule' && group.key !== 'method')).map((group) => group.key === 'stack' ? (
               <button
                 key={group.key}
                 type="button"
@@ -170,7 +168,7 @@ export default function RecommendationDevelopers() {
         </div>
       </section> : <div className={`developer-explore-list developer-explore-${view}`}>{filtered.map(developer => {
         const bookmark = bookmarks.find(item => item.targetType === 'DEVELOPER' && (item.targetNickname === developer.nickname || (developer.memberId != null && item.targetId === developer.memberId)));
-        return <DeveloperCard key={developer.nickname} developer={{ member: { nickname: developer.nickname, address: null, disclosure: true, mainType: 'DEVELOPER', imageUrl: developer.profileImageUrl || null, body: developer.introduction || null, used: '', createdAt: '' }, domains: (developer.domains ?? []).map(domain => domain.label), techstacks: developer.techStack.map((stack, index) => ({ techstackId: index, name: stack.name, genre: 'skill', source: 'MANUAL' })) }} roleLabel={developer.role} variant={view} showTechStacks={selectedStacks.size > 0} onOpen={isSample ? () => { setSampleDeveloper(developer); sampleDialog.current?.showModal(); } : undefined} bookmarked={isSample ? sampleBookmarks.includes(developer.id) : !!bookmark} pending={false} onBookmarkChange={async next => { if (isSample) { setSampleBookmarks(current => next ? [...current, developer.id] : current.filter(id => id !== developer.id)); return; } const token = await getToken(); if (!token) throw new Error('로그인이 필요합니다.'); if (next) await createBookmark({ targetType: 'DEVELOPER', targetNickname: developer.nickname }, token); else if (bookmark) await deleteBookmark(bookmark.bookmarkId, token); await client.invalidateQueries({ queryKey: ['bookmarks'] }); }} />;
+        return <DeveloperCard key={developer.nickname} developer={{ member: { nickname: developer.nickname, address: null, disclosure: true, mainType: 'DEVELOPER', imageUrl: developer.profileImageUrl || null, body: developer.introduction || null, used: '', createdAt: '' }, domains: (developer.domains ?? []).map(domain => domain.label), techstacks: developer.techStack.map((stack, index) => ({ techstackId: index, name: stack.name, genre: 'skill', source: 'MANUAL' })) }} roleLabel={developer.role} variant={view} showConditions={isSample} showTechStacks={selectedStacks.size > 0} onOpen={isSample ? () => navigate(`/developer-detail/${encodeURIComponent(developer.nickname)}?preview=sample`) : undefined} bookmarked={isSample ? sampleBookmarks.includes(developer.id) : !!bookmark} pending={false} onBookmarkChange={async next => { if (isSample) { setSampleBookmarks(current => next ? [...current, developer.id] : current.filter(id => id !== developer.id)); return; } const token = await getToken(); if (!token) throw new Error('로그인이 필요합니다.'); await saveBookmark({ targetType: 'DEVELOPER', targetNickname: developer.nickname }, next, bookmark?.bookmarkId, token); }} />;
       })}</div>}
       <div ref={loader} className="rec-load-more" role="status">{isFetchingNextPage ? '추천 개발자를 더 불러오고 있어요…' : isFetchNextPageError ? <button className="rec-menu-trigger" onClick={() => void fetchNextPage()}>추가 추천 다시 불러오기</button> : !hasNextPage && filtered.length > 0 ? '추천 개발자를 모두 살펴봤어요.' : null}</div>
     </div></div></>}
@@ -183,11 +181,5 @@ export default function RecommendationDevelopers() {
         onClose={() => setStackPickerOpen(false)}
       />
     )}
-    <dialog ref={sampleDialog} className="rec-preview-dialog" aria-label="샘플 개발자 프로필">
-      <span className="rec-preview-label">샘플 개발자</span><h2>{sampleDeveloper?.nickname}</h2>
-      <p>{sampleDeveloper?.role}</p><p>{sampleDeveloper?.introduction}</p>
-      <p>{sampleDeveloper?.techStack.map(stack => stack.name).join(', ')}</p>
-      <button type="button" className="rec-primary" onClick={() => sampleDialog.current?.close()}>닫기</button>
-    </dialog>
   </>;
 }

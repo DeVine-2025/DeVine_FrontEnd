@@ -4,15 +4,15 @@
 @import "./skeleton.css";
 @import "./custom-utilities.css";
 @import "./reset.css";
+@import "./desktop-content.css";
 @import "./tokens/common-card-theme.css";
 @import "./tokens/common-badge-theme.css";
 @import "./tokens/profile-card-theme.css";
 @import "./tokens/auth-theme.css";
 
-@import "./theme-transition.css";
-
 @layer base {
     :root{
+        color-scheme: dark;
         --min-width: 390px;
         --max-width: 1440px;
         --font-pretendard:
@@ -43,11 +43,6 @@
 
     body::-webkit-scrollbar {
         display: none;
-    }
-
-    html[data-theme='light'],
-    html[data-theme='light'] body {
-        background-color: #FFFFFF;
     }
 }
 

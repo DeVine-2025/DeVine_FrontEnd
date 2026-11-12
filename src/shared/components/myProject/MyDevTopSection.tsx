@@ -15,6 +15,7 @@ export default function MyDevTopSection() {
       subtitle: [item.categoryName, item.modeName, item.durationRangeName].filter(Boolean).join(' / '),
       image: item.thumbnailUrl,
       href: '/project/' + item.projectId,
+      message: item.content?.trim(),
       createdAt: item.createdAt,
       decision: item.decision,
     }))) ?? [],

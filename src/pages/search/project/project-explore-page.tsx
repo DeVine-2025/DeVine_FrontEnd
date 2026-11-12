@@ -2,19 +2,41 @@ import ViewToggle from '@components/common/ViewToggle';
 import ProjectCard from '@components/cards/ProjectCard';
 import ChevronIcon from '@assets/icons/chevron-down.svg?react';
 import SearchIcon from '@assets/icons/search.svg?react';
-import DomainBadge from '@components/common/DomainBadge';
 import SortMenu from '@components/common/SortMenu';
-import TechStackBadges from '@components/cards/TechStackBadges';
+import { getTechDisplayName } from '@components/cards/TechStackBadges';
 import ExploreTabs from '../explore-tabs';
 import ExploreSelectedFilters from '../explore-selected-filters';
-import { DOMAIN_OPTIONS } from '@constants/domain';
-import { PERIOD_TO_DURATION } from '@mappers/projectFilters';
+import { DOMAIN_OPTIONS, DOMAIN_REVERSE_MAP, type Domain } from '@constants/domain';
+import { buildParams, PERIOD_TO_DURATION, TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
+import { getProjects } from '@apis/projects';
+import { useBookmarks, useChangeBookmark } from '@hooks/useBookmarks';
+import { useAuth } from '@clerk/clerk-react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { useMockData } from '../../../shared/config/data-mode';
+import type { ProjectItem } from '@t/project/api';
+import type { ProjectCardData } from '@components/cards/card-types';
+import DefaultImage from '@assets/images/devine-symbol.png';
+import { CardLoading } from '@components/common/LoadingLayouts';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { featuredProjects, recentProjects, type HomeProject } from '../../home/home-mock-data';
-import './project-explore-page.css';
+import '../explore-shared.css';
 
 const projects = [...new Map([...featuredProjects, ...recentProjects].map(project => [project.id, project])).values()];
+type ExploreProject = ProjectCardData & { tags: string[]; recruiting: string; introduction: string };
+export function mapApiProject(item: ProjectItem): ExploreProject {
+  const positions = item.positions ?? item.recruitments ?? [];
+  const domain = DOMAIN_REVERSE_MAP[item.category ?? ''] ?? item.categoryName;
+  const status = item.status === 'RECRUITING' ? 'recruiting' : item.status === 'IN_PROGRESS' ? 'inProgress' : item.status === 'COMPLETED' ? 'completed' : null;
+  return { id: String(item.projectId), title: item.title, thumbnail: item.thumbnailUrl || item.imageUrls?.[0] || DefaultImage,
+    domain: DOMAIN_OPTIONS.find(option => option === domain) as Domain | undefined ?? null,
+    memberCount: { current: positions.reduce((sum, position) => sum + (position.currentCount ?? 0), 0), total: positions.reduce((sum, position) => sum + (position.count ?? 0), 0) },
+    deadline: { remaining: typeof item.daysUntilDeadline === 'number' ? item.daysUntilDeadline : null, date: item.recruitmentDeadline ?? '' }, status,
+    description: '', introduction: '', tags: [], recruiting: positions.map(position => position.positionName).filter(Boolean).join(' · '),
+    techStacks: positions.flatMap(position => (position.techStacks ?? []).map(stack => stack.techStackName ?? stack.techStack ?? '').filter(Boolean)),
+    duration: item.durationRangeName ?? (item.durationMonths ? `${item.durationMonths}개월` : ''), workMode: item.modeName ?? '' };
+}
 type FilterKey = 'status' | 'domain' | 'tech' | 'role' | 'mode' | 'members' | 'duration';
 type Filters = Record<FilterKey, string[]>;
 const emptyFilters = (): Filters => ({ status: [], domain: [], tech: [], role: [], mode: [], members: [], duration: [] });
@@ -24,7 +46,7 @@ const unique = (values: string[]) => [...new Set(values)].sort((a, b) => a.local
 const options: Record<FilterKey, string[]> = {
   status: ['모집 중', '진행 중', '완료'],
   domain: ['전체', ...DOMAIN_OPTIONS],
-  tech: unique(projects.flatMap(p => p.techStacks)),
+  tech: useMockData ? unique(projects.flatMap(p => p.techStacks)) : unique(Object.keys(TECHSTACK_KEY_TO_NAME).map(getTechDisplayName)),
   role: unique(projects.flatMap(p => p.recruiting.split(' · '))),
   mode: unique(projects.map(p => p.workMode)),
   members: ['3명 이하', '4명', '5명 이상'],
@@ -46,9 +68,9 @@ function FilterGroup({ label, initiallyOpen, children }: { label: string; initia
   </section>;
 }
 
-function matches(project: HomeProject, key: FilterKey, value: string) {
+function matches(project: ExploreProject, key: FilterKey, value: string) {
   switch (key) {
-    case 'status': return statusLabels[project.status] === value;
+    case 'status': return project.status !== null && statusLabels[project.status] === value;
     case 'domain': return project.domain === value;
     case 'tech': return project.techStacks.includes(value);
     case 'role': return project.recruiting.split(' · ').includes(value);
@@ -71,8 +93,22 @@ export default function ProjectExplorePage({ mode = 'search' }: { mode?: 'search
   const [sort, setSort] = useState('latest');
   const [view, setView] = useState<'list' | 'grid'>('list');
   const [saved, setSaved] = useState<Set<string>>(() => new Set());
-  const [preview, setPreview] = useState<HomeProject | null>(null);
   const [visibleCount, setVisibleCount] = useState(PROJECT_BATCH_SIZE);
+  const { getToken, isSignedIn } = useAuth();
+  const navigate = useNavigate();
+  const saveBookmark = useChangeBookmark();
+  const { data: bookmarkItems = [] } = useBookmarks({ enabled: !useMockData && !!isSignedIn });
+  const apiParams = buildParams({ projectTypes: [], domains: filters.domain, techStacks: filters.tech, expectedPeriods: filters.duration });
+  const apiProjects = useInfiniteQuery({
+    queryKey: ['explore-projects', apiParams], enabled: !useMockData, initialPageParam: 1,
+    queryFn: async ({ pageParam, signal }) => {
+      const params = new URLSearchParams(apiParams);
+      params.set('page', String(pageParam)); params.set('size', '20');
+      return getProjects(params.toString(), (await getToken()) ?? undefined, signal);
+    },
+    getNextPageParam: (page, _pages, pageParam) => page.last || pageParam >= (page.totalPages ?? 0) ? undefined : pageParam + 1,
+  });
+  const sourceProjects: ExploreProject[] = useMemo(() => useMockData ? projects : (apiProjects.data?.pages.flatMap(page => (page.content as ProjectItem[]).map(mapApiProject)) ?? []), [apiProjects.data]);
   const searchRef = useRef<HTMLInputElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const projectsRef = useRef<HTMLDivElement>(null);
@@ -113,30 +149,45 @@ export default function ProjectExplorePage({ mode = 'search' }: { mode?: 'search
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); searchRef.current?.focus(); }
-      if (event.key === 'Escape') setPreview(null);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    const result = projects.filter(project => (!term || [project.title, project.description, project.domain, ...project.tags, ...project.techStacks].some(value => value.toLowerCase().includes(term))) && keys.every(key => !filters[key].length || filters[key].some(value => matches(project, key, value))));
-    if (sort === 'deadline') return [...result].sort((a, b) => a.deadline.remaining - b.deadline.remaining);
+    const result = sourceProjects.filter(project => (!term || [project.title, project.description, project.domain ?? '', ...project.tags, ...project.techStacks].some(value => value.toLowerCase().includes(term))) && keys.every(key => !filters[key].length || (!useMockData && ['domain', 'tech', 'duration'].includes(key)) || filters[key].some(value => matches(project, key, value))));
+    if (sort === 'deadline') return [...result].sort((a, b) => (a.deadline.remaining ?? Infinity) - (b.deadline.remaining ?? Infinity));
     if (sort === 'name') return [...result].sort((a, b) => a.title.localeCompare(b.title, 'ko'));
     return result;
-  }, [filters, query, sort]);
-  const hasMore = visibleCount < filtered.length;
+  }, [filters, query, sort, sourceProjects]);
+  const hasMore = visibleCount < filtered.length || (!useMockData && apiProjects.hasNextPage);
   useEffect(() => {
     const target = loadMoreRef.current;
     if (!hasMore || !target || typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) setVisibleCount(count => Math.min(count + PROJECT_BATCH_SIZE, filtered.length));
+      if (entries.some(entry => entry.isIntersecting)) {
+        if (visibleCount < filtered.length) setVisibleCount(count => Math.min(count + PROJECT_BATCH_SIZE, filtered.length));
+        else if (!useMockData && apiProjects.hasNextPage && !apiProjects.isFetchingNextPage) void apiProjects.fetchNextPage();
+      }
     }, { rootMargin: '0px 0px 200px 0px' });
     observer.observe(target);
     return () => observer.disconnect();
-  }, [hasMore, visibleCount, filtered.length]);
+  }, [hasMore, visibleCount, filtered.length, apiProjects.hasNextPage, apiProjects.isFetchingNextPage, apiProjects.fetchNextPage]);
+  useEffect(() => {
+    const needsFullResults = Boolean(query.trim()) || keys.some(key => filters[key].length > 0) || sort !== 'latest';
+    if (!useMockData && needsFullResults && apiProjects.hasNextPage && !apiProjects.isFetching && !apiProjects.isFetchNextPageError) void apiProjects.fetchNextPage();
+  }, [query, filters, sort, apiProjects.hasNextPage, apiProjects.isFetching, apiProjects.isFetchNextPageError, apiProjects.fetchNextPage]);
+  const changeBookmark = async (project: ExploreProject, next: boolean) => {
+    if (useMockData) { setSaved(current => { const updated = new Set(current); if (next) updated.add(project.id); else updated.delete(project.id); return updated; }); return; }
+    const token = await getToken();
+    if (!token) { navigate('/login'); return; }
+    const bookmark = bookmarkItems.find(item => item.targetType === 'PROJECT' && item.targetId === Number(project.id));
+    try {
+      await saveBookmark({ targetType: 'PROJECT', targetId: Number(project.id) }, next, bookmark?.bookmarkId, token);
+    } catch (error) { alert(error instanceof Error ? error.message : '북마크 처리에 실패했습니다.'); }
+  };
 
-  return <div className="project-explore">
+  return <div className="project-explore desktop-content">
     <Helmet><title>프로젝트 {mode === 'recommend' ? '추천' : '탐색'} | Devine</title></Helmet>
     <aside className="explore-sidebar" aria-label="프로젝트 필터">
       <div className="explore-sidebar-title"><strong>필터</strong><button type="button" onClick={reset}>전체 초기화</button></div>
@@ -155,12 +206,13 @@ export default function ProjectExplorePage({ mode = 'search' }: { mode?: 'search
       <div className="explore-toolbar">
         <div className="explore-view-controls"><SortMenu options={sortOptions} value={sort} onChange={value => { setVisibleCount(PROJECT_BATCH_SIZE); setSort(value); }} /><ViewToggle value={view} onChange={changeView} /></div>
       </div>
+      {!useMockData && apiProjects.isPending && <CardLoading kind="project" view={view} />}
+      {!useMockData && apiProjects.isError && !apiProjects.data && <div role="alert" className="explore-empty"><strong>프로젝트를 불러오지 못했어요.</strong><button type="button" onClick={() => void apiProjects.refetch()}>다시 시도</button></div>}
       <div ref={projectsRef} className={`explore-projects explore-projects-${view}`}>
-        {filtered.slice(0, visibleCount).map(project => <ProjectCard key={project.id} project={project} saved={saved.has(project.id)} variant={view} showTechStacks={false} onOpen={() => setPreview(project)} onBookmarkChange={(next) => setSaved(current => { const updated = new Set(current); if (next) updated.add(project.id); else updated.delete(project.id); return updated; })} />)}
-        {filtered.length === 0 && <div className="explore-empty"><strong>조건에 맞는 프로젝트가 없어요.</strong><p>검색어나 필터를 바꿔 다시 찾아보세요.</p><button type="button" onClick={reset}>필터 초기화</button></div>}
+        {filtered.slice(0, visibleCount).map(project => <ProjectCard key={project.id} project={project} saved={useMockData ? saved.has(project.id) : bookmarkItems.some(item => item.targetType === 'PROJECT' && item.targetId === Number(project.id))} variant={view} showTechStacks={false} onOpen={() => navigate(`/project/${useMockData ? `sample-${project.id}` : project.id}`)} onBookmarkChange={next => void changeBookmark(project, next)} />)}
+        {filtered.length === 0 && (useMockData || (!apiProjects.isPending && !apiProjects.isError && !apiProjects.hasNextPage)) && <div className="explore-empty"><strong>조건에 맞는 프로젝트가 없어요.</strong><p>검색어나 필터를 바꿔 다시 찾아보세요.</p><button type="button" onClick={reset}>필터 초기화</button></div>}
       </div>
-      {hasMore && <div ref={loadMoreRef} className="explore-load-more">{typeof IntersectionObserver === 'undefined' && <button type="button" onClick={() => setVisibleCount(count => Math.min(count + PROJECT_BATCH_SIZE, filtered.length))}>프로젝트 더 보기</button>}</div>}
+      {hasMore && <div ref={loadMoreRef} className="explore-load-more">{apiProjects.isFetchingNextPage ? '프로젝트를 불러오고 있어요…' : (typeof IntersectionObserver === 'undefined' || apiProjects.isFetchNextPageError) && <button type="button" onClick={() => { if (visibleCount < filtered.length) setVisibleCount(count => Math.min(count + PROJECT_BATCH_SIZE, filtered.length)); else void apiProjects.fetchNextPage(); }}>프로젝트 더 보기</button>}</div>}
     </div>
-    {preview && <div className="explore-modal-backdrop" onClick={() => setPreview(null)}><section className="explore-modal" role="dialog" aria-modal="true" aria-labelledby="explore-modal-title" onClick={event => event.stopPropagation()}><button className="explore-modal-close" type="button" onClick={() => setPreview(null)} aria-label="닫기">×</button><DomainBadge className="explore-domain" domain={preview.domain} /><h2 id="explore-modal-title">{preview.title}</h2><p>{preview.introduction}</p><dl><dt>모집 직군</dt><dd>{preview.recruiting}</dd><dt>진행 방식</dt><dd>{preview.workMode}</dd><dt>예상 기간</dt><dd>{preview.duration}</dd></dl><TechStackBadges stacks={preview.techStacks} /></section></div>}
   </div>;
 }

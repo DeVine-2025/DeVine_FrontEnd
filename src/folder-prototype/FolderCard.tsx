@@ -8,7 +8,7 @@ export type FolderCardProps = {
   title: string;
   description?: string;
   imageUrl?: string;
-  tone?: "light" | "dark" | "violet";
+  tone?: "dark" | "violet";
   panelColor?: string;
   className?: string;
   onOpen?: () => void;
@@ -131,7 +131,7 @@ export function FolderCard({
           preserveAspectRatio="none"
           aria-hidden="true"
         >
-          <defs><linearGradient id={surfaceGradientId} x1="0" x2="1" y1="0" y2="1"><stop offset="0%" stopColor="var(--folder-surface-light)" /><stop offset="100%" stopColor="var(--folder-panel)" /></linearGradient></defs>
+          <defs><linearGradient id={surfaceGradientId} x1="0" x2="1" y1="0" y2="1"><stop offset="0%" stopColor="var(--folder-surface-highlight)" /><stop offset="100%" stopColor="var(--folder-panel)" /></linearGradient></defs>
           <motion.path
             variants={{
               rest: { d: 'M0 24 C0 10 10 0 24 0 H111 C126 0 135 11 145 25 C151 33 157 35 170 35 H338 C351 35 360 44 360 57 V367 C360 380 350 388 337 388 H23 C10 388 0 380 0 367 Z' },

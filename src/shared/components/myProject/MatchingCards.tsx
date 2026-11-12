@@ -1,7 +1,6 @@
-import defaultProjectImage from '@assets/images/devine-symbol.png';
-import defaultProfileImage from '@assets/images/Profile_dark.svg';
 import type { RespondDecision } from '@apis/matching';
-import { ArrowDownLeft, ArrowUpRight, Check, ChevronDown, Clock3, Inbox } from 'lucide-react';
+import { CalendarDays, Check, ChevronDown, FolderOpen, Inbox, MessageSquare, Send, UserRound } from 'lucide-react';
+import { useElasticUnderline } from '@hooks/useElasticUnderline';
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './matching-inbox.css';
@@ -20,6 +19,8 @@ export type MatchingRow = {
   href?: string;
   createdAt?: string;
   decision?: string;
+  message?: string;
+  messageIsSample?: boolean;
 };
 
 const groups = [
@@ -74,8 +75,10 @@ type Props = {
 export default function MatchingInbox({
   role, rows, onRespond, loading, loadError, loadingMore, onRetry, onLoadMore,
 }: Props) {
+  const [sort, setSort] = useState<'latest' | 'oldest'>('latest');
   const [filter, setFilter] = useState<Filter>('all');
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const { navRef, indicatorRef } = useElasticUnderline(filter, 'button[aria-pressed="true"]');
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [pendingIds, setPendingIds] = useState<number[]>([]);
   const [failedIds, setFailedIds] = useState<number[]>([]);
   const [notice, setNotice] = useState('');
@@ -84,14 +87,21 @@ export default function MatchingInbox({
 
   const grouped: Record<Group, MatchingRow[]> = { needsReply: [], waiting: [], result: [], unknown: [] };
   const uniqueRows = [...new Map(rows.map((item) => [item.id, item])).values()]
-    .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+    .sort((a, b) => {
+      if (!a.createdAt || !b.createdAt) return Number(Boolean(b.createdAt)) - Number(Boolean(a.createdAt));
+      return (sort === 'latest' ? -1 : 1) * a.createdAt.localeCompare(b.createdAt);
+    });
   for (const item of uniqueRows) grouped[getGroup(item)].push(item);
-  const actionCount = grouped.needsReply.length;
+  const counts = { waiting: grouped.waiting.length, result: grouped.result.length };
+  const partial = onLoadMore || loadError ? '+' : '';
   const currentGroups = groups.filter(({ value }) => filter === value ||
     (filter === 'all' && (grouped[value].length > 0 || (value === 'needsReply' && uniqueRows.length > 0 && !onLoadMore && !loadError))));
 
+  const visibleRows = currentGroups.flatMap(({ value }) => grouped[value]);
+  const selectedRow = visibleRows.find(({ id }) => id === selectedId) ?? visibleRows[0];
+
   function changeFilter(next: Filter) {
-    setExpandedId(null);
+    setSelectedId(null);
     setFilter(next);
   }
 
@@ -103,7 +113,6 @@ export default function MatchingInbox({
       await onRespond(id, decision);
       const title = uniqueRows.find((item) => item.id === id)?.title;
       const verb = decision === 'ACCEPT' ? '수락' : '거절';
-      setExpandedId((current) => current === id ? null : current);
       const subject = title ? (role === 'pm' ? `${title}님의 ` : `${title} 프로젝트의 `) : '';
       setNotice(`${subject}${copy.incomingNoun}을 ${verb}했어요.`);
       requestAnimationFrame(() => {
@@ -117,25 +126,67 @@ export default function MatchingInbox({
   }
 
   function statusText(item: MatchingRow, group: Group) {
-    if (group === 'needsReply') return '내 응답 필요';
+    if (group === 'needsReply') return '응답 필요';
     if (group === 'waiting') return copy.waiting;
     if (group === 'unknown') return '상태 확인 필요';
     return `${item.incoming ? '내가' : copy.otherSubject + (role === 'pm' ? '가' : '이')} ${item.decision === 'ACCEPT' ? '수락' : '거절'}`;
   }
 
+  function renderDetail(item: MatchingRow) {
+    const group = getGroup(item);
+    const pending = pendingIds.includes(item.id);
+    const DetailIcon = role === 'pm' ? UserRound : FolderOpen;
+    const detailLabel = role === 'pm' ? '개발자 프로필 보기' : '프로젝트 상세 보기';
+    const isProposal = role === 'developer' ? item.incoming : !item.incoming;
+    return <article key={item.id} className="matching-detail" aria-label={item.title + ' 상세 정보'}>
+      <div className="matching-detail-header">
+        {role === 'pm' && <span className="matching-avatar matching-avatar--detail" aria-hidden="true">{item.image ? <img src={item.image} alt="" /> : Array.from(item.title.trim())[0]}</span>}
+        <div className="matching-detail-person">
+          <h2>
+            {item.href ? (
+              <Link to={item.href} className={'matching-title-link ' + focus} title={detailLabel}>
+                {item.title}<DetailIcon size={17} aria-hidden="true" />
+              </Link>
+            ) : item.title}
+          </h2>
+          <p>{[item.projectName, item.subtitle].filter(Boolean).join(' · ')}</p>
+        </div>
+        <span className="matching-status" data-status={group === 'needsReply' ? 'action' : group === 'waiting' ? 'waiting' : item.decision === 'ACCEPT' ? 'accepted' : 'rejected'}>{statusText(item, group)}</span>
+      </div>
+      <div className="matching-detail-section"><h3>지원 정보</h3>
+        {item.createdAt && <div className="matching-detail-info"><span><CalendarDays size={18} aria-hidden="true" /> 지원일</span><strong><MatchingDate value={item.createdAt} /></strong></div>}
+        <div className="matching-detail-info"><span>{item.incoming ? <Inbox size={18} aria-hidden="true" /> : <Send size={18} aria-hidden="true" />} 지원 유형</span><strong>{item.incoming ? copy.incoming : copy.outgoing}</strong></div>
+        {role === 'pm' && item.subtitle && <div className="matching-detail-info"><span><UserRound size={18} aria-hidden="true" /> 지원 포지션</span><strong>{item.subtitle}</strong></div>}
+      </div>
+      <div className="matching-detail-section matching-message">
+        <div className="matching-message-heading">
+          <h3><MessageSquare size={17} aria-hidden="true" />{isProposal ? '제안 메시지' : '지원 메시지'}</h3>
+        </div>
+        <div className="matching-message-body">
+          {item.message ? <><p className="matching-message-text">{item.message}</p>{item.messageIsSample && <span className="matching-message-sample">예시 메시지</span>}</> : <p className="matching-message-empty">확인할 수 있는 메시지가 없어요.</p>}
+        </div>
+      </div>
+      {failedIds.includes(item.id) && <p role="alert" className="matching-detail-error">응답을 저장하지 못했어요. 다시 시도해 주세요.</p>}
+      {group === 'needsReply' && <div className="matching-detail-actions">
+        {pending && <span role="status">저장 중…</span>}
+        <button type="button" disabled={pending} onClick={() => void respond(item.id, 'REJECT')} className={buttonClass + ' matching-reject'}>거절</button>
+        <button type="button" disabled={pending} onClick={() => void respond(item.id, 'ACCEPT')} className={buttonClass + ' matching-accept'}>{copy.incomingNoun} 수락</button>
+      </div>}
+    </article>;
+  }
+
   return (
     <section aria-label="지원 및 제안 목록" className="matching-inbox min-w-0">
-      <div className="matching-filter-bar" role="group" aria-label="지원 상태 필터">
+      <nav ref={navRef} className="matching-filter-bar" aria-label="지원 상태 필터">
+        <span ref={indicatorRef} className="matching-filter-indicator" aria-hidden="true" />
         {filters.map(({ value, label }) => (
           <button key={value} type="button" aria-pressed={filter === value} onClick={() => changeFilter(value)}
             className={'matching-filter ' + focus}>
             {label}
-            {value === 'needsReply' && actionCount > 0 && (
-              <span className="matching-filter-count tabular-nums">{actionCount}{onLoadMore || loadError ? '+' : ''}</span>
-            )}
+            {!loading && (value === 'waiting' || value === 'result') && <span className="matching-filter-count tabular-nums">{counts[value]}{partial}</span>}
           </button>
         ))}
-      </div>
+      </nav>
 
       <div aria-live="polite">
         {notice && (
@@ -167,103 +218,38 @@ export default function MatchingInbox({
             </div>
           ))}
         </div>
-      ) : currentGroups.length > 0 ? (
-        <div className="matching-groups">
-          {currentGroups.map(({ value, label, empty }) => (
-            <section key={value} aria-label={label} className="matching-group">
-              <div className="matching-group-heading">
-                <h2 className="text-[14px] font-semibold text-[var(--text-main)]">{label}</h2>
-                <span className={`text-[12px] font-medium tabular-nums ${value === 'needsReply' && actionCount ? 'text-[var(--project-accent)]' : 'text-[var(--text-secondary)]'}`}>
-                  {grouped[value].length}{onLoadMore || loadError ? '+' : ''}건
-                </span>
-              </div>
-              {grouped[value].length === 0 ? (
-                <p className="px-[16px] py-[18px] text-[13px] text-[var(--text-secondary)] sm:px-[20px]">
-                  {onLoadMore || loadError ? '불러온 내역에는 해당 항목이 없어요.' : empty}
-                </p>
-              ) : (
-                <ul className="matching-rows">
-                  {grouped[value].map((item) => {
-                    const expanded = expandedId === item.id;
-                    const pending = pendingIds.includes(item.id);
-                    const needsReply = value === 'needsReply';
-                    const DirectionIcon = item.incoming ? ArrowDownLeft : ArrowUpRight;
-                    const status = statusText(item, value);
-                    const direction = item.incoming ? copy.incoming : copy.outgoing;
-                    const meta = [item.projectName, item.subtitle].filter(Boolean).join(' / ');
-                    return (
-                      <li key={item.id} className="matching-row" data-expanded={expanded} data-needs-reply={needsReply}>
-                        <div className="matching-row-content grid min-h-[66px] grid-cols-[minmax(0,1fr)_auto] items-center gap-x-[12px] px-[16px] py-[10px] sm:px-[20px] md:grid-cols-[minmax(0,1fr)_118px_142px_82px_108px]">
-                          <div className="flex min-w-0 items-center gap-[12px]">
-                            <img alt="" src={item.image || (role === 'pm' ? defaultProfileImage : defaultProjectImage)}
-                              className={`size-[36px] shrink-0 bg-[var(--surface-badge)] ${role === 'pm' ? 'rounded-full object-cover' : 'rounded-lg object-contain'}`} />
-                            <div className="min-w-0">
-                              <h3 className="text-[15px] font-semibold leading-snug text-[var(--text-main)] [overflow-wrap:anywhere]">{item.title}</h3>
-                              {meta && <p className="mt-1 text-[13px] text-[var(--text-secondary)] [overflow-wrap:anywhere]">{meta}</p>}
-                            </div>
-                          </div>
-                          <span className="hidden items-center gap-[6px] text-[13px] text-[var(--text-secondary)] md:inline-flex">
-                            <DirectionIcon size={15} aria-hidden="true" />{direction}
-                          </span>
-                          <div className="col-start-1 row-start-2 mt-[8px] flex flex-wrap items-center gap-x-[8px] gap-y-[4px] text-[12px] text-[var(--text-secondary)] md:col-auto md:row-auto md:mt-0">
-                            <span className="md:hidden">{direction}</span>
-                            {!needsReply && (
-                              <span data-status={value === 'waiting' ? 'waiting' : item.decision === 'ACCEPT' ? 'accepted' : item.decision === 'REJECT' ? 'rejected' : 'unknown'} className={`matching-status inline-flex items-center gap-[5px] font-medium ${item.decision === 'ACCEPT' ? 'text-[var(--positive-text)]' : 'text-[var(--text-secondary)]'}`}>
-                                {value === 'waiting' && <Clock3 size={13} aria-hidden="true" />}{status}
-                              </span>
-                            )}
-                            <span className="md:hidden"><MatchingDate value={item.createdAt} /></span>
-                          </div>
-                          <span className="hidden text-[12px] text-[var(--text-secondary)] md:block"><MatchingDate value={item.createdAt} /></span>
-                          {needsReply ? (
-                            <button type="button" aria-expanded={expanded} aria-controls={expanded ? `matching-row-${item.id}` : undefined}
-                              onClick={() => setExpandedId(expanded ? null : item.id)}
-                              aria-label={`${item.title} ${expanded ? '접기' : '검토'}`}
-                              className={`matching-review col-start-2 row-start-1 row-span-2 justify-self-end md:col-auto md:row-auto ${buttonClass} border border-[var(--project-control-border)] text-[var(--text-main)] hover:bg-[var(--surface-badge)]`}>
-                              {expanded ? '접기' : '검토'}
-                              <ChevronDown size={14} aria-hidden="true" className={expanded ? 'rotate-180' : undefined} />
-                            </button>
-                          ) : item.href && (
-                            <Link to={item.href} className={`col-start-2 row-start-1 row-span-2 justify-self-end whitespace-nowrap md:col-auto md:row-auto ${secondaryButton}`}>
-                              {role === 'pm' ? '프로필 보기' : '프로젝트 보기'}
-                              <ArrowUpRight size={14} aria-hidden="true" />
-                            </Link>
-                          )}
-                        </div>
-                        {expanded && (
-                          <div id={`matching-row-${item.id}`} className="flex flex-wrap items-center justify-between gap-x-[20px] gap-y-[8px] border-t border-[var(--project-divider)] px-[16px] py-[12px] sm:px-[20px]">
-                            <div className="min-w-0">
-                              <p className="text-[14px] font-medium leading-relaxed text-[var(--text-main)]">
-                                {role === 'pm' ? '지원에 응답하기' : '협업 제안에 응답하기'}
-                              </p>
-                              {item.href && <Link className={buttonClass + ' -ml-[12px] text-[var(--project-accent)] hover:underline'} to={item.href}>
-                                {role === 'pm' ? '개발자 프로필 보기' : '프로젝트 보기'}<ArrowUpRight size={14} aria-hidden="true" />
-                              </Link>}
-                              {failedIds.includes(item.id) && <p role="alert" className="mt-2 text-[13px] text-[var(--form-error)]">응답을 저장하지 못했어요. 다시 시도해 주세요.</p>}
-                            </div>
-                            {needsReply && (
-                              <div className="ml-auto flex flex-wrap items-center gap-[8px]">
-                                {pending && <span role="status" className="text-[12px] text-[var(--text-secondary)]">저장 중…</span>}
-                                <button type="button" disabled={pending} onClick={() => void respond(item.id, 'REJECT')}
-                                  className={secondaryButton + ' border border-[var(--project-control-border)]'}>{copy.incomingNoun} 거절</button>
-                                <button type="button" disabled={pending} onClick={() => void respond(item.id, 'ACCEPT')}
-                                  className={buttonClass + ' bg-primary text-white hover:brightness-110'}>{copy.incomingNoun} 수락</button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </section>
-          ))}
+      ) : visibleRows.length > 0 ? (
+        <div className="matching-workspace">
+          <div className="matching-list-panel">
+            <div className="matching-list-heading">
+              <h2>지원 목록 <span>{visibleRows.length}{partial}</span></h2>
+              <label className="matching-sort">
+                <select aria-label="지원 목록 정렬" value={sort} onChange={(event) => setSort(event.target.value === 'oldest' ? 'oldest' : 'latest')}>
+                  <option value="latest">최신순</option><option value="oldest">오래된순</option>
+                </select><ChevronDown size={15} aria-hidden="true" />
+              </label>
+            </div>
+            {currentGroups.map(({ value, label }) => grouped[value].length > 0 && <section key={value} aria-label={label}>
+              <h3 className="matching-list-group">{label} <span>{grouped[value].length}{partial}</span></h3><ul className="matching-rows">
+                {grouped[value].map((item) => {
+                  const selected = item.id === selectedRow?.id;
+                  return <li key={item.id}>
+                    <button type="button" className={'matching-list-item ' + focus} aria-pressed={selected} onClick={() => setSelectedId(item.id)}>
+                      {role === 'pm' && <span className="matching-avatar matching-avatar--list" aria-hidden="true">{item.image ? <img src={item.image} alt="" /> : Array.from(item.title.trim())[0]}</span>}
+                      <span className="matching-list-copy"><strong>{item.title}</strong><small>{[item.projectName, item.subtitle].filter(Boolean).join(' · ')}</small></span>
+                      <span className="matching-status" data-status={value === 'needsReply' ? 'action' : value === 'waiting' ? 'waiting' : item.decision === 'ACCEPT' ? 'accepted' : 'rejected'}>{value === 'needsReply' ? '응답 필요' : value === 'waiting' ? '답변 대기' : statusText(item, value)}</span>
+                    </button>
+                    {selected && <div className="matching-detail-mobile">{renderDetail(item)}</div>}
+                  </li>;
+                })}
+              </ul></section>)}
+          </div>
+          <div className="matching-detail-desktop">{selectedRow && renderDetail(selectedRow)}</div>
         </div>
       ) : !loadError && (
         <div className="flex items-center gap-[12px] rounded-xl border border-[var(--project-divider)] px-[16px] py-[24px] text-[14px] text-[var(--text-secondary)]">
           <Inbox size={20} className="shrink-0" aria-hidden="true" />
-          <p>{onLoadMore ? '불러온 내역에는 해당 항목이 없어요.' : '아직 지원이나 제안 내역이 없어요.'}</p>
+          <p>{onLoadMore ? '불러온 내역에는 해당 항목이 없어요.' : filter === 'all' ? '아직 지원이나 제안 내역이 없어요.' : currentGroups[0]?.empty}</p>
         </div>
       )}
       {onLoadMore && <button type="button" onClick={onLoadMore} disabled={loadingMore}

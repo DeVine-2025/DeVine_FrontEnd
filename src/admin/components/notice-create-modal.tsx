@@ -1,3 +1,4 @@
+import AdminModalFrame from './common/admin-modal-frame';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -113,16 +114,7 @@ export function NoticeCreateModal({ notice, onClose }: NoticeCreateModalProps) {
   };
 
   return (
-    <div
-      aria-label={`공지사항 ${isEdit ? '수정' : '신규 등록'}`}
-      aria-modal="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-[20px]"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !saveMutation.isPending) onClose();
-      }}
-      role="dialog"
-    >
-      <div className="max-h-[90vh] w-full max-w-[680px] overflow-y-auto rounded-[16px] bg-[var(--ui-bg)] p-[28px] shadow-xl">
+    <AdminModalFrame label={`공지사항 ${isEdit ? '수정' : '신규 등록'}`} size="notice" busy={saveMutation.isPending} onClose={onClose}>
         <div className="flex items-start justify-between gap-[20px]">
           <div>
             <h2 className="Title3 font-bold text-[var(--ui-1000)]">
@@ -157,7 +149,7 @@ export function NoticeCreateModal({ notice, onClose }: NoticeCreateModalProps) {
           <label className="mt-[20px] flex flex-col gap-[8px]">
             <span className="Body1 font-semibold text-[var(--ui-1000)]">내용</span>
             <textarea
-              className={cn(INPUT_CLASS, 'h-[180px] resize-y py-[12px]')}
+              className={cn(INPUT_CLASS, 'h-[180px] resize-y py-[12px] lg:max-2xl:h-[140px]')}
               onChange={(event) => setContent(event.target.value)}
               placeholder="공지사항 내용을 입력해주세요"
               value={content}
@@ -250,7 +242,6 @@ export function NoticeCreateModal({ notice, onClose }: NoticeCreateModalProps) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </AdminModalFrame>
   );
 }

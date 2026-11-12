@@ -5,7 +5,7 @@ export function AdminLayout() {
   return (
     <div>
       <AdminHeader />
-      <main className="admin-content">
+      <main className="admin-content desktop-content">
         <Outlet />
       </main>
     </div>

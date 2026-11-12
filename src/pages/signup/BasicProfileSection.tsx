@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import ProfilePlaceholderIcon from '@assets/icons/profile-placeholder.svg?react';
 import { useAuth } from '@clerk/clerk-react';
-import { confirmImageUpload, createPresignedUrl } from '@apis/image';
+import { confirmImageUpload, createPresignedUrl } from '@apis/images';
 import { checkNicknameDuplicate } from '@apis/nickname-check';
 import { ArrowLeft, Camera } from 'lucide-react';
 
@@ -147,14 +147,14 @@ const BasicProfileSection = ({ onNext, onBack, initialData, preview = false }: B
   };
 
   return (
-    <div className="mx-auto w-full max-w-[515px] text-[#f5f5f7]">
-      <div className="flex flex-col gap-12">
+    <div className="mx-auto w-full max-w-[515px] lg:max-2xl:max-w-[480px] text-[#f5f5f7]">
+      <div className="flex flex-col gap-12 lg:max-2xl:gap-8">
         <div>
-          <h2 className="text-[clamp(26px,3vw,36px)] font-bold leading-[1.3] tracking-[-.04em]">프로필 설정</h2>
+          <h2 className="lg:max-2xl:text-[30px] text-[clamp(26px,3vw,36px)] font-bold leading-[1.3] tracking-[-.04em]">프로필 설정</h2>
           <p className="mt-4 text-[16px] leading-[1.6] text-[#b5b7c8]">DeVine에서 사용할 프로필 정보를 입력해 주세요.</p>
         </div>
 
-        <div className="flex flex-col gap-12">
+        <div className="flex flex-col gap-12 lg:max-2xl:gap-8">
           <div className="flex flex-col gap-3">
             <label className="text-[16px] font-semibold text-[#f0f0f5]" htmlFor="nickname">
               닉네임 <span className="ml-1 text-[var(--project-accent)]" aria-hidden="true">*</span>
@@ -217,7 +217,7 @@ const BasicProfileSection = ({ onNext, onBack, initialData, preview = false }: B
         </div>
       </div>
 
-      <div className="mt-12 flex flex-col gap-4">
+      <div className="mt-12 lg:max-2xl:mt-8 flex flex-col gap-4">
         <button
           type="button"
           onClick={() => onNext({ nickname: trimmedNickname, imageUrl })}

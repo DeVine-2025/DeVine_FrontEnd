@@ -1,4 +1,4 @@
-import { ApiResponse } from '@apis/base/api';
+import type { ApiResponse } from '@apis/base/api';
 
 /** =====================================================
  *  1. 카드 목록

@@ -1,8 +1,9 @@
+import horizonStyles from './horizon-background.css?raw';
 import { useId } from 'react';
 
 export default function HorizonBackground() {
   const id = useId().replace(/:/g, '');
-  return <svg className="horizon-background" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+  return <><style>{horizonStyles}</style><svg className="horizon-background" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true" focusable="false">
     <defs>
       <radialGradient id={`${id}-sky`} cx="56%" cy="60%" r="50%"><stop stopColor="#4E49FF" stopOpacity=".13"/><stop offset=".65" stopColor="#252052" stopOpacity=".06"/><stop offset="1" stopColor="#101116" stopOpacity="0"/></radialGradient>
       <linearGradient id={`${id}-rim`} x1="0" y1="0" x2="1440" y2="0" gradientUnits="userSpaceOnUse"><stop stopColor="#847aff" stopOpacity=".55"/><stop offset=".35" stopColor="#bdb6ff" stopOpacity=".9"/><stop offset=".57" stopColor="#e3e0ff"/><stop offset=".8" stopColor="#afa7ff" stopOpacity=".85"/><stop offset="1" stopColor="#847aff" stopOpacity=".55"/></linearGradient>
@@ -24,5 +25,5 @@ export default function HorizonBackground() {
     <ellipse cx="720" cy="1500" rx="1530" ry="1000" fill={`url(#${id}-planet)`}/>
     <ellipse cx="720" cy="1500" rx="1530" ry="1000" fill="none" stroke={`url(#${id}-rim)`} strokeWidth="1.15"/>
     <ellipse className="horizon-light" cx="820" cy="498" rx="160" ry="80" fill={`url(#${id}-sun)`}/>
-  </svg>;
+  </svg></>;
 }

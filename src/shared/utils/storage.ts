@@ -63,3 +63,6 @@ export const getStoredProfileImageUrl = (userId?: string | null): string | null 
   }
   return null;
 };
+
+export const getMyProjectsCacheKey = (userId: string) =>
+  `devine_my_projects_cache_v1:${userId}`;

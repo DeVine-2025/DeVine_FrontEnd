@@ -30,14 +30,13 @@ vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
 }));
 vi.mock('../src/shared/components/chat/FloatingChatWidget', () => ({ default: () => <span>chat-widget</span> }));
-vi.mock('../src/shared/components/common/FloatingProjectCreateCta', () => ({ default: () => null }));
 vi.mock('../src/shared/layouts/header', () => ({ default: () => null }));
 vi.mock('../src/shared/layouts/footer', () => ({ default: () => null }));
 vi.mock('../src/shared/libs/analytics', () => ({ trackPageView: vi.fn() }));
 vi.mock('../src/shared/store/auth', () => ({ useAuthStore: () => vi.fn() }));
 vi.mock('../src/shared/utils/storage', () => ({ getStoredUserRole: vi.fn(), setCurrentUserId: vi.fn() }));
 vi.mock('../src/shared/store/theme', () => ({ useThemeStore: () => ({ theme: 'dark' }) }));
-vi.mock('../src/shared/apis/myInfo/myInfo-queries', () => ({ myInfoQueries: { reposInfinite: () => ({}) } }));
+vi.mock('../src/shared/apis/myInfo/my-info.queries', () => ({ myInfoQueries: { reposInfinite: () => ({}) } }));
 vi.mock('../src/shared/components/report/CheckBox', () => ({ default: ({ title }: { title: string }) => <span>{title}</span> }));
 vi.mock('../src/shared/components/report/GithubRepoListSkeleton', () => ({ default: () => <span>loading-repositories</span> }));
 vi.mock('react-spinners', () => ({ BeatLoader: () => null }));

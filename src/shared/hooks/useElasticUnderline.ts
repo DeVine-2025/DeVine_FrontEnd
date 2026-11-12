@@ -36,7 +36,7 @@ export function useElasticUnderline(activeKey: string, activeSelector = '[aria-c
 
     const navRect = nav.getBoundingClientRect();
     const rect = active.getBoundingClientRect();
-    const target = { left: rect.left - navRect.left - nav.clientLeft, right: rect.right - navRect.left - nav.clientLeft };
+    const target = { left: rect.left - navRect.left - nav.clientLeft + nav.scrollLeft, right: rect.right - navRect.left - nav.clientLeft + nav.scrollLeft };
     const previous = targetRef.current;
     if (previous && Math.abs(previous.left - target.left) < .1 && Math.abs(previous.right - target.right) < .1) return;
     const current = indicator.getBoundingClientRect();
@@ -47,7 +47,7 @@ export function useElasticUnderline(activeKey: string, activeSelector = '[aria-c
       return;
     }
 
-    timelineRef.current = animateElasticUnderline(indicator, { left: current.left - navRect.left - nav.clientLeft, right: current.right - navRect.left - nav.clientLeft }, target);
+    timelineRef.current = animateElasticUnderline(indicator, { left: current.left - navRect.left - nav.clientLeft + nav.scrollLeft, right: current.right - navRect.left - nav.clientLeft + nav.scrollLeft }, target);
   }, [activeKey, activeSelector]);
 
   useLayoutEffect(() => {
@@ -59,7 +59,7 @@ export function useElasticUnderline(activeKey: string, activeSelector = '[aria-c
       if (!active) return;
       const navRect = nav.getBoundingClientRect();
       const rect = active.getBoundingClientRect();
-      const target = { left: rect.left - navRect.left - nav.clientLeft, right: rect.right - navRect.left - nav.clientLeft };
+      const target = { left: rect.left - navRect.left - nav.clientLeft + nav.scrollLeft, right: rect.right - navRect.left - nav.clientLeft + nav.scrollLeft };
       if (targetRef.current && Math.abs(target.left - targetRef.current.left) < .1 && Math.abs(target.right - targetRef.current.right) < .1) return;
       timelineRef.current?.kill();
       targetRef.current = target;

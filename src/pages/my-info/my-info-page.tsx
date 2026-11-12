@@ -1,8 +1,9 @@
 import { isTechnologySkill } from '@apis/techstacks';
-import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import { myInfoQueries } from '@apis/myInfo/my-info.queries';
 import GithubIcon from '@assets/icons/github.svg?react';
 import { useUser } from '@clerk/clerk-react';
-import { ExploreTechIcon, getTechDisplayName } from '@components/cards/TechStackBadges';
+import { getTechDisplayName } from '@components/cards/TechStackBadges';
+import TechStackChip from '@components/common/TechStackChip';
 import ImagePreview from '@components/profileDetail/ImagePreview';
 import { DOMAIN_REVERSE_MAP } from '@constants/domain';
 import { useElasticUnderline } from '@hooks/useElasticUnderline';
@@ -21,8 +22,8 @@ const tabs = [
 export default function MyInfoPage() {
   const { pathname, search } = useLocation();
   const { user } = useUser();
-  const { data } = useQuery(myInfoQueries.profile());
-  const { data: skills } = useQuery(myInfoQueries.getMyTechStacks());
+  const { data, isPending: profileLoading } = useQuery(myInfoQueries.profile());
+  const { data: skills, isPending: skillsLoading } = useQuery(myInfoQueries.getMyTechStacks());
   const profile = data?.result;
   const member = profile?.member;
   const github = profile?.contacts?.find(contact => contact.type.toUpperCase() === 'GITHUB');
@@ -42,8 +43,9 @@ export default function MyInfoPage() {
   const { navRef, indicatorRef } = useElasticUnderline(activePath);
 
   return (
-    <section className="my-info-workspace" aria-label="내 프로필">
+    <section className="my-info-workspace desktop-content" aria-label="내 프로필">
       <aside className="my-info-hero" aria-label="프로필 정보">
+        {profileLoading ? <div role="status" aria-label="프로필 정보를 불러오는 중" className="my-info-skeleton-side"><span className="my-info-skeleton my-info-skeleton-avatar" /><span className="my-info-skeleton h-[22px] w-[110px]" /><span className="my-info-skeleton h-[14px] w-[150px]" /><span className="my-info-skeleton h-[40px] w-full rounded-full" /><span className="my-info-skeleton h-[15px] w-[90px]" /></div> : <>
         <ImagePreview isExist={Boolean(member?.imageUrl)} imageUrl={member?.imageUrl} className="my-info-avatar" alt="내 프로필 사진" />
         <div className="my-info-identity">
           <h1>{member?.nickname || member?.name || '내 프로필'}</h1>
@@ -65,19 +67,20 @@ export default function MyInfoPage() {
             </Link>
           )}
         </div>
+        </>}
         <section className="my-info-side-section">
           <h2>기술 스택</h2>
-          {techStacks.length ? (
-            <ul className="my-info-badges my-info-stack-list">
+          {skillsLoading ? <div role="status" aria-label="기술 스택을 불러오는 중" className="mt-[10px] flex flex-wrap gap-[6px]"><span className="my-info-skeleton h-[30px] w-[78px]" /><span className="my-info-skeleton h-[30px] w-[88px]" /><span className="my-info-skeleton h-[30px] w-[66px]" /></div> : techStacks.length ? (
+            <ul className="my-info-shared-stack-list">
               {techStacks.map(stack => (
-                <li key={stack}><ExploreTechIcon name={stack} />{stack}</li>
+                <TechStackChip key={stack} name={stack} />
               ))}
             </ul>
           ) : <p className="my-info-muted">등록한 기술 스택이 없어요.</p>}
         </section>
         <section className="my-info-side-section">
           <h2>관심 분야</h2>
-          {domains.length ? (
+          {profileLoading ? <div className="mt-[10px] flex gap-[6px]" aria-hidden="true"><span className="my-info-skeleton h-[26px] w-[65px]" /><span className="my-info-skeleton h-[26px] w-[80px]" /></div> : domains.length ? (
             <ul className="my-info-badges my-info-interest-list">
               {domains.map(domain => <li key={domain}>{DOMAIN_REVERSE_MAP[domain] ?? domain}</li>)}
             </ul>

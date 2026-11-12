@@ -60,7 +60,7 @@ function PaymentDetailContent({ payment }: { payment: AdminPaymentDetail }) {
 
   return (
     <div className="mt-[28px] space-y-[24px]">
-      <section className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px]">
+      <section className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px] lg:max-2xl:p-[18px]">
         <div className="flex flex-wrap items-center justify-between gap-[12px]">
           <h2 className="Heading3 text-[var(--ui-1000)]">결제 정보</h2>
           <AdminStatusBadge status={status.label} tone={status.tone} />
@@ -77,7 +77,7 @@ function PaymentDetailContent({ payment }: { payment: AdminPaymentDetail }) {
         </dl>
       </section>
 
-      <section className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px]">
+      <section className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px] lg:max-2xl:p-[18px]">
         <h2 className="Heading3 text-[var(--ui-1000)]">결제 수단</h2>
         <dl className="mt-[16px] grid gap-x-[32px] md:grid-cols-2">
           <DetailItem label="수단" value={method?.method} />
@@ -93,7 +93,7 @@ function PaymentDetailContent({ payment }: { payment: AdminPaymentDetail }) {
         </dl>
       </section>
 
-      <section className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px]">
+      <section className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px] lg:max-2xl:p-[18px]">
         <h2 className="Heading3 text-[var(--ui-1000)]">구매 상품 및 크레딧</h2>
         {payment.tickets.length > 0 ? (
           <div className="mt-[16px] overflow-x-auto">
@@ -133,7 +133,7 @@ function PaymentDetailContent({ payment }: { payment: AdminPaymentDetail }) {
         </dl>
       </section>
 
-      <section className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px]">
+      <section className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px] lg:max-2xl:p-[18px]">
         <h2 className="Heading3 text-[var(--ui-1000)]">환불 정보</h2>
         <dl className="mt-[16px] max-w-[480px]">
           <DetailItem label="환불 사유" value={payment.refund?.reason ?? '환불 내역 없음'} />

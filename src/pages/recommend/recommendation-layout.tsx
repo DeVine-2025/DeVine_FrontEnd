@@ -19,10 +19,10 @@ export default function RecommendationLayout() {
     return <Navigate to={lastTab === '/recommend/developer' ? lastTab : '/recommend/project'} replace />;
   }
   return pathname.endsWith('/developer')
-    ? <section className="recommendation-page">
+    ? <section className="recommendation-page desktop-content">
         <header className="explore-title"><h1>추천</h1><p>내 프로젝트에 함께할 개발자를 찾아보세요.</p></header>
         <ExploreTabs mode="recommend" />
         <RecommendationDevelopers />
       </section>
-    : <section className="recommendation-page"><header className="explore-title"><h1>추천</h1><p>나에게 맞는 프로젝트를 찾아보세요.</p></header><ExploreTabs mode="recommend" /><RecommendationProjects /></section>;
+    : <section className="recommendation-page desktop-content"><header className="explore-title"><h1>추천</h1><p>나에게 맞는 프로젝트를 찾아보세요.</p></header><ExploreTabs mode="recommend" /><RecommendationProjects /></section>;
 }

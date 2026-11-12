@@ -34,6 +34,7 @@ type ProfileDetailProps = {
   reports?: ReportCard[];
   isOwner?: string;
   memberNick?: string;
+  isSample?: boolean;
 };
 
 const ProfileDetail = ({
@@ -50,6 +51,7 @@ const ProfileDetail = ({
   isOwner,
   reports = [],
   memberNick,
+  isSample = false,
 }: ProfileDetailProps) => {
   const [projectTab, setProjectTab] = useState<ProjectTab>('ongoing');
   const [isHover, setIsHover] = useState<boolean>(false);
@@ -92,7 +94,7 @@ const ProfileDetail = ({
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   useEffect(() => {
-    if (!isDetail) return;
+    if (!isDetail || isSample) return;
     if (!targetNickname) return;
     let cancelled = false;
     const loadBookmarks = async () => {
@@ -113,9 +115,10 @@ const ProfileDetail = ({
     return () => {
       cancelled = true;
     };
-  }, [getToken, isDetail, targetNickname]);
+  }, [getToken, isDetail, isSample, targetNickname]);
 
   const handleBookmarkChange = async () => {
+    if (isSample) { setBookmarkId(current => current === null ? -1 : null); return; }
     if (!isDetail) return;
     if (!targetNickname) return;
     const token = await getToken();
@@ -150,9 +153,9 @@ const ProfileDetail = ({
 
   return (
     <section className="mx-auto flex w-full max-w-[1180px] justify-between">
-      <div className="max-w-[718px] flex-col gap-14">
+      <div className="max-w-[718px] flex-col gap-14 lg:max-2xl:min-w-0 lg:max-2xl:gap-10">
         {/*Section 1*/}
-        <div className="flex gap-[2.4rem]">
+        <div className="flex gap-[2.4rem] lg:max-2xl:gap-[18px]">
           <ImagePreview isExist={hasImage} imageUrl={imageUrl} />
           <div className="w-full">
             <div className="flex items-center justify-between">
@@ -177,7 +180,7 @@ const ProfileDetail = ({
         </div>
 
         {/* Section 2 : 자기소개 */}
-        <div className="flex w-full justify-between pr-[10.4rem]">
+        <div className="flex w-full justify-between pr-[10.4rem] lg:max-2xl:pr-[clamp(24px,5vw,72px)]">
           <p className="Label1 min-h-[7rem] font-medium text-ui-500">{introduction}</p>
           {type === '내 정보' && (
             <div>
@@ -188,7 +191,7 @@ const ProfileDetail = ({
         <hr className="border-ui-200" />
 
         {/* Section 3 : 보유 스택 목록 */}
-        <div className="flex-col gap-[2.4rem]">
+        <div className="flex-col gap-[2.4rem] lg:max-2xl:gap-[18px]">
           <div className="relative">
             <p className="relative flex items-center gap-[0.8rem] font-bold text-3xl text-ui-800">
               보유 스택
@@ -211,7 +214,7 @@ const ProfileDetail = ({
         </div>
 
         {/* Section 4 : 깃허브 기록 */}
-        <div className="flex flex-col gap-[2.4rem]">
+        <div className="flex flex-col gap-[2.4rem] lg:max-2xl:gap-[18px]">
           <p className="flex items-center gap-[0.8rem] font-bold text-3xl text-ui-800">
             깃허브 기록
           </p>

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import GithubIcon from '@assets/icons/github.svg?react';
 import GoogleIcon from '@assets/icons/google.svg?react';
+import HorizonBackground from '@pages/landing/launch-ui/components/ui/horizon-background';
 import './login-page.css';
 
 const UNLOCK_TIMEOUT_MS = 10_000; // 10초 후 자동 해제(리다이렉트가 막힌 특이 케이스 대비)
@@ -105,7 +106,10 @@ const LoginPage = () => {
   const isAnyLoading = loadingProvider !== null;
 
   return (
-    <div className="login-page">
+    <div className="login-page lg:max-2xl:[--login-content-width:420px] lg:max-2xl:[--login-logo-size:84px] lg:max-2xl:[--login-logo-gap:26px] lg:max-2xl:[--login-action-gap:28px] lg:max-2xl:[--login-note-gap:22px]">
+      <div aria-hidden="true" className="login-horizon pointer-events-none fixed inset-0 -z-10 overflow-hidden opacity-60 [&_.horizon-background]:!top-[26%] [&_.horizon-background]:!z-0 [&_.horizon-background]:!h-full">
+        <HorizonBackground />
+      </div>
       <header className="login-header">
         <Link to="/" aria-label="DeVine 홈으로"><img src={BrandWordmark} alt="" /></Link>
       </header>
@@ -117,21 +121,18 @@ const LoginPage = () => {
           <button type="button" onClick={() => void handleOAuthSignIn('github')}
             disabled={!isLoaded || isAnyLoading} aria-busy={loadingProvider === 'github'}
             className="login-provider login-provider--github">
-            <GithubIcon aria-hidden="true" />
+            {loadingProvider === 'github' ? <span className="login-spinner" aria-hidden="true" /> : <GithubIcon aria-hidden="true" />}
             {loadingProvider === 'github' ? '로그인 진행 중…' : 'GitHub로 계속하기'}
           </button>
           <button type="button" onClick={() => void handleOAuthSignIn('google')}
             disabled={!isLoaded || isAnyLoading} aria-busy={loadingProvider === 'google'}
             className="login-provider login-provider--google">
-            <GoogleIcon aria-hidden="true" />
+            {loadingProvider === 'google' ? <span className="login-spinner" aria-hidden="true" /> : <GoogleIcon aria-hidden="true" />}
             {loadingProvider === 'google' ? '로그인 진행 중…' : 'Google로 계속하기'}
           </button>
         </div>
-        {isAnyLoading ? (
-          <p className="login-note" role="status">로그인 창으로 이동 중입니다. 잠시만 기다려주세요.</p>
-        ) : (
-          <p className="login-note"><Gift aria-hidden="true" /> GitHub 로그인 시 무료 리포트 1회 제공</p>
-        )}
+        <p className="login-note"><Gift aria-hidden="true" /> GitHub 로그인 시 무료 리포트 1회 제공</p>
+        {isAnyLoading && <span className="sr-only" role="status">로그인 창으로 이동 중입니다.</span>}
       </section>
     </div>
   );

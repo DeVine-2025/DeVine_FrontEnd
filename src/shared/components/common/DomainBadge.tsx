@@ -1,5 +1,4 @@
 import type { Domain } from '@constants/domain';
-import './domain-badge.css';
 
 const icons: Record<Domain, React.ReactNode> = {
   교육: <><path d="M3 4.5h5.5A3.5 3.5 0 0 1 12 8v11a3 3 0 0 0-3-3H3z" /><path d="M21 4.5h-5.5A3.5 3.5 0 0 0 12 8v11a3 3 0 0 1 3-3h6z" /></>,
@@ -13,5 +12,5 @@ const icons: Record<Domain, React.ReactNode> = {
 };
 
 export default function DomainBadge({ domain, className }: { domain: Domain; className: string }) {
-  return <span className={className}><svg className="domain-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icons[domain]}</svg><span className="domain-badge-label">{domain}</span></span>;
+  return <span className={className}><svg className="block size-[13px] flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icons[domain]}</svg><span className="block leading-[inherit]">{domain}</span></span>;
 }

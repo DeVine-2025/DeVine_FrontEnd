@@ -117,8 +117,8 @@ export default function SystemSettingPage() {
     <section>
       <AdminPageTitle title="시스템 설정" />
 
-      <div className="mt-[40px] grid grid-cols-1 items-start gap-[20px] lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
-        <AdminHighlightCard className="overflow-hidden px-[24px] py-[26px]">
+      <div className="mt-[40px] grid grid-cols-1 items-start gap-[20px] lg:max-2xl:gap-[16px] lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+        <AdminHighlightCard className="overflow-hidden px-[24px] py-[26px] lg:max-2xl:px-[18px] lg:max-2xl:py-[20px]">
           <div className="flex-items-center justify-between gap-[16px]">
             <h2 className="Heading1 font-semibold text-[var(--ui-1000)]">
               외부 연동 상태 모니터링
@@ -204,7 +204,7 @@ export default function SystemSettingPage() {
         </AdminHighlightCard>
 
         <form
-          className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[24px] py-[26px]"
+          className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[24px] py-[26px] lg:max-2xl:px-[18px] lg:max-2xl:py-[20px]"
           onSubmit={handleMaintenanceSubmit}
         >
           <h2 className="Heading1 font-semibold text-[var(--ui-1000)]">점검 모드 설정</h2>

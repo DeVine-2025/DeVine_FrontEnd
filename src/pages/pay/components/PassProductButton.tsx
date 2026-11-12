@@ -17,7 +17,7 @@ const PassProductButton = ({ unitCount, unitPrice, selected, onClick }: PassProd
       role="radio"
       aria-checked={selected}
       onClick={() => onClick(unitCount)}
-      className={`flex w-full items-center gap-[1.4rem] rounded-[1.2rem] border px-[1.6rem] py-[1.5rem] text-left transition-colors ${
+      className={`flex w-full items-center gap-[1.4rem] rounded-[1.2rem] border px-[1.6rem] py-[1.5rem] lg:max-2xl:py-[12px] lg:max-2xl:px-[14px] text-left transition-colors ${
         selected
           ? 'border-[#B49AFF] bg-[rgba(112,85,245,0.08)]'
           : 'border-card-border bg-transparent hover:bg-[rgba(255,255,255,0.025)]'

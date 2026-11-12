@@ -1,3 +1,4 @@
+import AdminModalFrame from './common/admin-modal-frame';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { type FormEvent, useEffect, useState } from 'react';
@@ -154,16 +155,7 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
   const generatedCodes = result?.generatedCodes ?? [];
 
   return (
-    <div
-      aria-label="쿠폰 발급"
-      aria-modal="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-[20px]"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !issueMutation.isPending) onClose();
-      }}
-      role="dialog"
-    >
-      <div className="max-h-[90vh] w-full max-w-[640px] overflow-y-auto rounded-[16px] bg-[var(--ui-bg)] p-[28px] shadow-xl">
+    <AdminModalFrame label={'쿠폰 발급'} size="coupon" busy={issueMutation.isPending} onClose={onClose}>
         <div className="flex items-start justify-between gap-[20px]">
           <div>
             <h2 className="Title3 font-bold text-[var(--ui-1000)]">쿠폰 발급</h2>
@@ -269,7 +261,7 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
             </div>
           </div>
         ) : (
-          <form className="mt-[28px]" onSubmit={handleSubmit}>
+          <form className="mt-[28px] lg:max-2xl:mt-[20px]" onSubmit={handleSubmit}>
             <fieldset>
               <legend className="Headline1 font-semibold text-[var(--ui-1000)]">발급 방식</legend>
               <div className="mt-[12px] grid grid-cols-1 gap-[8px] sm:grid-cols-3">
@@ -499,7 +491,6 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
             </button>
           </form>
         )}
-      </div>
-    </div>
+    </AdminModalFrame>
   );
 }

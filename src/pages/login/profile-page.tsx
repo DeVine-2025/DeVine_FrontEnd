@@ -1,9 +1,10 @@
+import { DOMAIN_ICONS } from '@constants/domain-icons';
 import { useMemo, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { getCategoryIdsByLabels } from '@constants/signup-mapping';
 import { useAuthStore } from '@store/auth';
 import { getStoredUserRole } from '@utils/storage';
-import { ArrowLeft, BriefcaseBusiness, Code2, CreditCard, Gamepad2, GraduationCap, HeartPulse, Layers, ShoppingCart, UsersRound } from 'lucide-react';
+import { ArrowLeft, BriefcaseBusiness, Code2 } from 'lucide-react';
 
 type ProfilePageProps = {
   onBack: () => void;
@@ -20,13 +21,13 @@ const roleOptions = [
 
 // 프로필 편집 화면에서 사용하는 도메인 아이콘과 동일하게 유지합니다.
 const domainOptions = [
-  { label: '교육', icon: GraduationCap },
-  { label: '헬스케어', icon: HeartPulse },
-  { label: '소셜/커뮤니티', icon: UsersRound },
-  { label: '핀테크', icon: CreditCard },
-  { label: '엔터테인먼트', icon: Gamepad2 },
-  { label: '이커머스', icon: ShoppingCart },
-  { label: 'AI/데이터', icon: Layers },
+  { label: '교육', icon: DOMAIN_ICONS['교육'] },
+  { label: '헬스케어', icon: DOMAIN_ICONS['헬스케어'] },
+  { label: '소셜/커뮤니티', icon: DOMAIN_ICONS['소셜/커뮤니티'] },
+  { label: '핀테크', icon: DOMAIN_ICONS['핀테크'] },
+  { label: '엔터테인먼트', icon: DOMAIN_ICONS['엔터테인먼트'] },
+  { label: '이커머스', icon: DOMAIN_ICONS['이커머스'] },
+  { label: 'AI/데이터', icon: DOMAIN_ICONS['AI/데이터'] },
 ];
 
 const ProfilePage = ({ onBack, onNext, initialRole = null, initialDomains = [], preview = false }: ProfilePageProps) => {
@@ -51,8 +52,8 @@ const ProfilePage = ({ onBack, onNext, initialRole = null, initialDomains = [], 
   };
 
   return (
-    <div className="mx-auto w-full max-w-[515px] text-[#f5f5f7]">
-      <h2 className="text-[clamp(26px,3vw,36px)] font-bold leading-[1.3] tracking-[-.04em]">활동 정보 설정</h2>
+    <div className="mx-auto w-full max-w-[515px] lg:max-2xl:max-w-[480px] text-[#f5f5f7]">
+      <h2 className="lg:max-2xl:text-[30px] text-[clamp(26px,3vw,36px)] font-bold leading-[1.3] tracking-[-.04em]">활동 정보 설정</h2>
       <p className="mt-4 text-[16px] leading-[1.6] text-[#b5b7c8]">주요 역할과 관심 분야를 선택해 주세요.</p>
       <div className="mt-12 flex flex-col gap-12">
         <fieldset>
@@ -74,7 +75,7 @@ const ProfilePage = ({ onBack, onNext, initialRole = null, initialDomains = [], 
           </div>
         </fieldset>
       </div>
-      <div className="mt-10 flex flex-col gap-4">
+      <div className="mt-10 lg:max-2xl:mt-7 flex flex-col gap-4">
         <button type="button" disabled={!canProceed} onClick={handleNext} className={`h-[52px] w-full rounded-[10px] border text-[15px] font-semibold tracking-[-.01em] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--project-accent)] ${canProceed ? 'cursor-pointer border-transparent bg-[var(--project-accent)] text-[#191824] hover:bg-[color-mix(in_srgb,var(--project-accent)_85%,white)]' : 'cursor-not-allowed border-white/[0.10] bg-white/[0.035] text-[#8f92a3]'}`}>다음</button>
         <button type="button" onClick={onBack} className="inline-flex w-fit items-center self-center gap-2 text-[14px] text-[#a9abc0] transition-colors hover:text-[#f5f5f7]"><ArrowLeft size={17} aria-hidden="true" />돌아가기</button>
       </div>

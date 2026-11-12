@@ -1,4 +1,3 @@
-import { useThemeStore } from '@store/theme';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { ActivityCalendar, type Activity, type ThemeInput } from 'react-activity-calendar';
 import ChevronRightIcon from "@assets/icons/chevron-right.svg?react";
@@ -15,6 +14,8 @@ interface CustomGithubCalendarProps {
   year?: number;
   onYearChange?: (year: number) => void;
   heading?: string;
+  beforeCalendar?: React.ReactNode;
+  afterCalendar?: React.ReactNode;
 }
 
 const DEVINE_ACTIVITY_THEME: ThemeInput = {
@@ -55,9 +56,9 @@ const CustomGithubCalendar = ({
   year: yearProp,
   onYearChange,
   heading,
+  beforeCalendar,
+  afterCalendar,
 }: CustomGithubCalendarProps) => {
-
-  const theme = useThemeStore(state => state.theme);
   const [internalYear, setInternalYear] = useState(initialYear);
   // year prop이 있으면 prop을 사용하고, 없으면 내부 상태 사용
   const year = yearProp !== undefined ? yearProp : internalYear;
@@ -131,12 +132,14 @@ const CustomGithubCalendar = ({
         </div>
       </div>
 
+      {beforeCalendar}
       {/* 캘린더 컨테이너 */}
+      <div className={afterCalendar ? 'rounded-xl border border-white/[0.08] bg-white/[0.015] p-4 sm:p-5' : undefined}>
       <div key={heading ? year : undefined} className={heading ? 'calendar-container calendar-container-animated' : 'calendar-container'}>
         <ActivityCalendar
           data={calendarData}
           theme={DEVINE_ACTIVITY_THEME}
-          colorScheme={theme}
+          colorScheme="dark"
           showWeekdayLabels={heading ? ['mon', 'wed', 'fri'] : false}
           showTotalCount={false}
           showColorLegend={Boolean(heading)}
@@ -153,6 +156,8 @@ const CustomGithubCalendar = ({
             ],
           }}
         />
+      </div>
+      {afterCalendar}
       </div>
     </div>
   );

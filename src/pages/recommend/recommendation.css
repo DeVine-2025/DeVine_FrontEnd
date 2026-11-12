@@ -1,11 +1,10 @@
-.recommendation-page { width: calc(100% - 72px); max-width: 1440px; margin: 8px auto 0; color: var(--text-main); font-size: 14px; }
+.recommendation-page { width: var(--desktop-content-width, calc(100% - 72px)); max-width: 1440px; margin: 8px auto 0; color: var(--text-main); font-size: 14px; }
 .recommendation-page button { cursor: pointer; }
 .recommendation-heading { margin: 24px 0; }
 .recommendation-heading h1 { margin: 0 0 10px; font-size: 28px; font-weight: 700; letter-spacing: -.035em; line-height: 1.35; }
 .recommendation-heading p { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
 .rec-basis { display: flex; align-items: center; gap: 14px; min-height: 80px; padding: 16px 22px; border: 1px solid var(--surface-badge); border-radius: 14px; background: var(--surface-filter); }
 .rec-basis-icon, .rec-state-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 46px; height: 46px; border: 1px solid color-mix(in srgb, var(--project-accent) 16%, transparent); border-radius: 12px; color: var(--project-accent); background: color-mix(in srgb, var(--project-accent) 6%, transparent); }
-.rec-basis-copy { display: flex; flex-direction: column; gap: 4px; }
 .rec-basis-copy > span { color: var(--text-secondary); font-size: 11px; }
 .rec-basis-copy strong { font-size: 14px; font-weight: 600; }
 .rec-basis-copy p { color: var(--text-secondary); font-size: 12px; margin: 0; }
@@ -58,7 +57,7 @@
 .rec-progress { display: flex; gap: 3px; margin-top: 10px; }.rec-progress i { flex: 1; min-width: 0; height: 5px; border-radius: 5px; background: var(--surface-badge); }.rec-progress i.filled { background: var(--project-progress); }
 .rec-deadline { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; }.rec-deadline strong { color: var(--project-accent); font-size: 22px; font-weight: 700; }.rec-deadline span { display: inline-flex; align-items: center; gap: 5px; color: var(--text-secondary); font-size: 12px; }
 .rec-score-details { margin-top: 15px; border-top: 1px solid color-mix(in srgb, var(--text-secondary) 8%, transparent); padding-top: 10px; color: var(--text-secondary); font-size: 11px; }.rec-score-details summary { cursor: pointer; }.rec-score-details p { line-height: 1.8; margin: 8px 0; }
-.rec-state { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 380px; margin-top: 24px; border: 1px solid var(--surface-badge); border-radius: 16px; padding: 40px; background: var(--surface-filter); }.rec-state h2 { margin: 22px 0 10px; font-size: 21px; font-weight: 600; }.rec-state p { max-width: 450px; margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.8; }
+.rec-state h2 { margin: 22px 0 10px; font-size: 21px; font-weight: 600; }.rec-state p { max-width: 450px; margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.8; }
 .rec-primary { display: inline-flex; gap: 10px; align-items: center; border: 0; border-radius: 8px; margin-top: 26px; padding: 12px 18px; background: var(--project-control); color: #fff; font-size: 13px; font-weight: 600; text-decoration: none; }
 .rec-preview-notice { margin: 16px 0 0; color: var(--text-secondary); font-size: 11px; }
 .rec-preview-dialog { width: min(520px, calc(100vw - 48px)); margin: auto; padding: 32px; border: 1px solid var(--surface-badge); border-radius: 16px; background: var(--surface-card); color: var(--text-main); }

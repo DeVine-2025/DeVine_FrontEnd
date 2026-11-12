@@ -304,7 +304,7 @@ export default function ProjectSearchPage() {
         <meta property="og:description" content="사이드 프로젝트 팀원 구하기, 주니어 개발자 프로젝트 참여, PM 개발자 찾기. GitHub 분석 기반으로 딱 맞는 프로젝트를 찾아보세요." />
         <meta property="og:url" content="https://www.devine.kr/search/project" />
       </Helmet>
-      <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30">
+      <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30 lg:max-2xl:gap-7 lg:max-2xl:pb-20">
         {/* 추천 프로젝트 */}
         <header className="flex items-center justify-between">
           <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 프로젝트</h2>
@@ -322,7 +322,7 @@ export default function ProjectSearchPage() {
       </header>
 
       {showTopProjectSkeleton && (
-        <div className="scrollbar-hide flex gap-6 overflow-x-auto py-2">
+        <div className="scrollbar-hide flex gap-6 overflow-x-auto lg:max-2xl:gap-4 py-2">
           {Array.from({ length: 4 }, (_, i) => (
             <div key={i} className="w-[260px] shrink-0">
               <RecommendProjectCardSkeleton variant="compact" />
@@ -336,7 +336,7 @@ export default function ProjectSearchPage() {
         </p>
       )}
       {!showTopProjectSkeleton && hasReports === true && (
-        <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto">
+        <div className="scrollbar-hide flex justify-between gap-6 overflow-x-auto lg:max-2xl:gap-4">
           {recommendedPreview.map((p) => {
             const ov = bookmarkOverrides[Number(p.id)];
             return (

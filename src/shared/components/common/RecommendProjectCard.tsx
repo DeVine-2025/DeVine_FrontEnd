@@ -66,10 +66,10 @@ function RecommendProjectCard({
           : undefined
       }
       className={cn(
-        'group relative flex w-full max-w-[1180px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)]',
+        'group relative flex w-full max-w-[1180px] lg:max-2xl:[--legacy-project-card-height-offset:20px] flex-col overflow-hidden rounded-2xl border border-[var(--ui-200)] bg-[var(--ui-bg)]',
         handleClick && 'recommend-card-hover-border cursor-pointer',
       )}
-      style={{ height: cardHeight }}
+      style={{ height: `calc(${cardHeight}px - var(--legacy-project-card-height-offset, 0px))` }}
     >
       <ProjectBase
         categoryLabel={categoryLabel}
@@ -85,7 +85,7 @@ function RecommendProjectCard({
         bookmarked={bookmarked}
         onBookmarkChange={handleBookmark}
         render={(ui) => (
-          <div className="flex h-[180px] w-full items-center gap-10 overflow-hidden px-8 py-6">
+          <div className="flex h-[180px] w-full items-center gap-10 overflow-hidden px-8 py-6 lg:max-2xl:h-[160px] lg:max-2xl:gap-6 lg:max-2xl:px-6">
             {ui.Thumbnail}
 
             <div className="flex min-w-0 flex-1 flex-col justify-center gap-6">
@@ -94,7 +94,7 @@ function RecommendProjectCard({
               {ui.Meta}
             </div>
 
-            <div className="mr-2 ml-auto flex w-[340px] shrink-0 items-center gap-4">
+            <div className="mr-2 ml-auto flex w-[340px] shrink-0 lg:max-2xl:w-[clamp(230px,30%,310px)] items-center gap-4">
               <div className="min-w-0 flex-1">{ui.RolesLg}</div>
               <div className="flex shrink-0 items-center gap-12">
                 {dueLabel && (

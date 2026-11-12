@@ -40,7 +40,7 @@ const ACTION_OPTIONS = ['경고', '삭제', '정지', '기각'] as const;
 
 type ActionOption = (typeof ACTION_OPTIONS)[number];
 
-const CARD_CLASS = 'rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px]';
+const CARD_CLASS = 'rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px] lg:max-2xl:p-[18px]';
 const SECTION_TITLE_CLASS = 'Headline1 font-semibold text-[var(--ui-1000)]';
 
 function InfoCell({ label, value }: { label: string; value: string }) {
@@ -72,8 +72,8 @@ export default function ReportDetailPage() {
 
       <AdminPageTitle className="mt-[8px]" title="신고 상세/처리" />
 
-      <div className="mt-[28px] grid grid-cols-1 gap-[24px] lg:grid-cols-2">
-        <div className="flex flex-col gap-[24px]">
+      <div className="mt-[28px] grid grid-cols-1 gap-[24px] lg:max-2xl:gap-[18px] lg:max-2xl:p-[18px] lg:grid-cols-2">
+        <div className="flex flex-col gap-[24px] lg:max-2xl:gap-[18px] lg:max-2xl:p-[18px]">
           <div
             className={cn(
               CARD_CLASS,

@@ -10,7 +10,7 @@ import {
   DeveloperSuggestPage,
   InProgressPage,
   LoginPage,
-  MainPage,
+  LegacyHomePage,
   MatchingPage,
   MyDeveloperPage,
   MyInfoBookMarkPage,
@@ -48,6 +48,7 @@ import RecommendationLayout from '../../pages/recommend/recommendation-layout';
 import RecommendationProjects from '../../pages/recommend/recommendation-projects';
 import RecommendationDevelopers from '../../pages/recommend/recommendation-developers';
 import AgreementList from '../../pages/signup/AgreementList';
+import AuthLoadingScreen from '@components/common/AuthLoadingScreen';
 
 function HomeEntry() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -57,6 +58,7 @@ function HomeEntry() {
 
 export const router = createBrowserRouter([
   ...adminRoutes,
+  ...(import.meta.env.DEV ? [{ path: '/auth-loading-preview', element: <AuthLoadingScreen message="로그인하고 있어요." /> }] : []),
   ...(import.meta.env.DEV ? [{
     path: '/signup-preview',
     element: <Outlet context={{ setNavLocked: () => {}, setLogoClickHandler: () => {}, onboardingIncomplete: false, openOnboardingModal: () => {} }} />,
@@ -75,7 +77,7 @@ export const router = createBrowserRouter([
         path: 'home-original',
         element: (
           <BookmarkAnimationContext.Provider value={false}>
-            <MainPage />
+            <LegacyHomePage />
           </BookmarkAnimationContext.Provider>
         ),
       },
@@ -162,7 +164,7 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <MyInfoProfilePage /> },
               { path: 'setting', element: <MyInfoSettingPage /> },
-              { path: 'bookmark', element: <MyInfoBookMarkPage /> },
+              { path: 'bookmark', element: <MyInfoBookMarkPage embedded /> },
             ],
           },
           { path: 'profile-edit', element: <MyInfoProfileEdit /> },

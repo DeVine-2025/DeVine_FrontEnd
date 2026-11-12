@@ -10,7 +10,6 @@ import {
   type TechStackChip,
 } from '@constants/position-tech-stack';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
 import { badgeToneToClass } from '../../types/badgeTone';
 import type { ProfileCardProps, TechStackItem } from '../../types/profileCard.types';
 
@@ -114,7 +113,6 @@ export function Intro({ introduction }: { introduction?: string }) {
 }
 
 export function TechChips({ techStack, max }: { techStack?: TechStackItem[]; max: number }) {
-  const { theme } = useThemeStore();
 
   if (!techStack?.length) return null;
 
@@ -171,7 +169,7 @@ export function TechChips({ techStack, max }: { techStack?: TechStackItem[]; max
         const badge = label ? findBadge(label) : null;
 
         if (badge) {
-          const offSrc = theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off;
+          const offSrc = (badge.offDark ?? badge.off);
 
           return (
             <span key={key} className="inline-flex items-center">

@@ -198,10 +198,10 @@ const GithubRepoSelectionSection = ({ onBack, onNext, preview = false }: GithubR
 
   if (phase === 'generating') {
     return (
-    <div className="mx-auto flex h-[660px] w-full max-w-[632px] -translate-y-12 flex-col items-center justify-start pt-0 text-center">
+    <div className="mx-auto flex h-[660px] lg:max-2xl:h-[clamp(440px,70svh,580px)] w-full max-w-[632px] -translate-y-12 flex-col items-center justify-start pt-0 text-center">
         <div className="flex flex-col items-center gap-3">
           <div className="mb-10 mt-24 h-20 w-20"><Loading /></div>
-          <h2 className="text-[24px] font-semibold text-[var(--ui-1000)]">
+          <h2 className="lg:max-2xl:text-[30px] text-[24px] font-semibold text-[var(--ui-1000)]">
             리포트를 생성하는 중이에요
           </h2>
           <div className="mt-12 flex flex-col items-center gap-3">
@@ -221,8 +221,8 @@ const GithubRepoSelectionSection = ({ onBack, onNext, preview = false }: GithubR
 
   if (phase === 'complete') {
     return (
-      <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col items-center justify-start gap-6 pt-[20px] text-center">
-        <h2 className="text-[36px] leading-[133%] font-bold tracking-[-0.027em] text-[var(--ui-1000)]">
+      <div className="mx-auto flex h-[660px] lg:max-2xl:h-[clamp(440px,70svh,580px)] w-full max-w-[632px] flex-col items-center justify-start gap-6 pt-[20px] text-center">
+        <h2 className="lg:max-2xl:text-[30px] text-[36px] leading-[133%] font-bold tracking-[-0.027em] text-[var(--ui-1000)]">
           리포트 생성이 완료되었어요!
         </h2>
         <br/>
@@ -255,10 +255,10 @@ const GithubRepoSelectionSection = ({ onBack, onNext, preview = false }: GithubR
 
   return (
     <>
-      <div className="mx-auto flex h-[660px] w-full max-w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] px-10 pb-20 pt-10 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
-      <div className="flex flex-col gap-8">
+      <div className="mx-auto flex h-[660px] lg:max-2xl:h-[clamp(440px,70svh,580px)] w-full max-w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] px-10 pb-20 pt-10 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
+      <div className="flex flex-col gap-8 lg:max-2xl:gap-6">
         <div className="flex flex-col gap-2 text-[var(--ui-1000)]">
-          <h2 className="Heading2 font-semibold">리포트를 생설할 <br/>레포지토리를 선택해주세요</h2>
+          <h2 className="lg:max-2xl:text-[30px] Heading2 font-semibold">리포트를 생설할 <br/>레포지토리를 선택해주세요</h2>
         </div>
         <div className="flex flex-col gap-4">
           <span className="Body1 text-[15px] font-semibold text-[var(--ui-900)]">
@@ -266,7 +266,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext, preview = false }: GithubR
           </span>
           {loadError && <span className="Caption1 text-[var(--ui-danger)]">{loadError}</span>}
           {createError && <span className="Caption1 text-[var(--ui-danger)]">{createError}</span>}
-          <div className="scrollbar-hide max-h-[320px] overflow-y-auto pr-1">
+          <div className="scrollbar-hide max-h-[320px] lg:max-2xl:max-h-[clamp(200px,35svh,280px)] overflow-y-auto pr-1">
             <div className="flex flex-col gap-4">
               {isLoading ? (
                 <GithubRepoListSkeleton count={6} variant="signup" />
@@ -317,7 +317,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext, preview = false }: GithubR
       </div>
 
       {repoOptions.length > 0 && (
-        <div className="mt-auto mb-24 flex flex-col gap-3">
+        <div className="mt-auto mb-24 lg:max-2xl:mb-12 flex flex-col gap-3">
           <button
             type="button"
             disabled={!canProceed || createReportMutation.isPending}
@@ -344,7 +344,7 @@ const GithubRepoSelectionSection = ({ onBack, onNext, preview = false }: GithubR
       {isWaitModalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">
           <div className="w-full max-w-[360px] rounded-[24px] bg-[var(--ui-bg)] px-8 pb-8 pt-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
-            <h2 className="text-[18px] font-semibold text-[var(--ui-900)]">
+            <h2 className="lg:max-2xl:text-[30px] text-[18px] font-semibold text-[var(--ui-900)]">
               리포트 제작 중이에요
             </h2>
             <p className="mt-2 text-[13px] text-[var(--ui-400)]">

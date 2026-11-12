@@ -3,6 +3,7 @@
   display: grid;
   place-items: center;
   position: relative;
+  isolation: isolate;
   padding: 110px 24px 64px;
   background: #101116;
   color: #f5f5f7;
@@ -17,31 +18,54 @@
   justify-content: space-between;
 }
 .login-header img { display: block; width: 145px; height: auto; }
-.login-content { width: min(100%, 464px); text-align: center; }
-.login-logo { display: block; width: 100px; height: auto; margin: 0 auto 34px; }
+.login-content { width: min(100%, var(--login-content-width, 464px)); text-align: center; }
+.login-logo { display: block; width: var(--login-logo-size, 100px); height: auto; margin: 0 auto var(--login-logo-gap, 34px); }
 .login-content h1 { margin: 0; color: #f5f5f7; font-size: clamp(28px, 3vw, 42px); font-weight: 700; line-height: 1.2; letter-spacing: -0.045em; }
 .login-description { margin: 14px 0 0; color: #b5b7c2; font-size: 18px; line-height: 1.6; }
-.login-actions { display: grid; gap: 16px; margin-top: 36px; }
+.login-actions { display: grid; gap: 12px; width: min(100%, 330px); margin: var(--login-action-gap, 36px) auto 0; }
 .login-provider {
   display: flex; align-items: center; justify-content: center; gap: 12px;
-  width: 100%; min-height: 60px; border: 1px solid transparent; border-radius: 14px;
-  font-size: 17px; font-weight: 650; cursor: pointer;
+  width: 100%; min-height: 52px; border: 1px solid transparent; border-radius: 9999px;
+  font-size: 15px; font-weight: 650; cursor: pointer;
   transition: background-color 180ms ease, border-color 180ms ease;
 }
-.login-provider svg { width: 24px; height: 24px; flex: none; }
+.login-provider svg { width: 20px; height: 20px; flex: none; }
+.login-spinner { width: 18px; height: 18px; flex: none; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: login-spinner-spin 0.8s linear infinite; }
+@keyframes login-spinner-spin { to { transform: rotate(360deg); } }
 .login-provider--github { background: #f5f5f7; color: #101116; }
 .login-provider--github:hover:not(:disabled) { background: #dedee6; }
 .login-provider--google { background: #1b1c23; border-color: #41424c; color: #f5f5f7; }
 .login-provider--google:hover:not(:disabled) { background: #252630; border-color: #5a5b68; }
 .login-provider:focus-visible, .login-header a:focus-visible { outline: 2px solid #b8a9ff; outline-offset: 3px; }
 .login-provider:disabled { opacity: .6; cursor: not-allowed; }
-.login-note { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 30px 0 0; color: #b5b7c2; font-size: 15px; line-height: 1.6; }
+.login-note { display: flex; align-items: center; justify-content: center; gap: 10px; margin: var(--login-note-gap, 30px) 0 0; color: #b5b7c2; font-size: 15px; line-height: 1.6; }
 .login-note svg { width: 21px; height: 21px; color: #a897ff; flex: none; }
 @media (max-width: 600px) {
   .login-header { top: 22px; left: 24px; right: 24px; }
   .login-header img { width: 120px; }
   .login-description { font-size: 15px; }
-  .login-provider { min-height: 54px; font-size: 15px; }
+  .login-provider { min-height: 50px; font-size: 15px; }
   .login-note { font-size: 13px; }
 }
-@media (prefers-reduced-motion: reduce) { .login-provider { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .login-provider { transition: none; } .login-spinner { animation: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .login-horizon { animation: login-horizon-enter 700ms ease-out both; }
+  .login-header, .login-logo, .login-content h1, .login-description,
+  .login-provider, .login-note {
+    animation: login-content-enter 540ms cubic-bezier(.22, 1, .36, 1) both;
+  }
+  .login-logo { animation-delay: 70ms; }
+  .login-content h1 { animation-delay: 120ms; }
+  .login-description { animation-delay: 160ms; }
+  .login-provider--github { animation-delay: 210ms; }
+  .login-provider--google { animation-delay: 270ms; }
+  .login-note { animation-delay: 310ms; }
+}
+@keyframes login-content-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes login-horizon-enter {
+  from { opacity: 0; }
+  to { opacity: .6; }
+}

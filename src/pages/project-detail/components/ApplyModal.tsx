@@ -3,7 +3,6 @@ import { cn } from '@libs/cn';
 type RoleOption = { key: string; label: string };
 
 type ApplyModalProps = {
-  isDark: boolean;
   projectTitle: string;
   hasApplied: boolean;
   selectedRole: string | null;
@@ -18,7 +17,6 @@ type ApplyModalProps = {
 };
 
 export default function ApplyModal({
-  isDark,
   projectTitle,
   hasApplied,
   selectedRole,
@@ -38,7 +36,7 @@ export default function ApplyModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
       <div
         className="relative w-full max-w-[360px] rounded-[24px] px-10 py-12 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
-        style={{ backgroundColor: isDark ? '#212328' : '#FFFFFF' }}
+        style={{ backgroundColor: '#212328' }}
       >
         <button
           type="button"
@@ -51,13 +49,13 @@ export default function ApplyModal({
         <div className="flex flex-col gap-2 pt-3">
           <h2
             className="font-semibold text-[18px] leading-[24px]"
-            style={{ color: isDark ? '#F8F9FB' : 'var(--ui-900)' }}
+            style={{ color: '#F8F9FB' }}
           >
             [{projectTitle}]
             <br />
             {hasApplied ? '지원 역할을 변경하시겠어요?' : '에 지원하시겠어요?'}
           </h2>
-          <p className="text-[13px]" style={{ color: isDark ? '#9EA6BA' : 'var(--ui-400)' }}>
+          <p className="text-[13px]" style={{ color: '#9EA6BA' }}>
             {hasApplied
               ? '변경할 포지션을 선택해 주세요.'
               : '지원 후 PM이 수락 시 팀원으로 합류하게 됩니다.'}
@@ -71,15 +69,15 @@ export default function ApplyModal({
               onClick={onToggleRoleMenu}
               className="flex h-[40px] w-full cursor-pointer items-center justify-between rounded-[12px] px-4 text-[14px]"
               style={{
-                backgroundColor: isDark ? '#191B1E' : '#FFFFFF',
-                border: `1px solid ${isDark ? '#41444D' : 'var(--ui-200)'}`,
-                color: isDark ? '#F8F9FB' : 'var(--ui-700)',
+                backgroundColor: '#191B1E',
+                border: `1px solid ${'#41444D'}`,
+                color: '#F8F9FB',
               }}
             >
               <span
                 className={selectedRole ? '' : 'text-[var(--ui-400)]'}
                 style={{
-                  color: selectedRole ? (isDark ? '#F8F9FB' : 'var(--ui-900)') : undefined,
+                  color: selectedRole ? ('#F8F9FB') : undefined,
                 }}
               >
                 {selectedRoleLabel}
@@ -101,8 +99,8 @@ export default function ApplyModal({
               <div
                 className="absolute z-10 mt-2 w-full rounded-[12px] py-3 shadow-[0_12px_30px_rgba(0,0,0,0.12)]"
                 style={{
-                  backgroundColor: isDark ? '#191B1E' : '#FFFFFF',
-                  border: `1px solid ${isDark ? '#41444D' : 'var(--ui-200)'}`,
+                  backgroundColor: '#191B1E',
+                  border: `1px solid ${'#41444D'}`,
                 }}
               >
                 {roleOptions.map((option) => (
@@ -112,7 +110,7 @@ export default function ApplyModal({
                     onClick={() => onSelectRole(option.key)}
                     className="w-full cursor-pointer px-4 py-2 text-left text-[14px]"
                     style={{
-                      color: isDark ? '#F8F9FB' : 'var(--ui-900)',
+                      color: '#F8F9FB',
                     }}
                   >
                     {option.label}

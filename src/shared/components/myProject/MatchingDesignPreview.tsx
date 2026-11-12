@@ -1,27 +1,34 @@
 import { useState } from 'react';
-import { featuredProjects } from '@pages/home/home-mock-data';
+import { featuredProjects, recentProjects } from '@pages/home/home-mock-data';
 import MatchingInbox, { type MatchingRow } from './MatchingCards';
 
-const examples = [
-  { name: '김민준', project: '플로우업', part: '프론트엔드', decision: 'PENDING', incoming: true },
-  { name: '이서연', project: '그린로그', part: '백엔드', decision: 'PENDING', incoming: false },
-  { name: '박지훈', project: '필모먼트', part: '프론트엔드', decision: 'ACCEPT', incoming: false },
-  { name: '정유진', project: '커넥트업', part: '프론트엔드', decision: 'PENDING', incoming: true },
-  { name: '김하늘', project: '링크노트', part: '인프라', decision: 'REJECT', incoming: true },
-] as const;
+import { matchingSamples } from './matching-samples';
 
 export default function MatchingDesignPreview({ role }: { role: 'pm' | 'developer' }) {
   const [decisions, setDecisions] = useState<Record<number, string>>({});
-  const rows = examples.map((example, index): MatchingRow => ({
-    id: index,
-    incoming: example.incoming,
-    title: role === 'pm' ? example.name : example.project,
-    projectName: role === 'pm' ? example.project : undefined,
-    subtitle: example.part,
-    image: role === 'developer' ? featuredProjects.find((project) => project.title === example.project)?.thumbnail : undefined,
-    createdAt: '2026-11-0' + (5 - index),
-    decision: decisions[index] ?? example.decision,
-  }));
+  const rows = matchingSamples.map((example, index): MatchingRow => {
+    const project = role === 'developer'
+      ? [...featuredProjects, ...recentProjects].find((item) => item.title === example.project)
+      : undefined;
+    const href = role === 'pm'
+      ? '/developer-detail/' + encodeURIComponent(example.name) + '?preview=sample'
+      : project && '/project/sample-' + project.id;
+    return {
+      id: index,
+      incoming: example.incoming,
+      title: role === 'pm' ? example.name : example.project,
+      projectName: role === 'pm' ? example.project : undefined,
+      subtitle: example.part,
+      image: project?.thumbnail,
+      href,
+      createdAt: '2026-11-0' + (5 - index),
+      decision: decisions[index] ?? example.decision,
+      message: role === 'pm'
+        ? (example.incoming ? '프로젝트의 방향이 인상 깊어 지원했어요. 함께 좋은 서비스를 만들어가고 싶습니다.' : '프로젝트에 함께해 주시면 좋을 것 같아 협업을 제안드려요.')
+        : (example.incoming ? '프로젝트에 함께해 주시면 좋을 것 같아 협업을 제안드려요.' : '프로젝트의 방향이 인상 깊어 지원했어요. 함께 좋은 서비스를 만들어가고 싶습니다.'),
+      messageIsSample: true,
+    };
+  });
 
   return <>
     <MatchingInbox role={role} rows={rows} onRespond={async (id, decision) => setDecisions((previous) => ({ ...previous, [id]: decision }))} />

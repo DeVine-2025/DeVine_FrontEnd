@@ -1,17 +1,15 @@
 .profile-edit {
   --edit-border: var(--project-divider);
-  width: min(calc(100% - 48px), 1180px);
+  width: min(var(--desktop-content-width, calc(100% - 48px)), 1180px);
   margin: 0 auto;
   padding: 8px 0 44px;
   color: var(--text-main);
 }
-.profile-edit-breadcrumb { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
 .profile-edit-breadcrumb a:hover { color: var(--project-accent); }
 .profile-edit-breadcrumb [aria-current] { color: var(--text-main); font-weight: 650; }
 .profile-edit-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding: 17px 0 16px; }
 .profile-edit-header h1 { margin: 0; font-size: 30px; font-weight: 750; line-height: 1.22; letter-spacing: -.035em; }
 .profile-edit-header p, .profile-edit-section-heading p { margin: 7px 0 0; color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
-.profile-edit-actions { display: flex; align-items: center; gap: 10px; }
 .profile-edit-button { display: inline-flex; justify-content: center; align-items: center; min-height: 40px; padding: 8px 14px; border: 1px solid var(--edit-border); border-radius: 9px; background: var(--surface-filter); color: var(--text-main); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .profile-edit-button:hover:not(:disabled) { border-color: var(--project-border-hover); background: var(--surface-badge); }
 .profile-edit-actions .profile-edit-button { min-width: 77px; }
@@ -30,7 +28,6 @@
 .profile-edit-section-heading p { max-width: 205px; }
 .profile-edit-basic { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: clamp(18px, 3vw, 36px); min-width: 0; }
 .profile-edit-photo { display: grid; justify-items: center; }
-.profile-edit-photo-frame { position: relative; }
 .profile-edit-photo .profile-edit-avatar { width: 116px; height: 116px; background: var(--surface-card); }
 .profile-edit-camera { position: absolute; right: -3px; bottom: 0; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--edit-border); border-radius: 50%; background: var(--surface-badge); }
 .profile-edit-camera:hover { color: var(--project-accent); }
@@ -76,4 +73,8 @@
   .profile-edit-basic, .profile-edit-social, .profile-edit-field-inline { grid-template-columns: minmax(0, 1fr); }
   .profile-edit-field-inline > label { padding-top: 0; }
   .profile-edit-domains { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+}
+
+@media screen and (1024px <= width < 1536px) {
+  .profile-edit .profile-edit-section { padding-block: 24px; }
 }

@@ -39,14 +39,14 @@ export default function ProfileCardLg(props: ProfileCardProps) {
       }
       className={cn(
         'rounded-2xl border border-card-border bg-card-bg',
-        'card-size-lg flex flex-col',
-        header && 'card-size-lg--with-header',
+        'card-size-lg flex flex-col lg:max-2xl:p-7',
+        header ? 'card-size-lg--with-header lg:max-2xl:h-[204px]' : 'lg:max-2xl:h-[144px]',
         onClick && 'cursor-pointer recommend-card-hover-border',
         className,
       )}
     >
       {header ? <div className="">{header}</div> : null}
-      <div className="group/profile flex min-h-0 flex-1 items-center gap-9">
+      <div className="group/profile flex min-h-0 flex-1 items-center gap-9 lg:max-2xl:gap-6">
         <img
           src={profileImageUrl}
           alt={profileImageAlt ?? nickname}
@@ -66,7 +66,7 @@ export default function ProfileCardLg(props: ProfileCardProps) {
           <Intro introduction={introduction} />
         </div>
 
-        <div className="flex w-[330px] items-center">
+        <div className="flex w-[330px] items-center lg:max-2xl:w-[clamp(180px,25vw,300px)]">
           <TechChips techStack={techStack} max={5} />
         </div>
 

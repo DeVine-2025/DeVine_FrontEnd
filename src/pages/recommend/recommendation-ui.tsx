@@ -41,11 +41,11 @@ export function RecommendationMenu({ label, value, options, onChange, developerF
 }
 
 export function RecommendationBasis({ developer = false, title, children }: { developer?: boolean; title?: string; children?: ReactNode }) {
-  return <div className={`rec-basis${developer ? ' rec-basis-developer' : ''}`}><span className="rec-basis-icon"><FileCode2 size={20} strokeWidth={1.5} /></span><div className="rec-basis-copy"><span>{developer ? '추천 기준 프로젝트' : 'GitHub 리포트 기반 추천'}</span><strong>{title ?? (developer ? '함께할 팀을 선택해 주세요' : '기술 역량과 관심 분야를 기준으로 추천해요')}</strong></div><div className="rec-basis-action">{children ?? (!developer && <Link to="/report">내 리포트 확인 <ArrowRight size={15} /></Link>)}</div></div>;
+  return <div className={`rec-basis${developer ? ' rec-basis-developer' : ''}`}><span className="rec-basis-icon"><FileCode2 size={20} strokeWidth={1.5} /></span><div className="rec-basis-copy flex flex-col gap-[4px]"><span>{developer ? '추천 기준 프로젝트' : 'GitHub 리포트 기반 추천'}</span><strong>{title ?? (developer ? '함께할 팀을 선택해 주세요' : '기술 역량과 관심 분야를 기준으로 추천해요')}</strong></div><div className="rec-basis-action">{children ?? (!developer && <Link to="/report">내 리포트 확인 <ArrowRight size={15} /></Link>)}</div></div>;
 }
 
 export function RecommendationState({ title, description, to, action, retry }: { title: string; description: string; to?: string; action?: string; retry?: () => void }) {
-  return <div className="rec-state"><span className="rec-state-icon"><CircleCheck size={26} strokeWidth={1.4} /></span><h2>{title}</h2><p>{description}</p>{to && <Link className="rec-primary" to={to}>{action}<ArrowRight size={15} /></Link>}{retry && <button className="rec-primary" onClick={retry}>다시 시도</button>}</div>;
+  return <div className="rec-state mt-[24px] flex min-h-[380px] flex-col items-center justify-center rounded-[16px] border border-[var(--surface-badge)] bg-[var(--surface-filter)] p-[40px] text-center"><span className="rec-state-icon"><CircleCheck size={26} strokeWidth={1.4} /></span><h2>{title}</h2><p>{description}</p>{to && <Link className="rec-primary" to={to}>{action}<ArrowRight size={15} /></Link>}{retry && <button className="rec-primary" onClick={retry}>다시 시도</button>}</div>;
 }
 
 export function RecommendationSkeleton() {

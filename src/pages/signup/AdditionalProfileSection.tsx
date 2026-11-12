@@ -172,7 +172,7 @@ const AdditionalProfileSection = ({
   }, []);
 
   return (
-    <div className="mx-auto w-full max-w-[515px] text-[#f5f5f7]">
+    <div className="mx-auto w-full max-w-[515px] lg:max-2xl:max-w-[480px] text-[#f5f5f7]">
       {/* 토스트 UI (상단) */}
       {toast && (
         <div className="mb-5">
@@ -189,11 +189,11 @@ const AdditionalProfileSection = ({
 
       <div>
         <div>
-          <h2 className="text-[clamp(26px,3vw,36px)] font-bold leading-[1.3] tracking-[-.04em]">추가 정보를 입력해<br />프로필을 완성해보세요</h2>
+          <h2 className="lg:max-2xl:text-[30px] text-[clamp(26px,3vw,36px)] font-bold leading-[1.3] tracking-[-.04em]">추가 정보를 입력해<br />프로필을 완성해보세요</h2>
           <p className="mt-4 text-[16px] leading-[1.6] text-[#b5b7c8]">선택 항목은 나중에 언제든지 변경할 수 있어요.</p>
         </div>
 
-        <div className="mt-10 flex flex-col gap-7">
+        <div className="mt-10 lg:max-2xl:mt-7 flex flex-col gap-7 lg:max-2xl:gap-5">
           <div className="flex flex-col gap-4">
             <span className="text-[16px] font-semibold text-[#f0f0f5]">보유 스택</span>
             <div className="relative">
@@ -282,7 +282,7 @@ const AdditionalProfileSection = ({
         </div>
       </div>
 
-      <div className="mt-10 flex flex-col gap-4">
+      <div className="mt-10 lg:max-2xl:mt-7 flex flex-col gap-4">
         <button
           type="button"
           onClick={handleSubmit}

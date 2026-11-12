@@ -8,14 +8,11 @@ import { useAuthMe } from '@hooks/useAuthMe';
 import CheckBox from '@components/report/CheckBox';
 import GithubRepoListSkeleton from '@components/report/GithubRepoListSkeleton';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
-import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import { myInfoQueries } from '@apis/myInfo/my-info.queries';
 import { BeatLoader } from 'react-spinners';
 
 const ReportCreatePage = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const { theme } = useThemeStore();
-  const isLight = theme === 'light';
   const { user } = useUser();
   const memberQuery = useAuthMe();
   const githubLinked = user?.externalAccounts.some((account) => account.provider === 'github');
@@ -84,20 +81,20 @@ const ReportCreatePage = () => {
   };
 
   return (
-    <div className="flex min-h-full w-full items-center justify-center px-4 py-[8rem]">
-      <div className="flex w-full max-w-[44rem] flex-col gap-[2.4rem]">
+    <div className="flex min-h-full w-full items-center justify-center px-4 py-[8rem] lg:max-2xl:py-[clamp(36px,6svh,60px)]">
+      <div className="flex w-full max-w-[44rem] flex-col gap-[2.4rem] lg:max-2xl:gap-[18px]">
 
         {/* 헤더 */}
         <div className="flex flex-col gap-[0.5rem]">
           <h2
             className={cn(
               'text-[2.4rem] font-bold tracking-tight',
-              isLight ? 'text-[var(--ui-900)]' : 'text-white/90',
+              'text-white/90',
             )}
           >
             깃허브 레포지토리 목록
           </h2>
-          <p className={cn('text-[1.4rem]', isLight ? 'text-[var(--ui-500)]' : 'text-white/35')}>
+          <p className={cn('text-[1.4rem]', 'text-white/35')}>
             리포트를 생성할 레포지토리를 선택해 주세요
           </p>
         </div>
@@ -105,10 +102,8 @@ const ReportCreatePage = () => {
         {/* 목록 패널 */}
         <div
           className={cn(
-            'flex flex-col gap-[0.5rem] h-[32rem] overflow-y-auto overflow-x-hidden rounded-[16px] border p-[0.8rem] scroll-smooth',
-            isLight
-              ? 'border-[var(--ui-200)] bg-[var(--ui-50)]'
-              : 'border-white/[0.07] bg-white/[0.02]',
+            'flex flex-col gap-[0.5rem] h-[32rem] lg:max-2xl:h-[clamp(220px,38svh,300px)] overflow-y-auto overflow-x-hidden rounded-[16px] border p-[0.8rem] scroll-smooth',
+            'border-white/[0.07] bg-white/[0.02]',
           )}
           onScroll={handleScroll}
         >
@@ -133,10 +128,10 @@ const ReportCreatePage = () => {
 
               {repo.length === 0 && (
                 <div className="flex h-full flex-col items-center justify-center gap-[1rem]">
-                  <p className={cn('text-center text-2xl', isLight ? 'text-[var(--ui-600)]' : 'text-white/35')}>
+                  <p className={cn('text-center text-2xl', 'text-white/35')}>
                     불러올 레포지토리가 없습니다.
                   </p>
-                  <p className={cn('text-center text-xl', isLight ? 'text-[var(--ui-500)]' : 'text-white/25')}>
+                  <p className={cn('text-center text-xl', 'text-white/25')}>
                     GitHub의 저장소와 접근 권한을 확인한 뒤 다시 불러와 주세요.
                   </p>
                 </div>
@@ -166,9 +161,7 @@ const ReportCreatePage = () => {
             onClick={() => navigate(-1)}
             className={cn(
               'w-full cursor-pointer rounded-[16px] border py-[1.5rem] text-[1.6rem] font-medium transition-all duration-150',
-              isLight
-                ? 'border-[var(--ui-200)] bg-[var(--ui-50)] text-[var(--ui-600)] hover:border-[var(--ui-300)] hover:bg-[var(--ui-100)] hover:text-[var(--ui-800)]'
-                : 'border-white/[0.07] bg-white/[0.02] text-white/40 hover:border-white/[0.12] hover:bg-white/[0.05] hover:text-white/60',
+              'border-white/[0.07] bg-white/[0.02] text-white/40 hover:border-white/[0.12] hover:bg-white/[0.05] hover:text-white/60',
             )}
           >
             돌아가기

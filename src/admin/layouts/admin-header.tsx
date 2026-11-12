@@ -1,14 +1,8 @@
 import BrandLogo from '@assets/images/devine-symbol.png';
-import ModeDarkHoverIcon from '@assets/icons/mode-dark-hover.svg?react';
-import ModeLightIcon from '@assets/icons/mode-light.svg?react';
-import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
-import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
-import { useThemeStore } from '@store/theme';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ADMIN_MENU } from '../constants/admin-menu';
 
 export function AdminHeader() {
-  const { theme, toggleTheme } = useThemeStore();
   const location = useLocation();
   const navigate = useNavigate();
   const isActive = (path: string) => location.pathname.startsWith(path);
@@ -47,29 +41,6 @@ export function AdminHeader() {
           </nav>
         </div>
         <div className="flex-items-center shrink-0 flex-nowrap gap-[1.2rem] phone:gap-[0.6rem] tablet:gap-[0.8rem]">
-          <button
-            aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
-            className="group relative h-[3.6rem] w-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg"
-            onClick={(event) => {
-              const rect = event.currentTarget.getBoundingClientRect();
-              const x = event.detail === 0 ? rect.left + rect.width / 2 : event.clientX;
-              const y = event.detail === 0 ? rect.top + rect.height / 2 : event.clientY;
-              toggleTheme({ x, y });
-            }}
-            type="button"
-          >
-            {theme === 'dark' ? (
-              <>
-                <ModeSettingIcon className="h-[2.4rem] w-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                <ModeDarkHoverIcon className="absolute h-[2.4rem] w-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              </>
-            ) : (
-              <>
-                <ModeLightIcon className="h-[2.4rem] w-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                <ModeLightHoverIcon className="absolute h-[2.4rem] w-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              </>
-            )}
-          </button>
           <button
             className="group relative h-[3.6rem] flex-row-center shrink-0 cursor-pointer overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--badge-text-primary)] px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
             onClick={() => navigate('/admin/login')}

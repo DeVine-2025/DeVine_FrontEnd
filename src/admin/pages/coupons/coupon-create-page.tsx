@@ -312,7 +312,7 @@ export default function CouponCreatePage() {
         )}
         onSubmit={handleSubmit}
       >
-        <div className="grid grid-cols-1 gap-x-[40px] gap-y-[36px] lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-[40px] gap-y-[36px] lg:grid-cols-2 lg:max-2xl:gap-x-[28px] lg:max-2xl:gap-y-[24px]">
           <label className="flex flex-col gap-[12px]">
             <span className={FIELD_LABEL_CLASS}>쿠폰명 / 캠페인명</span>
             <input

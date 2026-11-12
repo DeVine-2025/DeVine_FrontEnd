@@ -101,64 +101,10 @@
     --form-error: #E098A2;
 
     --font-weight-regular: 400;
-    --font-weight-medium: 500;
-    --font-weight-bold: 700;
 
     /* breakpoints */
     --breakpoint-tablet: 744px;
     --breakpoint-phone: 390px;
-    --breakpoint-tablet-max: 743px;
-    --breakpoint-phone-max: 389px;
-}
-
-[data-theme='light'] {
-    --surface-page: #FFFFFF;
-    --surface-filter: #F8F9FB;
-    --surface-card: #FFFFFF;
-    --surface-image: #F3F5FC;
-    --surface-input: #F8F9FB;
-    --surface-badge: #F3F5FC;
-    --text-main: #191B1E;
-    --text-secondary: #606673;
-    --project-accent: #6654F5;
-    --project-progress: #6654F5;
-    --project-control: #6654F5;
-    --project-checkbox: #6654F5;
-    --ui-bg: #FFFFFF;
-    --ui-50: #F8F9FB;
-    --ui-100: #F3F5FC;
-    --ui-200: #D4DAE7;
-    --ui-300: #9EA6BA;
-    --ui-400: #939AAE;
-    --ui-500: #7F8596;
-    --ui-600: #606673;
-    --ui-700: #41444D;
-    --ui-800: #2F323A;
-    --ui-900: #212328;
-    --ui-1000: #191B1E;
-
-    --badge-text-primary: #4E49FF;
-    --badge-bg-primary: #EEEDFF;
-
-    --badge-text-blue: #499FD4;
-    --badge-bg-blue: #EEF9FF;
-
-    --badge-text-green: #1D8C72;
-    --badge-bg-green: #F5FFFD;
-
-    --badge-text-pink: #DB50B3;
-    --badge-bg-pink: #FFF0FB;
-
-    --badge-text-orange: #D98363;
-    --badge-bg-orange: #FFF4F0;
-
-    --positive-bg: #E6F9F0;
-    --positive-text: #22C55E;
-
-    --negative-bg: #FFF1F0;
-    --negative-text: #F87171;
-
-    --form-error: #C75F70;
 }
 
 @layer utilities {

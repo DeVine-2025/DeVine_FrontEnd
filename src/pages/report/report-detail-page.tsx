@@ -3,6 +3,7 @@ import { reportQueries } from '@apis/report/report-queries';
 import { useElasticUnderline } from '@hooks/useElasticUnderline';
 import { useAuth } from '@clerk/clerk-react';
 import MainDetail from '@components/report/MainDetail';
+import { ReportWorkspaceLoading } from '@components/common/LoadingLayouts';
 import ReportDetail from '@components/report/ReportDetail';
 import { useQuery } from '@tanstack/react-query';
 import { useRef } from 'react';
@@ -102,7 +103,7 @@ const ReportDetailPage = () => {
 
   return <div className={`rw-full-page ${fromFolder ? 'report-folder-arrival' : ''}`}>
     {reportTabs}
-    {!isSamplePreview && isLoading ? <div className="report-type-message" role="status">리포트를 불러오고 있어요…</div> :
+    {!isSamplePreview && isLoading ? <ReportWorkspaceLoading /> :
       ((!isSamplePreview && isError) || !report) ? <div className="report-type-message" role="alert">리포트를 불러오지 못했어요. 리포트가 생성되었는지 확인하거나 잠시 후 다시 시도해 주세요.{import.meta.env.DEV && <button className="rw-preview-link" onClick={() => setSearchParams({ type: 'MAIN', preview: 'sample' })}>샘플 리포트 보기</button>}</div> :
       report.reportType === 'MAIN' ? <>
         <div ref={printRef} className="report-print-content report-print-main"><MainDetail data={report.content as ReportMainContent} onPrint={handlePrint} repoUrl={report.gitRepoUrl} /></div>

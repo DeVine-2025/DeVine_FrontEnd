@@ -1,8 +1,5 @@
-import { cn } from '@libs/cn';
-
 interface ScreenshotProps {
-  srcLight: string;
-  srcDark?: string;
+  src: string;
   alt: string;
   width: number;
   height: number;
@@ -10,10 +7,6 @@ interface ScreenshotProps {
   className?: string;
 }
 
-export default function Screenshot({ srcLight, srcDark, alt, width, height, loading, className }: ScreenshotProps) {
-  if (!srcDark) return <img src={srcLight} alt={alt} width={width} height={height} loading={loading} className={className} />;
-  return <>
-    <img src={srcLight} alt={alt} width={width} height={height} loading={loading} className={cn(className, 'block dark:hidden')} />
-    <img src={srcDark} alt={alt} width={width} height={height} loading={loading} className={cn(className, 'hidden dark:block')} />
-  </>;
+export default function Screenshot({ src, alt, width, height, loading, className }: ScreenshotProps) {
+  return <img src={src} alt={alt} width={width} height={height} loading={loading} className={className ? `block ${className}` : "block"} />;
 }

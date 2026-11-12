@@ -1,10 +1,11 @@
 import { deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import { getMemberProfileByNickname } from '@apis/members';
-import { getMemberTechStacks } from '@apis/myInfo/myInfo-queries';
+import { getMemberTechStacks } from '@apis/myInfo/my-info.queries';
 import { getProjectDetail } from '@apis/project-detail';
 import { Search } from 'lucide-react';
 import UnderlineTabs from '@components/tab/UnderlineTabs';
 import SortMenu from '@components/common/SortMenu';
+import { CardLoading } from '@components/common/LoadingLayouts';
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperCard from '@components/cards/DeveloperCard';
 import type { DeveloperSearchContentDto } from '@t/profileCard.types';
@@ -13,6 +14,7 @@ import { featuredProjects, recommendedDevelopers, type HomeDeveloper, type HomeP
 import type { ProjectCardData } from '@components/cards/card-types';
 import { DOMAIN_OPTIONS, DOMAIN_REVERSE_MAP, type Domain } from '@constants/domain';
 import defaultProjectImage from '@assets/images/devine-symbol.png';
+import { useMockData } from '../../shared/config/data-mode';
 import type { ProjectItem } from '@t/project/api';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -64,7 +66,7 @@ type DeveloperProfile = {
   domains?: string[];
 };
 
-const MyInfoBookmark = () => {
+const MyInfoBookmark = ({ embedded = false }: { embedded?: boolean }) => {
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const [activeTab, setActiveTab] = useState<TabKind>('project');
@@ -234,7 +236,7 @@ const MyInfoBookmark = () => {
   const searchLabel = activeTab === 'project' ? '저장한 프로젝트 검색' : '저장한 개발자 검색';
 
   return (
-    <div className="bookmark-workspace">
+    <div className={`bookmark-workspace ${embedded ? 'w-full' : 'desktop-content lg:max-2xl:mx-auto lg:max-2xl:w-[var(--desktop-content-width)]'}`}>
       <div className="bookmark-toolbar">
         <UnderlineTabs
           label="북마크 분류"
@@ -255,7 +257,7 @@ const MyInfoBookmark = () => {
         </div>
       </div>
 
-      {import.meta.env.DEV && activeTab === 'project' && visibleSamples.length > 0 && (
+      {useMockData && activeTab === 'project' && visibleSamples.length > 0 && (
         <section className="bookmark-samples" aria-label="프로젝트 카드 예시">
           <div className="bookmark-sample-list">
             {visibleSamples.map(project => (
@@ -275,7 +277,7 @@ const MyInfoBookmark = () => {
         </section>
       )}
 
-      {import.meta.env.DEV && activeTab === 'developer' && visibleSampleDevelopers.length > 0 && (
+      {useMockData && activeTab === 'developer' && visibleSampleDevelopers.length > 0 && (
         <div className="bookmark-sample-list">
           {visibleSampleDevelopers.map(developer => (
             <DeveloperCard
@@ -307,17 +309,13 @@ const MyInfoBookmark = () => {
         </div>
       )}
 
-      {loading && (
-        <div className="flex justify-center py-12">
-          <span role="status" className="text-sm text-[var(--text-secondary)]">불러오는 중...</span>
-        </div>
-      )}
+      {loading && <CardLoading kind={activeTab === 'project' ? 'project' : 'developer'} view="list" />}
       {error && <div role="alert" className="bookmark-load-error">실제 북마크를 불러오지 못했어요. <button type="button" onClick={() => void loadBookmarks()}>다시 시도</button></div>}
 
       {!loading && !error && activeTab === 'project' && (
         <div className="bookmark-sample-list">
           {visibleProjects.length === 0 ? (
-            (!import.meta.env.DEV || visibleSamples.length === 0) && <p className="text-[18px] text-ui-600">{searchTerm ? '검색 결과가 없습니다.' : '저장한 프로젝트가 없습니다.'}</p>
+            (!useMockData || visibleSamples.length === 0) && <p className="text-[18px] text-ui-600">{searchTerm ? '검색 결과가 없습니다.' : '저장한 프로젝트가 없습니다.'}</p>
           ) : (
             visibleProjects.map(({ bookmarkId, targetId, project }) => {
               if (!project) {
@@ -376,7 +374,7 @@ const MyInfoBookmark = () => {
       {!loading && !error && activeTab === 'developer' && (
         <div className="bookmark-sample-list">
           {visibleDevelopers.length === 0 ? (
-            (!import.meta.env.DEV || visibleSampleDevelopers.length === 0) && <p className="text-[18px] text-ui-600">{searchTerm ? '검색 결과가 없습니다.' : '저장한 개발자가 없습니다.'}</p>
+            (!useMockData || visibleSampleDevelopers.length === 0) && <p className="text-[18px] text-ui-600">{searchTerm ? '검색 결과가 없습니다.' : '저장한 개발자가 없습니다.'}</p>
           ) : (
             visibleDevelopers.map(({ bookmarkId, targetId, targetNickname }) => {
               const nickname =

@@ -1,5 +1,3 @@
-.explore-selected-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
-.explore-selected-label { margin-right: 4px; color: var(--text-secondary); font-size: 12px; }
 .explore-selected-filters .explore-selected-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 30px; padding: 5px 9px; border: 1px solid color-mix(in srgb, var(--project-accent) 24%, var(--surface-badge)); border-radius: 6px; background: color-mix(in srgb, var(--project-accent) 7%, var(--surface-filter)); color: var(--text-main); font-size: 12px; line-height: 1.4; cursor: pointer; }
 .explore-selected-chip svg { flex: none; color: var(--text-secondary); }
 .explore-selected-chip:hover { border-color: var(--project-accent); }

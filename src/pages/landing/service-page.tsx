@@ -1,3 +1,4 @@
+import { useSectionReveal } from './use-section-reveal';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Helmet } from 'react-helmet-async';
@@ -11,16 +12,11 @@ import introUtilities from './launch-ui/intro-utilities.css?inline';
 import './service-page.css';
 
 function LandingContent() {
-  const introRef = useRef<HTMLElement>(null);
-  const reportRef = useRef<HTMLElement>(null);
-  const recommendRef = useRef<HTMLElement>(null);
-  const connectionRef = useRef<HTMLElement>(null);
-  const ctaRef = useRef<HTMLElement>(null);
-  const [reportVisible, setReportVisible] = useState(false);
-  const [recommendVisible, setRecommendVisible] = useState(false);
-  const [connectionVisible, setConnectionVisible] = useState(false);
-  const [ctaVisible, setCtaVisible] = useState(false);
-  const [introVisible, setIntroVisible] = useState(false);
+  const [introRef, introVisible] = useSectionReveal(0.25);
+  const [reportRef, reportVisible] = useSectionReveal(0.2);
+  const [recommendRef, recommendVisible] = useSectionReveal(0.2);
+  const [connectionRef, connectionVisible] = useSectionReveal(0.2);
+  const [ctaRef, ctaVisible] = useSectionReveal(0.2);
   const [heroVisible, setHeroVisible] = useState(false);
 
   useEffect(() => {
@@ -28,90 +24,15 @@ function LandingContent() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    const section = introRef.current;
-    if (!section) return;
-    if (!('IntersectionObserver' in window)) {
-      setIntroVisible(true);
-      return;
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setIntroVisible(true);
-        observer.disconnect();
-      }
-    }, { threshold: 0.25 });
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
 
-  useEffect(() => {
-    const section = reportRef.current;
-    if (!section) return;
-    if (!('IntersectionObserver' in window)) {
-      setReportVisible(true);
-      return;
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setReportVisible(true);
-        observer.disconnect();
-      }
-    }, { threshold: 0.2 });
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
 
-  useEffect(() => {
-    const section = recommendRef.current;
-    if (!section) return;
-    if (!('IntersectionObserver' in window)) {
-      setRecommendVisible(true);
-      return;
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setRecommendVisible(true);
-        observer.disconnect();
-      }
-    }, { threshold: 0.2 });
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
 
-  useEffect(() => {
-    const section = connectionRef.current;
-    if (!section) return;
-    if (!('IntersectionObserver' in window)) {
-      setConnectionVisible(true);
-      return;
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setConnectionVisible(true);
-        observer.disconnect();
-      }
-    }, { threshold: 0.2 });
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
 
-  useEffect(() => {
-    const section = ctaRef.current;
-    if (!section) return;
-    if (!('IntersectionObserver' in window)) {
-      setCtaVisible(true);
-      return;
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setCtaVisible(true);
-        observer.disconnect();
-      }
-    }, { threshold: 0.2 });
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
+
+
+
+
+
 
   const reportRevealClass = reportVisible ? 'translate-y-0 opacity-100' : 'translate-y-[28px] opacity-0';
   const revealClass = introVisible ? 'translate-y-0 opacity-100' : 'translate-y-[28px] opacity-0';
@@ -120,7 +41,7 @@ function LandingContent() {
 
   return (
     <div className="launch-content dark">
-      <main className="bg-background text-foreground min-h-screen w-full">
+      <main className="bg-background text-foreground min-h-screen w-full lg:max-2xl:[&>section]:px-[clamp(40px,5.2vw,80px)] lg:max-2xl:[&>section:not(:first-child)]:min-h-0 lg:max-2xl:[&>section:not(:first-child)]:py-[clamp(56px,9svh,88px)] lg:max-2xl:[&>section>div]:max-w-[min(1180px,100%)] lg:max-2xl:[&_h2]:text-[clamp(34px,3vw,46px)] lg:max-2xl:[&_h3]:text-[clamp(21px,1.8vw,26px)] lg:max-2xl:[&_article]:px-[clamp(20px,2.5vw,38px)] lg:max-2xl:[&_article:first-child]:pl-0 lg:max-2xl:[&_article:last-child]:pr-0 lg:max-2xl:[&_article>img]:max-w-[clamp(200px,20vw,280px)] lg:max-2xl:[&_article>p]:text-[15px]">
         <Hero title={<><span className={`${textReveal(heroVisible)} block`}>코드로 증명하고,</span><span className={`${textReveal(heroVisible)} delay-[150ms] block text-[#ADA1FA] [-webkit-text-fill-color:#ADA1FA]`}>데이터로 연결하다.</span></>} />
         <section ref={introRef} className="flex min-h-[105svh] items-center border-t border-white/[0.06] bg-[#101116] px-[24px] py-[80px] text-[#f5f5f7] [font-family:Pretendard,sans-serif] min-[801px]:px-[32px] min-[801px]:pt-[120px] min-[801px]:pb-[128px]" aria-labelledby="service-intro-title">
           <div className="mx-auto w-full max-w-[1330px]">
@@ -199,7 +120,7 @@ function LandingContent() {
             <h2 id="service-cta-title" className={`${textReveal(ctaVisible)} text-[clamp(32px,3.4vw,52px)] font-bold leading-[1.2] tracking-[-.045em] [word-break:keep-all]`}>함께 만들 다음 프로젝트,<br />지금 찾아보세요.</h2>
             <div className={`${textReveal(ctaVisible)} delay-[200ms] mt-[36px] flex flex-wrap items-center justify-center gap-[12px]`}>
               <a href="/login" target="_top" className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#f5f5f7] px-[24px] text-[14px] font-semibold text-[#191820] transition-colors duration-200 hover:bg-[#e3dfff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ada1fa]">DeVine 시작하기</a>
-              <a href="/search/projects" target="_top" className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.06] px-[24px] text-[14px] font-semibold text-[#f5f5f7] transition-colors duration-200 hover:bg-white/[0.12] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ada1fa]">프로젝트 둘러보기</a>
+              <a href="/home" target="_top" className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.06] px-[24px] text-[14px] font-semibold text-[#f5f5f7] transition-colors duration-200 hover:bg-white/[0.12] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ada1fa]">프로젝트 둘러보기</a>
             </div>
           </div>
         </section>

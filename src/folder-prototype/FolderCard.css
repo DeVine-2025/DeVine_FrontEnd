@@ -14,13 +14,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* 컬러 테마 */
-.folder-card--light {
-  --folder-panel: #e7e9f0;
-  --folder-ink: #111318;
-  --folder-muted: #5f6570;
-}
-
 .folder-card--violet {
   --folder-panel: #4e49ff;
   --folder-ink: #ffffff;
@@ -216,7 +209,7 @@
 .folder-card__art {inset:7px; overflow:hidden; border-radius:14px;}
 .folder-card__placeholder {position:relative; background:#302f42;}
 .folder-card__symbol {position:absolute; top:25%; left:26%; width:48%; height:auto; object-fit:contain;}
-.folder-card__front {--folder-panel:#1a1c25; --folder-surface-light:#282a35; inset:20% 7px 7px; height:auto; color:var(--folder-panel);}
+.folder-card__front {--folder-panel:#1a1c25; --folder-surface-highlight:#282a35; inset:20% 7px 7px; height:auto; color:var(--folder-panel);}
 .folder-card__content {inset:7% 8% 8%;}
 .folder-card__number {font-size:38px;}
 .folder-card__bottom {position:absolute;left:0;right:0;bottom:0;}

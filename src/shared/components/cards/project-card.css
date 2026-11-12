@@ -45,8 +45,8 @@
 .explore-deadline strong { color: var(--project-accent); font-size: 20px; line-height: 1; }
 .project-card--list .explore-deadline { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; }
 .explore-card .explore-bookmark { position: absolute; z-index: 1; top: 8px; right: 8px; width: 40px; height: 40px; }
-.project-card--grid .explore-card-main { grid-template-columns: 1fr 1fr; grid-template-rows: 200px 1fr auto; height: 100%; padding: 0 16px 16px; }
-.project-card--grid .explore-art { grid-column: 1 / -1; margin: 0 -16px; min-height: 200px; }
+.project-card--grid .explore-card-main { grid-template-columns: 1fr 1fr; grid-template-rows: var(--project-grid-art-height, 200px) 1fr auto; height: 100%; padding: 0 16px 16px; }
+.project-card--grid .explore-art { grid-column: 1 / -1; margin: 0 -16px; min-height: var(--project-grid-art-height, 200px); }
 .project-card--grid .explore-card-info { grid-column: 1 / -1; padding: 14px 0; }
 .project-card--grid .explore-card-heading { display: block; }
 .project-card--grid .explore-card-heading p { margin-top: 4px; }
@@ -67,3 +67,14 @@
 .project-card--profiles .explore-member-line {gap:10px;}
 .project-card--profiles .explore-member-line > span svg {display:none;}
 .project-card--wide-image .explore-card-main {grid-template-columns:28% minmax(0,1fr) minmax(110px,25%);}
+
+@media screen and (1024px <= width < 1536px) {
+  .desktop-content .project-card--grid { container-type: inline-size; }
+  .desktop-content .project-card--grid .explore-card-main { --project-grid-art-height: clamp(124px, 51cqw, 188px); }
+  .desktop-content .project-card--grid .explore-card-info { padding-block: 11px; }
+  .desktop-content .project-card--grid .explore-card-heading { margin-top: 17px; }
+  .desktop-content .project-card--grid .explore-project-footer { margin-top: 10px; }
+  .desktop-content .project-card--list .explore-card-main,
+  .desktop-content .project-card--list .explore-art { min-height: 132px; }
+  .desktop-content .project-card--list .explore-project-footer { padding-block: 8px; }
+}

@@ -1,20 +1,16 @@
 import ArrowIcon from '@assets/icons/arrow-left-admin.svg?react';
-import CloseIcon from '@assets/icons/close.svg?react';
-import ProfileDefaultImage from '@assets/images/Profile.svg';
-import ProfileDefaultDark from '@assets/images/Profile_dark.svg';
+import HomeLiveSections from './home-live-sections';
+import { useMockData } from '../../shared/config/data-mode';
 import ProjectCard from '@components/cards/ProjectCard';
-import HomeRecommendedProjectCard from '@components/cards/HomeRecommendedProjectCard';
+import RecommendedProjectCard from '@components/cards/RecommendedProjectCard';
 import DeveloperCard from '@components/cards/DeveloperCard';
-import { TechChips } from '@components/common/ProfileBase';
 import { useAuthStore } from '@store/auth';
-import { useThemeStore } from '@store/theme';
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   editorials,
   featuredProjects,
-  type HomeDeveloper,
   type HomeProject,
   recentProjects,
   recommendedDevelopers,
@@ -25,7 +21,6 @@ import './home-cards.css';
 import '@components/cards/home-recommended-project-card.css';
 import './home-colors.css';
 
-type Preview = { kind: 'project'; item: HomeProject } | { kind: 'developer'; item: HomeDeveloper };
 
 function SectionHeading({
   title,
@@ -39,7 +34,7 @@ function SectionHeading({
   accent?: boolean;
 }) {
   return (
-    <div className={`home-section-heading${accent ? ' home-section-heading-accent' : ''}`}>
+    <div className={`home-section-heading mb-[var(--home-space-heading)] flex items-start justify-between gap-[16px] ${accent ? ' home-section-heading-accent' : ''}`}>
       <div>
         <h2>{title}</h2>
         {description && <p>{description}</p>}
@@ -51,106 +46,9 @@ function SectionHeading({
   );
 }
 
-function PreviewDialog({
-  preview,
-  onClose,
-  defaultProfileImage,
-}: {
-  preview: Preview;
-  onClose: () => void;
-  defaultProfileImage: string;
-}) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  const titleId = useId();
-  useEffect(() => {
-    const element = dialog.current;
-    const previousOverflow = document.body.style.overflow;
-    element?.showModal();
-    document.body.style.overflow = 'hidden';
-    return () => {
-      element?.close();
-      document.body.style.overflow = previousOverflow;
-    };
-  }, []);
-  const isProject = preview.kind === 'project';
-  const title = isProject ? preview.item.title : preview.item.name;
-  return (
-    <dialog
-      ref={dialog}
-      className="home-preview-dialog"
-      aria-labelledby={titleId}
-      onCancel={(event) => {
-        event.preventDefault();
-        onClose();
-      }}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-      onKeyDown={(event) => {
-        if (event.key === 'Escape') {
-          event.preventDefault();
-          onClose();
-        }
-      }}
-    >
-      <div className="home-preview-inner">
-        <button
-          type="button"
-          className="home-preview-close"
-          aria-label="미리보기 닫기"
-          onClick={onClose}
-        >
-          <CloseIcon aria-hidden="true" />
-        </button>
-        <img
-          className={isProject ? 'home-preview-photo' : 'home-preview-avatar'}
-          src={isProject ? preview.item.thumbnail : defaultProfileImage}
-          alt=""
-        />
-        <span className="home-preview-eyebrow">
-          {isProject ? 'PROJECT PREVIEW' : 'DEVELOPER PREVIEW'}
-        </span>
-        <h2 id={titleId}>{title}</h2>
-        <div className="home-tags">
-          {(isProject ? preview.item.tags : preview.item.skills).map((tag) => (
-            <span key={tag}>{tag}</span>
-          ))}
-        </div>
-        <p>{preview.item.introduction}</p>
-        {isProject && (
-          <div className="home-preview-tech-stacks" aria-label="전체 기술 스택">
-            <TechChips
-              techStack={preview.item.techStacks.map((name) => ({ id: name, name }))}
-              max={preview.item.techStacks.length}
-            />
-          </div>
-        )}
-        {isProject ? (
-          <div className="home-preview-info">
-            <strong>함께할 동료를 찾고 있어요</strong>
-            <p>{preview.item.recruiting}</p>
-            <span>{preview.item.duration} · {preview.item.workMode}</span>
-          </div>
-        ) : (
-          <div className="home-preview-info">
-            <strong>{preview.item.role}</strong>
-            <p>새로운 아이디어와 함께 성장할 팀을 찾고 있어요.</p>
-          </div>
-        )}
-        <p className="home-preview-note">현재 화면은 샘플 데이터로 구성된 미리보기입니다.</p>
-        <Link
-          to={isProject ? '/search/projects' : '/search/developers'}
-          className="home-primary-link"
-        >
-          {isProject ? '프로젝트 탐색하기' : '개발자 탐색하기'}
-          <ArrowIcon aria-hidden="true" />
-        </Link>
-      </div>
-    </dialog>
-  );
-}
-
 export default function HomePage() {
+  const navigate = useNavigate();
+  const homeRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const root = document.documentElement;
     const previous = root.getAttribute('data-home-colors');
@@ -161,8 +59,6 @@ export default function HomePage() {
     };
   }, []);
   const isDeveloper = useAuthStore((state) => state.role === 'dev');
-  const theme = useThemeStore((state) => state.theme);
-  const defaultProfileImage = theme === 'dark' ? ProfileDefaultDark : ProfileDefaultImage;
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
   const [hoveringBanner, setHoveringBanner] = useState(false);
@@ -171,7 +67,50 @@ export default function HomePage() {
     () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   const [bookmarks, setBookmarks] = useState<Set<string>>(() => new Set());
-  const [preview, setPreview] = useState<Preview | null>(null);
+
+  useLayoutEffect(() => {
+    const home = homeRef.current;
+    if (!home || reduceMotion || typeof IntersectionObserver === 'undefined') return;
+
+    const observed = new WeakSet<Element>();
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const card = entry.target as HTMLElement;
+        const grid = card.parentElement;
+        const columns = grid ? getComputedStyle(grid).gridTemplateColumns.split(' ').length : 1;
+        const position = grid ? Array.from(grid.children).indexOf(card) : 0;
+        card.style.setProperty('--home-card-delay', `${(position % Math.max(columns, 1)) * 80}ms`);
+        card.classList.replace('home-card-reveal-pending', 'home-card-reveal-active');
+        card.addEventListener('animationend', () => {
+          card.classList.remove('home-card-reveal-active');
+          card.style.removeProperty('--home-card-delay');
+        }, { once: true });
+        observer.unobserve(card);
+      }
+    }, { threshold: 0.08 });
+
+    const observeCards = () => {
+      home.querySelectorAll<HTMLElement>('.home-featured-grid > article, .home-developers-grid > article, .home-recent-grid > article').forEach((card) => {
+        if (observed.has(card)) return;
+        observed.add(card);
+        card.classList.add('home-card-reveal-pending');
+        observer.observe(card);
+      });
+    };
+    observeCards();
+    const mutations = new MutationObserver(observeCards);
+    mutations.observe(home, { childList: true, subtree: true });
+    return () => {
+      mutations.disconnect();
+      observer.disconnect();
+      home.querySelectorAll<HTMLElement>('.home-card-reveal-pending, .home-card-reveal-active').forEach((card) => {
+        card.classList.remove('home-card-reveal-pending', 'home-card-reveal-active');
+        card.style.removeProperty('--home-card-delay');
+      });
+    };
+  }, [reduceMotion]);
+
   const editorial = editorials[slide];
 
   useEffect(() => {
@@ -182,10 +121,10 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (paused || hoveringBanner || focusingBanner || reduceMotion || preview) return;
+    if (paused || hoveringBanner || focusingBanner || reduceMotion) return;
     const timer = window.setTimeout(() => setSlide((slide + 1) % editorials.length), 3000);
     return () => window.clearTimeout(timer);
-  }, [slide, paused, hoveringBanner, focusingBanner, reduceMotion, preview]);
+  }, [slide, paused, hoveringBanner, focusingBanner, reduceMotion]);
   const toggleBookmark = (id: string) =>
     setBookmarks((previous) => {
       const next = new Set(previous);
@@ -194,7 +133,7 @@ export default function HomePage() {
       return next;
     });
   const projectCard = (project: HomeProject, featured = false, recent = false, recommended = false) => (
-    <HomeRecommendedProjectCard
+    <RecommendedProjectCard
       key={project.id}
       project={project}
       featured={featured}
@@ -202,7 +141,7 @@ export default function HomePage() {
       recommended={recommended}
       saved={bookmarks.has(project.id)}
       onToggle={() => toggleBookmark(project.id)}
-      onOpen={() => setPreview({ kind: 'project', item: project })}
+      onOpen={() => navigate(`/project/sample-${project.id}`)}
     />
   );
 
@@ -215,7 +154,7 @@ export default function HomePage() {
           content="함께 성장할 개발자와 새로운 사이드 프로젝트를 만나보세요. Devine에서 다음 기회를 발견하세요."
         />
       </Helmet>
-      <div className="devine-home">
+      <div ref={homeRef} className="devine-home desktop-content [--home-banner-min-height:clamp(252px,calc(36svh-16px),320px)] [--home-banner-padding-y:clamp(20px,3svh,32px)] [--home-section-gap:clamp(64px,calc(12svh-26px),104px)] lg:max-2xl:[--home-banner-min-height:clamp(228px,calc(34svh-16px),308px)] lg:max-2xl:[--home-banner-padding-y:clamp(14px,2.4svh,26px)] lg:max-2xl:[--home-section-gap:clamp(42px,calc(10svh-24px),84px)] lg:max-2xl:[--home-featured-image-height:clamp(124px,calc(25svh-52px),188px)]">
         <section
           className="home-editorial"
           data-editorial={editorial.label.toLowerCase()}
@@ -268,7 +207,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="home-section home-section-featured" aria-label="주목받는 프로젝트">
+        {useMockData ? <><section className="home-section home-section-featured" aria-label="주목받는 프로젝트">
           <SectionHeading
             title="지금 주목받는 프로젝트"
             accent
@@ -276,7 +215,7 @@ export default function HomePage() {
             to="/search/projects"
           />
           <div className="home-featured-grid explore-projects-grid">
-            {featuredProjects.slice(0, 3).map((project) => <ProjectCard key={project.id} project={project} saved={bookmarks.has(project.id)} variant="grid" showProfiles showTechStacks={false} onOpen={() => setPreview({ kind: 'project', item: project })} onBookmarkChange={() => toggleBookmark(project.id)} />)}
+            {featuredProjects.slice(0, 3).map((project) => <ProjectCard key={project.id} project={project} saved={bookmarks.has(project.id)} variant="grid" showProfiles showTechStacks={false} onOpen={() => navigate(`/project/sample-${project.id}`)} onBookmarkChange={() => toggleBookmark(project.id)} />)}
           </div>
         </section>
 
@@ -299,7 +238,7 @@ export default function HomePage() {
               <DeveloperCard key={developer.id}
                 developer={{ member: { nickname: developer.name, address: null, disclosure: true, mainType: 'DEVELOPER', imageUrl: null, body: developer.introduction, used: '', createdAt: '' }, domains: [], techstacks: developer.skills.map((name, index) => ({ techstackId: index, name, genre: 'skill', source: 'MANUAL' })) }}
                 roleLabel={developer.role} bookmarked={bookmarks.has(developer.id)} pending={false} variant="grid" showTechStacks={false}
-                onBookmarkChange={() => toggleBookmark(developer.id)} onOpen={() => setPreview({ kind: 'developer', item: developer })} />
+                onBookmarkChange={() => toggleBookmark(developer.id)} onOpen={() => navigate(`/developer-detail/${encodeURIComponent(developer.name)}?preview=sample`)} />
             ))}
           </div>
           )}
@@ -312,17 +251,10 @@ export default function HomePage() {
             to="/search/projects"
           />
           <div className="home-recent-grid explore-projects-list">
-            {recentProjects.map((project) => <ProjectCard key={project.id} project={project} saved={bookmarks.has(project.id)} variant="list" wideImage showTechStacks={false} onOpen={() => setPreview({ kind: 'project', item: project })} onBookmarkChange={() => toggleBookmark(project.id)} />)}
+            {recentProjects.map((project) => <ProjectCard key={project.id} project={project} saved={bookmarks.has(project.id)} variant="list" wideImage showTechStacks={false} onOpen={() => navigate(`/project/sample-${project.id}`)} onBookmarkChange={() => toggleBookmark(project.id)} />)}
           </div>
-        </section>
+        </section></> : <HomeLiveSections isDeveloper={isDeveloper} />}
       </div>
-      {preview && (
-        <PreviewDialog
-          preview={preview}
-          onClose={() => setPreview(null)}
-          defaultProfileImage={defaultProfileImage}
-        />
-      )}
     </>
   );
 }

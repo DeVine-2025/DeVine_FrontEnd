@@ -21,14 +21,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.notification-panel-header {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 9px;
-  padding: 13px 15px;
-  border-bottom: 1px solid var(--project-divider);
-}
 .notification-panel-header h2 { margin: 0; font-size: 16px; font-weight: 700; }
 .notification-panel-icon, .notification-panel-close { display: grid; flex: none; place-items: center; width: 32px; height: 32px; border-radius: 8px; }
 .notification-panel-icon, .notification-panel-count {

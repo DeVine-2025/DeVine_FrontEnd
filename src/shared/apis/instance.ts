@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { type AxiosInstance } from 'axios';
 import { BASE_URL } from '@constants/endpoints';
 
 type TokenGetter = () => Promise<string | null>;

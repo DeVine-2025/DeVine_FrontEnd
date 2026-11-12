@@ -115,7 +115,7 @@ export default function NotificationModal({
       aria-labelledby={titleId}
       style={position ? { ...position, maxHeight: `calc(100dvh - ${position.top + EDGE_PX}px)` } : undefined}
     >
-      <header className="notification-panel-header">
+      <header className="notification-panel-header flex flex-none items-center gap-[9px] border-b border-[var(--project-divider)] px-[15px] py-[13px]">
         <span className="notification-panel-icon"><Bell size={18} aria-hidden="true" /></span>
         <h2 id={titleId}>알림</h2>
         {unread > 0 && <span className="notification-panel-count" aria-label={`목록의 읽지 않은 알림 ${unread}개`}>{unread}</span>}

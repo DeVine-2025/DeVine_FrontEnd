@@ -36,7 +36,7 @@ export default function DeveloperCard({ developer, bookmarked, pending, onBookma
   return <article className={`developer-explore-card developer-card--${variant}`} data-nickname={member.nickname}>
     <div className="developer-card-identity">
       <img className="developer-explore-avatar" src={member.imageUrl || ProfileDefaultDark} alt="" width="80" height="80" />
-      <div className="developer-card-person">
+      <div className="developer-card-person min-w-0 pt-[4px]">
         <PositionBadge position={roleLabel ?? ROLE_LABEL[role]} />
         <h2>{showProfileLink ? <Link className="developer-card-profile-link" to={`/developer-detail/${encodeURIComponent(member.nickname)}`} onClick={onOpen ? event => { event.preventDefault(); onOpen(); } : undefined} aria-label={`${member.nickname} 프로필 보기`}>{member.nickname}</Link> : member.nickname}</h2>
         <div className="developer-card-introduction"><p>{member.body?.trim() || '아직 작성된 소개가 없어요.'}</p></div>

@@ -30,9 +30,9 @@ export default function AdminDashboardPage() {
   return (
     <section>
       <AdminPageTitle description="운영 현황을 확인해보세요" title="대시보드" />
-      <div className="mt-[40px] grid grid-cols-1 gap-[20px] lg:grid-cols-3">
+      <div className="mt-[40px] grid grid-cols-1 gap-[20px] lg:grid-cols-3 lg:max-2xl:gap-[16px]">
         {dashboardCards.map((card) => (
-          <AdminHighlightCard className="h-[155px] px-[24px] py-[28px]" key={card.label}>
+          <AdminHighlightCard className="h-[155px] px-[24px] py-[28px] lg:max-2xl:h-[134px] lg:max-2xl:px-[20px] lg:max-2xl:py-[20px]" key={card.label}>
             <h2 className="Headline1 font-semibold text-[var(--ui-1000)]">{card.label}</h2>
             <p className="Title1 mt-[17px] font-medium text-[var(--ui-1000)]">{card.value}</p>
           </AdminHighlightCard>

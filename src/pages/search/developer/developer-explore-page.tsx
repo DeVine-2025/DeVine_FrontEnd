@@ -1,4 +1,5 @@
 import ViewToggle from '@components/common/ViewToggle';
+import { CardLoading } from '@components/common/LoadingLayouts';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -16,7 +17,7 @@ import ExploreTabs from '../explore-tabs';
 import ExploreSelectedFilters from '../explore-selected-filters';
 import { getTechDisplayName } from '@components/cards/TechStackBadges';
 import DeveloperCard from '@components/cards/DeveloperCard';
-import '../project/project-explore-page.css';
+import '../explore-shared.css';
 import './developer-explore-page.css';
 
 const groups = [
@@ -140,7 +141,7 @@ export default function DeveloperExplorePage({ mode = 'search' }: { mode?: 'sear
     finally { setPending(current => { const next = new Set(current); next.delete(nickname); return next; }); }
   };
 
-  return <div className="project-explore developer-explore">
+  return <div className="project-explore developer-explore desktop-content">
     <Helmet><title>개발자 {mode === 'recommend' ? '추천' : '탐색'} | Devine</title></Helmet>
     <aside className="explore-sidebar" aria-label="개발자 필터">
       <div className="explore-sidebar-title"><strong>필터</strong><button type="button" onClick={() => { setTechs([]); setDomains([]); setSelectedPositions([]); setTechQuery(''); }}>전체 초기화</button></div>
@@ -151,7 +152,7 @@ export default function DeveloperExplorePage({ mode = 'search' }: { mode?: 'sear
         <label className="explore-tech-search"><SearchIcon aria-hidden="true" /><input value={techQuery} onChange={event => setTechQuery(event.target.value)} placeholder="기술 스택 검색" aria-label="기술 스택 검색" /></label>
         {groups.map(group => {
           const visible = group.stacks.filter(stack => getTechDisplayName(stack.label).toLowerCase().includes(techQuery.trim().toLowerCase()) || normalizeTechstackKey(stack.label).includes(normalizeTechstackKey(techQuery)));
-          return visible.length > 0 && <div className="developer-filter-category" key={group.label}><strong>{group.label}</strong>{visible.map(stack => <label className={`explore-filter-option ${techs.includes(stack.key) ? 'selected' : ''}`} key={stack.key}><input type="checkbox" checked={techs.includes(stack.key)} onChange={() => toggle(stack.key, setTechs)} /><span>{getTechDisplayName(stack.label)}</span></label>)}</div>;
+          return visible.length > 0 && <div className="pt-[8px] pb-[4px]" key={group.label}><strong className="block px-[12px] pb-[4px] text-[11px] font-semibold text-[var(--text-secondary)]">{group.label}</strong>{visible.map(stack => <label className={`explore-filter-option ${techs.includes(stack.key) ? 'selected' : ''}`} key={stack.key}><input type="checkbox" checked={techs.includes(stack.key)} onChange={() => toggle(stack.key, setTechs)} /><span>{getTechDisplayName(stack.label)}</span></label>)}</div>;
         })}
       </FilterGroup>
       <FilterGroup title="관심 도메인" initialOpen>
@@ -162,7 +163,7 @@ export default function DeveloperExplorePage({ mode = 'search' }: { mode?: 'sear
           <legend className="sr-only">프로젝트 유형 · 데이터 연동 준비 중</legend>
           {['전체', ...Object.keys(PROJECT_TYPE_TO_FIELD)].map(type => <label className="explore-filter-option is-unavailable" key={type}><input type="checkbox" checked={type === '전체'} readOnly /><span>{type}</span></label>)}
         </fieldset>
-        <p id="developer-project-type-note" className="developer-filter-note">유형 데이터 연동 후 사용할 수 있어요.</p>
+        <p id="developer-project-type-note" className="mx-[8px] mt-[8px] text-[10px] leading-[1.6] text-[var(--text-secondary)]">유형 데이터 연동 후 사용할 수 있어요.</p>
       </FilterGroup>
     </aside>
     <main className="explore-main">
@@ -175,11 +176,11 @@ export default function DeveloperExplorePage({ mode = 'search' }: { mode?: 'sear
         ...domains.map(value => ({ id: 'domain:' + value, label: value, group: '관심 도메인', onRemove: () => toggle(value, setDomains) })),
       ]} onClear={() => { setTechs([]); setDomains([]); setSelectedPositions([]); }} />
       <div className="explore-toolbar developer-explore-toolbar">
-        <span className="developer-results-caption" aria-live="polite">{(searchTerm || selectedPositions.length > 0) && query.isFetchNextPageError ? `불러온 목록의 검색 결과 ${developers.length}명` : (searchTerm || selectedPositions.length > 0) && query.hasNextPage ? '전체 개발자 목록에서 검색 중...' : searchTerm ? `검색 결과 ${developers.length}명` : techs.length || domains.length || selectedPositions.length ? '선택한 조건에 맞는 개발자' : ''}</span>
+        <span className="text-[12px] text-[var(--text-secondary)]" aria-live="polite">{(searchTerm || selectedPositions.length > 0) && query.isFetchNextPageError ? `불러온 목록의 검색 결과 ${developers.length}명` : (searchTerm || selectedPositions.length > 0) && query.hasNextPage ? '전체 개발자 목록에서 검색 중...' : searchTerm ? `검색 결과 ${developers.length}명` : techs.length || domains.length || selectedPositions.length ? '선택한 조건에 맞는 개발자' : ''}</span>
         <ViewToggle value={view} onChange={changeView} />
       </div>
+      {query.isPending && <CardLoading kind="developer" view={view} />}
       <div ref={listRef} className={`developer-explore-list developer-explore-${view}`}>
-        {query.isPending && <p className="developer-list-message" role="status">개발자를 불러오고 있어요.</p>}
         {query.isError && !query.data && <div className="developer-list-message" role="alert">개발자를 불러오지 못했어요. <button type="button" onClick={() => void query.refetch()}>다시 시도</button></div>}
         {!query.isPending && !query.isError && !query.hasNextPage && developers.length === 0 && <div className="explore-empty"><strong>조건에 맞는 개발자가 없어요.</strong><p>검색어나 필터를 바꿔 다시 찾아보세요.</p><button type="button" onClick={() => { setTechs([]); setDomains([]); setSelectedPositions([]); setSearch(''); }}>검색 및 필터 초기화</button></div>}
         {developers.map(developer => <DeveloperCard key={developer.member.nickname} developer={developer} bookmarked={bookmarks[developer.member.nickname] != null} pending={pending.has(developer.member.nickname)} variant={view} showTechStacks={false} onBookmarkChange={next => changeBookmark(developer.member.nickname, next)} />)}

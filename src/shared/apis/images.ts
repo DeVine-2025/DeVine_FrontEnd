@@ -14,18 +14,22 @@ export type GetPresignedUrlResult = {
   imageUrl: string;
 };
 
-export async function getPresignedUrl(
-  body: GetPresignedUrlBody,
-  token: string,
-): Promise<GetPresignedUrlResult> {
-  const res = await fetch(`${BASE_URL}/api/v1/images/presigned-url`, {
+function requestPresignedUrl(body: GetPresignedUrlBody, token?: string) {
+  return fetch(`${BASE_URL}/api/v1/images/presigned-url`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(body),
   });
+}
+
+async function getPresignedUrl(
+  body: GetPresignedUrlBody,
+  token: string,
+): Promise<GetPresignedUrlResult> {
+  const res = await requestPresignedUrl(body, token);
 
   const text = await res.text();
   const json = (() => {
@@ -51,13 +55,19 @@ export async function getPresignedUrl(
   };
 }
 
-export async function confirmImage(imageId: number, token: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/api/v1/images/confirm/${imageId}`, {
+function requestImageConfirmation(imageId: number, token?: string, imageUrl?: string) {
+  return fetch(`${BASE_URL}/api/v1/images/confirm/${imageId}`, {
     method: 'PATCH',
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(imageUrl !== undefined ? { 'Content-Type': 'application/json' } : {}),
     },
+    ...(imageUrl !== undefined ? { body: JSON.stringify({ imageUrl }) } : {}),
   });
+}
+
+async function confirmImage(imageId: number, token: string): Promise<void> {
+  const res = await requestImageConfirmation(imageId, token);
 
   const text = await res.text();
   const json = (() => {
@@ -74,4 +84,60 @@ export async function confirmImage(imageId: number, token: string): Promise<void
     const fullMessage = `[${res.status}] ${message}\n\n[Response Body]\n${responseBody}`;
     throw new Error(fullMessage);
   }
+}
+
+type PresignedUrlResponse = {
+  isSuccess: boolean;
+  result?: GetPresignedUrlResult;
+};
+
+type ConfirmImageResponse = {
+  isSuccess: boolean;
+  result?: {
+    imageId: number;
+    imageUrl: string;
+  };
+};
+
+export async function createPresignedUrl(
+  payload: { imageType: 'PROFILE'; fileName: string },
+  token?: string,
+) {
+  const res = await requestPresignedUrl(payload, token);
+
+  if (!res.ok) {
+    throw new Error(`presigned-url failed: ${res.status}`);
+  }
+
+  const data = (await res.json()) as PresignedUrlResponse;
+  if (!data.result) {
+    throw new Error('presigned-url missing result');
+  }
+
+  return data.result;
+}
+
+export async function confirmImageUpload(imageId: number, imageUrl: string, token?: string) {
+  const res = await requestImageConfirmation(imageId, token, imageUrl);
+
+  if (!res.ok) {
+    throw new Error(`confirm image failed: ${res.status}`);
+  }
+
+  const data = (await res.json()) as ConfirmImageResponse;
+  return data.result;
+}
+
+export async function uploadProjectImage(file: File, token: string) {
+  const image = await getPresignedUrl({ imageType: 'PROJECT', fileName: file.name }, token);
+  const response = await fetch(image.presignedUrl, {
+    method: 'PUT',
+    body: file,
+    headers: file.type ? { 'Content-Type': file.type } : undefined,
+  });
+  if (!response.ok) {
+    throw new Error(`이미지 업로드 실패 (${response.status})`);
+  }
+  await confirmImage(image.imageId, token);
+  return image;
 }

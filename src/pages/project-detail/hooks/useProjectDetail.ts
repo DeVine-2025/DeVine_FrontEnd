@@ -10,10 +10,13 @@ import {
   toProjectDetailInfoFromApi,
 } from '../project-detail-types';
 import { useAuthMe } from '@hooks/useAuthMe';
+import { useMockData } from '../../../shared/config/data-mode';
+import { getSampleProjectDetail } from '../sample-project-detail';
 export type ApplyStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
 
 export function useProjectDetail() {
   const { projectId } = useParams();
+  const sampleProject = useMockData ? getSampleProjectDetail(projectId) : null;
   const navigate = useNavigate();
   const { isLoaded, isSignedIn } = useUser();
   const { getToken } = useAuth();
@@ -48,6 +51,7 @@ export function useProjectDetail() {
   const handleBookmarkChange = useCallback(
     async (next: boolean) => {
       if (!projectId) return;
+      if (sampleProject) { setBookmarkState({ bookmarked: next }); return; }
       if (isLoaded && !isSignedIn) {
         setIsLoginModalOpen(true);
         return;
@@ -92,12 +96,13 @@ export function useProjectDetail() {
         alert(e instanceof Error ? e.message : '북마크 처리에 실패했습니다.');
       }
     },
-    [projectId, bookmarkState.bookmarked, bookmarkState.bookmarkId, getToken, isLoaded, isSignedIn],
+    [projectId, sampleProject, bookmarkState.bookmarked, bookmarkState.bookmarkId, getToken, isLoaded, isSignedIn],
   );
 
   // ── Fetch project ──
   useEffect(() => {
     if (!projectId) return;
+    if (sampleProject) { setIsLoading(false); return; }
     if (prevProjectIdRef.current !== projectId) {
       prevProjectIdRef.current = projectId;
       userDidChangeBookmarkRef.current = false;
@@ -188,7 +193,7 @@ export function useProjectDetail() {
     }
   }, [projectId]);
 
-  const project = apiProject ?? sessionProject;
+  const project = sampleProject ?? apiProject ?? sessionProject;
 
   // ── Owner check ──
   const creatorId = project?.creatorId == null ? null : Number(project.creatorId);
@@ -251,6 +256,7 @@ export function useProjectDetail() {
   // ── Apply handler ──
   const handleApply = async () => {
     if (!projectId || !selectedRole) return;
+    if (sampleProject) { alert('예시 프로젝트로 실제 지원은 전송되지 않습니다.'); setIsApplyModalOpen(false); return; }
     if (isLoaded && !isSignedIn) {
       setIsLoginModalOpen(true);
       return;
@@ -339,6 +345,7 @@ export function useProjectDetail() {
 
 
   const openApplyModal = () => {
+    if (sampleProject) { alert('예시 프로젝트로 실제 지원은 전송되지 않습니다.'); return; }
     if (isLoaded && !isSignedIn) {
       setIsLoginModalOpen(true);
       return;
@@ -348,6 +355,7 @@ export function useProjectDetail() {
   };
 
   return {
+    isSampleProject: !!sampleProject,
     projectId,
     navigate,
     project,

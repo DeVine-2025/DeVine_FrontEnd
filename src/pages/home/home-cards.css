@@ -12,7 +12,7 @@
   --home-card-border-hover: #3d434e;
   --home-card-chip: #23262d;
   --home-card-shadow: inset 0 1px 0 #ffffff06, 0 2px 4px #00000014, 0 4px 8px #00000014;
-  width: calc(100% - 48px);
+  width: var(--desktop-content-width, calc(100% - 48px));
 }
 
 .devine-home :is(.home-project-card, .home-developer-card) {
@@ -218,33 +218,6 @@
 .devine-home .home-recommendation ul { gap: 8px; margin: 8px 0 0; }
 .devine-home .home-recommendation li { color: var(--home-card-body); font-size: 12px; line-height: 24px; }
 .devine-home .home-developer-card p { color: var(--home-card-body); font-size: 13px; line-height: 24px; }
-
-:root[data-theme='light'] .devine-home {
-  --home-card-title: #1e2028;
-  --home-card-body: #535a67;
-  --home-card-meta: #6f7582;
-  --home-card-surface: linear-gradient(180deg, #ffffff, #fafafb);
-  --home-card-border: #e6e8ed;
-  --home-card-border-hover: #c7cbd3;
-  --home-card-chip: #eff0f3;
-  --home-card-shadow: inset 0 1px 0 #fff, 0 2px 4px #15192204, 0 4px 8px #15192207;
-}
-:root[data-theme='light'] .devine-home .home-project-art img { filter: brightness(.96) saturate(.85); }
-:root[data-theme='light'] .devine-home .home-project-featured .home-project-art img { filter: brightness(.9) saturate(.8); }
-:root[data-theme='light'] .devine-home :is(.home-project-card, .home-developer-card) {
-  border-color: var(--home-card-border);
-  background: var(--home-card-surface);
-  box-shadow: var(--home-card-shadow);
-}
-:root[data-theme='light'] .devine-home :is(.home-project-card, .home-developer-card):hover {
-  border-color: var(--home-card-border-hover);
-  background: var(--home-card-surface);
-  box-shadow: var(--home-card-shadow);
-}
-:root[data-theme='light'] .devine-home :is(.home-tags span, .home-skills span, .home-developer-avatar, .home-recommendation-label small) { background: var(--home-card-chip); }
-:root[data-theme='light'] .devine-home :is(.home-developer-role, .home-skills span) { color: var(--home-card-body); }
-:root[data-theme='light'] .devine-home :is(.home-tags span, .home-recommendation-label, .home-recommendation-label small, .home-recommendation li) { color: var(--home-card-meta); }
-:root[data-theme='light'] .devine-home .home-recommendation { border-color: var(--home-card-border); }
 
 @media (max-width: 900px) {
   .devine-home .home-featured-grid { grid-template-columns: 1fr; }
@@ -624,10 +597,19 @@
   .devine-home .home-recommended-projects { grid-template-columns: minmax(0, 1fr); }
 }
 
+@media (1024px <= width < 1536px) {
+  .devine-home .home-featured-grid .project-card--grid .explore-card-main {
+    grid-template-rows: var(--home-featured-image-height) 1fr auto;
+  }
+  .devine-home .home-featured-grid .project-card--grid .explore-art {
+    min-height: var(--home-featured-image-height);
+  }
+}
+
 /* Consistent spacing between home cards. */
 .devine-home { --home-space-cards: 10px; }
 .devine-home > .home-editorial + .home-section,
-.devine-home .home-section + .home-section { margin-top: 104px; }
+.devine-home .home-section + .home-section { margin-top: var(--home-section-gap); }
 .devine-home .home-featured-grid,
 .devine-home .home-featured-list,
 .devine-home .home-recent-grid,
@@ -761,15 +743,6 @@
   backdrop-filter: none;
 }
 
-.devine-home .home-project-card .home-bookmark,
-.devine-home .home-project-card .home-bookmark:hover,
-.devine-home .home-project-card .home-bookmark[aria-pressed='true'] {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
 
 .devine-home .home-section-heading-accent h2 {
   display: flex;
@@ -833,12 +806,6 @@
 }
 .devine-home .home-featured-grid .home-project-domains { order: -1; }
 .devine-home .home-featured-grid .home-project-meta { margin-left: auto; }
-.devine-home .home-featured-grid .home-project-card .home-bookmark {
-  top: auto;
-  bottom: 76px;
-  right: 12px;
-}
-
 .devine-home .home-project-status-inProgress { background: #29273d; color: #beb3ff; }
 .devine-home .home-project-status-inProgress > span { background: #9c8cff; }
 .devine-home .home-project-status-completed { background: #30343b; color: #b9c0ce; }

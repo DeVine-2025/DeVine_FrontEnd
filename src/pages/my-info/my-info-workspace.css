@@ -1,5 +1,5 @@
 .my-info-workspace {
-  width: min(calc(100% - clamp(48px, 8.6vw, 140px)), 1488px);
+  width: var(--desktop-content-width, min(calc(100% - clamp(48px, 8.6vw, 140px)), 1488px));
   margin: 36px auto 56px;
   display: grid;
   grid-template-columns: clamp(224px, 18.6vw, 304px) minmax(0, 1fr);
@@ -75,6 +75,19 @@
   font-weight: 500;
 }
 .my-info-stack-list img { width: 14px; height: 14px; object-fit: contain; }
+.my-info-shared-stack-list { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 10px 0 0; padding: 0; }
+.my-info-skeleton { display: block; border-radius: 7px; background: linear-gradient(100deg, #22242e 20%, #303140 42%, #22242e 64%); background-size: 220% 100%; animation: my-info-skeleton-shimmer 2.2s ease-in-out infinite; }
+.my-info-skeleton-side { display: flex; flex-direction: column; gap: 15px; }
+.my-info-skeleton-avatar { width: 132px; height: 132px; border-radius: 50%; margin-bottom: 4px; }
+.my-info-skeleton-months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; margin-bottom: 12px; overflow: hidden; }
+.my-info-skeleton-calendar { display: grid; grid-template-columns: repeat(53, minmax(0, 1fr)); grid-template-rows: repeat(7, minmax(0, 1fr)); grid-auto-flow: column; gap: 3px; }
+.my-info-skeleton-calendar-cell { aspect-ratio: 1; border-radius: 2px; background: #282a35; animation: my-info-skeleton-pulse 2.2s ease-in-out infinite alternate; }
+.my-info-skeleton-chart { display: flex; align-items: stretch; gap: 8px; height: 190px; margin-top: 20px; }
+.my-info-skeleton-chart-column { display: flex; flex: 1; min-width: 0; flex-direction: column; justify-content: flex-end; align-items: center; gap: 10px; }
+@keyframes my-info-skeleton-shimmer { from { background-position: 100% 0; } to { background-position: -120% 0; } }
+@keyframes my-info-skeleton-pulse { from { opacity: .6; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .my-info-skeleton { animation: none; background: #282a35; } .my-info-skeleton-calendar-cell { animation: none; } }
+@media (max-width: 900px) { .my-info-skeleton-avatar { width: 90px; height: 90px; } }
 .my-info-interest-list li {
   border-color: color-mix(in srgb, var(--project-accent) 24%, transparent);
   background: color-mix(in srgb, var(--project-accent) 9%, var(--surface-page));
@@ -166,13 +179,11 @@
 @media (max-width: 560px) {
   .my-info-project-status .my-project-status-tabs button { font-size: 12px; white-space: normal; text-align: left; }
 }
-.my-info-column { min-width: 0; }
 .my-info-panel { min-width: 0; padding: 23px 0 28px; }
 .my-info-panel + .my-info-panel { border-top: 1px solid var(--my-info-divider); }
 .my-info-panel h2 { margin: 0; font-size: 23px; line-height: 1.25; font-weight: 700; letter-spacing: -.025em; }
 .my-info-intro { padding-top: 27px; }
 .my-info-intro p { margin: 7px 0 0; color: var(--text-secondary); font-size: 16px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
-.my-info-panel-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
 .my-info-panel-header a { display: inline-flex; align-items: center; gap: 6px; color: var(--project-accent); font-size: 15px; text-decoration: none; white-space: nowrap; }
 .my-info-panel-header a:hover { text-decoration: underline; }
 .my-info-repos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 26px); }
@@ -241,8 +252,22 @@
   .my-info-activity .calendar-container-animated .react-activity-calendar__calendar { animation: none; }
 }
 .my-info-activity .react-activity-calendar__legend-colors { color: var(--text-secondary); font-size: 12px; }
-.my-info-report-library { padding-top: 0; }
-.my-info-report-library .report-list-head { margin-top: 0; }
+.my-info-hero, .my-info-dashboard .my-info-panel { animation: my-info-appear 850ms cubic-bezier(.22,1,.36,1) both; }
+.my-info-dashboard .my-info-panel:nth-child(2) { animation-delay: 100ms; }
+.my-info-dashboard .my-info-panel:nth-child(3) { animation-delay: 170ms; }
+.my-info-dashboard .my-info-panel:nth-child(4) { animation-delay: 240ms; }
+.my-info-repo, .my-info-activity-stat, .my-info-report-library .report-compact-row { animation: my-info-appear 800ms cubic-bezier(.22,1,.36,1) both; }
+.my-info-repo:nth-child(2), .my-info-activity-stat:nth-child(2), .my-info-report-library .report-compact-row:nth-child(2) { animation-delay: 120ms; }
+.my-info-activity-stat:nth-child(3), .my-info-report-library .report-compact-row:nth-child(3) { animation-delay: 210ms; }
+.my-info-activity-chart .recharts-bar-rectangle { transform-box: fill-box; transform-origin: center bottom; animation: my-info-bar-enter 1100ms cubic-bezier(.22,1,.36,1) both; }
+.my-info-activity-chart .recharts-line-curve, .my-info-activity-chart .recharts-line-dots { animation: my-info-chart-line-enter 1300ms ease-out both; }
+@keyframes my-info-appear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes my-info-bar-enter { from { opacity: .25; transform: scaleY(0); } to { opacity: 1; transform: scaleY(1); } }
+@keyframes my-info-chart-line-enter { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .my-info-hero, .my-info-dashboard .my-info-panel, .my-info-repo, .my-info-activity-stat, .my-info-report-library .report-compact-row, .my-info-activity-chart .recharts-bar-rectangle, .my-info-activity-chart .recharts-line-curve, .my-info-activity-chart .recharts-line-dots { animation: none; }
+}
+.my-info-workspace .my-info-report-library .report-list-head { margin-top: 0; padding-top: 4px; }
 .my-info-workspace .my-info-report-library :is(.report-list-head, .report-compact-row) { border-bottom-color: var(--my-info-divider); }
 .my-info-workspace :is(a, button, summary):focus-visible { outline: 2px solid var(--project-accent); outline-offset: 2px; }
 
@@ -412,3 +437,10 @@
 .bookmark-preview h2 { margin: 10px 0; font-size: 22px; }
 .bookmark-preview p { margin: 12px 0 0; color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
 .bookmark-preview-close { position: absolute; top: 16px; right: 20px; color: var(--text-secondary); font-size: 24px; }
+
+@media screen and (1024px <= width < 1536px) {
+  .my-info-workspace .my-info-panel { padding-block: 18px 22px; }
+  .my-info-settings { gap: 22px; padding-block: 18px 34px; }
+  .my-info-setting-row { min-height: 64px; padding-block: 12px; }
+  .bookmark-workspace { gap: 16px; padding-block: 18px 22px; }
+}

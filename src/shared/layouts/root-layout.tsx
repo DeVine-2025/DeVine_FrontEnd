@@ -1,5 +1,5 @@
 import { useUser } from '@clerk/clerk-react';
-import DevineSymbol from '@assets/images/devine-symbol.png';
+import AuthLoadingScreen from '@components/common/AuthLoadingScreen';
 import { useAuthMe } from '@hooks/useAuthMe';
 import FloatingChatWidget from '@components/chat/FloatingChatWidget';
 import Header from '@layouts/header';
@@ -15,28 +15,6 @@ export type RootLayoutOutletContext = {
   onboardingIncomplete: boolean;
   openOnboardingModal: () => void;
   setLogoClickHandler: (handler: (() => void) | null) => void;
-};
-
-const AuthLoadingScreen = () => {
-  const [showMessage, setShowMessage] = useState(false);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setShowMessage(true), 2000);
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  return (
-    <div role="status" aria-live="polite" className="flex min-h-[100svh] flex-col items-center justify-center bg-[#101116] px-6 text-center">
-      <span className="sr-only">회원 정보를 확인하고 있어요.</span>
-      <img src={DevineSymbol} alt="" className="h-auto w-[56px] motion-safe:animate-pulse" />
-      <div aria-hidden="true" className="mt-7 flex h-1 items-center gap-1.5 motion-safe:animate-pulse">
-        <span className="h-1 w-1 rounded-full bg-[#ADA1FA]" />
-        <span className="h-1 w-1 rounded-full bg-[#ADA1FA]/70" />
-        <span className="h-1 w-1 rounded-full bg-[#ADA1FA]/40" />
-      </div>
-      {showMessage && <p aria-hidden="true" className="absolute mt-32 text-sm text-[#a9aab6]">회원 정보를 확인하고 있어요.</p>}
-    </div>
-  );
 };
 
 const RootLayout = () => {
@@ -140,7 +118,7 @@ const RootLayout = () => {
 
   // 회원 확인 전에는 하위 화면의 회원 전용 API를 실행하지 않습니다.
   if (!isSsoCallbackRoute && (!isLoaded || (user && memberQuery.isPending))) {
-    return <AuthLoadingScreen />;
+    return <AuthLoadingScreen message="회원 정보를 확인하고 있어요." />;
   }
 
   if (!isSsoCallbackRoute && user && memberQuery.isError) {
@@ -163,7 +141,7 @@ const RootLayout = () => {
     <div className={`flex min-h-[100vh] flex-col ${isLoginRoute ? "bg-[#101116]" : ""}`}>
       {!isSsoCallbackRoute && !isLoginRoute && <Header navLocked={navLocked} onLogoClick={handleLogoClick} />}
       <main className={`min-h-[100svh] shrink-0 ${isReportWorkspace ? 'report-workspace-main' : isLoginRoute ? '' : location.pathname === '/' || location.pathname === '/home' ? 'pt-6 pb-16' : 'py-12'}`}>
-        <div key={location.pathname === '/search/projects' || location.pathname === '/search/developers' ? 'explore' : location.pathname.startsWith('/recommend') ? 'recommend' : location.pathname === '/my-info' || location.pathname.startsWith('/my-info/') ? 'my-info' : isReportWorkspace ? location.pathname : location.key} className={`page-transition ${location.pathname === '/' || location.pathname === '/home' || location.pathname.startsWith('/search/') || location.pathname.startsWith('/recommend') ? 'page-transition--collection' : ''}`}>
+        <div key={location.pathname === '/search/projects' || location.pathname === '/search/developers' ? 'explore' : location.pathname.startsWith('/recommend') ? 'recommend' : location.pathname === '/my-info' || location.pathname.startsWith('/my-info/') ? 'my-info' : location.pathname === '/my-project' || location.pathname.startsWith('/my-project/') ? 'my-project' : isReportWorkspace ? location.pathname : location.key} className={`page-transition ${location.pathname === '/' || location.pathname === '/home' || location.pathname.startsWith('/search/') || location.pathname.startsWith('/recommend') ? 'page-transition--collection' : ''}`}>
           <Outlet
             context={{
               setNavLocked,

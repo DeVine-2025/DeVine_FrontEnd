@@ -10,7 +10,7 @@ export default function ProjectSm(props: ProjectCardProps) {
         <article
           {...CardActionProps}
           className={cn(
-            'flex h-[240px] w-[280px] shrink-0 flex-col gap-6 rounded-3xl bg-profile-card-bg px-9 py-7',
+            'flex h-[240px] w-[280px] shrink-0 flex-col gap-6 rounded-3xl bg-profile-card-bg px-9 py-7 lg:max-2xl:h-[220px] lg:max-2xl:w-[260px] lg:max-2xl:gap-4 lg:max-2xl:px-7 lg:max-2xl:py-6',
             props.onClick && 'cursor-pointer',
             props.className,
           )}

@@ -1,17 +1,16 @@
 import { createPortal } from 'react-dom';
 
 type LoginModalProps = {
-  isDark: boolean;
   onLogin: () => void;
   onClose: () => void;
 };
 
-export default function LoginModal({ isDark, onLogin, onClose }: LoginModalProps) {
+export default function LoginModal({ onLogin, onClose }: LoginModalProps) {
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6">
       <div
         className="relative w-full max-w-[360px] rounded-[24px] px-8 pt-10 pb-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
-        style={{ backgroundColor: isDark ? '#212328' : '#FFFFFF' }}
+        style={{ backgroundColor: '#212328' }}
       >
         <button
           type="button"
@@ -24,11 +23,11 @@ export default function LoginModal({ isDark, onLogin, onClose }: LoginModalProps
         <div className="flex flex-col gap-2">
           <h2
             className="font-semibold text-[18px] leading-[24px]"
-            style={{ color: isDark ? '#F8F9FB' : 'var(--ui-900)' }}
+            style={{ color: '#F8F9FB' }}
           >
             로그인 후 이용할 수 있어요
           </h2>
-          <p className="text-[13px]" style={{ color: isDark ? '#9EA6BA' : 'var(--ui-400)' }}>
+          <p className="text-[13px]" style={{ color: '#9EA6BA' }}>
             해당 기능을 이용하려면 먼저 로그인해 주세요.
           </p>
         </div>

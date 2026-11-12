@@ -159,33 +159,6 @@ type MyRecruitingResponse = {
   };
 };
 
-function extractMyProjectsRawList(json: MyRecruitingResponse | null): MyRecruitingContentItem[] {
-  const result = (json as any)?.result;
-  let rawList: MyRecruitingContentItem[] = [];
-  if (Array.isArray(result)) {
-    rawList = result;
-  } else if (Array.isArray(result?.projects)) {
-    rawList = result.projects;
-  } else if (Array.isArray(result?.projects?.content)) {
-    rawList = result.projects.content;
-  } else if (result && 'content' in result && Array.isArray((result as any).content)) {
-    rawList = (result as any).content as MyRecruitingContentItem[];
-  } else {
-    const proj = (json as any)?.projects;
-    if (Array.isArray(proj)) {
-      rawList = proj as MyRecruitingContentItem[];
-    } else if (
-      proj &&
-      typeof proj === 'object' &&
-      'content' in proj &&
-      Array.isArray((proj as any).content)
-    ) {
-      rawList = (proj as any).content as MyRecruitingContentItem[];
-    }
-  }
-  return rawList;
-}
-
 async function fetchMyProjectsByPath(
   path: string,
   token: string,
