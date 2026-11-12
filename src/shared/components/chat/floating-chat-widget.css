@@ -1,0 +1,53 @@
+@keyframes chat-widget-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.chat-widget-panel-enter {
+  transform-origin: left bottom;
+  animation: chat-widget-panel-enter 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes chat-send-button-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.chat-send-button-enter {
+  animation: chat-send-button-enter 160ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-widget-panel-enter,
+  .chat-send-button-enter {
+    animation: none;
+  }
+  .devine-floating-action { transition: none; }
+  .devine-floating-action:hover, .devine-floating-action:active { transform: none; }
+}
+ .devine-floating-action {
+  transition: transform 360ms cubic-bezier(.2, 1.25, .35, 1), box-shadow 300ms ease, background-color 220ms ease, border-color 220ms ease;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.13), 0 6px 14px rgba(0,0,0,.24), 0 14px 28px rgba(0,0,0,.12);
+}
+.devine-floating-action:hover {
+  transform: translateY(-3px) scale(1.025);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 10px 20px rgba(0,0,0,.28), 0 16px 30px rgba(0,0,0,.14);
+}
+.devine-floating-action:active { transform: translateY(0) scale(.97); transition-duration: 100ms; }
+.devine-floating-action-primary { background: linear-gradient(180deg, #b8adff 0%, #a297f3 100%); }
+.devine-floating-action-primary:hover { background: linear-gradient(180deg, #c4bbff 0%, #aea3fa 100%); }
+

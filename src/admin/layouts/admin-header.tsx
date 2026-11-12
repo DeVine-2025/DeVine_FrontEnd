@@ -1,15 +1,8 @@
-import DarkLogo from '@assets/icons/logo-dark.svg?react';
-import LightLogo from '@assets/icons/logo-light.svg?react';
-import ModeDarkHoverIcon from '@assets/icons/mode-dark-hover.svg?react';
-import ModeLightIcon from '@assets/icons/mode-light.svg?react';
-import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
-import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
-import { useThemeStore } from '@store/theme';
+import BrandLogo from '@assets/images/devine-symbol.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ADMIN_MENU } from '../constants/admin-menu';
 
 export function AdminHeader() {
-  const { theme, toggleTheme } = useThemeStore();
   const location = useLocation();
   const navigate = useNavigate();
   const isActive = (path: string) => location.pathname.startsWith(path);
@@ -20,7 +13,7 @@ export function AdminHeader() {
         <div className="flex-items-center gap-[4.8rem] phone:gap-[2rem] tablet:gap-[3rem]">
           <div className="group relative ml-[-14px] flex-items-center gap-[0.4rem]">
             <Link aria-label="DeVine 관리자 홈" to="/admin/dashboard">
-              {theme === 'dark' ? <LightLogo /> : <DarkLogo />}
+              <img src={BrandLogo} alt="Devine" className="h-[44px] w-[44px] object-contain" />
             </Link>
             <span className="Caption1 -top-[4px] absolute left-[calc(100%+4px)] whitespace-nowrap font-semibold text-ui-500">
               관리자
@@ -49,30 +42,12 @@ export function AdminHeader() {
         </div>
         <div className="flex-items-center shrink-0 flex-nowrap gap-[1.2rem] phone:gap-[0.6rem] tablet:gap-[0.8rem]">
           <button
-            aria-label={theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
-            className="group relative h-[3.6rem] w-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg"
-            onClick={toggleTheme}
-            type="button"
-          >
-            {theme === 'dark' ? (
-              <>
-                <ModeSettingIcon className="h-[2.4rem] w-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                <ModeDarkHoverIcon className="absolute h-[2.4rem] w-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              </>
-            ) : (
-              <>
-                <ModeLightIcon className="h-[2.4rem] w-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                <ModeLightHoverIcon className="absolute h-[2.4rem] w-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-              </>
-            )}
-          </button>
-          <button
             className="group relative h-[3.6rem] flex-row-center shrink-0 cursor-pointer overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--badge-text-primary)] px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
             onClick={() => navigate('/admin/login')}
             type="button"
           >
-            <span className="absolute inset-0 rounded-[8px] bg-[#4e49ff] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <span className="Caption1 relative z-10 whitespace-nowrap font-semibold text-[#4e49ff] transition-colors duration-300 group-hover:text-white">
+            <span className="absolute inset-0 rounded-[8px] bg-[#6654F5] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <span className="Caption1 relative z-10 whitespace-nowrap font-semibold text-[#6654F5] transition-colors duration-300 group-hover:text-white">
               로그아웃
             </span>
           </button>

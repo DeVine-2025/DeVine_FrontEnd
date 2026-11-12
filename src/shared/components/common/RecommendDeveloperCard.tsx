@@ -3,7 +3,6 @@ import BookmarkButton from '@components/common/BookmarkButton';
 import AvatarIcon from '@assets/icons/avatar.svg?react';
 import { cn } from '@libs/cn';
 import type { BadgeTone } from '@t/badgeTone';
-import { useThemeStore } from '@store/theme';
 import {
   BACKEND_DATABASE,
   BACKEND_FRAMEWORK,
@@ -78,7 +77,6 @@ function RecommendDeveloperCard({
   onClick,
   onNavigateToDeveloper,
 }: RecommendDeveloperCardProps) {
-  const { theme } = useThemeStore();
 
   const normalizeTechKey = (v: unknown): string => {
     const s = typeof v === 'string' ? v : v != null ? String(v) : '';
@@ -150,7 +148,7 @@ function RecommendDeveloperCard({
           : undefined
       }
       className={cn(
-        'relative h-[196px] w-full max-w-[1280px] overflow-hidden rounded-[24px] border border-[var(--ui-200)] bg-[var(--ui-bg)]',
+        'relative h-[196px] lg:max-2xl:h-[174px] w-full max-w-[1280px] overflow-hidden rounded-[24px] border border-[var(--ui-200)] bg-[var(--ui-bg)]',
         handleClick && 'cursor-pointer recommend-card-hover-border',
       )}
     >
@@ -168,7 +166,7 @@ function RecommendDeveloperCard({
         </div>
 
         {/* 본문(좌) */}
-        <div className="flex w-[394px] flex-col gap-[10px]">
+        <div className="flex w-[394px] flex-col lg:max-2xl:w-[clamp(220px,28vw,360px)] gap-[10px]">
           <div className="flex min-w-0 flex-col gap-[4px]">
             <p className="Body1 h-[26px] font-semibold text-[var(--ui-1000)]">{nickname}</p>
             <div className="flex flex-nowrap gap-[8px]">
@@ -187,12 +185,12 @@ function RecommendDeveloperCard({
       </div>
 
       {/* 기술스택 뱃지 - 3개 넘으면 두 줄로 */}
-      <div className="absolute left-[780px] top-1/2 w-[300px] -translate-y-1/2">
+      <div className="absolute left-[780px] top-1/2 w-[300px] -translate-y-1/2 lg:max-2xl:left-auto lg:max-2xl:right-[60px] lg:max-2xl:w-[clamp(180px,24%,260px)]">
         <div className="flex min-h-[72px] flex-wrap items-center gap-[4px]">
         {techChips.map((t) => {
           const badge = findBadge(t.name);
           if (badge) {
-            const offSrc = theme === 'dark' ? (badge.offDark ?? badge.off) : badge.off;
+            const offSrc = (badge.offDark ?? badge.off);
             return (
               <span key={t.id} className="inline-flex items-center">
                 <img

@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 export type DevTab = 'suggested' | 'applied';
 
@@ -44,7 +44,7 @@ type ApiResponse<T> = {
   result: T;
 };
 
-const EMPTY = { content: [], totalElements: 0 } as const;
+const EMPTY = { content: [] as MatchingDeveloper[], page: 0, size: 0, totalElements: 0, totalPages: 0, first: true, last: true };
 
 function joinUrl(base: string, path: string) {
   const b = base.replace(/\/+$/, '');
@@ -55,15 +55,17 @@ function joinUrl(base: string, path: string) {
 async function fetchPmDevelopers({
   endpoint,
   token,
+  page,
   signal,
 }: {
   endpoint: string;
   token: string;
+  page: number;
   signal?: AbortSignal;
 }) {
   if (!API_BASE_URL) throw new Error('VITE_API_BASE_URL is not set');
 
-  const url = joinUrl(API_BASE_URL, endpoint);
+  const url = joinUrl(API_BASE_URL, endpoint) + '?page=' + page;
 
   try {
     const res = await fetch(url, {
@@ -90,12 +92,15 @@ export function usePmDevelopers(tab: DevTab) {
   const { getToken } = useAuth();
   const endpoint = ENDPOINT_BY_TAB[tab];
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['pm-developers', tab],
-    queryFn: async ({ signal }) => {
+    initialPageParam: 0,
+    getNextPageParam: (lastPage: Page<MatchingDeveloper>, _pages, lastPageParam) =>
+      lastPage.last || lastPageParam + 1 >= lastPage.totalPages ? undefined : lastPageParam + 1,
+    queryFn: async ({ signal, pageParam }) => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');
-      return fetchPmDevelopers({ endpoint, token, signal });
+      return fetchPmDevelopers({ endpoint, token, page: pageParam, signal });
     },
     staleTime: 30_000,
     refetchOnWindowFocus: false,

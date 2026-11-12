@@ -1,0 +1,69 @@
+/* Hallmark · scope: component · brand: DeVine · redesign: polish */
+/* Self-contained recommended card; no dependency on home page ancestors. */
+.home-project-card.home-project-recommended { position: relative; min-width: 0; overflow: hidden; border: 1px solid var(--surface-badge); border-radius: 12px; background: var(--surface-card); color: var(--text-main); }
+.home-project-card.home-project-recommended .home-card-open { width: 100%; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.home-project-card.home-project-recommended .home-project-art { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.home-project-card.home-project-recommended .home-project-art img { width: 24%; max-width: 100px; height: auto; object-fit: contain; }
+.home-project-card.home-project-recommended .home-bookmark { position: absolute; z-index: 2; width: 40px; height: 40px; padding: 0; }
+/* Match the ribbon animation mask and backing to the SVG viewBox. */
+.home-project-card.home-project-recommended .home-bookmark .bookmark-ribbon-svg { width: 36px; height: 36px; }
+.home-project-card.home-project-recommended .home-project-domain-badge { align-items: center; gap: 4px; padding: 3px 7px; border: 1px solid var(--surface-badge); border-radius: 5px; color: var(--text-secondary); font-size: 11px; line-height: 16px; }
+.home-project-card.home-project-recommended .home-project-domain-badge svg { width: 12px; height: 12px; flex: none; }
+.home-project-card.home-project-recommended .home-project-progress { display: flex; gap: 3px; }
+.home-project-card.home-project-recommended .home-project-progress > span { flex: 1; height: 4px; border-radius: 2px; background: var(--surface-badge); }
+.home-project-card.home-project-recommended .home-project-progress > span.is-filled { background: var(--project-accent); }
+.home-project-card.home-project-recommended :is(button,a):focus-visible { outline: 2px solid var(--project-accent); outline-offset: -3px; }
+.home-project-card.home-project-recommended:hover { border-color: var(--text-secondary); }
+.home-project-card.home-project-recommended .home-bookmark,
+.home-project-card.home-project-recommended .home-bookmark:is(:hover, :active, [aria-pressed='true']) {
+  background: transparent;
+}
+.home-project-card.home-project-recommended .home-bookmark:hover { color: var(--project-accent); }
+/* Recommended project cards: score, recruitment and deadline at a glance. */
+.home-project-card.home-project-recommended .home-card-open {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: 100%;
+  padding: 0;
+}
+.home-project-card.home-project-recommended .home-project-art {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--surface-image);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-secondary) 10%, transparent);
+}
+.home-project-card.home-project-recommended .home-bookmark {
+  top: 12px;
+  right: 12px;
+  bottom: auto;
+}
+.home-project-card.home-project-recommended .home-recommended-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px 18px;
+  background: var(--surface-card);
+  min-width: 0;
+}
+.home-project-card.home-project-recommended .home-recommended-summary h3 { margin: 0; color: var(--text-main); font-size: 20px; font-weight: 700; line-height: 1.3; letter-spacing: -.04em; }
+.home-project-card.home-project-recommended .home-recommended-summary p { margin: 4px 0 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+.home-project-card.home-project-recommended .home-recommended-summary .home-project-domain-badge { display: inline-flex; }
+.home-project-card.home-project-recommended .home-recommended-score { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--project-accent) 36%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--project-accent) 8%, var(--surface-card)); color: var(--project-accent); font-size: 11px; font-weight: 600; line-height: 16px; white-space: nowrap; }
+.home-project-card.home-project-recommended .home-recommended-score svg { width: 13px; height: 13px; }
+.home-project-card.home-project-recommended .home-recommended-score strong { font-size: 13px; }
+.home-project-card.home-project-recommended .home-recommended-reason { display: flex; align-items: flex-start; gap: 8px; margin: 9px 0 0; color: var(--text-main); font-size: 12px; line-height: 1.5; }
+.home-project-card.home-project-recommended .home-recommended-reason svg { flex: 0 0 15px; width: 15px; height: 15px; margin-top: 2px; color: var(--project-accent); }
+.home-project-card.home-project-recommended .home-recommended-reason svg path { stroke: currentColor; }
+.home-project-card.home-project-recommended .home-recommended-avatars img, .home-project-card.home-project-recommended .home-recommended-avatars > span { display: grid; place-items: center; width: 24px; height: 24px; border: 2px solid var(--surface-card); border-radius: 50%; background: var(--surface-badge); object-fit: cover; color: var(--text-main); font-size: 10px; font-weight: 600; }
+.home-project-card.home-project-recommended .home-recommended-avatars img + img, .home-project-card.home-project-recommended .home-recommended-avatars img + span { margin-left: -6px; }
+.home-project-card.home-project-recommended .home-recommended-members .home-project-progress { width: min(100%, 160px); }
+.home-project-card.home-project-recommended .home-recommended-meta > span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.home-project-card.home-project-recommended .home-recommended-meta svg { width: 14px; height: 14px; flex: none; }
+
+@media screen and (1024px <= width < 1536px) {
+  .desktop-content .home-project-card.home-project-recommended .home-project-art { aspect-ratio: 2 / 1; }
+  .desktop-content .home-project-card.home-project-recommended .home-recommended-content { padding-block: 11px; gap: 8px; }
+  .desktop-content .home-project-card.home-project-recommended .home-recommended-reason { margin-top: 6px; }
+}

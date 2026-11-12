@@ -1,31 +1,30 @@
 import { type RespondDecision, respondProposal } from '@apis/matching';
 import { useAuth } from '@clerk/clerk-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { DevTab } from './useDevProjects';
+import { type InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { MatchingProject, Page } from './useDevProjects';
 
 export function useRespondProposal() {
   const { getToken } = useAuth();
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
+  const queryKey = ['dev-projects', 'suggested'];
 
   return useMutation({
-    mutationFn: async (params: { matchingId: number; decision: RespondDecision; tab: DevTab }) => {
+    mutationFn: async ({ matchingId, decision }: { matchingId: number; decision: RespondDecision }) => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');
-      return respondProposal(params.matchingId, params.decision, token);
+      const result = await respondProposal(matchingId, decision, token);
+      if (result?.isSuccess === false) throw new Error(result.message);
     },
-
-    onSuccess: (_res, vars) => {
-      qc.setQueryData(['dev-projects', vars.tab], (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          content: (old.content ?? []).map((item: any) =>
-            item.matchingId === vars.matchingId ? { ...item, decision: vars.decision } : item,
-          ),
-        };
-      });
-
-      qc.invalidateQueries({ queryKey: ['dev-projects', vars.tab] });
+    onSuccess: async (_result, { matchingId, decision }) => {
+      await queryClient.cancelQueries({ queryKey });
+      queryClient.setQueryData<InfiniteData<Page<MatchingProject>>>(queryKey, (previous) => previous && ({
+        ...previous,
+        pages: previous.pages.map((page) => ({
+          ...page,
+          content: page.content.map((item) => item.matchingId === matchingId ? { ...item, decision } : item),
+        })),
+      }));
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 }

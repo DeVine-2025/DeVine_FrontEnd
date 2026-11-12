@@ -53,6 +53,7 @@ const TermsPage = () => {
   return (
     <TermsDetailScreen
       open
+      compactDesktop
       title={selectedTerms.title}
       content={selectedTerms.content}
       onClose={() => navigate(-1)}

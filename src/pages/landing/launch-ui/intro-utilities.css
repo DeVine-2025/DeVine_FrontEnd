@@ -1,0 +1,4 @@
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+@source "../service-page.tsx";
+@source "./components/sections/hero/default.tsx";

@@ -1,0 +1,103 @@
+.notification-panel {
+  position: fixed;
+  z-index: 50;
+  top: 76px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  width: min(384px, calc(100vw - 24px));
+  max-height: calc(100dvh - 88px);
+  overflow: hidden;
+  border: 1px solid var(--project-control-border);
+  border-radius: 14px;
+  background: var(--surface-card);
+  color: var(--text-main);
+  box-shadow: 0 16px 44px rgb(0 0 0 / .25);
+  animation: notification-panel-enter .16s ease-out both;
+}
+
+@keyframes notification-panel-enter {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notification-panel-header h2 { margin: 0; font-size: 16px; font-weight: 700; }
+.notification-panel-icon, .notification-panel-close { display: grid; flex: none; place-items: center; width: 32px; height: 32px; border-radius: 8px; }
+.notification-panel-icon, .notification-panel-count {
+  background: color-mix(in srgb, var(--project-accent) 12%, var(--surface-card));
+  color: var(--project-accent);
+}
+.notification-panel-count { min-width: 21px; padding: 1px 6px; border-radius: 999px; text-align: center; font-size: 11px; font-weight: 700; }
+.notification-panel-close { margin-left: auto; color: var(--text-secondary); }
+.notification-panel-close:hover { background: var(--surface-badge); color: var(--text-main); }
+.notification-panel-filter-row {
+  flex: none;
+  padding: 0 15px;
+}
+.notification-panel-filters.explore-tabs {
+  gap: 20px;
+  margin-bottom: 0;
+  border-bottom-color: var(--project-divider);
+}
+.notification-panel-filters.explore-tabs button {
+  gap: 5px;
+  min-height: 38px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.notification-panel-filters .notification-panel-count { min-width: 16px; padding: 0 4px; }
+.notification-panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 360px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+}
+.notification-panel-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.notification-panel-item {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 9px;
+  width: 100%;
+  padding: 11px 9px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  text-align: left;
+}
+.notification-panel-item[data-unread='true'] {
+  border-color: color-mix(in srgb, var(--project-accent) 13%, transparent);
+  background: color-mix(in srgb, var(--project-accent) 7%, var(--surface-card));
+}
+.notification-panel-item:hover { background: var(--surface-badge); }
+.notification-panel-dot { width: 6px; height: 6px; margin-top: 6px; border-radius: 50%; }
+.notification-panel-item[data-unread='true'] .notification-panel-dot { background: var(--project-accent); }
+.notification-panel-summary { display: grid; gap: 4px; }
+.notification-panel-title { overflow-wrap: anywhere; color: var(--text-main); font-size: 13px; font-weight: 600; line-height: 1.4; }
+.notification-panel-item[data-unread='true'] .notification-panel-title { font-weight: 700; }
+.notification-panel-description { overflow-wrap: anywhere; color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+.notification-panel-time { color: var(--text-secondary); font-size: 11px; white-space: nowrap; }
+.notification-panel-state { display: grid; justify-items: center; gap: 7px; margin: 0; padding: 28px 12px; color: var(--text-secondary); font-size: 13px; text-align: center; }
+.notification-panel-state strong { color: var(--text-main); }
+.notification-panel-footer { flex: none; display: flex; justify-content: flex-end; padding: 9px 12px; border-top: 1px solid var(--project-divider); }
+.notification-panel-footer button, .notification-panel-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 4px 9px;
+  border-radius: 7px;
+  color: var(--project-accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+.notification-panel-more { width: 100%; margin-top: 4px; }
+.notification-panel-footer button:hover, .notification-panel-more:hover:not(:disabled) { background: var(--surface-badge); }
+.notification-panel-more:disabled { opacity: .55; }
+.notification-panel button:focus-visible { outline: 2px solid var(--project-accent); outline-offset: -2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-panel { animation: none; }
+}

@@ -28,7 +28,7 @@ export interface DatePickerPopoverProps {
 }
 
 const defaultInputClass =
-  'Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] pr-10 font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-400)] focus:border-[#4E49FF] focus:outline-none';
+  'Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] pr-10 font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-400)] focus:border-[var(--project-create-accent,#6654F5)] focus:outline-none';
 
 export default function DatePickerPopover({
   value,
@@ -98,7 +98,7 @@ export default function DatePickerPopover({
           className={
             inputClassName ??
             (error
-              ? `${defaultInputClass} !border-form-error focus:!border-[#4E49FF]`
+              ? `${defaultInputClass} !border-form-error focus:!border-[var(--project-create-accent,#6654F5)]`
               : defaultInputClass)
           }
         />

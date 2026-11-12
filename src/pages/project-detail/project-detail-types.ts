@@ -1,5 +1,6 @@
 import type { Position, ProjectItem, TechStack } from '@t/project/api';
 import type { BadgeTone } from 'src/shared/types/badgeTone';
+import { splitProjectFeatures } from './project-features';
 
 /** toProjectDetailInfo 등에서 쓰는 폴백용 최소 형태 (mock 제거 후 로컬 정의) */
 export type FallbackProjectShape = {
@@ -17,6 +18,10 @@ export type FallbackProjectShape = {
 
 export type ProjectDetailInfo = {
   id: string;
+  memberCount?: { current: number; total: number };
+  description?: string;
+  recruitmentDate?: string;
+  countdown?: string;
   categoryLabel?: string;
   deadlineLabel?: string;
   title: string;
@@ -25,6 +30,7 @@ export type ProjectDetailInfo = {
   mode?: string;
   dueLabel?: string;
   summary?: string;
+  features?: string[];
   creatorName?: string | null;
   creatorId?: number;
   /** 작성자 Clerk ID — 연락하기(채팅)용 */
@@ -114,8 +120,9 @@ function getProjectImageUrls(project: ProjectItem): string[] {
 }
 
 export const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailInfo => {
-  const summary =
-    'content' in project && typeof project.content === 'string' ? project.content : undefined;
+  const content =
+    'content' in project && typeof project.content === 'string' ? project.content : '';
+  const { summary, features } = splitProjectFeatures(content);
   const imageUrls = getProjectImageUrls(project);
   const recruitments =
     'recruitments' in project && Array.isArray(project.recruitments)
@@ -135,10 +142,15 @@ export const toProjectDetailInfoFromApi = (project: ProjectItem): ProjectDetailI
     period: project.durationRangeName ?? undefined,
     mode: project.modeName,
     dueLabel: project.recruitmentDeadline,
+    recruitmentDate: project.recruitmentDeadline,
+    countdown: typeof project.daysUntilDeadline === 'number'
+      ? project.daysUntilDeadline < 0 ? '마감' : project.daysUntilDeadline === 0 ? 'D-Day' : `D-${project.daysUntilDeadline}`
+      : undefined,
     bookmarked: project.bookmarked,
     bookmarkId: project.bookmarkId,
     status: (project.status as import('@apis/project-detail').ProjectStatus) ?? undefined,
     summary,
+    features,
     creatorName: project.creatorNickname ?? project.creatorName,
     creatorId: project.creatorId,
     creatorClerkId: project.creatorClerkId ?? null,

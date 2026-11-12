@@ -74,17 +74,6 @@ export type RecommendProjectPreviewItem = {
   bookmarkId?: number;
 };
 
-type RecommendProjectsResponse = {
-  result?: {
-    projects?: {
-      content?: RecommendProjectPreviewItem[];
-    };
-  };
-  projects?: {
-    content?: RecommendProjectPreviewItem[];
-  };
-};
-
 export async function getRecommendProjectsPreview(limit: number, token: string) {
   const res = await fetch(`${BASE_URL}/api/v1/projects/recommend/preview?limit=${limit}`, {
     method: 'GET',

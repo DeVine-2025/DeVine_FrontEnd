@@ -60,22 +60,3 @@ export type RecommendProjectSuitability = {
 
 export type RecommendProjectCardProps = RecommendProjectCardCoreProps & RecommendProjectSuitability;
 
-export type RecommendProjectCardBaseParts = {
-  metaText: string;
-
-  Thumbnail: ReactNode;
-  HeaderBadges: ReactNode;
-  Title: ReactNode;
-  Meta: ReactNode;
-
-  RolesLg: ReactNode;
-  RolesMd: ReactNode;
-
-  Due: ReactNode;
-  Bookmark: ReactNode;
-};
-
-export type RecommendProjectCardBaseProps = RecommendProjectCardCoreProps & {
-  render: (parts: RecommendProjectCardBaseParts) => ReactNode;
-};
-

@@ -1,0 +1,28 @@
+- generic [ref=f1e3]:
+  - banner [ref=f1e5]:
+    - generic [ref=f1e6]:
+      - generic [ref=f1e7]:
+        - button [ref=f1e9] [cursor=pointer]:
+          - img "Devine" [ref=f1e11]
+        - navigation [ref=f1e12]:
+          - link "탐색" [ref=f1e13] [cursor=pointer]:
+            - /url: /search/projects
+          - link "추천" [ref=f1e14] [cursor=pointer]:
+            - /url: /recommend
+          - link "리포트" [ref=f1e15] [cursor=pointer]:
+            - /url: /report
+          - link "지원 현황" [ref=f1e16] [cursor=pointer]:
+            - /url: /my-project
+          - link "프로젝트 등록" [ref=f1e17] [cursor=pointer]:
+            - /url: /project/create
+      - button "알림 열기" [ref=f1e19] [cursor=pointer]
+  - main [ref=f1e25]:
+    - generic [ref=f1e28]:
+      - heading "코드로 증명하고, 데이터로 연결하다." [level=1] [ref=f1e29]: 코드로 증명하고,데이터로 연결하다.
+      - paragraph [ref=f1e30]: GitHub 코드 분석 기반사이드 프로젝트 매칭 플랫폼
+      - generic [ref=f1e31]:
+        - link "DeVine 시작하기" [ref=f1e32] [cursor=pointer]:
+          - /url: /
+        - link "프로젝트 둘러보기" [ref=f1e33] [cursor=pointer]:
+          - /url: /search/projects
+      - img "DeVine 프로젝트 탐색 화면 미리보기" [ref=f1e37]

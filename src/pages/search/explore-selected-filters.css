@@ -1,0 +1,6 @@
+.explore-selected-filters .explore-selected-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 30px; padding: 5px 9px; border: 1px solid color-mix(in srgb, var(--project-accent) 24%, var(--surface-badge)); border-radius: 6px; background: color-mix(in srgb, var(--project-accent) 7%, var(--surface-filter)); color: var(--text-main); font-size: 12px; line-height: 1.4; cursor: pointer; }
+.explore-selected-chip svg { flex: none; color: var(--text-secondary); }
+.explore-selected-chip:hover { border-color: var(--project-accent); }
+.explore-selected-filters .explore-selected-clear { min-height: 30px; padding: 5px 8px; border: 0; background: transparent; color: var(--text-secondary); font-size: 12px; cursor: pointer; }
+.explore-selected-clear:hover { color: var(--text-main); }
+.explore-selected-filters button:focus-visible { outline: 2px solid var(--project-accent); outline-offset: 3px; }

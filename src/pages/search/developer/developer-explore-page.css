@@ -1,0 +1,52 @@
+/* Hallmark · component: developer collaboration card · theme: DeVine brand · scope: app · redesign: full */
+/* Critique: identity and skills lead; identity, skills, routes and bookmark handlers are retained. */
+/* Representative projects and collaboration conditions use local mock fixtures. */
+.developer-explore-toolbar { margin: 16px 0 20px; }
+.developer-project-types { padding: 0; margin: 0; border: 0; min-width: 0; }
+.developer-project-types .is-unavailable { opacity: .5; cursor: not-allowed; }
+.developer-project-types input:disabled { cursor: not-allowed; }
+.developer-explore-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+.developer-explore-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
+.developer-explore-grid > .developer-list-message, .developer-explore-grid > .explore-empty { grid-column: 1 / -1; }
+.developer-explore-grid .developer-card--grid { display: flex; flex-direction: column; padding: 0; border-radius: 11px; background: var(--surface-card); }
+.developer-explore-grid .developer-card--grid .developer-card-identity { display: grid; grid-template-columns: minmax(0, 1fr); padding: 0; gap: 0; }
+.developer-explore-grid .developer-card--grid .developer-card-identity::before { content: ''; grid-area: 1 / 1; height: 200px; background: var(--surface-image); }
+.developer-explore-grid .developer-card--grid .developer-explore-avatar { grid-area: 1 / 1; place-self: center; width: 88px; height: 88px; margin: 0; }
+.developer-explore-grid .developer-card--grid .developer-card-person { min-width: 0; padding: 16px; }
+.developer-explore-grid .developer-card--grid .developer-card-person h2 { font-size: 16px; }
+.developer-explore-grid .developer-card--grid .developer-card-introduction { margin-top: 6px; }
+.developer-explore-grid .developer-card--grid .developer-card-introduction > p { font-size: 13px; }
+.developer-explore-grid .developer-card--grid .developer-card-footer { width: auto; align-self: stretch; margin: auto 16px 0; padding: 12px 0 16px; }
+.developer-explore-grid .developer-card--grid .developer-card-conditions { gap: 8px 16px; font-size: 12px; }
+.developer-explore-grid .developer-card--grid .developer-explore-bookmark { top: 8px; right: 8px; }
+@media (max-width: 1000px) { .developer-explore-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .developer-explore-grid { grid-template-columns: minmax(0, 1fr); } }
+.developer-list-message { padding: 44px 20px; color: var(--text-secondary); text-align: center; }
+.developer-list-message button { color: var(--project-accent); }
+
+
+
+
+
+
+
+.developer-card-work-copy { display: block; min-width: 0; }
+.developer-card-project-summary { display: block; margin-top: 4px; color: var(--text-secondary); font-size: 13px; line-height: 1.6; word-break: keep-all; }
+
+.developer-report-thumbnail { display: grid; place-items: center; flex: none; width: 56px; height: 64px; border: 1px solid color-mix(in srgb, var(--project-accent) 20%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--project-accent) 6%, var(--surface-input)); color: var(--project-accent); }
+.developer-report-thumbnail > svg { width: 30px; height: 30px; }
+.developer-card-report-action { display: flex; align-items: center; gap: 6px; margin-top: 8px; color: var(--project-accent); font-size: 11px; line-height: 1.5; }
+.developer-card-report-action > svg { width: 12px; height: 12px; transition: transform .18s ease; }
+.developer-card-work-toggle[aria-expanded="true"] .developer-card-report-action > svg { transform: rotate(180deg); }
+.developer-card-work-description > strong { color: var(--text-main); font-size: 12px; font-weight: 500; }
+.developer-card-work-description > p { margin: 4px 0 12px; }
+.developer-card-work-description > ul { margin: 4px 0 0; padding-left: 16px; }
+@media (prefers-reduced-motion: reduce) { .developer-card-report-action > svg { transition: none; } }
+
+@media screen and (1024px <= width < 1536px) {
+  .desktop-content .developer-explore-grid .developer-card--grid { container-type: inline-size; }
+  .desktop-content .developer-explore-grid .developer-card--grid .developer-card-identity::before { height: clamp(124px, 51cqw, 188px); }
+  .desktop-content .developer-explore-grid .developer-card--grid .developer-explore-avatar { width: clamp(70px, 23cqw, 84px); height: clamp(70px, 23cqw, 84px); }
+  .desktop-content .developer-explore-grid .developer-card--grid .developer-card-person { padding-block: 12px; }
+  .desktop-content .developer-explore-grid .developer-card--grid .developer-card-footer { padding-bottom: 12px; }
+}

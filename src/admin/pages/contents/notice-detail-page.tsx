@@ -86,7 +86,7 @@ export default function NoticeDetailPage() {
               삭제
             </button>
             <button
-              className="Body1 inline-flex cursor-pointer items-center justify-center rounded-[8px] bg-[#4e49ff] px-[16px] py-[10px] text-white transition-opacity hover:opacity-90"
+              className="Body1 inline-flex cursor-pointer items-center justify-center rounded-[8px] bg-[#6654F5] px-[16px] py-[10px] text-white transition-opacity hover:opacity-90"
               onClick={() => setIsEditOpen(true)}
               type="button"
             >
@@ -107,8 +107,8 @@ export default function NoticeDetailPage() {
           공지사항 상세 정보를 불러오는 중입니다.
         </div>
       ) : (
-        <div className="mt-[28px] flex flex-col gap-[24px]">
-          <div className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px]">
+        <div className="mt-[28px] flex flex-col gap-[24px] lg:max-2xl:gap-[18px] lg:max-2xl:p-[18px]">
+          <div className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px] lg:max-2xl:p-[18px]">
             <div className="flex flex-wrap items-start justify-between gap-[16px]">
               <div>
                 <p className="Body1 text-[var(--ui-500)]">공지 ID {data.noticeId}</p>
@@ -128,7 +128,7 @@ export default function NoticeDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px]">
+          <div className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px] lg:max-2xl:p-[18px]">
             <h2 className="Headline1 font-semibold text-[var(--ui-1000)]">게시 정보</h2>
             <div className="mt-[16px] overflow-hidden rounded-[8px] border border-[var(--ui-200)]">
               <InfoItem label="노출 설정" value={data.isExposed ? '노출' : '비노출'} />

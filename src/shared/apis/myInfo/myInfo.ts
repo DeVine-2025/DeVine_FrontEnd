@@ -1,4 +1,4 @@
-import { ApiResponse } from '@apis/base/api';
+import type { ApiResponse } from '@apis/base/api';
 
 export interface MyProfile {
   /** MemberProfileDTO 최상위 — 채팅방 생성용 (개발자 상세) */
@@ -48,7 +48,7 @@ export interface UpdateProfileRequest {
   imageUrl?: string;
   address: string;
   body: string;
-  domains: string[];
+  domains?: string[];
   contacts: {
     type: string;
     value: string;

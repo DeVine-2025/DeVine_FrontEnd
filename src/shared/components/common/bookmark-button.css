@@ -1,0 +1,16 @@
+.devine-bookmark-button { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; min-width: 40px; min-height: 40px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #9ea6ba; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.devine-bookmark-button:hover { background: #9ea6ba09; }
+.devine-bookmark-button:focus-visible { outline: 2px solid #817eff; outline-offset: 2px; }
+.devine-bookmark-button[aria-disabled='true'] { cursor: default; }
+.bookmark-ribbon { --ribbon-color: #9ea6ba; --default-position: 32px; --default-y: 0px; --background-height: 17px; display: block; position: relative; flex-shrink: 0; width: 36px; height: 31px; overflow: hidden; transform: scale(.9); pointer-events: none; }
+.bookmark-ribbon[data-saved='true'] { --ribbon-color: #4e49ff; --default-position: 0px; --background-height: 19px; }
+.bookmark-ribbon::before { content: ''; position: absolute; top: 0; left: 9px; width: 18px; height: 19px; border-radius: 1px; clip-path: inset(0 -1px var(--background-height) -1px); background: var(--ribbon-color); transform: translateZ(0); }
+.devine-bookmark-button .bookmark-ribbon-svg { display: block; width: 36px; height: 36px; margin-top: -5px; position: relative; z-index: 1; overflow: visible; stroke: var(--ribbon-color); stroke-width: 2px; stroke-linejoin: round; stroke-linecap: round; transform: translateZ(0); }
+.bookmark-ribbon-svg path { fill: transparent; }
+.bookmark-ribbon-svg .filled { fill: var(--ribbon-color); }
+.bookmark-ribbon-svg .default, .bookmark-ribbon-svg .bookmark-ribbon-mask { clip-path: circle(var(--default-position) at 50% 100%); }
+.bookmark-ribbon-svg .default, .bookmark-ribbon-svg .filled, .bookmark-ribbon-svg .bookmark-ribbon-mask { transform: translateY(var(--default-y)) translateZ(0); }
+/* Mask the covering path instead of painting CodePen's solid page background over gradient cards. */
+.bookmark-ribbon-svg .bookmark-ribbon-mask { fill: black; stroke: black; }
+.bookmark-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (max-width: 760px), (pointer: coarse) { .devine-bookmark-button { min-width: 44px; min-height: 44px; } }

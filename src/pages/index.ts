@@ -1,6 +1,6 @@
 export { default as SsoCallbackPage } from './auth/sso-callback-page';
 export { default as LoginPage } from './login/login-page';
-export { default as MainPage } from './main/main-page';
+export { default as LegacyHomePage } from './main/legacy-home-page';
 export { default as AppliedPage } from './matching/applied/applied-page';
 export { default as CompletedPage } from './matching/completed/completed-page';
 export { default as InProgressPage } from './matching/in-progress/in-progress-page';

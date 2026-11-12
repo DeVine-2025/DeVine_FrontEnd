@@ -1,16 +1,10 @@
-import MyPMTopSection, { type DevTab } from '@components/myProject/MyPMTopSection';
-import { useState } from 'react';
+import MyPMTopSection from '@components/myProject/MyPMTopSection';
+import MatchingView from '../matching-view';
 
-const MyPMPage = () => {
-  const [devTab, setDevTab] = useState<DevTab>('suggested');
-
+export default function MyPMPage() {
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto w-full max-w-[1180px] pb-20">
-        <MyPMTopSection devTab={devTab} onChangeDevTab={setDevTab} />
-      </div>
-    </div>
+    <MatchingView role="pm">
+      <MyPMTopSection />
+    </MatchingView>
   );
-};
-
-export default MyPMPage;
+}

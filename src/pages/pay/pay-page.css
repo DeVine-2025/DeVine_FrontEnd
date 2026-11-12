@@ -1,0 +1,63 @@
+@keyframes pay-report-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.8rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pay-report-page-enter {
+  animation: pay-report-page-enter 420ms ease-out both;
+}
+
+.pay-preview-progress {display:flex;align-items:center;gap:10px;margin:-8px 0 16px;color:var(--ui-500);font-size:11px;font-variant-numeric:tabular-nums;}
+.pay-preview-progress-track {width:64px;height:2px;overflow:hidden;border-radius:2px;background:rgba(180,154,255,.18);}
+.pay-preview-progress-track span {display:block;width:100%;height:100%;background:#b49aff;transform-origin:left;animation:pay-preview-progress 5s linear both;}
+.pay-preview-progress-track span.is-paused {animation-play-state:paused;}
+@keyframes pay-preview-progress {from {transform:scaleX(0);} to {transform:scaleX(1);}}
+
+/* 실제 메인 리포트의 구조를 구매 페이지 안에서 읽기 좋게 축소합니다. */
+.pay-report-preview .report-workspace {grid-template-columns:145px minmax(0,1fr);min-height:420px;border:0;border-radius:0;overflow:visible;background:transparent;}
+.pay-report-preview .rw-sidebar {padding:16px 8px;}
+.pay-report-preview .rw-project {padding:0 7px 14px;}
+.pay-report-preview .rw-project strong {font-size:12px;}
+.pay-report-preview .rw-project span {font-size:10px;}
+.pay-report-preview .rw-tablist button {min-height:38px;padding:8px;font-size:12px;gap:7px;}
+.pay-report-preview .rw-tablist svg {width:14px;height:14px;}
+.pay-report-preview .rw-content {height:auto;min-height:420px;overflow:visible;}
+.pay-report-preview .rw-panel {padding:20px 24px 24px;}
+.pay-report-preview .rw-breadcrumb {flex-wrap:wrap;}
+.pay-report-preview .report-panel-kicker {margin-top:16px;font-size:10px;}
+.pay-report-preview .rw-panel header h2 {margin:8px 0 5px;font-size:23px;}
+.pay-report-preview .rw-panel header p {font-size:14px;}
+.pay-report-preview .rw-section-body {margin-top:20px;}
+.pay-report-preview .report-project-title h2 {font-size:24px;}
+.pay-report-preview .report-overview-summary {margin-top:12px;font-size:14px;line-height:1.7;}
+.pay-report-preview .report-overview-scale {margin-top:20px;padding:16px 0;}
+.pay-report-preview .report-overview-scale h3,.pay-report-preview .report-section h3 {font-size:14px;}
+.pay-report-preview .report-overview-scale p,.pay-report-preview .report-reading-list li,.pay-report-preview .report-case-description {font-size:13px;}
+.pay-report-preview .report-feature p {font-size:13px;}
+.pay-report-preview .report-case h3 {font-size:16px;}
+.pay-report-preview .report-section {margin-top:20px;padding-top:18px;}
+.pay-report-preview .report-case-capabilities {margin-top:14px;padding:12px 14px;}
+.pay-report-preview .report-recommendations p {font-size:13px;}
+.pay-report-preview .report-evaluation-row {grid-template-columns:1fr;gap:10px;}
+@media(max-width:600px) {
+  .pay-report-preview .report-workspace {grid-template-columns:1fr;min-height:0;}
+  .pay-report-preview .rw-sidebar {border-right:0;border-bottom:1px solid var(--project-divider);}
+  .pay-report-preview .rw-tablist {flex-direction:row;overflow-x:auto;}
+  .pay-report-preview .rw-tablist button {width:auto;flex:none;white-space:nowrap;}
+  .pay-report-preview .rw-content {height:auto;min-height:0;}
+  .pay-report-preview .rw-panel {padding:20px;}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pay-preview-progress-track span {animation:none;transform:scaleX(1);}
+  .pay-report-page-enter {
+    animation: none;
+  }
+}

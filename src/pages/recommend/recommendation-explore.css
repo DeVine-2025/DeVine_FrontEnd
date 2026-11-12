@@ -1,0 +1,201 @@
+/* Hallmark · scope: app · brand: DeVine · redesign: polish */
+/* The selected project sets the context for the search and results below. */
+.recommend-explore-layout { display: grid; grid-template-columns: 246px minmax(0, 1fr); gap: 40px; margin-top: 24px; }
+.recommend-explore-layout .rec-filters { display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 16px 12px; }
+.recommend-explore-layout .rec-filter-label { margin: 0; }
+.recommend-explore-layout .rec-open-only { min-height: 32px; }
+.recommend-explore-layout .rec-menu-trigger { width: 100%; }
+.recommend-explore-layout .rec-toolbar { justify-content: flex-end; }
+.recommend-explore-layout .explore-view-controls { gap: 8px; }
+.recommend-filter-heading { display: block; padding: 8px 12px; color: var(--text-main); }
+.recommend-explore-layout .explore-filter-option input[type='radio'] { accent-color: var(--project-accent); }
+.recommendation-page .explore-tabs { margin-bottom: 20px; }
+.rec-project-picker { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-bottom: 16px; padding: 16px; border: 1px solid var(--surface-badge); border-radius: 10px; background: var(--surface-filter); }
+.rec-project-picker p { margin: 4px 0 0; color: var(--text-secondary); font-size: 12px; }
+.recommend-explore-layout .rec-project-picker .rec-menu-trigger { width: auto; max-width: 100%; white-space: normal; text-align: left; }
+.rec-project-picker-name { color: var(--project-accent); font-weight: 600; overflow-wrap: anywhere; }
+.rec-developer-results-title { margin: 0; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.recommend-explore-layout :is(button, input, a):focus-visible { outline: 2px solid var(--project-accent); outline-offset: 3px; }
+.recommend-explore-layout .rec-project-picker .rec-menu-trigger:active { background: var(--surface-badge); }
+@media (max-width: 760px) { .recommend-explore-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; } }
+
+/* Hallmark redesign: full · DeVine brand · project-context workbench.
+   Project navigation carries the recommendation context; controls sit with results.
+   Existing typography, surfaces and accent tokens are preserved. */
+.recommend-workspace { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 40px; padding-top: 24px; }
+.recommend-project-rail { align-self: start; position: sticky; top: 96px; min-width: 0; padding: 8px; border: 1px solid var(--project-control-border); border-radius: 12px; background: var(--surface-filter); }
+.recommend-rail-heading { padding: 8px 8px 12px; border-bottom: 1px solid var(--surface-badge); }
+.recommend-rail-heading h2 { margin: 0 0 4px; font-size: 16px; font-weight: 600; color: var(--text-main); }
+.recommend-rail-heading p, .recommend-rail-note { margin: 0; font-size: 12px; line-height: 1.7; color: var(--text-secondary); }
+.recommend-project-option { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 12px; border: 0; border-radius: 8px; background: transparent; color: var(--text-secondary); text-align: left; font-size: 14px; transition: background-color 160ms ease, color 160ms ease; }
+.recommend-project-option span { flex: 1; min-width: 0; overflow-wrap: anywhere; line-height: 1.5; }
+.recommend-project-option svg { flex-shrink: 0; }
+.recommend-project-option:hover { background: var(--surface-badge); color: var(--text-main); }
+.recommend-project-option[aria-pressed='true'] { background: color-mix(in srgb, var(--project-accent) 15%, var(--surface-filter)); color: var(--project-accent); font-weight: 600; }
+.recommend-project-option:active { transform: translateY(1px); }
+.recommend-rail-note { padding: 12px 8px 8px; border-top: 1px solid var(--surface-badge); }
+.recommend-result-controls { display: flex; align-items: center; gap: 16px; }
+.recommend-result-controls .explore-search { flex: 1; min-width: 0; margin: 0; }
+.recommend-position-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 16px 0 20px; margin-bottom: 16px; border-bottom: 1px solid var(--surface-badge); }
+.recommend-position-bar > span { margin-right: 8px; font-size: 12px; color: var(--text-secondary); }
+.recommend-position-bar button { min-height: 32px; padding: 4px 12px; border: 1px solid transparent; border-radius: 6px; font-size: 12px; color: var(--text-secondary); background: transparent; transition: background-color 160ms ease, color 160ms ease; }
+.recommend-position-bar button:hover { background: var(--surface-filter); color: var(--text-main); }
+.recommend-position-bar button[aria-pressed='true'] { background: var(--surface-badge); color: var(--text-main); }
+.recommend-position-bar .recommend-filter-reset { margin-left: auto; }
+.recommend-workspace :is(button, input, a):focus-visible { outline: 2px solid var(--project-accent); outline-offset: 3px; }
+.recommend-workspace .developer-explore-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1100px) {
+  .recommend-workspace { grid-template-columns: 192px minmax(0, 1fr); gap: 24px; }
+  .recommend-workspace .developer-explore-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .recommend-workspace { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .recommend-project-rail { position: static; }
+  .recommend-rail-note { display: none; }
+}
+@media (max-width: 480px) { .recommend-workspace .developer-explore-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .recommend-workspace *, .recommend-workspace *::before, .recommend-workspace *::after { animation: none !important; transition: none !important; } }
+
+.recommend-workspace h2 { text-wrap: balance; }
+.rec-home-projects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.rec-home-projects--list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.rec-home-projects .home-project-card { min-width: 0; }
+@media (max-width: 1100px) { .rec-home-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .rec-home-projects { grid-template-columns: minmax(0, 1fr); } }
+.rec-project-page .rec-basis { min-height: 56px; padding: 12px 0; border: 0; border-bottom: 1px solid var(--surface-badge); border-radius: 0; background: transparent; }
+.rec-project-page .rec-preview-notice { margin: 12px 0 0; color: var(--text-secondary); font-size: 12px; }
+.rec-project-page .recommend-explore-layout { grid-template-columns: 208px minmax(0, 1fr); gap: 28px; }
+.rec-project-page .rec-home-projects { gap: 20px; }
+.rec-home-projects .home-recommended-content { gap: 16px; padding: 16px; }
+.rec-home-projects .home-recommended-summary h3 { font-size: 18px; }
+.rec-home-projects .home-recommended-summary p { font-size: 13px; }
+.rec-home-projects .home-recommended-stat { padding: 0 8px; }
+.rec-home-projects .home-recommended-stat:last-child { padding-left: 12px; }
+.rec-home-projects .home-recommended-ring { width: 48px; height: 48px; }
+.rec-home-projects .home-recommended-ring strong { font-size: 15px; }
+.rec-home-projects .home-recommended-deadline > strong { font-size: 17px; }
+.rec-home-projects--list { grid-template-columns: minmax(0, 1fr); }
+.rec-home-projects--list .home-project-card.home-project-recommended .home-card-open { flex-direction: row; }
+.rec-home-projects--list .home-project-card.home-project-recommended .home-project-art { width: 28%; aspect-ratio: auto; }
+.rec-home-projects--list .home-recommended-content { gap: 12px; }
+.rec-home-projects--list .home-recommended-stats { max-width: 360px; }
+@media(max-width: 760px) { .rec-project-page .recommend-explore-layout { grid-template-columns: minmax(0, 1fr); } }
+.rec-home-projects .home-project-card.home-project-recommended .home-project-art { aspect-ratio: 2 / 1; }
+.rec-project-page .explore-search { border-color: var(--text-secondary); }
+.rec-project-page :is(button,a,input):focus-visible { outline: 2px solid var(--project-accent); outline-offset: 3px; }
+.recommend-position-bar .rec-menu-trigger {
+  min-height: 36px;
+  border-color: var(--project-control-border);
+  background: var(--surface-filter);
+  color: var(--text-main);
+}
+.recommend-position-bar .rec-menu-trigger[data-state='open'] { border-color: var(--project-accent); }
+.recommend-position-bar .rec-menu-trigger { width: min(144px, 100%); }
+.recommend-position-bar .rec-menu-trigger-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-menu-trigger-content { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.rec-menu-trigger-content > svg, .rec-menu-option-label > svg { flex: none; }
+.recommend-position-bar .rec-menu-trigger > svg { flex-shrink: 0; }
+.rec-menu-option-label { display: inline-flex; align-items: center; gap: 8px; }
+.rec-menu-stack-icon { width: 16px; height: 16px; flex: none; object-fit: contain; }
+
+.recommend-position-bar .rec-menu-trigger {
+  min-height: 38px;
+  padding-inline: 12px;
+  border-radius: 8px;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.recommend-position-bar .rec-menu-trigger:hover {
+  background: var(--surface-card);
+  border-color: var(--text-secondary);
+}
+.recommend-position-bar .rec-menu-trigger:is([data-state='open'], [data-filter-active]) {
+  border-color: color-mix(in srgb, var(--project-accent) 48%, var(--surface-badge));
+  background: color-mix(in srgb, var(--project-accent) 10%, var(--surface-filter));
+  color: var(--project-accent);
+}
+.recommend-position-bar .rec-menu-trigger > svg { transition: transform 200ms ease; }
+.recommend-position-bar .rec-menu-trigger[data-state='open'] > svg { transform: rotate(180deg); }
+
+.rec-menu.rec-menu--developer-filter {
+  min-width: max(180px, var(--radix-dropdown-menu-trigger-width));
+  padding: 6px;
+  border-radius: 10px;
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin);
+}
+.rec-menu--developer-filter .rec-menu-item + .rec-menu-item {
+  position: relative;
+  margin-top: 2px;
+}
+.rec-menu--developer-filter .rec-menu-item + .rec-menu-item::before {
+  content: '';
+  position: absolute;
+  inset: -2px 10px auto;
+  height: 1px;
+  background: color-mix(in srgb, var(--project-divider) 65%, transparent);
+  pointer-events: none;
+}
+.rec-menu--developer-filter .rec-menu-item:is([data-highlighted], [data-state='checked']) {
+  background: color-mix(in srgb, var(--project-accent) 12%, var(--surface-card));
+}
+.rec-menu.rec-menu--developer-filter[data-state='open'] {
+  animation: developer-filter-rise 200ms cubic-bezier(.2, .75, .25, 1) both;
+}
+.rec-menu.rec-menu--developer-filter[data-state='closed'] {
+  pointer-events: none;
+  animation: developer-filter-close 120ms ease-in both;
+}
+@keyframes developer-filter-rise {
+  from { opacity: 0; transform: translateY(6px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes developer-filter-close {
+  to { opacity: 0; transform: translateY(4px) scale(.98); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rec-menu.rec-menu--developer-filter:is([data-state='open'], [data-state='closed']) { animation: none; }
+  .recommend-position-bar .rec-menu-trigger, .recommend-position-bar .rec-menu-trigger > svg { transition: none; }
+}
+
+.recommend-developer-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: clamp(16px, 3vw, 32px);
+  border: 1px solid var(--surface-badge);
+  border-radius: 12px;
+  background: var(--surface-filter);
+}
+.recommend-empty-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  color: var(--project-accent);
+  background: color-mix(in srgb, var(--project-accent) 12%, var(--surface-filter));
+}
+.recommend-empty-copy { min-width: 0; }
+.recommend-empty-copy h2 { margin: 0; font-size: 17px; font-weight: 650; color: var(--text-main); }
+.recommend-empty-copy p { margin: 6px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.recommend-empty-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; }
+.recommend-empty-actions button {
+  padding: 8px 12px;
+  border: 1px solid var(--project-control-border);
+  border-radius: 8px;
+  color: var(--text-main);
+  background: var(--surface-card);
+  font-size: 13px;
+}
+.recommend-empty-actions button:hover { border-color: var(--project-accent); }
+.recommend-empty-actions a { display: inline-flex; align-items: center; gap: 6px; color: var(--project-accent); font-size: 13px; text-decoration: none; }
+.recommend-empty-actions a:hover { text-decoration: underline; }
+
+@media screen and (1024px <= width < 1536px) {
+  .recommend-explore-layout { grid-template-columns: clamp(192px, 16vw, 224px) minmax(0, 1fr); gap: clamp(24px, 2.4vw, 36px); margin-top: 20px; }
+  .recommend-workspace { grid-template-columns: clamp(192px, 16vw, 224px) minmax(0, 1fr); gap: clamp(24px, 2.4vw, 36px); padding-top: 20px; }
+  .recommend-project-option { min-height: 44px; padding: 10px; gap: 10px; }
+  .recommend-position-bar { padding-block: 12px 16px; margin-bottom: 12px; }
+  .recommend-explore-layout .rec-filters { padding-block: 12px; gap: 10px; }
+  .desktop-content .rec-home-projects--list .home-project-card.home-project-recommended .home-project-art { aspect-ratio: auto; }
+}

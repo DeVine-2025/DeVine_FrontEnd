@@ -97,7 +97,7 @@ export default function Pagination({
             className={cn(
               'h-9 w-9 rounded-lg border text-sm',
               isActive
-                ? 'border-[#4E49FF] bg-[#4E49FF] text-white'
+                ? 'border-[#6654F5] bg-[#6654F5] text-white'
                 : 'border-card-border bg-transparent text-card-title',
             )}
           >

@@ -1,27 +1,24 @@
 import ReportCard from '@components/report/ReportCard';
 import { cn } from '@libs/cn';
-import { useThemeStore } from '@store/theme';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const ReportResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme } = useThemeStore();
-  const isLight = theme === 'light';
   const data = location?.state;
 
   const { mainReport, detailReport } = data;
 
   return (
-    <div className="flex min-h-full flex-col items-center justify-center gap-[5.6rem] py-[10rem]">
+    <div className="flex min-h-full flex-col items-center justify-center gap-[5.6rem] py-[10rem] lg:max-2xl:gap-[32px] lg:max-2xl:py-[clamp(44px,8svh,76px)]">
 
       {/* 헤더 */}
       <div className="flex flex-col items-center gap-[2rem]">
         <div
           className="flex h-[5.2rem] w-[5.2rem] items-center justify-center rounded-full"
           style={{
-            background: 'linear-gradient(145deg, #6C63FF, #4E49FF)',
-            boxShadow: '0 0 0 1px rgba(78,73,255,0.4), 0 8px 20px rgba(78,73,255,0.4)',
+            background: 'linear-gradient(145deg, #6C63FF, #6654F5)',
+            boxShadow: '0 0 0 1px rgba(102,84,245,0.4), 0 8px 20px rgba(102,84,245,0.4)',
           }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -39,7 +36,7 @@ const ReportResultPage = () => {
           <h1
             className={cn(
               'text-[2.8rem] font-bold tracking-[-0.02em]',
-              isLight ? 'text-[var(--ui-950)]' : 'text-white/90',
+              'text-white/90',
             )}
           >
             리포트 생성이 완료되었어요
@@ -47,7 +44,7 @@ const ReportResultPage = () => {
           <p
             className={cn(
               'text-[1.4rem]',
-              isLight ? 'text-[var(--ui-500)]' : 'text-white/40',
+              'text-white/40',
             )}
           >
             카드를 클릭해 상세 내용을 확인하세요
@@ -56,7 +53,7 @@ const ReportResultPage = () => {
       </div>
 
       {/* 카드 영역 */}
-      <div className="flex w-full max-w-[56rem] gap-[1.4rem]">
+      <div className="flex w-full max-w-[56rem] gap-[1.4rem] report-result-cards lg:max-2xl:max-w-[500px]">
         <ReportCard
           type="main"
           label="MAIN"
@@ -83,9 +80,7 @@ const ReportResultPage = () => {
         onClick={() => navigate('/report')}
         className={cn(
           'rounded-full px-[2.2rem] py-[0.9rem] text-[1.35rem] font-medium transition-opacity duration-150 hover:opacity-70',
-          isLight
-            ? 'bg-[var(--ui-100)] text-[var(--ui-700)]'
-            : 'bg-white/[0.07] text-white/60',
+          'bg-white/[0.07] text-white/60',
         )}
       >
         리포트 목록 보기

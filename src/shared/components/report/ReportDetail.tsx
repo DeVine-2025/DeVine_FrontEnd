@@ -1,257 +1,66 @@
-import type { CodeInsight, Improvement, NextStep, ReportDetailContent } from '@apis/report/report';
-import FileSmallIcon from '@assets/icons/detail-page/file-small.svg?react';
-import CheckLineIcon from '@assets/icons/check-line.svg?react';
-import CancelLineIcon from '@assets/icons/cancel-line.svg?react';
-import ContentBox from '@components/report/ContentBox';
+import type { ReportDetailContent } from '@apis/report/report';
+import { useId, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { FileText, Layers, Code2, ScanSearch, Compass, ChevronRight, Printer, LayoutList, CalendarDays } from 'lucide-react';
+import './report-workspace.css';
+import './report-detail-workspace.css';
 
-type ReportDetailProps = {
-  data: ReportDetailContent;
-};
+const sections = [
+  { title: '프로젝트 정보', icon: FileText },
+  { title: '기능별 구현', icon: Layers },
+  { title: '코드 인사이트', icon: Code2 },
+  { title: '분석 요약', icon: ScanSearch },
+  { title: '향후 제안', icon: Compass },
+];
+const Empty = () => <p className="rw-empty">제공된 분석 내용이 없습니다.</p>;
+const List = ({ items }: { items?: string[] }) => items?.length ? <ul className="report-reading-list">{items.map((text, index) => <li key={index}>{text}</li>)}</ul> : <Empty />;
+function Card({ title, icon: Icon = FileText, children }: { title: string; icon?: typeof FileText; children: ReactNode }) {
+  return <section className="rd-card"><h3><Icon aria-hidden="true" />{title}</h3>{children}</section>;
+}
+function Files({ items }: { items?: string[] }) {
+  return items?.length ? <div className="rd-files">{items.map((file, index) => <code key={index}><FileText size={14} aria-hidden="true" />{file}</code>)}</div> : <Empty />;
+}
 
-type FileCardItemProps = {
-  filePath: string;
-};
-
-const FileCardItem = ({ filePath }: FileCardItemProps) => {
-  return (
-    <div className="relative flex items-start gap-2 rounded-lg border border-1 border-ui-100 bg-ui-bg px-[0.7rem] pr-[6rem] py-[0.8rem]">
-      <FileSmallIcon />
-      <p className="font-normal text-sm text-ui-800 whitespace-pre-line break-all">{filePath}</p>
-    </div>
-  );
-};
-
-const ReportDetail = ({ data }: ReportDetailProps) => {
-  const sectionTitleStyle = 'text-ui-1000 text-3xl font-bold';
-  const subtTitleStyle = 'text-ui-900 text-xl font-semibold min-w-[160px]';
-  const contentGapStyle = 'flex-col gap-[2rem]';
-  const contentStyle = 'flex-col gap-2 p-[1.6rem]';
-  const listGapStyle = 'flex-col gap-[0.2rem]';
-  const listItemStyle =
-    'flex items-start flex-col gap-[1rem] font-normal text-lg text-ui-1000 pb-2';
-
-  const scale = data.projectOverview.projectScale;
-
-  const scaleItems = [
-    `총 코드 라인: ${scale.totalCodeLines}줄`,
-    `작업파일 : ${scale.mainCodeFiles}개 이상`,
-    `개발 기간: ${scale.developmentPeriod}`,
-    `패키지 구조: ${scale.architecturePattern}`,
+export default function ReportDetail({ data, onPrint, repoUrl }: { data: ReportDetailContent; onPrint?: () => void; repoUrl?: string }) {
+  const [active, setActive] = useState(0);
+  const id = useId();
+  const overview = data.projectOverview;
+  const scale = overview?.projectScale;
+  let repoName = '';
+  try { repoName = repoUrl ? new URL(repoUrl).pathname.split('/').filter(Boolean).pop() || '' : ''; } catch { /* Use report title. */ }
+  const projectName = repoName || data.reportTitle || '프로젝트';
+  const select = (index: number) => { setActive(index); window.scrollTo({ top: 0, behavior: 'auto' }); };
+  const onKey = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let next = index;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = (index + 1) % sections.length;
+    else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = (index + sections.length - 1) % sections.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = sections.length - 1;
+    else return;
+    event.preventDefault(); select(next); document.getElementById(`${id}-tab-${next}`)?.focus();
+  };
+  const contents = [
+    <div className="rd-cards">
+      <Card title="프로젝트 목적" icon={Compass}>{overview?.purpose ? <p>{overview.purpose}</p> : <Empty />}</Card>
+      <Card title="핵심 기술 스택" icon={Layers}>{overview?.techStack?.length ? <dl className="rd-stack-table">{overview.techStack.map((item: { title: string; content: string }, index: number) => <div key={index}><dt>{item.title}</dt><dd>{item.content}</dd></div>)}</dl> : <Empty />}</Card>
+      <Card title="프로젝트 규모" icon={Code2}><dl className="rd-metrics">{[
+        { label: '코드 라인', value: scale?.totalCodeLines != null ? `${scale.totalCodeLines.toLocaleString('ko-KR')}줄` : '정보 없음', icon: Code2 },
+        { label: '작업 파일', value: scale?.mainCodeFiles != null ? `${scale.mainCodeFiles.toLocaleString('ko-KR')}개+` : '정보 없음', icon: FileText },
+        { label: '개발 기간', value: scale?.developmentPeriod || '정보 없음', icon: CalendarDays },
+      ].map(({ label, value, icon: Icon }) => <div key={label}><Icon aria-hidden="true"/><div><dt>{label}</dt><dd>{value}</dd></div></div>)}</dl></Card>
+      <Card title="아키텍처" icon={Layers}>{scale?.architecturePattern ? <p>{scale.architecturePattern}</p> : <Empty />}</Card>
+    </div>,
+    <div className="rd-cards">{data.implementedFeatures?.length ? data.implementedFeatures.map((category, index) => <Card key={index} title={`${category.categoryNumber ?? index + 1}. ${category.category}`} icon={Layers}>{category.features?.map((feature: { name: string; details?: string[]; codeLocation?: string[]; implementation?: string[] }, featureIndex: number) => <article className="rd-feature" key={featureIndex}><h4>{feature.name}</h4><h5>구현 내용</h5><List items={feature.details}/><h5>코드 위치</h5><Files items={feature.codeLocation}/><h5>구현 방식</h5><List items={feature.implementation}/></article>)}</Card>) : <Empty />}</div>,
+    <div className="rd-cards">{data.codeInsights?.length ? data.codeInsights.map((item, index) => <Card key={index} title={`${item.number ?? index + 1}. ${item.title}`} icon={Code2}><List items={item.points}/>{item.codeLocation?.length > 0 && <><h4 className="rd-subheading">관련 코드</h4><Files items={item.codeLocation}/></>}</Card>) : <Empty />}</div>,
+    <div className="rd-summary-grid"><Card title="구현한 것" icon={ScanSearch}><List items={data.projectSummary?.implemented}/></Card><Card title="구현하지 않은 것" icon={FileText}><List items={data.projectSummary?.notImplemented}/></Card></div>,
+    <div className="rd-cards"><h3 className="rd-group-title">개선 가능한 영역</h3>{data.improvements?.length ? data.improvements.map((item, index) => <Card key={index} title={`${item.number ?? index + 1}. ${item.title}`} icon={Compass}>{item.keywords && <p className="rd-keyword">{item.keywords}</p>}<h4 className="rd-subheading">현재 상태</h4><List items={item.currentState}/><h4 className="rd-subheading">개선 제안</h4><List items={item.suggestions}/></Card>) : <Empty />}<h3 className="rd-group-title">다음 프로젝트에서 시도할 것</h3>{data.nextSteps?.length ? data.nextSteps.map((item, index) => <Card key={index} title={`${item.number ?? index + 1}. ${item.title}`} icon={Layers}><List items={item.description}/><div className="report-stack">{item.recommendKeyword?.map((keyword, i) => <span key={i}>{keyword}</span>)}</div></Card>) : <Empty />}</div>,
   ];
-
-  return (
-    <div className="mb-30 flex-col gap-[8rem]">
-      {/* 프로젝트 개요 */}
-      <section className="report-print-section flex-col gap-[2.4rem]">
-        <div className="flex-col gap-[1rem]">
-          <p className={sectionTitleStyle}>프로젝트 개요</p>
-          <hr className="border-ui-100" />
-        </div>
-
-        <div className="flex-col gap-[3rem]">
-          <div>
-            <p className={subtTitleStyle}>프로젝트 목적</p>
-            <p className="pt-3 font-medium text-lg text-ui-700">{data.projectOverview.purpose}</p>
-          </div>
-
-          {/* 기술 스택 */}
-          <div className={contentGapStyle}>
-            <p className={subtTitleStyle}>핵심 기술 스택</p>
-            <ContentBox>
-              <section className={contentStyle}>
-                {data.projectOverview.techStack.map(
-                  (item: { title: string; content: string }, idx: number) => (
-                    <div key={idx} className="flex items-center gap-20 pb-2 pl-5">
-                      <p className={subtTitleStyle}>{item.title}</p>
-                      <p className="font-medium text-lg text-ui-900">{item.content}</p>
-                    </div>
-                  ),
-                )}
-              </section>
-            </ContentBox>
-          </div>
-
-          {/* 프로젝트 규모 */}
-          <div className={contentGapStyle}>
-            <p className={subtTitleStyle}>프로젝트 규모</p>
-            <ContentBox>
-              <div className="flex px-[3rem] py-[1.5rem]">
-                <p className="text-ui-400 pr-[10.6rem]">프로젝트 규모</p>
-                <div className="gap-6">
-                  {scaleItems.map((text) => (
-                    <p key={text} className={listItemStyle}>
-                      <span>• {text}</span>
-                    </p>
-                  ))}
-                </div>
-              </div>
-            </ContentBox>
-          </div>
-        </div>
-      </section>
-
-      {/* 구현 기능 상세 (한 페이지에 모두) */}
-      <section className="report-print-section report-print-implement">
-        <div className="flex-col gap-[1rem]">
-          <p className={sectionTitleStyle}>구현 기능 상세분석</p>
-          <hr className="border-ui-100" />
-
-          {data.implementedFeatures.map((item: any, idx: number) => (
-            <ContentBox key={idx}>
-              <div className="report-print-implement-inner flex-col gap-13 p-[2rem]">
-                <p className="font-bold text-ui-1000 text-xl">
-                  {item.categoryNumber + ' . ' + item.category}
-                </p>
-
-                {item.features.map((feature: any, fIdx: number) => (
-                  <div key={fIdx} className="report-print-block flex-col gap-[2.9rem]">
-                    <div className="flex-col gap-[1rem]">
-                      <p className="font-semibold text-lg text-ui-400">
-                        {feature.name} - 구현 내용
-                      </p>
-                      <div className={listGapStyle}>
-                        {feature.details.map((detail: string, dIdx: number) => (
-                          <p key={dIdx} className="font-medium text-lg text-ui-900">
-                            • {detail}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex-col gap-[1rem]">
-                      <p className="font-semibold text-lg text-ui-400">
-                        {feature.name} - 코드 위치
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {feature.codeLocation.map((file: string, fileIdx: number) => (
-                          <FileCardItem key={fileIdx} filePath={file} />
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex-col gap-[1rem]">
-                      <p className="font-semibold text-lg text-ui-400">
-                        {feature.name} - 구현 방식
-                      </p>
-                      <div className="flex flex-col flex-wrap gap-2">
-                        {feature.implementation.map((implementation: string, iIdx: number) => (
-                          <p key={iIdx} className="font-medium text-lg text-ui-900">
-                            • {implementation}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ContentBox>
-          ))}
-        </div>
-      </section>
-
-      {/*프로젝트 분석 요약*/}
-      <div className="report-print-section report-print-implement">
-        {/* 코드 인사이트 */}
-        <section className="flex-col gap-[1rem]">
-          <p className={sectionTitleStyle}>프로젝트 분석 요약</p>
-          <hr className="border-ui-100" />
-          <ContentBox>
-            <div className="flex p-[3.2rem] gap-[4.8rem]">
-              <div className="flex-1/2 flex-col gap-[2.4rem]">
-                <p className="w-fit rounded-[8px] bg-positive-bg px-[0.8rem] py-[0.4rem] text-bold text-positive-text">이 프로젝트에서
-                  구현한것</p>
-                <div className="flex-col gap-[1rem]">
-                  {data.projectSummary.implemented.map((item) => (
-                    <p key={item} className="flex items-center gap-[1.2rem] text-ui-900"><CheckLineIcon
-                      className="text-positive-text" />{item}</p>
-                  ))}
-
-                </div>
-              </div>
-              <div className="flex-1/2 flex-col gap-[2.4rem]">
-                <p className="w-fit rounded-[8px] bg-negative-bg px-[0.8rem] py-[0.4rem] text-bold text-negative-text">이
-                  프로젝트에서
-                  구현하지 않은 것</p>
-                <div className="flex-col gap-[1rem]">
-                  {data.projectSummary.notImplemented.map((item) => (
-                    <p key={item} className="flex items-center gap-[1.2rem] text-ui-900"><CancelLineIcon
-                      className="text-negative-text" />{item}</p>
-                  ))}
-
-                </div>
-              </div>
-            </div>
-          </ContentBox>
-        </section>
-      </div>
-
-
-      {/* 코드 인사이트 + 개선 가능한 영역 (같은 페이지) */}
-      <div className="report-print-section report-print-same-page flex flex-col gap-[8rem]">
-            {/* 코드 인사이트 */}
-            <section className="flex-col gap-[1rem]">
-              <p className={sectionTitleStyle}>코드 분석 인사이트</p>
-              <hr className="border-ui-100" />
-              <ContentBox>
-                <div className="flex-col gap-[3rem] p-[3.2rem]">
-                  {data.codeInsights.map((item: CodeInsight, idx: number) => (
-                    <div key={idx} className="report-print-block flex-col gap-[0.7rem]">
-                      <p className="pb-1 font-semibold text-ui-1000 text-xl">
-                        {item.number + ' . ' + item.title}
-                      </p>
-                      {item.points.map((description: string, pIdx: number) => (
-                        <p key={pIdx} className="text-lg text-ui-1000">
-                          • {description}
-                        </p>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </ContentBox>
-            </section>
-
-            {/* 개선 가능한 영역 (인쇄 시 컴팩트) */}
-            <section className="report-print-compact flex-col gap-[1rem]">
-              <p className={sectionTitleStyle}>개선 가능한 영역</p>
-              <hr className="border-ui-100" />
-
-              {data.improvements.map((item: Improvement, idx: number) => (
-                <ContentBox key={idx}>
-                  <div className="flex-col gap-10 p-[3rem] report-print-compact-inner">
-                    <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
-                  </div>
-                </ContentBox>
-              ))}
-            </section>
-          </div>
-
-          {/* 다음 스텝 */}
-          <section className="report-print-section">
-            <div className="flex-col gap-[1rem]">
-              <p className={sectionTitleStyle}>다음 프로젝트에서 시도해볼 만한 것</p>
-              <hr className="border-ui-100" />
-
-              {data.nextSteps.map((item: NextStep, idx: number) => (
-                <ContentBox key={idx}>
-                  <div className="flex-col gap-[0.7rem] p-[3rem]">
-                    <p className="font-bold text-ui-1000 text-xl">{item.number + ' . ' + item.title}</p>
-                    <p className="text-lg text-ui-400">{item.description.join(', ')}</p>
-                    <div className="mt-2 flex gap-2">
-                      <p
-                        className="flex w-fit items-center justify-center rounded border border-indigo-600/20 bg-indigo-600/10 px-2 py-1 font-bold text-primary">
-                        추천 기술
-                      </p>
-                      <p className="flex items-center gap-3 font-medium text-sm text-ui-1000">
-                        {item.recommendKeyword.join(' , ')}
-                      </p>
-                    </div>
-                  </div>
-                </ContentBox>
-              ))}
-            </div>
-          </section>
-      </div>
-      );
-      };
-
-      export default ReportDetail;
+  return <div className="report-workspace report-redesign report-detail-workspace">
+    <aside className="rw-sidebar"><div className="rw-project"><FileText aria-hidden="true"/><div><strong title={projectName}>{projectName}</strong><span>상세 분석 리포트</span></div></div>
+      <div className="rw-tablist" role="tablist" aria-label="상세 리포트 목차" aria-orientation="vertical">{sections.map(({ title, icon: Icon }, index) => <button key={title} type="button" role="tab" id={`${id}-tab-${index}`} aria-controls={`${id}-panel-${index}`} aria-selected={active === index} tabIndex={active === index || (active === -1 && index === 0) ? 0 : -1} onClick={() => select(index)} onKeyDown={event => onKey(event, index)}><Icon aria-hidden="true"/><span>{title}</span>{active === index && <ChevronRight className="rw-chevron" aria-hidden="true"/>}</button>)}</div>
+      <div className="rw-sidebar-actions"><button type="button" className="rw-sidebar-action" aria-pressed={active === -1} aria-controls={`${id}-all-content`} onClick={() => select(-1)}><LayoutList aria-hidden="true"/>전체 리포트 보기</button>{onPrint && <button type="button" className="rw-sidebar-action" onClick={onPrint}><Printer aria-hidden="true"/>PDF로 출력하기</button>}</div><p className="rw-disclaimer">분석 결과는 제공된 코드를 바탕으로 작성되었습니다. 실제 구현과 함께 확인해 주세요.</p>
+    </aside>
+    <div id={`${id}-all-content`} className={`rw-content ${active === -1 ? 'report-all-view' : ''}`} key={active} role={active === -1 ? 'region' : undefined} aria-label={active === -1 ? '상세 전체 리포트' : undefined}>
+      {active === -1 && <header className="rd-all-header"><div className="report-panel-kicker">DETAIL REPORT / ALL</div><h1>{projectName} 상세 전체 리포트</h1><p>프로젝트 정보부터 향후 제안까지 모든 상세 분석을 이어서 확인하세요.</p><nav aria-label="전체 리포트 바로가기">{sections.map(({ title }, index) => <a key={title} href={`#${id}-panel-${index}`}>{String(index + 1).padStart(2, '0')} {title}</a>)}</nav></header>}
+      {sections.map(({ title }, index) => <section key={title} className="rw-panel report-section-panel" id={`${id}-panel-${index}`} role={active === -1 ? undefined : 'tabpanel'} aria-labelledby={`${id}-tab-${index}`} tabIndex={0} hidden={active !== -1 && active !== index}><header><div className="rw-breadcrumb"><span>리포트</span><ChevronRight aria-hidden="true"/><span>{projectName}</span><ChevronRight aria-hidden="true"/><span>상세 리포트</span><ChevronRight aria-hidden="true"/><span>{title}</span></div><div className="report-panel-kicker">DETAIL REPORT / {String(index + 1).padStart(2, '0')}</div><h2>{title}</h2></header><div className="rw-section-body">{contents[index]}</div></section>)}</div>
+  </div>;
+}

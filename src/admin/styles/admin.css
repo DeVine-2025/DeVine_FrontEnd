@@ -10,18 +10,21 @@ body:has(.admin-app) {
   color: var(--ui-1000);
 }
 
-html[data-theme='dark'] .admin-reload-button {
+html .admin-reload-button {
   color: #fff;
-}
-
-html[data-theme='light'] .admin-filter-chevron path {
-  stroke: #191b1e;
 }
 
 .admin-content {
   width: min(100% - 48px, 1180px);
   margin: 0 auto;
   padding: 34px 0 80px;
+}
+
+@media (1024px <= width < 1536px) {
+  .admin-content {
+    width: min(var(--desktop-content-width), 1180px);
+    padding-block: 26px 60px;
+  }
 }
 
 @media (max-width: 900px) {

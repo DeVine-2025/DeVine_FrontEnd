@@ -127,7 +127,6 @@ const RecommendDeveloperPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
 
   const recommendLoadingRaw = myProjectOptionsLoading || (myProjects.length > 0 && loading);
   const showRecommendSkeleton = useInitialSkeletonGate(recommendLoadingRaw, {
@@ -178,7 +177,6 @@ const RecommendDeveloperPage = () => {
         const token = await getToken();
         if (!token) {
           setList([]);
-          setTotalPages(0);
           setError(null);
           return;
         }
@@ -187,7 +185,6 @@ const RecommendDeveloperPage = () => {
         const params = buildApiParams(myProjects, pageNum, myProjectOptionsWithCacheFallback);
         if (!params) {
           setList([]);
-          setTotalPages(0);
           return;
         }
         const result = await getRecommendMembers(token, params);
@@ -199,12 +196,10 @@ const RecommendDeveloperPage = () => {
           return { ...d, bookmarked: true, bookmarkId: hit > 0 ? hit : undefined };
         });
         setList(mapped);
-        setTotalPages(result.totalPages);
       } catch (e) {
         const msg = e instanceof Error ? e.message : '추천 개발자를 불러오지 못했습니다.';
         setError(msg);
         setList([]);
-        setTotalPages(0);
         console.error(
           '[추천 개발자] 에러',
           msg,
@@ -240,7 +235,7 @@ const RecommendDeveloperPage = () => {
   );
 
   const handleApply = useCallback(
-    (key: DeveloperFilterKey) => {
+    () => {
       setOpenFilter(null);
       setPage(1);
       fetchList(1);
@@ -273,10 +268,10 @@ const RecommendDeveloperPage = () => {
   );
 
   const handleBookmarkChangeById = useCallback(
-    (memberId: number, listItemId: string, next: boolean, _bookmarkId?: number) => {
+    (_memberId: number, listItemId: string, next: boolean, _bookmarkId?: number) => {
       const dev = listRef.current.find((d) => d.id === listItemId);
       if (!dev) return;
-      void handleBookmarkChange(dev, next);
+      return handleBookmarkChange(dev, next);
     },
     [handleBookmarkChange],
   );

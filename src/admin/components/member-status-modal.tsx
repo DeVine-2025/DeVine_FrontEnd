@@ -1,3 +1,4 @@
+import AdminModalFrame from './common/admin-modal-frame';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { type FormEvent, useEffect, useState } from 'react';
@@ -60,7 +61,7 @@ const ACTION_COPY: Record<
 };
 
 const INPUT_CLASS =
-  'Body1 w-full rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[14px] py-[12px] text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-400)] focus:border-[#4e49ff]';
+  'Body1 w-full rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[14px] py-[12px] text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-400)] focus:border-[#6654F5]';
 
 export function MemberStatusModal({ action, nickname, onClose }: MemberStatusModalProps) {
   const queryClient = useQueryClient();
@@ -115,16 +116,7 @@ export function MemberStatusModal({ action, nickname, onClose }: MemberStatusMod
   };
 
   return (
-    <div
-      aria-label={copy.title}
-      aria-modal="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-[20px]"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !mutation.isPending) onClose();
-      }}
-      role="dialog"
-    >
-      <div className="w-full max-w-[480px] rounded-[16px] bg-[var(--ui-bg)] p-[28px] text-center shadow-xl">
+    <AdminModalFrame label={copy.title} size="member" busy={mutation.isPending} onClose={onClose}>
         <h2 className="Title3 font-bold text-[var(--ui-1000)]">{copy.title}</h2>
         <p className="Body1 mt-[8px] text-[var(--ui-700)]">
           <strong>{nickname}</strong> 계정에 대해 {copy.description}
@@ -135,7 +127,7 @@ export function MemberStatusModal({ action, nickname, onClose }: MemberStatusMod
             <label className="flex flex-col gap-[8px]">
               <span className="Body1 font-semibold text-[var(--ui-1000)]">처리 사유</span>
               <textarea
-                className={cn(INPUT_CLASS, 'h-[120px] resize-y')}
+                className={cn(INPUT_CLASS, 'h-[120px] resize-y lg:max-2xl:h-[100px]')}
                 maxLength={500}
                 onChange={(event) => setReason(event.target.value)}
                 placeholder="처리 사유를 입력해주세요"
@@ -149,7 +141,7 @@ export function MemberStatusModal({ action, nickname, onClose }: MemberStatusMod
             <label className="mt-[16px] flex cursor-pointer items-center gap-[10px]">
               <input
                 checked={notifyRequested}
-                className="size-[18px] accent-[#4e49ff]"
+                className="size-[18px] accent-[#6654F5]"
                 onChange={(event) => setNotifyRequested(event.target.checked)}
                 type="checkbox"
               />
@@ -173,7 +165,7 @@ export function MemberStatusModal({ action, nickname, onClose }: MemberStatusMod
             <button
               className={cn(
                 'Heading2 h-[48px] flex-1 cursor-pointer rounded-[10px] text-white disabled:cursor-not-allowed disabled:opacity-60',
-                copy.danger ? 'bg-[var(--negative-text)]' : 'bg-[#4e49ff]',
+                copy.danger ? 'bg-[var(--negative-text)]' : 'bg-[#6654F5]',
               )}
               disabled={mutation.isPending}
               type="submit"
@@ -182,7 +174,6 @@ export function MemberStatusModal({ action, nickname, onClose }: MemberStatusMod
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </AdminModalFrame>
   );
 }

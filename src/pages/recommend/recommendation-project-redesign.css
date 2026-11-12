@@ -1,0 +1,41 @@
+/* Hallmark · redesign: full · scope: app · brand: DeVine */
+/* Projects lead; recommendation evidence and recruitment details support comparison. */
+.rec-project-page .rec-basis { min-height: 0; border: 0; border-left: 2px solid var(--project-accent); border-radius: 0; padding: 12px 16px; background: var(--surface-filter); }
+.rec-project-page .rec-basis-icon { display: none; }
+.rec-project-page .rec-basis-copy { gap: 5px; }
+.rec-project-page .rec-toolbar { margin: 26px 0 16px; padding-bottom: 16px; border-bottom: 1px solid var(--surface-badge); }
+.rec-project-page .rec-end { text-align: left; }
+.recommendation-page .rec-project-list { grid-template-columns: 1fr; gap: 12px; }
+.rec-project-list .rec-project-card { display: grid; grid-template-columns: 190px minmax(0, 1fr); min-width: 0; border-radius: 12px; }
+.rec-project-list .rec-project-art { height: 100%; min-height: 220px; }
+.rec-project-list .rec-project-art img { width: 64px; height: 64px; }
+.rec-project-list .rec-project-art img.has-thumbnail { width: 100%; height: 100%; }
+.rec-project-list .rec-project-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, .55fr); grid-template-rows: auto auto auto 1fr auto; column-gap: 32px; align-content: start; padding: 24px 64px 20px 24px; }
+.rec-project-list .rec-domain { grid-column: 1; }
+.rec-project-list .rec-card-title { grid-column: 1; margin: 12px 0 4px; font-size: 19px; }
+.rec-project-list .rec-card-description { grid-column: 1; margin: 0 0 16px; white-space: normal; }
+.rec-project-list .rec-project-body > .explore-tags { grid-column: 1; align-self: start; }
+.rec-project-list .rec-project-body > .rec-reason { grid-column: 1; min-height: 0; margin: 16px 0 0; color: var(--text-secondary); }
+.rec-project-list .rec-project-stats { grid-column: 2; grid-row: 1 / 5; grid-template-columns: 1fr 1fr; align-content: center; gap: 16px; min-height: 0; margin: 0; }
+.rec-project-list .rec-score { grid-column: 1 / -1; }
+.rec-project-list .rec-score > span, .rec-project-list .rec-members > span { margin-bottom: 4px; }
+.rec-project-list .rec-score-number { min-height: 0; padding: 0; color: var(--project-accent); font-size: 20px; }
+.rec-project-list .rec-members { padding: 0; border: 0; }
+.rec-project-list .rec-members > strong { margin: 0; }
+.rec-project-list .rec-progress { max-width: 145px; margin-top: 8px; }
+.rec-project-list .rec-deadline { gap: 4px; }
+.rec-project-list .rec-deadline strong { font-size: 16px; }
+.rec-project-list .rec-score-details { grid-column: 2; grid-row: 5; margin-top: 12px; padding-top: 12px; }
+.rec-project-list .rec-bookmark { z-index: 1; }
+@media (max-width: 850px) {
+  .rec-project-list .rec-project-card { grid-template-columns: 140px minmax(0, 1fr); }
+  .rec-project-list .rec-project-body { grid-template-columns: minmax(0, 1fr); padding: 20px 56px 20px 20px; }
+  .rec-project-list .rec-project-stats { grid-column: 1; grid-row: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 20px; }
+  .rec-project-list .rec-score { grid-column: auto; }
+  .rec-project-list .rec-score-details { grid-column: 1; grid-row: auto; }
+}
+@media (max-width: 550px) {
+  .rec-project-list .rec-project-card { grid-template-columns: minmax(0, 1fr); }
+  .rec-project-list .rec-project-art { height: 130px; min-height: 130px; }
+  .rec-project-list .rec-project-body { padding: 20px; }
+}

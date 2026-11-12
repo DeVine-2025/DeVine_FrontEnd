@@ -68,14 +68,14 @@ export function AdminTable<T>({
       )}
     >
       <div className="overflow-x-auto">
-        <table aria-label={ariaLabel} className="w-full min-w-[960px] border-collapse">
+        <table aria-label={ariaLabel} className="w-full min-w-[960px] lg:max-2xl:min-w-[880px] border-collapse">
           <colgroup>
             {columns.map((column) => (
               <col key={column.id} style={column.width ? { width: column.width } : undefined} />
             ))}
           </colgroup>
           <thead className="bg-[var(--ui-100)]">
-            <tr className="h-[64px]">
+            <tr className="h-[64px] lg:max-2xl:h-[52px]">
               {columns.map((column) => (
                 <th
                   className={cn(
@@ -101,7 +101,7 @@ export function AdminTable<T>({
                 return (
                   <tr
                     className={cn(
-                      'h-[64px] border-[var(--ui-200)] border-t hover:bg-[var(--ui-50)]',
+                      'h-[64px] lg:max-2xl:h-[52px] border-[var(--ui-200)] border-t hover:bg-[var(--ui-50)]',
                       additionalRowClass,
                     )}
                     key={getRowKey(row, rowIndex)}
@@ -125,7 +125,7 @@ export function AdminTable<T>({
                           {rowHref ? (
                             <Link
                               className={cn(
-                                'flex h-[64px] w-full items-center whitespace-nowrap px-[40px] no-underline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-[-2px]',
+                                'flex h-[64px] lg:max-2xl:h-[52px] w-full items-center whitespace-nowrap px-[40px] no-underline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-[-2px]',
                                 FLEX_ALIGNMENT_CLASS[column.align ?? 'center'],
                               )}
                               to={rowHref}

@@ -45,7 +45,6 @@ const RecommendProjectPage = () => {
   const [list, setList] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isError, setIsError] = useState(false);
-  const [page, setPage] = useState(1);
 
   const showRecommendSkeleton = useInitialSkeletonGate(loading, {
     sessionKey: 'recommend-project',
@@ -151,18 +150,15 @@ const RecommendProjectPage = () => {
   );
 
   const handleRetry = useCallback(() => {
-    setPage(1);
     fetchList();
   }, [fetchList]);
 
   const handleApply = useCallback(() => {
     setOpenFilter(null);
-    setPage(1);
   }, []);
 
   const handleReset = useCallback(() => {
     setOpenFilter(null);
-    setPage(1);
   }, []);
 
   const showReportCardOverlay = !!isSignedIn && reportsFetched && !hasReport;

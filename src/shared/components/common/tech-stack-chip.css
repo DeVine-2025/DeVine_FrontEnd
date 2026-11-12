@@ -1,0 +1,7 @@
+.tech-stack-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 2px 5px 2px 8px; border: 1px solid var(--project-divider); border-radius: 7px; background: var(--surface-filter); color: var(--text-main); font-size: 12px; font-weight: 550; }
+.tech-stack-chip-icon { display: grid; place-items: center; width: 14px; height: 14px; color: var(--text-secondary); }
+.tech-stack-chip-icon img { width: 100%; height: 100%; object-fit: contain; }
+.tech-stack-chip-icon:has(img) > svg { display: none; }
+.tech-stack-chip button { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 5px; background: transparent; color: var(--text-secondary); }
+.tech-stack-chip button:hover:not(:disabled) { background: transparent; color: var(--project-accent); }
+.tech-stack-chip button:disabled { opacity: .5; }

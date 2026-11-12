@@ -1,4 +1,3 @@
-import LoadingSpinner from '@components/common/LoadingSpinner';
 import { useEffect, useMemo, useRef } from 'react';
 
 type MyProjectDropdownProps = {
@@ -97,7 +96,7 @@ export default function MyProjectDropdown({
 
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <LoadingSpinner size="lg" />
+          <span role="status" className="text-sm text-[var(--text-secondary)]">불러오는 중...</span>
         </div>
       ) : options && options.length === 0 && (!value || value.length === 0) ? (
         <div className="py-8 text-center text-[var(--ui-500)]">등록한 프로젝트가 없습니다.</div>
@@ -120,7 +119,7 @@ export default function MyProjectDropdown({
                 aria-hidden
                 className={`relative z-10 inline-flex h-[20px] w-[20px] items-center justify-center rounded-[6px] border ${
                   isChecked
-                    ? 'border-[#4E49FF] bg-[#4E49FF] text-white'
+                    ? 'border-[#6654F5] bg-[#6654F5] text-white'
                     : 'border-[var(--ui-300)] bg-[var(--ui-bg)] text-transparent'
                 }`}
               >
@@ -152,7 +151,7 @@ export default function MyProjectDropdown({
             onApply?.();
             onClose();
           }}
-          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-[#4E49FF] px-[10px] text-white"
+          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-[#6654F5] px-[10px] text-white"
         >
           저장
         </button>

@@ -50,7 +50,7 @@ export function AdminListLayout({
       )}
 
       {showToolbar && (
-        <div className="mt-[28px] flex flex-wrap items-center gap-[16px]">
+        <div className="mt-[28px] flex flex-wrap items-center gap-[16px] lg:max-2xl:mt-[20px] lg:max-2xl:gap-[12px]">
           {filters}
           {hasActions && (
             <div className="ml-auto flex flex-wrap items-center gap-[12px]">{actions}</div>
@@ -58,7 +58,7 @@ export function AdminListLayout({
         </div>
       )}
 
-      <div className={showToolbar ? 'mt-[20px]' : 'mt-[28px]'}>{children}</div>
+      <div className={showToolbar ? 'mt-[20px] lg:max-2xl:mt-[16px]' : 'mt-[28px] lg:max-2xl:mt-[20px]'}>{children}</div>
 
       {footer && <div className="mt-[24px] flex justify-center">{footer}</div>}
     </section>

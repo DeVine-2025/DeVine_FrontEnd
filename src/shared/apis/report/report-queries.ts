@@ -1,5 +1,5 @@
 import { axiosInstance } from '@apis/instance';
-import {
+import type {
   ReportCardResponse,
   ReportCardRequest,
   ReportDetailRequest,

@@ -1,4 +1,3 @@
-import { useThemeStore } from '@store/theme';
 import {cn} from '@libs/cn';
 import {
   BACKEND_DATABASE,
@@ -40,7 +39,6 @@ function chipInputsToDisplayItems(
 }
 
 const TechStackChips = ({ techStack = [] }: TechStackChipsProps) => {
-  const { theme } = useThemeStore();
   const displayItems = chipInputsToDisplayItems(techStack);
 
   const normalizeTechKey = (value: string) =>
@@ -82,12 +80,12 @@ const TechStackChips = ({ techStack = [] }: TechStackChipsProps) => {
 
   return (
     <div className="flex flex-wrap items-center gap-[4px]">
-      {displayItems.map(({ name, source }, index) => {
+      {displayItems.map(({ name, source }) => {
         const badge = findBadge(name);
 
         if (badge) {
           const offSrc =
-            theme === 'dark' ? badge.offDark ?? badge.off : badge.off;
+            badge.offDark ?? badge.off;
 
           return (
             <div

@@ -132,7 +132,7 @@ export default function CouponListPage() {
     <AdminListLayout
       actions={
         <Link
-          className="Body1 inline-flex items-center justify-center rounded-[8px] bg-[#4e49ff] px-[12px] py-[8px] font-normal text-white no-underline transition-opacity hover:opacity-90"
+          className="Body1 inline-flex items-center justify-center rounded-[8px] bg-[#6654F5] px-[12px] py-[8px] font-normal text-white no-underline transition-opacity hover:opacity-90"
           to="/admin/coupons/new"
         >
           쿠폰 생성

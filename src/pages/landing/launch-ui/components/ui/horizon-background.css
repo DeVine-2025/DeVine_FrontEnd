@@ -1,0 +1,19 @@
+.horizon-background { position: absolute; inset: 140px 0 auto; z-index: -1; width: 100%; height: 900px; opacity: 1; pointer-events: none; mask-image: linear-gradient(to bottom, black 80%, transparent 100%); }
+.horizon-atmosphere { animation: horizon-breathe 14s ease-in-out infinite alternate; }
+.horizon-light { animation: horizon-drift 15s ease-in-out infinite; }
+.horizon-aurora-wave { opacity: .2; animation: horizon-rise 16s ease-in-out infinite; }
+.horizon-aurora-wave-secondary { animation-duration: 21s; animation-delay: -8s; }
+@keyframes horizon-rise {
+  0%, 100% { transform: translate(-18px, 0); opacity: .12; }
+  35% { transform: translate(4px, -14px); opacity: .25; }
+  70% { transform: translate(20px, -5px); opacity: .17; }
+}
+@media (prefers-reduced-motion: reduce) { .horizon-aurora-wave { animation: none; } }
+@media (max-width: 800px) { .horizon-aurora { display: none; } }
+@keyframes horizon-breathe { from { opacity: .55; } to { opacity: 1; } }
+@keyframes horizon-drift {
+  0%, 100% { transform: translate(-75px, -2px); opacity: .7; }
+  50% { transform: translate(75px, 4.4px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .horizon-atmosphere, .horizon-light { animation: none; } }
+@media (max-width: 800px) { .horizon-background { height: 760px; } .horizon-atmosphere { animation: none; } }

@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 export type DevTab = 'suggested' | 'applied';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -15,6 +15,11 @@ export type MatchingProject = {
   projectName: string;
   decision?: 'PENDING' | 'ACCEPT' | 'REJECT' | string;
   createdAt?: string;
+  categoryName?: string;
+  thumbnailUrl?: string | null;
+  modeName?: string;
+  durationRangeName?: string;
+  content?: string;
 };
 
 export type Page<T> = {
@@ -34,9 +39,9 @@ type ApiResponse<T> = {
   result: T;
 };
 
-async function fetchDevProjects(args: { endpoint: string; token: string; signal?: AbortSignal }) {
-  const { endpoint, token, signal } = args;
-  const url = `${API_BASE_URL}${endpoint}`;
+async function fetchDevProjects(args: { endpoint: string; token: string; page: number; signal?: AbortSignal }) {
+  const { endpoint, token, page, signal } = args;
+  const url = `${API_BASE_URL}${endpoint}?page=${page}`;
 
   const res = await fetch(url, {
     method: 'GET',
@@ -57,12 +62,15 @@ export function useDevProjects(tab: DevTab) {
   const { getToken } = useAuth();
   const endpoint = ENDPOINT_BY_TAB[tab];
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['dev-projects', tab],
-    queryFn: async ({ signal }) => {
+    initialPageParam: 0,
+    getNextPageParam: (lastPage: Page<MatchingProject>, _pages, lastPageParam) =>
+      lastPage.last || lastPageParam + 1 >= lastPage.totalPages ? undefined : lastPageParam + 1,
+    queryFn: async ({ signal, pageParam }) => {
       const token = await getToken();
       if (!token) throw new Error('No auth token');
-      return fetchDevProjects({ endpoint, token, signal });
+      return fetchDevProjects({ endpoint, token, page: pageParam, signal });
     },
     staleTime: 30_000,
   });

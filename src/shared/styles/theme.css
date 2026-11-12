@@ -17,7 +17,7 @@
     --color-ui-1000: var(--ui-1000);
 
     /* Badge aliases */
-    --color-primary: #4E49FF;
+    --color-primary: var(--project-accent);
 
     --color-badge-text-primary: var(--badge-text-primary);
     --color-badge-bg-primary: var(--badge-bg-primary);
@@ -42,22 +42,42 @@
 
     --color-form-error: var(--form-error);
 
-    /* UI Dark */
-    --ui-bg: #191B1E;
-    --ui-50: #212328;
-    --ui-100: #2F323A;
-    --ui-200: #41444D;
-    --ui-300: #606673;
-    --ui-400: #7F8596;
-    --ui-500: #939AAE;
-    --ui-600: #9EA6BA;
-    --ui-700: #D4DAE7;
-    --ui-800: #F3F5FC;
-    --ui-900: #F8F9FB;
-    --ui-1000: #FFFFFF;
+    /* Shared dark surfaces and text */
+    --surface-page: #0F1116;
+    --surface-filter: #17191F;
+    --surface-card: #1B1D24;
+    --surface-image: #272A33;
+    --surface-input: #1D2028;
+    --surface-badge: #292D37;
+    --text-main: #F2F4FC;
+    --text-secondary: #AEB5C2;
+    --project-accent: #A69BFF;
+    --project-progress: #A99AFF;
+    --project-control: #6B5ED1;
+    --project-checkbox: #9987F8;
+    --project-control-height: 36px;
+    --project-control-border: color-mix(in srgb, var(--text-secondary) 20%, var(--surface-badge));
+    --project-border-hover: color-mix(in srgb, var(--project-accent) 38%, var(--surface-badge));
+    --project-divider: color-mix(in srgb, var(--text-secondary) 12%, transparent);
+    --project-badge-height: 22px;
+    --project-badge-radius: 6px;
+
+    /* UI Dark: retain the existing token names for other screens. */
+    --ui-bg: var(--surface-page);
+    --ui-50: var(--surface-filter);
+    --ui-100: var(--surface-card);
+    --ui-200: var(--surface-badge);
+    --ui-300: color-mix(in srgb, var(--text-secondary) 50%, var(--surface-page));
+    --ui-400: color-mix(in srgb, var(--text-secondary) 75%, var(--surface-page));
+    --ui-500: var(--text-secondary);
+    --ui-600: var(--text-secondary);
+    --ui-700: color-mix(in srgb, var(--text-main) 60%, var(--text-secondary));
+    --ui-800: var(--text-main);
+    --ui-900: var(--text-main);
+    --ui-1000: var(--text-main);
 
     /* Badge Tokens Dark */
-    --badge-text-primary: #7E7AFF;
+    --badge-text-primary: #7B6BFF;
     --badge-bg-primary: #1E1D4D;
 
     --badge-text-blue: #499FD4;
@@ -81,52 +101,10 @@
     --form-error: #E098A2;
 
     --font-weight-regular: 400;
-    --font-weight-medium: 500;
-    --font-weight-bold: 700;
 
     /* breakpoints */
     --breakpoint-tablet: 744px;
     --breakpoint-phone: 390px;
-    --breakpoint-tablet-max: 743px;
-    --breakpoint-phone-max: 389px;
-}
-
-[data-theme='light'] {
-    --ui-bg: #FFFFFF;
-    --ui-50: #F8F9FB;
-    --ui-100: #F3F5FC;
-    --ui-200: #D4DAE7;
-    --ui-300: #9EA6BA;
-    --ui-400: #939AAE;
-    --ui-500: #7F8596;
-    --ui-600: #606673;
-    --ui-700: #41444D;
-    --ui-800: #2F323A;
-    --ui-900: #212328;
-    --ui-1000: #191B1E;
-
-    --badge-text-primary: #4E49FF;
-    --badge-bg-primary: #EEEDFF;
-
-    --badge-text-blue: #499FD4;
-    --badge-bg-blue: #EEF9FF;
-
-    --badge-text-green: #1D8C72;
-    --badge-bg-green: #F5FFFD;
-
-    --badge-text-pink: #DB50B3;
-    --badge-bg-pink: #FFF0FB;
-
-    --badge-text-orange: #D98363;
-    --badge-bg-orange: #FFF4F0;
-
-    --positive-bg: #E6F9F0;
-    --positive-text: #22C55E;
-
-    --negative-bg: #FFF1F0;
-    --negative-text: #F87171;
-
-    --form-error: #C75F70;
 }
 
 @layer utilities {

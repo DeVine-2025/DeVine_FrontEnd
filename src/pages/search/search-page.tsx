@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 
 export default function SearchPage() {
   return (
-    <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-6">
+    <section className="mx-auto flex desktop-content w-[var(--desktop-content-width,100%)] max-w-[1180px] flex-col gap-6">
       <SearchTabs />
 
       <div>

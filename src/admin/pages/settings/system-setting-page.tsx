@@ -117,8 +117,8 @@ export default function SystemSettingPage() {
     <section>
       <AdminPageTitle title="시스템 설정" />
 
-      <div className="mt-[40px] grid grid-cols-1 items-start gap-[20px] lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
-        <AdminHighlightCard className="overflow-hidden px-[24px] py-[26px]">
+      <div className="mt-[40px] grid grid-cols-1 items-start gap-[20px] lg:max-2xl:gap-[16px] lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+        <AdminHighlightCard className="overflow-hidden px-[24px] py-[26px] lg:max-2xl:px-[18px] lg:max-2xl:py-[20px]">
           <div className="flex-items-center justify-between gap-[16px]">
             <h2 className="Heading1 font-semibold text-[var(--ui-1000)]">
               외부 연동 상태 모니터링
@@ -204,7 +204,7 @@ export default function SystemSettingPage() {
         </AdminHighlightCard>
 
         <form
-          className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[24px] py-[26px]"
+          className="rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[24px] py-[26px] lg:max-2xl:px-[18px] lg:max-2xl:py-[20px]"
           onSubmit={handleMaintenanceSubmit}
         >
           <h2 className="Heading1 font-semibold text-[var(--ui-1000)]">점검 모드 설정</h2>
@@ -228,7 +228,7 @@ export default function SystemSettingPage() {
                 aria-checked={isMaintenanceMode}
                 aria-label="점검 모드 전환"
                 className={`relative h-[26px] w-[46px] cursor-pointer rounded-full ${
-                  isMaintenanceMode ? 'bg-[#4e49ff]' : 'bg-[var(--ui-200)]'
+                  isMaintenanceMode ? 'bg-[#6654F5]' : 'bg-[var(--ui-200)]'
                 }`}
                 onClick={() => setIsMaintenanceMode((current) => !current)}
                 role="switch"
@@ -249,7 +249,7 @@ export default function SystemSettingPage() {
           <label className="mt-[28px] block">
             <span className="Body1 font-medium text-[var(--ui-800)]">점검 안내 메시지</span>
             <textarea
-              className="Body1 mt-[12px] h-[240px] w-full resize-none rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[16px] py-[14px] text-[var(--ui-800)] outline-none placeholder:text-[var(--ui-300)] focus:border-[#4e49ff]"
+              className="Body1 mt-[12px] h-[240px] w-full resize-none rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[16px] py-[14px] text-[var(--ui-800)] outline-none placeholder:text-[var(--ui-300)] focus:border-[#6654F5]"
               onChange={(event) => setMaintenanceMessage(event.target.value)}
               placeholder="점검 사유를 입력해주세요."
               value={maintenanceMessage}
@@ -265,7 +265,7 @@ export default function SystemSettingPage() {
 
           <button
             aria-busy={isMaintenanceUpdating}
-            className="Headline1 mt-[36px] h-[54px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-semibold text-white transition-colors hover:bg-[#3e39e8] disabled:cursor-wait disabled:opacity-60"
+            className="Headline1 mt-[36px] h-[54px] w-full cursor-pointer rounded-[12px] bg-[#6654F5] font-semibold text-white transition-colors hover:bg-[#5544DB] disabled:cursor-wait disabled:opacity-60"
             disabled={isMaintenancePending || isMaintenanceUpdating}
             type="submit"
           >

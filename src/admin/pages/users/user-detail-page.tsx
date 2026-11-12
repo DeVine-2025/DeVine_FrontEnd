@@ -13,7 +13,7 @@ import { type AdminMemberStatusAction, getAdminMemberDetail } from '../../apis/m
 import { MemberStatusModal } from '../../components/member-status-modal';
 import { AdminPageTitle } from '../../components/common/admin-page-title';
 
-const CARD_CLASS = 'rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px]';
+const CARD_CLASS = 'rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px] lg:max-2xl:p-[18px]';
 const SECTION_TITLE_CLASS = 'Headline1 font-semibold text-[var(--ui-1000)]';
 
 function InfoCell({ label, value }: { label: string; value: string }) {
@@ -67,13 +67,13 @@ const ACTION_BUTTONS: Array<{
     action: 'SUSPEND',
     label: '정지',
     className:
-      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-medium text-white transition-colors hover:bg-[#3e39e8]',
+      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] bg-[#6654F5] font-medium text-white transition-colors hover:bg-[#5544DB]',
   },
   {
     action: 'UNSUSPEND',
     label: '정지 해제',
     className:
-      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] border border-[#4e49ff] bg-[var(--ui-bg)] font-medium text-[#4e49ff] transition-colors hover:bg-[var(--ui-50)]',
+      'Heading2 h-[56px] w-full cursor-pointer rounded-[12px] border border-[#6654F5] bg-[var(--ui-bg)] font-medium text-[#6654F5] transition-colors hover:bg-[var(--ui-50)]',
   },
   {
     action: 'FORCE_WITHDRAW',
@@ -168,8 +168,8 @@ export default function UserDetailPage() {
       )}
 
       {data && (
-        <div className="mt-[28px] grid grid-cols-1 gap-[24px] lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-          <div className="flex flex-col gap-[24px]">
+        <div className="mt-[28px] grid grid-cols-1 gap-[24px] lg:max-2xl:gap-[18px] lg:max-2xl:p-[18px] lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          <div className="flex flex-col gap-[24px] lg:max-2xl:gap-[18px] lg:max-2xl:p-[18px]">
             <div className={cn(CARD_CLASS, 'border-[rgba(135,157,255,0.65)]')}>
               <h2 className={SECTION_TITLE_CLASS}>프로필</h2>
               <div className="mt-[16px] flex flex-col">
@@ -263,7 +263,7 @@ export default function UserDetailPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-[24px] self-start">
+          <div className="flex flex-col gap-[24px] lg:max-2xl:gap-[18px] lg:max-2xl:p-[18px] self-start">
             <div className={cn(CARD_CLASS, 'flex h-fit flex-col')}>
               <h2 className={SECTION_TITLE_CLASS}>계정 상태 변경</h2>
 

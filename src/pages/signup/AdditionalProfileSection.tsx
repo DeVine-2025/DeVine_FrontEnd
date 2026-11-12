@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useThemeStore } from '@store/theme';
-import PositionTechStackDropdown from '@components/recommend/PositionTechStackDropdown';
-import { getTechBadgeByName } from '@constants/position-tech-stack';
+import TechStackPicker from '@components/common/TechStackPicker';
+import TechStackChip from '@components/common/TechStackChip';
 import { useAuth } from '@clerk/clerk-react';
 import { signupMember, type SignupPayload } from '@apis/signup';
-import { buildTechstackNameByIdMap, formatTechstackLabel } from '@apis/techstacks';
+import { buildTechstackNameByIdMap } from '@apis/techstacks';
 import { useTechstacks } from '@hooks/useTechstacks';
 import { useOutletContext } from 'react-router-dom';
 import type { RootLayoutOutletContext } from '@layouts/root-layout';
+import { ArrowLeft, Search } from 'lucide-react';
 
 type AdditionalProfileSectionProps = {
+  preview?: boolean;
   onBack: () => void;
   onNext: () => void;
   signupData: Omit<SignupPayload, 'techstackIds' | 'body' | 'email' | 'linkedin'>;
@@ -25,8 +26,8 @@ const AdditionalProfileSection = ({
   signupData,
   onComplete,
   setLogoSubmitHandler,
+  preview = false,
 }: AdditionalProfileSectionProps) => {
-  const { theme } = useThemeStore();
   const [stacks, setStacks] = useState<string[]>([]);
   const [isTechStackOpen, setIsTechStackOpen] = useState(false);
   const [summary, setSummary] = useState('');
@@ -87,6 +88,10 @@ const AdditionalProfileSection = ({
         showToast('error', '입력값을 확인해주세요.');
         return;
       }
+      if (preview) {
+        onSuccess();
+        return;
+      }
 
       // 연타 방지
       if (submitLockRef.current) return;
@@ -140,6 +145,7 @@ const AdditionalProfileSection = ({
       summary,
       trimmedEmail,
       trimmedLinkedin,
+      preview,
     ],
   );
 
@@ -166,10 +172,10 @@ const AdditionalProfileSection = ({
   }, []);
 
   return (
-    <div className="mx-auto flex h-[560px] w-full max-w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
+    <div className="mx-auto w-full max-w-[515px] lg:max-2xl:max-w-[480px] text-[#f5f5f7]">
       {/* 토스트 UI (상단) */}
       {toast && (
-        <div className="px-10 pt-6">
+        <div className="mb-5">
           <div
             role="status"
             aria-live="polite"
@@ -181,122 +187,92 @@ const AdditionalProfileSection = ({
         </div>
       )}
 
-      <div className="flex-1 overflow-hidden px-10 pt-5 pb-3">
-        <div className="flex flex-col gap-2 text-[var(--ui-1000)]">
-          <h2 className="Heading2 font-semibold">추가 정보를 입력해</h2>
-          <h2 className="Heading2 font-semibold">프로필을 완성해보세요</h2>
+      <div>
+        <div>
+          <h2 className="lg:max-2xl:text-[30px] text-[clamp(26px,3vw,36px)] font-bold leading-[1.3] tracking-[-.04em]">추가 정보를 입력해<br />프로필을 완성해보세요</h2>
+          <p className="mt-4 text-[16px] leading-[1.6] text-[#b5b7c8]">선택 항목은 나중에 언제든지 변경할 수 있어요.</p>
         </div>
 
-        <div className="scrollbar-hide mt-3 flex max-h-[330px] flex-col gap-6 overflow-y-auto pb-2">
+        <div className="mt-10 lg:max-2xl:mt-7 flex flex-col gap-7 lg:max-2xl:gap-5">
           <div className="flex flex-col gap-4">
-            <span className="Body1 font-semibold text-[var(--ui-900)]">보유 스택</span>
+            <span className="text-[16px] font-semibold text-[#f0f0f5]">보유 스택</span>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsTechStackOpen(true)}
-                className="relative z-10 flex h-[46px] w-full cursor-pointer items-center gap-2 rounded-full border border-[var(--ui-100)] bg-[var(--ui-50)] px-4 text-[16px] text-[var(--ui-300)]"
+                className="relative z-10 flex h-[52px] w-full cursor-pointer items-center gap-3 rounded-[10px] border border-white/[0.12] bg-transparent px-4 text-left text-[15px] text-[#85889a] transition-colors hover:border-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--project-accent)]"
               >
-                <svg
-                  className="h-5 w-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M20 20l-3.5-3.5" />
-                </svg>
+                <Search size={18} aria-hidden="true" />
                 보유 스택을 검색해주세요
               </button>
-              <PositionTechStackDropdown
-                open={isTechStackOpen}
-                asModal
-                title="보유 스택"
-                showCloseButton
+              {isTechStackOpen && <TechStackPicker
+                title="보유 스택 선택"
+                description="사용할 수 있는 기술 스택을 선택해 주세요."
                 value={stacks}
                 valueType="id"
-                onChange={setStacks}
-                onApply={() => setIsTechStackOpen(false)}
-                onReset={() => setStacks([])}
+                onApply={setStacks}
                 onClose={() => setIsTechStackOpen(false)}
-              />
+              />}
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <ul className="m-0 flex list-none flex-wrap items-center gap-2 p-0">
               {stacks.map((id) => {
                 const rawName = techstackNameById.get(id) ?? id;
-                const label = formatTechstackLabel(rawName);
-                const badge = getTechBadgeByName(rawName);
-                const iconSrc = badge ? (theme === 'dark' ? badge.offDark ?? badge.off : badge.off) : undefined;
-
-                return (
-                  <button key={id} type="button" onClick={() => removeStack(id)} className="relative inline-flex items-center">
-                    {iconSrc && <img src={iconSrc} alt={`${label} 배지`} className="h-[32px] w-auto" loading="lazy" />}
-                    <span
-                      aria-hidden
-                      className="absolute -right-[4px] -top-[4px] flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--ui-50)] text-[11px] text-[var(--ui-400)]"
-                    >
-                      ×
-                    </span>
-                  </button>
-                );
+                return <TechStackChip key={id} name={rawName} onRemove={() => removeStack(id)} />;
               })}
-            </div>
+            </ul>
           </div>
 
           <div className="flex flex-col gap-3">
-            <label className="Body1 text-[var(--ui-900)]" htmlFor="profileSummary">
+            <label className="text-[16px] font-semibold text-[#f0f0f5]" htmlFor="profileSummary">
               한줄 소개
             </label>
             <input
               id="profileSummary"
               type="text"
               placeholder="한줄 소개를 입력해주세요"
-              className="h-[46px] w-full rounded-2xl border border-[var(--ui-100)] bg-[var(--ui-50)] px-4 text-[16px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)]"
+              className="h-[52px] w-full rounded-[10px] border border-white/[0.12] bg-transparent px-4 text-[15px] text-[#f5f5f7] outline-none placeholder:text-[#85889a] focus:border-[var(--project-accent)]"
               value={summary}
               onChange={(event) => setSummary(event.target.value)}
             />
           </div>
 
           <div className="flex flex-col gap-3">
-            <span className="Body1 text-[var(--ui-900)]">연락처</span>
-            <label className="Caption1 text-[var(--ui-500)]" htmlFor="profileEmail">
+            <span className="text-[16px] font-semibold text-[#f0f0f5]">연락처</span>
+            <label className="text-[13px] text-[#a9abc0]" htmlFor="profileEmail">
               이메일
             </label>
             <input
               id="profileEmail"
               type="text"
               placeholder="devine@example.com"
-              className={`h-[46px] w-full rounded-2xl border bg-[var(--ui-50)] px-4 text-[16px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)] ${
-                showEmailError ? 'border-[#FF4242]' : 'border-[var(--ui-100)]'
+              className={`h-[52px] w-full rounded-[10px] border bg-transparent px-4 text-[15px] text-[#f5f5f7] outline-none placeholder:text-[#85889a] focus:border-[var(--project-accent)] ${
+                showEmailError ? 'border-[#c78f9d]' : 'border-white/[0.12]'
               }`}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
             {showEmailError && (
-              <span className="Caption1 text-[#FF4242]">이메일 형식이 올바르지 않아요. 예) devine@example.com</span>
+              <span className="text-[13px] text-[#d9a4ae]">이메일 형식이 올바르지 않아요. 예) devine@example.com</span>
             )}
           </div>
 
           <div className="flex flex-col gap-3">
-            <label className="Caption1 text-[var(--ui-500)]" htmlFor="profileLinkedin">
+            <label className="text-[13px] text-[#a9abc0]" htmlFor="profileLinkedin">
               링크드인
             </label>
             <input
               id="profileLinkedin"
               type="text"
               placeholder="https://www.linkedin.com/in/username"
-              className={`h-[46px] w-full rounded-2xl border bg-[var(--ui-50)] px-4 text-[16px] text-[var(--ui-900)] placeholder:text-[var(--ui-300)] ${
-                showLinkedinError ? 'border-[#FF4242]' : 'border-[var(--ui-100)]'
+              className={`h-[52px] w-full rounded-[10px] border bg-transparent px-4 text-[15px] text-[#f5f5f7] outline-none placeholder:text-[#85889a] focus:border-[var(--project-accent)] ${
+                showLinkedinError ? 'border-[#c78f9d]' : 'border-white/[0.12]'
               }`}
               value={linkedin}
               onChange={(event) => setLinkedin(event.target.value)}
             />
             {showLinkedinError && (
-              <span className="Caption1 text-[#FF4242]">
+              <span className="text-[13px] text-[#d9a4ae]">
                 {!isLinkedinLengthValid
                   ? `링크드인 URL은 ${LINKEDIN_MAX_LENGTH}자 이내로 입력해주세요.`
                   : '링크드인 URL 형식이 올바르지 않아요.'}
@@ -306,17 +282,15 @@ const AdditionalProfileSection = ({
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 px-10 pb-6">
+      <div className="mt-10 lg:max-2xl:mt-7 flex flex-col gap-4">
         <button
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
+          className={`h-[52px] w-full rounded-[10px] border text-[15px] font-semibold tracking-[-.01em] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--project-accent)] ${
             hasAnyInput
-              ? 'bg-[var(--color-primary)] text-white'
-              : theme === 'dark'
-                ? 'bg-[#1E1D4D] text-[#7E7AFF]'
-                : 'bg-[#EEEDFF] text-[#4E49FF]'
+              ? 'border-transparent bg-[var(--project-accent)] text-[#191824] hover:bg-[color-mix(in_srgb,var(--project-accent)_85%,white)]'
+              : 'border-white/[0.12] bg-white/[0.035] text-[#d4cbff] hover:border-[var(--project-accent)]'
           } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
         >
           {isSubmitting ? '처리 중…' : hasAnyInput ? '회원가입' : '건너뛰기'}
@@ -325,9 +299,9 @@ const AdditionalProfileSection = ({
         <button
           type="button"
           onClick={onBack}
-          className="Body1 inline-flex w-fit self-center text-[var(--ui-400)]"
+          className="inline-flex w-fit items-center self-center gap-2 text-[14px] text-[#a9abc0] transition-colors hover:text-[#f5f5f7]"
         >
-          <span>돌아가기</span>
+          <ArrowLeft size={17} aria-hidden="true" /><span>돌아가기</span>
         </button>
       </div>
     </div>

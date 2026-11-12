@@ -63,8 +63,8 @@ const ReportLoadingPage = () => {
     const isInsufficientCredit = error.code === 'TICKET400_2';
 
     return (
-      <div className="flex w-full flex-col items-center justify-center px-6 pt-50">
-        <div className="flex w-full max-w-[440px] flex-col items-center rounded-3xl border border-card-border bg-card-bg px-8 py-10 text-center shadow-sm">
+      <div className="flex w-full flex-col items-center justify-center px-6 pt-50 lg:max-2xl:pt-[clamp(64px,13svh,112px)]">
+        <div className="flex w-full max-w-[440px] flex-col items-center rounded-3xl border border-card-border bg-card-bg px-8 py-10 lg:max-2xl:px-6 lg:max-2xl:py-7 text-center shadow-sm">
           <p className="Title3 font-bold text-card-title">
             {isInsufficientCredit ? '리포트를 생성할 수 없어요' : '리포트 생성에 실패했어요'}
           </p>
@@ -97,8 +97,8 @@ const ReportLoadingPage = () => {
   }
 
   return (
-    <div className="flex w-full flex-col items-center justify-center pt-50">
-      <Loading className="w-[300px]" />
+    <div className="flex w-full flex-col items-center justify-center pt-50 lg:max-2xl:pt-[clamp(64px,13svh,112px)]">
+      <Loading className="w-[300px] lg:max-2xl:w-[clamp(210px,30svh,270px)]" />
       <p className="font-bold text-3xl text-ui-900">리포트를 생성하는 중이에요</p>
       <div className="mt-[3rem] flex-col items-center gap-[1.6rem]">
         <p className="w-fit rounded-lg bg-badge-bg-primary px-[0.8rem] py-[0.4rem] font-bold text-badge-text-primary text-sm">
@@ -107,7 +107,7 @@ const ReportLoadingPage = () => {
         <p className="text-center font-medium text-ui-600 text-xl">
           나와 맞는 프로젝트와 개발자를
           <br />
-          추천 프로젝트/개발자 탭에서 확인해보세요.
+          추천 탭에서 확인해보세요.
         </p>
       </div>
     </div>

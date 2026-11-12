@@ -1,6 +1,6 @@
 import { createMemberProposal } from '@apis/apply';
 import type { MyProfile } from '@apis/myInfo/myInfo';
-import { myInfoQueries } from '@apis/myInfo/myInfo-queries';
+import { myInfoQueries } from '@apis/myInfo/my-info.queries';
 import { getMyRecruitingProjects, type MyRecruitingProjectItem } from '@apis/projects';
 import { getMemberProposal } from '@apis/apply';
 
@@ -35,8 +35,6 @@ const DeveloperSuggestPage = () => {
   const [proposalPart, setProposalPart] = useState<string | null>(null);
   const [proposalContent, setProposalContent] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   // navigate state로 전달된 프로필 데이터 가져오기
   const profileData = location.state?.profileData as { result?: MyProfile } | undefined;
@@ -95,40 +93,33 @@ const DeveloperSuggestPage = () => {
   const handleSubmit = async () => {
     if (!memberNick) return;
     if (!selectedProjectId) {
-      setSubmitError('프로젝트를 선택해주세요.');
       return;
     }
     const trimmed = proposalContent.trim();
     if (!trimmed) {
-      setSubmitError('제안 내용을 입력해주세요.');
       return;
     }
     const token = await getToken();
     if (!token) {
-      setSubmitError('로그인이 필요합니다.');
       return;
     }
     setSubmitLoading(true);
-    setSubmitError(null);
-    setSubmitSuccess(false);
     try {
       await createMemberProposal(memberNick, selectedProjectId, proposalPart, trimmed, token);
       alert('제안을 보냈습니다.');
       navigate(-1);
-      setSubmitSuccess(true);
       setProposalContent('');
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : '제안하기에 실패했습니다.';
       alert(errorMessage);
-      setSubmitError(errorMessage);
     } finally {
       setSubmitLoading(false);
     }
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] px-4 pb-20">
-      <header className="flex flex-col gap-6 pt-10">
+    <div className="mx-auto desktop-content w-[var(--desktop-content-width,100%)] max-w-[1180px] px-4 pb-20">
+      <header className="flex flex-col gap-6 pt-10 lg:max-2xl:gap-4 lg:max-2xl:pt-6">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -145,7 +136,7 @@ const DeveloperSuggestPage = () => {
         </div>
       </header>
 
-      <section className="mt-10 flex w-full max-w-[500px] flex-col gap-6 rounded-3xl border border-ui-200 bg-ui-bg p-8">
+      <section className="mt-10 flex lg:max-2xl:mt-7 w-full max-w-[500px] flex-col gap-6 rounded-3xl border border-ui-200 bg-ui-bg p-8 lg:max-2xl:p-6">
         <div className="flex flex-row items-start gap-5">
           <ImagePreview
             isExist={profile?.member?.imageUrl !== undefined}
@@ -174,7 +165,7 @@ const DeveloperSuggestPage = () => {
         </div>
       </section>
 
-      <section className="mt-10 flex flex-col gap-5">
+      <section className="mt-10 flex lg:max-2xl:mt-7 flex-col gap-5">
         <div className="flex items-center justify-between">
           <p className="font-bold text-3xl text-ui-1000">나의 프로젝트</p>
         </div>
@@ -183,7 +174,7 @@ const DeveloperSuggestPage = () => {
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={`project-skeleton-${i}`}
-                className="h-[220px] rounded-2xl border border-ui-200 bg-ui-50"
+                className="h-[220px] lg:max-2xl:h-[190px] rounded-2xl border border-ui-200 bg-ui-50"
               />
             ))}
           </div>
@@ -225,23 +216,23 @@ const DeveloperSuggestPage = () => {
         )}
       </section>
 
-      <section className="mt-12 flex flex-col gap-5">
+      <section className="mt-12 flex lg:max-2xl:mt-8 flex-col gap-5">
         <p className="font-bold text-3xl text-ui-1000">제안 포지션</p>
         <SelectDropdown
           placeholder="포지션을 선택해주세요"
           value={proposalPart}
           onChange={setProposalPart}
           options={DROPDOWN_OPTIONS}
-          className="w-115"
+          className="w-115 lg:max-2xl:max-w-full"
         />
       </section>
-      <section className="mt-12 flex flex-col gap-5">
+      <section className="mt-12 flex lg:max-2xl:mt-8 flex-col gap-5">
         <p className="font-bold text-3xl text-ui-1000">제안 내용</p>
         <textarea
           placeholder="제안 내용을 입력해주세요."
           value={proposalContent}
           onChange={(e) => setProposalContent(e.target.value)}
-          className="h-72 w-full resize-none rounded-2xl bg-ui-50 p-6 text-[14px] text-ui-800 placeholder:text-ui-500"
+          className="h-72 w-full lg:max-2xl:h-[clamp(138px,20svh,165px)] resize-none rounded-2xl bg-ui-50 p-6 text-[14px] text-ui-800 placeholder:text-ui-500"
         />
         <div className="flex items-center justify-end">
           <button

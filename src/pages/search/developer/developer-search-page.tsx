@@ -1,7 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { createBookmark, deleteBookmark, getBookmarks } from '@apis/bookmarks';
 import ChevronRightIcon from '@assets/icons/chevron-right.svg?react';
-import ProfileDefaultImage from '@assets/images/Profile.svg';
 import ProfileDefaultDark from '@assets/images/Profile_dark.svg';
 import { useAuth } from '@clerk/clerk-react';
 import DeveloperFilterBar, { type DeveloperFilterKey } from '@components/common/DeveloperFilterBar';
@@ -17,7 +16,6 @@ import { useMyRecruitingProjects } from '@hooks/useMyRecruitingProjects';
 import { useRecommendMembersPreview } from '@hooks/useRecommendMembersPreview';
 import { normalizeTechstackKey, TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
 import { useFilterStore } from '@store/filter';
-import { useThemeStore } from '@store/theme';
 import type { BadgeTone } from '@t/badgeTone';
 import { DOMAIN_CODE_TO_LABEL, DOMAIN_LABEL_TO_CODE, ROLE_LABEL, ROLE_PRIORITY } from '@t/member';
 import type { MemberSearchCategory, ProfileCardProps } from '@t/profileCard.types';
@@ -61,13 +59,7 @@ const DeveloperSearchPage = () => {
   const [bookmarkMap, setBookmarkMap] = useState<Record<string | number, number>>({});
   const [page, setPage] = useState(1);
   const size = 10;
-
-  const { theme } = useThemeStore();
-  const isDark = theme === 'dark';
-  const defaultProfileImage = useMemo(
-    () => (isDark ? ProfileDefaultDark : ProfileDefaultImage),
-    [isDark],
-  );
+  const defaultProfileImage = ProfileDefaultDark;
 
   const setInterestDomains = (v: string[]) => setDeveloperSearch({ interestDomains: v });
   const setMyProjects = (v: string[]) => setDeveloperSearch({ myProjects: v });
@@ -295,7 +287,7 @@ const DeveloperSearchPage = () => {
         <meta property="og:description" content="개발자 구하기, 프리랜서 개발자 구인, IT 외주 개발자 매칭. GitHub 분석으로 실력 검증된 개발자를 찾아보세요." />
         <meta property="og:url" content="https://www.devine.kr/search/developer" />
       </Helmet>
-      <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30">
+      <section className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 pb-30 lg:max-2xl:gap-7 lg:max-2xl:pb-20">
         <header className="flex items-center justify-between">
           <h2 className="pl-5 font-semibold text-[16px] text-card-title">추천 개발자</h2>
 
@@ -312,7 +304,7 @@ const DeveloperSearchPage = () => {
       </header>
 
       {showTopPreviewSkeleton && (
-        <div className="scrollbar-hide flex gap-6 overflow-x-auto py-2">
+        <div className="scrollbar-hide flex gap-6 overflow-x-auto lg:max-2xl:gap-4 py-2">
           {Array.from({ length: 4 }, (_, i) => (
             <div key={i} className="w-[min(360px,88vw)] shrink-0">
               <RecommendDeveloperCardSkeleton />
@@ -326,7 +318,7 @@ const DeveloperSearchPage = () => {
         </p>
       )}
       {!showTopPreviewSkeleton && hasProjects === true && (
-        <div className="scrollbar-hide flex justify-start gap-6 overflow-x-auto">
+        <div className="scrollbar-hide flex justify-start gap-6 overflow-x-auto lg:max-2xl:gap-4">
           {profiles.map((profile) => (
             <ProfileCard
               key={profile.id}

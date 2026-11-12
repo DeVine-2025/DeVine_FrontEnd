@@ -1,3 +1,4 @@
+import BrandLogo from '@assets/images/devine-wordmark.png';
 import {
   getNotifications,
   getUnreadNotificationCount,
@@ -6,27 +7,19 @@ import {
   type NotificationItem,
   subscribeNotificationStream,
 } from '@apis/notifications';
-import AlarmIcon from '@assets/icons/alarm.svg?react';
-import AlarmDarkHoverIcon from '@assets/icons/alarm-dark-hover.svg?react';
-import AlarmLightIcon from '@assets/icons/alarm-light.svg?react';
-import AlarmLightHoverIcon from '@assets/icons/alarm-light-hover.svg?react';
-import DarkLogo from '@assets/icons/logo-dark.svg?react';
-import LightLogo from '@assets/icons/logo-light.svg?react';
-import MobileLogo from '@assets/icons/logo-mobile.svg?react';
 import MenuIcon from '@assets/icons/menu.svg?react';
 import MenuClosedIcon from '@assets/icons/menu-closed.svg?react';
-import ModeDarkHoverIcon from '@assets/icons/mode-dark-hover.svg?react';
-import ModeLightIcon from '@assets/icons/mode-light.svg?react';
-import ModeLightHoverIcon from '@assets/icons/mode-light-hover.svg?react';
-import ModeSettingIcon from '@assets/icons/mode-setting.svg?react';
+import TicketNeon from '@assets/icons/ticket-neon.svg?react';
 import { SignedIn, SignedOut, useAuth as useClerkAuth, useUser } from '@clerk/clerk-react';
+import { useQuery } from '@tanstack/react-query';
 import NotificationModal from '@components/common/NotificationModal';
+import { myCreditsQuery } from '@apis/payment/payment-queries';
+import { useAuthMe } from '@hooks/useAuthMe';
+import { useElasticUnderline } from '@hooks/useElasticUnderline';
 import { useNotificationStore } from '@store/notification';
-import { useThemeStore } from '@store/theme';
 import { getProfileImageKey, getStoredProfileImageUrl } from '@utils/storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/shared/auth/useAuth';
 
 type HeaderProps = {
   navLocked?: boolean;
@@ -34,25 +27,37 @@ type HeaderProps = {
 };
 
 const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
-  const { theme, toggleTheme } = useThemeStore();
-  const { isAuthed, user: devUser, setDevAuthed } = useAuth();
   const { getToken, isSignedIn } = useClerkAuth();
   const location = useLocation();
+  const { navRef, indicatorRef } = useElasticUnderline(location.pathname);
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [sampleNotifications, setSampleNotifications] = useState<NotificationItem[]>(() => import.meta.env.DEV ? [
+    { id: 'sample-application', title: '[샘플] 새로운 프로젝트 지원', description: '플로우업 프로젝트에 새로운 지원자가 도착했어요.', timestamp: '5분 전', isRead: false },
+    { id: 'sample-invitation', title: '[샘플] 협업 제안이 도착했어요', description: '커넥트업 팀에서 함께 프로젝트를 진행하고 싶어 해요.', timestamp: '2시간 전', isRead: false },
+    { id: 'sample-report', title: '[샘플] 프로젝트 리포트 생성 완료', description: 'GitHub 프로젝트 분석이 완료됐어요. 리포트를 확인해 보세요.', timestamp: '어제', isRead: true },
+  ] : []);
   const [notificationPage, setNotificationPage] = useState(0);
   const [hasNextNotifications, setHasNextNotifications] = useState(false);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [loadingMoreNotifications, setLoadingMoreNotifications] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const { user: clerkUser } = useUser();
+  const profileImageSrc = profileImageUrl || (clerkUser?.hasImage ? clerkUser.imageUrl : null);
+  const profileInitial =
+    clerkUser?.firstName?.trim().charAt(0) ||
+    clerkUser?.username?.trim().charAt(0) ||
+    clerkUser?.primaryEmailAddress?.emailAddress?.charAt(0).toUpperCase() ||
+    'D';
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
   const isSignupFlow = location.pathname.startsWith('/signup');
   const isTermsPage = location.pathname.startsWith('/terms/');
-  const isOnboardingComplete = clerkUser?.unsafeMetadata?.onboardingComplete === true;
+  const { data: memberStatus } = useAuthMe();
+  const isOnboardingComplete = memberStatus?.isRegistered === true;
   const canUseMemberProtectedApis = isSignedIn === true && isOnboardingComplete && !isSignupFlow;
+  const { data: myCredits } = useQuery(myCreditsQuery(canUseMemberProtectedApis));
 
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
@@ -253,14 +258,15 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   );
 
   const navItems = [
-    { path: '/search', label: '프로젝트/개발자 보기' },
-    { path: '/recommend', label: '추천 프로젝트/개발자' },
+    { path: '/search/projects', label: '탐색' },
+    { path: '/recommend', label: '추천' },
     { path: '/report', label: '리포트' },
     { path: '/my-project', label: '지원 현황' },
+    { path: '/project/create', label: '프로젝트 등록' },
   ];
 
   const isActive = (path: string) => {
-    return location.pathname.startsWith(path);
+    return path === '/search/projects' ? location.pathname.startsWith('/search') : location.pathname.startsWith(path);
   };
 
   const toggleMenu = () => {
@@ -269,11 +275,11 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
 
   return (
     <>
-      <header className="w-full bg-ui-bg">
-        <div className="relative mx-auto h-[7rem] w-full max-w-[1180px] flex-row-between pl-6 max-[391px]:px-2 max-[743px]:px-4">
+      <header className="w-full border-b border-white/[0.04] bg-ui-bg">
+        <div className="desktop-content relative mx-auto h-[7rem] w-[var(--desktop-content-width,100%)] max-w-none flex-row-between px-8 max-[391px]:px-2 max-[743px]:px-4 lg:max-2xl:px-0">
           {/* 왼쪽: 로고 + 네비게이션 */}
           <div className="flex-items-center gap-[4.8rem] phone:gap-[2rem] tablet:gap-[3rem]">
-            <div className="group relative ml-[-14px] flex-items-center gap-[0.4rem]">
+            <div className="group relative ml-[-14px] flex-items-center gap-[0.4rem] lg:max-2xl:ml-0">
               {/* 데스크톱/태블릿 로고 */}
               <button
                 type="button"
@@ -283,7 +289,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                     onLogoClick();
                     return;
                   }
-                  navigate('/');
+                  navigate('/home');
                 }}
                 disabled={navLocked}
                 aria-disabled={navLocked}
@@ -292,10 +298,10 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                 }`}
               >
                 <span className="max-[391px]:hidden">
-                  {theme === 'dark' ? <LightLogo /> : <DarkLogo />}
+                  <img src={BrandLogo} alt="Devine" className="h-auto w-[136px] max-w-full object-contain" />
                 </span>
                 <span className="hidden max-[391px]:block">
-                  <MobileLogo />
+                  <img src={BrandLogo} alt="Devine" className="h-auto w-[136px] max-w-full object-contain" />
                 </span>
               </button>
               {navLocked && (
@@ -306,79 +312,48 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             </div>
 
             {/* 네비게이션 - 데스크톱 */}
-            <nav className="max-[743px]:!hidden ml-[28px] flex-items-center shrink-0 flex-nowrap gap-[5rem] phone:gap-[2rem] tablet:gap-[3rem]">
+            <nav ref={navRef} className="relative max-[743px]:!hidden ml-[28px] flex-items-center shrink-0 flex-nowrap gap-[2.6rem] phone:gap-[2rem] tablet:gap-[2.6rem]">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`Label1 group relative shrink-0 whitespace-nowrap px-[0.6rem] py-[0.4rem] transition-all duration-300 ease-out ${
-                    isActive(item.path) ? 'text-ui-800' : 'text-ui-400'
+                  className={`group relative shrink-0 whitespace-nowrap py-[0.4rem] text-[1.4rem] font-medium transition-colors duration-200 ${
+                    isActive(item.path) ? 'text-ui-1000' : 'text-[#A1A1AA]'
                   } hover:text-ui-800`}
+                  aria-current={isActive(item.path) ? 'page' : undefined}
                 >
                   {item.label}
                   <span
-                    className={`-translate-x-1/2 absolute bottom-[0.2rem] left-1/2 h-[0.5px] transition-all duration-300 ease-out ${
+                    className={`-translate-x-1/2 absolute bottom-0 left-1/2 h-[2px] rounded-full transition-all duration-300 ease-out ${
                       isActive(item.path)
-                        ? 'w-[calc(100%-1.2rem)] opacity-100'
-                        : 'w-0 opacity-0 group-hover:w-[calc(100%-1.2rem)] group-hover:opacity-100'
-                    } bg-ui-800`}
+                        ? 'w-0 opacity-0'
+                        : 'w-0 opacity-0 group-hover:w-full group-hover:opacity-100'
+                    } bg-primary`}
                   />
                 </Link>
               ))}
+              <span ref={indicatorRef} aria-hidden="true" className="pointer-events-none invisible absolute bottom-0 left-0 h-[2px] rounded-full bg-primary" />
             </nav>
           </div>
 
           {/* 액션 버튼들 */}
-          <div className="flex-items-center shrink-0 flex-nowrap gap-[1.2rem] phone:gap-[0.6rem] tablet:gap-[0.8rem]">
+          <div className="flex-items-center shrink-0 flex-nowrap gap-[1.6rem] phone:gap-[0.8rem] tablet:gap-[1.2rem]">
             <SignedIn>
               {!isTermsPage && !isSignupFlow && (
-                <Link
-                  to="/pay"
-                  className="group relative h-[3.6rem] flex-row-center shrink-0 overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--badge-text-primary)] px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
-                >
-                  <span
-                    className="absolute inset-0 rounded-[8px] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                    style={{
-                      background: '#4E49FF',
-                    }}
-                  />
-                  <span
-                    className="-inset-[2px] -z-10 absolute rounded-[10px] opacity-0 blur-[8px] transition-opacity duration-300 group-hover:opacity-20"
-                    style={{
-                      background: '#7E7AFF',
-                    }}
-                  />
-                  <span className="Caption1 relative z-10 whitespace-nowrap font-semibold text-[#4E49FF] transition-colors duration-300 group-hover:text-white">
-                    이용권 구매
-                  </span>
-                </Link>
+                  <Link
+                    to="/pay"
+                    aria-label={
+                      typeof myCredits?.remainingCount === 'number'
+                        ? `이용권 ${myCredits.remainingCount}장, 구매 페이지로 이동`
+                        : '이용권 구매 페이지로 이동'
+                    }
+                    className="group flex h-[4rem] shrink-0 items-center gap-[0.7rem] whitespace-nowrap text-[var(--ui-500)] transition-colors hover:text-[var(--ui-800)]"
+                  >
+                    <TicketNeon aria-hidden="true" className="h-[1.6rem] w-[2.2rem] shrink-0" />
+                    <span className="text-[1.4rem] font-medium">이용권 구매</span>
+                  </Link>
               )}
-              <Link
-                to="/project/create"
-                className="Caption1 relative h-[3.2rem] flex-row-center whitespace-nowrap rounded-[8px] bg-[#4E49FF] px-[1.0rem] py-[0.6rem] font-semibold text-white transition-[transform,opacity] duration-150 ease-out hover:opacity-95 active:translate-y-[1px] active:scale-[0.98]"
-              >
-                프로젝트 등록하기
-              </Link>
             </SignedIn>
-            {/* 다크모드 토글 */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="group max-[391px]:!hidden relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg"
-            >
-              {theme === 'dark' ? (
-                <>
-                  <ModeSettingIcon className="size-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                  <ModeDarkHoverIcon className="absolute size-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                </>
-              ) : (
-                <>
-                  <ModeLightIcon className="size-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                  <ModeLightHoverIcon className="absolute size-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                </>
-              )}
-            </button>
-
             {/* 알림 */}
             <button
               ref={alarmButtonRef}
@@ -387,55 +362,40 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
                 setIsNotificationOpen(!isNotificationOpen);
                 if (isNotificationOpen) fetchUnreadCount();
               }}
-              className="group relative size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg p-[0.4rem]"
+              className="group relative size-[4rem] flex-row-center shrink-0 cursor-pointer text-[var(--ui-500)] transition-colors duration-200 hover:text-[var(--ui-800)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               aria-label={
                 unreadCount > 0
                   ? `알림 열기. 읽지 않은 알림 ${unreadCount > 99 ? '99+' : unreadCount}건`
                   : '알림 열기'
               }
             >
-              {theme === 'dark' ? (
-                <>
-                  <AlarmIcon className="size-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                  <AlarmDarkHoverIcon className="absolute size-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                </>
-              ) : (
-                <>
-                  <AlarmLightIcon className="size-[2.4rem] transition-opacity duration-300 group-hover:opacity-0" />
-                  <AlarmLightHoverIcon className="absolute size-[2.4rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                </>
-              )}
+              <svg aria-hidden="true" className="size-[2rem]" viewBox="0 0 24 24" fill="none">
+                <path d="M18 9.8a6 6 0 0 0-12 0c0 7-3 7.2-3 8.7h18c0-1.5-3-1.7-3-8.7ZM10 21h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
 
               {unreadCount > 0 && (
                 <span
-                  className="absolute top-[0.4rem] right-[0.4rem] flex size-5 items-center justify-center rounded-full bg-[#4E49FF] font-semibold text-[0.7rem] text-white leading-none"
+                  className="absolute top-[0.4rem] right-[0.4rem] flex size-5 items-center justify-center rounded-full bg-[#6654F5] font-semibold text-[0.7rem] text-white leading-none"
                   aria-hidden="true"
                 >
-                  <span className="absolute inset-0 animate-notification-pulse rounded-full bg-[#4E49FF]" />
+                  <span className="absolute inset-0 animate-notification-pulse rounded-full bg-[#6654F5]" />
                   <span className="relative">{unreadCount > 99 ? '99+' : unreadCount}</span>
                 </span>
               )}
             </button>
 
             <SignedIn>
-              <Link
-                to="/my-info"
-                className="Caption1 whitespace-nowrap text-[var(--ui-700)] transition-colors duration-300 hover:text-[var(--ui-900)]"
-              >
-                내 정보
-              </Link>
-
               <button
                 type="button"
                 onClick={() => navigate('/my-info')}
-                className="-translate-y-[0.15rem] relative h-[2.7rem] w-[2.7rem] shrink-0 cursor-pointer overflow-hidden rounded-full"
+                className="relative flex h-[3.2rem] w-[3.2rem] shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-[#665C7A] text-[1.4rem] font-medium text-white transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 aria-label="내 정보 페이지로 이동"
               >
-                <img
-                  src={profileImageUrl || clerkUser?.imageUrl}
-                  alt="프로필"
-                  className="h-full w-full rounded-full object-cover"
-                />
+                {profileImageSrc ? (
+                  <img src={profileImageSrc} alt="프로필" className="h-full w-full rounded-full object-cover" />
+                ) : (
+                  <span aria-hidden="true">{profileInitial}</span>
+                )}
               </button>
             </SignedIn>
 
@@ -444,18 +404,18 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
               {!isTermsPage && (
                 <Link
                   to="/login"
-                  className="group relative h-[3.6rem] flex-row-center shrink-0 overflow-hidden whitespace-nowrap rounded-[8px] border border-[var(--badge-text-primary)] px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
+                  className="group relative h-[3.6rem] flex-row-center shrink-0 overflow-hidden whitespace-nowrap rounded-[8px] border border-ui-200 px-[1.2rem] py-[0.8rem] transition-all duration-300 hover:border-transparent"
                 >
                   <span
                     className="absolute inset-0 rounded-[8px] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                     style={{
-                      background: '#4E49FF',
+                      background: '#6654F5',
                     }}
                   />
                   <span
                     className="-inset-[2px] -z-10 absolute rounded-[10px] opacity-0 blur-[8px] transition-opacity duration-300 group-hover:opacity-20"
                     style={{
-                      background: '#7E7AFF',
+                      background: '#7B6BFF',
                     }}
                   />
                   <span className="Caption1 relative z-10 whitespace-nowrap text-[var(--ui-900)] transition-colors duration-300 group-hover:text-[var(--ui-1000)]">
@@ -469,7 +429,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
             <button
               type="button"
               onClick={toggleMenu}
-              className="!hidden max-[743px]:!flex size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[8px] bg-ui-bg p-[0.4rem]"
+              className="!hidden max-[743px]:!flex size-[3.6rem] flex-row-center shrink-0 cursor-pointer rounded-[10px] bg-ui-50 p-[0.4rem] transition-colors hover:bg-ui-100"
             >
               {isMenuOpen ? (
                 <MenuClosedIcon className="size-[2.4rem]" />
@@ -519,11 +479,20 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
         anchorRef={alarmButtonRef}
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
-        notifications={notifications}
+        notifications={[...sampleNotifications, ...notifications]}
         loading={loadingNotifications}
-        onMarkAsRead={handleMarkAsRead}
-        onMarkAllAsRead={handleMarkAllAsRead}
-        onNotificationClick={handleNotificationClick}
+        onMarkAsRead={(id) => id.startsWith('sample-') ? setSampleNotifications((items) => items.map((item) => item.id === id ? { ...item, isRead: true } : item)) : handleMarkAsRead(id)}
+        onMarkAllAsRead={() => {
+          setSampleNotifications((items) => items.map((item) => ({ ...item, isRead: true })));
+          if (notifications.some((item) => !item.isRead)) handleMarkAllAsRead();
+        }}
+        onNotificationClick={(notification) => {
+          if (notification.id.startsWith('sample-')) {
+            setSampleNotifications((items) => items.map((item) => item.id === notification.id ? { ...item, isRead: true } : item));
+          } else {
+            handleNotificationClick(notification);
+          }
+        }}
         hasMore={hasNextNotifications}
         onLoadMore={loadMoreNotifications}
         loadingMore={loadingMoreNotifications}

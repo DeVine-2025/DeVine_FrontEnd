@@ -4,12 +4,6 @@
         color: inherit;
     }
 
-    *,
-    *::before,
-    *::after {
-        box-sizing: border-box;
-    }
-
     body,
     div,
     span,
@@ -96,12 +90,6 @@
         vertical-align: baseline;
     }
 
-    /* 리스트 스타일 제거 */
-    ol,
-    ul {
-        list-style: none;
-    }
-
     blockquote,
     q {
         quotes: none;
@@ -117,12 +105,6 @@
     table {
         border-collapse: collapse;
         border-spacing: 0;
-    }
-
-    img,
-    video {
-        max-width: 100%;
-        height: auto;
     }
 
     input,

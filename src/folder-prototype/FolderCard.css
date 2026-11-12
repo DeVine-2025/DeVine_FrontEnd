@@ -1,0 +1,216 @@
+.folder-card {
+  --folder-panel: #14171e;
+  --folder-ink: #f5f6fa;
+  --folder-muted: #aeb6c5;
+
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 308px);
+  aspect-ratio: 0.795;
+  border-radius: 19px;
+  overflow: hidden;
+  background: #20242d;
+  perspective: 950px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.folder-card--violet {
+  --folder-panel: #4e49ff;
+  --folder-ink: #ffffff;
+  --folder-muted: #dddcff;
+}
+
+/* 폴더 뒷면 */
+.folder-card__back {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #1e2432;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 0;
+}
+
+/* 움직이는 이미지 레이어 */
+.folder-card__art {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 15%;
+  z-index: 1;
+  will-change: transform;
+}
+
+.folder-card__image,
+.folder-card__placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.folder-card__placeholder {
+  background:
+    radial-gradient(
+      ellipse at 25% 14%,
+      #7376ff 0,
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      #131e3a 10%,
+      #4e49ff 50%,
+      #10172a 100%
+    );
+}
+
+/* 폴더 앞면 */
+.folder-card__front {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 63%;
+  color: var(--folder-panel);
+  z-index: 2;
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+
+.folder-card__front-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 폴더 내부 콘텐츠 */
+.folder-card__content {
+  position: absolute;
+  inset: 17% 8% 8%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: var(--folder-ink);
+  min-width: 0;
+}
+
+.folder-card__topline,
+.folder-card__tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.folder-card__number {
+  font-size: clamp(34px, 3vw, 52px);
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 우측 상단 이동 아이콘 */
+.folder-card__arrow {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.folder-card__arrow:hover,
+.folder-card__arrow:focus-visible {
+  background: rgba(127, 127, 127, 0.16);
+}
+
+/* 하단 텍스트 */
+.folder-card__bottom {
+  min-width: 0;
+}
+
+.folder-card__title {
+  margin: 0;
+  font-size: clamp(15px, 1.5vw, 19px);
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+
+.folder-card__description {
+  margin: 7px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--folder-muted);
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+/* 메인 / 상세 버튼 */
+.folder-card__tabs {
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.folder-card__tabs button {
+  border: 1px solid color-mix(
+    in srgb,
+    var(--folder-ink),
+    transparent 78%
+  );
+  background: transparent;
+  border-radius: 7px;
+  color: var(--folder-ink);
+  padding: 5px 11px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.folder-card__tabs button:hover,
+.folder-card__tabs button:focus-visible {
+  background: color-mix(
+    in srgb,
+    var(--folder-ink),
+    transparent 90%
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--folder-ink),
+    transparent 55%
+  );
+}
+
+.folder-card button:focus-visible {
+  outline: 2px solid #8b88ff;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folder-card__tabs button {
+    transition: none;
+  }
+}
+
+/* 닫힌 폴더에서 앞면이 아래로 내려가며 안쪽이 드러납니다. */
+.folder-card {background:linear-gradient(145deg,#292b37,#191b24); border:1px solid #373945; border-radius:20px; box-shadow:inset 0 1px 0 #ffffff0d,0 10px 24px #0000001f;}
+.folder-card__back {inset:7px; border:0; border-radius:14px; background:#242339;}
+.folder-card__art {inset:7px; overflow:hidden; border-radius:14px;}
+.folder-card__placeholder {position:relative; background:#302f42;}
+.folder-card__symbol {position:absolute; top:25%; left:26%; width:48%; height:auto; object-fit:contain;}
+.folder-card__front {--folder-panel:#1a1c25; --folder-surface-highlight:#282a35; inset:20% 7px 7px; height:auto; color:var(--folder-panel);}
+.folder-card__content {inset:7% 8% 8%;}
+.folder-card__number {font-size:38px;}
+.folder-card__bottom {position:absolute;left:0;right:0;bottom:0;}
+.folder-card__tabs {justify-content:flex-start;}

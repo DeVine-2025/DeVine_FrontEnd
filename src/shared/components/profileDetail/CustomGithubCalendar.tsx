@@ -13,11 +13,14 @@ interface CustomGithubCalendarProps {
   initialYear?: number;
   year?: number;
   onYearChange?: (year: number) => void;
+  heading?: string;
+  beforeCalendar?: React.ReactNode;
+  afterCalendar?: React.ReactNode;
 }
 
-const GITHUB_THEME: ThemeInput = {
-  light: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
-  dark: ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'],
+const DEVINE_ACTIVITY_THEME: ThemeInput = {
+  light: ['#eeedf3', '#dfd9ff', '#b8adff', '#8272fa', '#6654f5'],
+  dark: ['#1c1e27', '#39305f', '#57469a', '#7b68e2', '#a69bff'],
 };
 
 const calculateLevel = (count: number): 0 | 1 | 2 | 3 | 4 => {
@@ -51,9 +54,11 @@ const CustomGithubCalendar = ({
   data = [],
   initialYear = new Date().getFullYear(),
   year: yearProp,
-  onYearChange
+  onYearChange,
+  heading,
+  beforeCalendar,
+  afterCalendar,
 }: CustomGithubCalendarProps) => {
-
   const [internalYear, setInternalYear] = useState(initialYear);
   // year prop이 있으면 prop을 사용하고, 없으면 내부 상태 사용
   const year = yearProp !== undefined ? yearProp : internalYear;
@@ -86,49 +91,58 @@ const CustomGithubCalendar = ({
   return (
     <div className="p-[2rem] border border-ui-200 rounded-xl w-full">
       <style>{`
-        .calendar-container > * > :not(:first-child) {
-          display: none !important;
-        }
-
         .calendar-container text {
           fill: var(--color-ui-700) !important;
           font-size: 12px;
           font-weight: 600;
         }
 
-        .calendar-container svg {
+        .calendar-container .react-activity-calendar__calendar {
           width: 100% !important;
           height: auto !important;
         }
       `}</style>
 
       {/* 헤더 */}
-      <div className="flex items-center gap-[1.6rem] mb-[2rem]">
-        <button
-          onClick={() => moveYear(-1)}
-          className={chevronButtonStyle}
-        >
-          <ChevronLeftIcon className={chevronStyle} />
-        </button>
+      <div className="github-calendar-header">
+        {heading && <h2>{heading}</h2>}
+        <div className="github-calendar-year flex items-center gap-[1.6rem] mb-[2rem]">
+          <button
+            type="button"
+            aria-label="이전 연도"
+            onClick={() => moveYear(-1)}
+            className={chevronButtonStyle}
+          >
+            <ChevronLeftIcon className={chevronStyle} />
+          </button>
 
-        <span className="font-bold text-ui-1000 text-2xl select-none">
-          {year}년
-        </span>
+          <span className="font-bold text-ui-1000 text-2xl select-none">
+            {year}년
+          </span>
 
-        <button
-          onClick={() => moveYear(1)}
-          className={chevronButtonStyle}
-          disabled={year >= new Date().getFullYear()}
-        >
-          <ChevronRightIcon className={chevronStyle} />
-        </button>
+          <button
+            type="button"
+            aria-label="다음 연도"
+            onClick={() => moveYear(1)}
+            className={chevronButtonStyle}
+            disabled={year >= new Date().getFullYear()}
+          >
+            <ChevronRightIcon className={chevronStyle} />
+          </button>
+        </div>
       </div>
 
+      {beforeCalendar}
       {/* 캘린더 컨테이너 */}
-      <div className="calendar-container">
+      <div className={afterCalendar ? 'rounded-xl border border-white/[0.08] bg-white/[0.015] p-4 sm:p-5' : undefined}>
+      <div key={heading ? year : undefined} className={heading ? 'calendar-container calendar-container-animated' : 'calendar-container'}>
         <ActivityCalendar
           data={calendarData}
-          theme={GITHUB_THEME}
+          theme={DEVINE_ACTIVITY_THEME}
+          colorScheme="dark"
+          showWeekdayLabels={heading ? ['mon', 'wed', 'fri'] : false}
+          showTotalCount={false}
+          showColorLegend={Boolean(heading)}
           blockSize={12}
           blockRadius={2}
           blockMargin={4}
@@ -142,6 +156,8 @@ const CustomGithubCalendar = ({
             ],
           }}
         />
+      </div>
+      {afterCalendar}
       </div>
     </div>
   );

@@ -1,73 +1,64 @@
-import type { ReportCardRequest } from '@apis/report/report';
+import TicketIcon from '@assets/icons/ticket-neon.svg?react';
 import { reportQueries } from '@apis/report/report-queries';
-import Blank from '@components/report/Blank';
-import ReportCard from '@components/report/ReportCard';
-import { ReportCardSkeletonList } from '@components/report/ReportCardSkeleton';
-import TabMenu from '@components/report/TabMenu';
+import { myCreditsQuery } from '@apis/payment/payment-queries';
+import { useAuth } from '@clerk/clerk-react';
+import { useAuthMe } from '@hooks/useAuthMe';
+import ReportFolderEntry from '@components/report/folder/ReportFolderEntry';
+import { groupReportFolders } from '@components/report/folder/groupReportFolders';
+import '@components/report/report-card.css';
+import './report-library-redesign.css';
+import { ReportListLoading } from '@components/common/LoadingLayouts';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ChevronRight, Info, Plus } from 'lucide-react';
+import ViewToggle from '@components/common/ViewToggle';
+import SortMenu from '@components/common/SortMenu';
+import { useElasticUnderline } from '@hooks/useElasticUnderline';
+import type { ReportFolderGroup } from '@components/report/folder/groupReportFolders';
+import { useMockData } from '../../shared/config/data-mode';
 
-const TAB_TYPE_MAP: Record<string, ReportCardRequest['type'] | undefined> = {
-  전체: undefined,
-  '메인 리포트': 'MAIN',
-  '상세 리포트': 'DETAIL',
-};
+const sampleGroup: ReportFolderGroup = { key: 'sample:eternal-fe', reports: ['MAIN', 'DETAIL'].map((reportType, i) => ({ reportId: -1 - i, gitRepoId: 178, reportType, visibility: 'PRIVATE', repoName: 'Eternal-FE', repoDescription: '샘플 리포트', createdAt: '2026-11-03T00:00:00+09:00' })) };
 
 const ReportPage = () => {
-  const [activeTab, setActiveTab] = useState('전체');
+  const [tab, setTab] = useState('mine');
+  const { navRef, indicatorRef } = useElasticUnderline(tab, 'button[aria-pressed="true"]');
+  const [sort, setSort] = useState('newest');
+  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const { isSignedIn } = useAuth();
+  const { data: memberStatus } = useAuthMe();
+  const canReadCredits = isSignedIn === true && memberStatus?.isRegistered === true;
+  const { data: credits } = useQuery(myCreditsQuery(canReadCredits));
+  const remainingCredits = canReadCredits ? credits?.remainingCount : undefined;
+  const { data, isPending, isError, refetch, isFetching } = useQuery(reportQueries.report());
+  const reports = data?.result?.reports ?? [];
+  const visibleReports = [...reports].sort((a, b) => {
+      const dateA = Date.parse(a.createdAt) || 0;
+      const dateB = Date.parse(b.createdAt) || 0;
+      return sort === 'newest' ? dateB - dateA || b.reportId - a.reportId : dateA - dateB || a.reportId - b.reportId;
+    });
 
-  const type = TAB_TYPE_MAP[activeTab];
+  const filteredGroups = groupReportFolders(visibleReports).filter(() => tab !== 'shared');
+  const showSample = useMockData && tab !== 'shared' && !reports.some(report => report.repoName.split('/').pop()?.toLowerCase() === 'eternal-fe');
 
-  const { data, isPending } = useQuery(reportQueries.report(type ? { type } : undefined));
+  return <div className="report-library pt-[12px]">
+    <header className="report-compact-header"><div className="report-library-heading-copy"><h1>리포트</h1><p>프로젝트의 분석 결과를 한곳에서 관리하세요.</p></div><div className="report-header-actions"><Link className="report-credit-pill" to="/pay" aria-label={`이용권 ${remainingCredits == null ? '수량 확인 불가' : `${remainingCredits}장`} · 이용권 구매`}><TicketIcon className="report-credit-icon" aria-hidden="true" /><span>이용권 <strong>{remainingCredits == null ? '—' : `${remainingCredits}장`}</strong></span><ChevronRight className="report-credit-arrow" aria-hidden="true" /></Link><Link className="report-new-button" to="/report/create"><Plus size={18} aria-hidden="true"/> 리포트 생성</Link></div></header>
 
-  const reportData = data?.result?.reports;
-  const hasReports = Array.isArray(reportData) && reportData.length > 0;
-  const tabs = ['전체', '메인 리포트', '상세 리포트'];
-
-  return (
-    <div className="flex h-full flex-col gap-[3.2rem]">
-
-      {/* 탭 영역 */}
-      <div className="flex items-center gap-[0.8rem]">
-        {tabs.map((tab) => (
-          <TabMenu
-            key={tab}
-            text={tab}
-            isActive={activeTab === tab}
-            onClick={() => setActiveTab(tab)}
-          />
-        ))}
+    <section className="report-library-results" aria-label="리포트 목록">
+      <div className="report-library-toolbar"><nav ref={navRef} className="report-library-tabs" aria-label="리포트 분류"><button aria-pressed={tab === 'mine'} onClick={() => setTab('mine')}>내 리포트</button><button aria-pressed={tab === 'shared'} onClick={() => setTab('shared')}>공유된 리포트</button><span ref={indicatorRef} className="report-tabs-indicator" aria-hidden="true" /></nav>
+        <div className="flex flex-none items-center gap-[12px]"><SortMenu label="리포트 정렬" value={sort} onChange={setSort} options={[{ value: 'newest', label: '최신순' }, { value: 'oldest', label: '오래된순' }]} /><ViewToggle value={view} onChange={setView} label="리포트 보기 방식" /></div>
       </div>
-
-      {/* 컨텐츠 영역 */}
-      <div>
-        {isPending ? (
-          <div className="grid grid-cols-2 gap-[1.4rem] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            <ReportCard type="create" />
-            <ReportCardSkeletonList count={3} />
-          </div>
-        ) : hasReports ? (
-          <div className="grid grid-cols-2 gap-[1.4rem] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            <ReportCard type="create" />
-            {reportData.map((report) => (
-              <ReportCard
-                key={report.reportId}
-                reportId={report.reportId}
-                gitRepoId={report.gitRepoId}
-                type="main"
-                label={report.reportType}
-                title={report.repoName}
-                isPublic={report.visibility === 'PUBLIC'}
-                description={report.repoDescription}
-              />
-            ))}
-          </div>
-        ) : (
-          <Blank />
-        )}
+      {tab === 'shared' && <div className="mt-[28px] flex items-center gap-[12px]"><h2 className="m-0 text-[16px] font-[650] text-[var(--text-main)]">공유된 리포트</h2><span className="report-shared-help"><button type="button" aria-label="공유된 리포트 안내" aria-describedby="shared-report-tooltip"><Info aria-hidden="true" /></button><span id="shared-report-tooltip" role="tooltip" className="report-shared-tooltip"><strong>공유된 리포트</strong><span>다른 사용자가 나에게 공유한<br />프로젝트 리포트를 확인할 수 있어요.</span></span></span></div>}
+      {isPending && <ReportListLoading view={view} />}
+      {isError && <div className="report-library-empty" role="status">리포트 목록을 불러오지 못했어요.<button type="button" className="report-library-retry" disabled={isFetching} onClick={() => { void refetch(); }}>{isFetching ? '불러오는 중…' : '다시 시도'}</button></div>}
+      {view === 'list' && (showSample || (!isPending && !isError && filteredGroups.length > 0)) && <div className="report-list-head"><span>프로젝트</span><span>생성일</span><span aria-hidden="true" /></div>}
+      <div className={view === 'grid' ? 'grid w-full grid-cols-1 items-start gap-x-[24px] gap-y-[28px] pt-[16px] lg:max-2xl:gap-y-[18px] lg:max-2xl:pt-[12px] [@media(600px<width<=1000px)]:grid-cols-2 [@media(width>1000px)]:grid-cols-3' : 'report-folder-list'}>
+        {showSample && <div className="report-folder-entrance"><ReportFolderEntry group={sampleGroup} sample view={view} /></div>}
+        {!isError && !isPending && filteredGroups.map((group, index) => <div key={group.key} className="report-folder-entrance" style={{ animationDelay: `${Math.min(index + (showSample ? 1 : 0), 8) * 55}ms` }}><ReportFolderEntry group={group} view={view}/></div>)}
       </div>
-    </div>
-  );
+      {!isPending && !isError && filteredGroups.length === 0 && !showSample && <p className="report-library-empty">아직 표시할 리포트가 없어요.</p>}
+    </section>
+  </div>;
 };
 
 export default ReportPage;

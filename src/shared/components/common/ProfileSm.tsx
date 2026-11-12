@@ -19,7 +19,7 @@ export default function ProfileCardSm(props: ProfileCardProps) {
             }
           : undefined
       }
-      className={cn('rounded-2xl bg-ui-50', 'card-size-sm', onClick && 'cursor-pointer')}
+      className={cn('rounded-2xl bg-ui-50', 'card-size-sm lg:max-2xl:h-[246px] lg:max-2xl:w-[260px] lg:max-2xl:p-6', onClick && 'cursor-pointer')}
     >
       <HeaderBlock
         {...props}

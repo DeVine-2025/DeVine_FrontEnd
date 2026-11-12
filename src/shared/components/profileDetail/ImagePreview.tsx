@@ -1,5 +1,4 @@
 import ProfileDefaultIcon from '@assets/icons/profile-default.svg?react';
-// import DummyImage from "@assets/images/dummyImage.jpg";
 
 import {cn} from '@libs/cn';
 

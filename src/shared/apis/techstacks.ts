@@ -1,4 +1,4 @@
-import { axiosInstance } from '@apis/instance';
+import { publicAxiosInstance } from '@apis/instance';
 
 export type TechstackItem = {
   techstackId: number;
@@ -23,6 +23,11 @@ type GetTechstacksResponse = {
 
 export const normalizeTechstackName = (value: string) =>
   value.trim().toUpperCase().replace(/[^A-Z0-9_]+/g, '_');
+
+const positionNames = new Set(['FRONTEND', 'BACKEND', 'INFRA']);
+
+export const isTechnologySkill = ({ name, genre }: { name: string; genre: string | null }) =>
+  Boolean(genre?.trim()) && !positionNames.has(normalizeTechstackName(name).replace(/_/g, ''));
 
 export const formatTechstackKey = (name: string) => {
   const normalized = normalizeTechstackName(name);
@@ -64,7 +69,7 @@ export const buildTechstackNameByIdMap = (groups: TechstackGroup[]) => {
 };
 
 export async function getTechstacks() {
-  const { data } = await axiosInstance.get<GetTechstacksResponse>('/api/v1/techstacks');
+  const { data } = await publicAxiosInstance.get<GetTechstacksResponse>('/api/v1/techstacks');
   return data.result?.techstacks ?? [];
 }
 

@@ -1,3 +1,4 @@
+import AdminModalFrame from './common/admin-modal-frame';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { type FormEvent, useEffect, useState } from 'react';
@@ -24,7 +25,7 @@ const ISSUE_TYPES: Array<{ value: IssueType; label: string }> = [
 ];
 
 const INPUT_CLASS =
-  'Body1 h-[48px] w-full rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[14px] text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-400)] focus:border-[#4e49ff]';
+  'Body1 h-[48px] w-full rounded-[8px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[14px] text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-400)] focus:border-[#6654F5]';
 
 export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueModalProps) {
   const queryClient = useQueryClient();
@@ -154,16 +155,7 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
   const generatedCodes = result?.generatedCodes ?? [];
 
   return (
-    <div
-      aria-label="쿠폰 발급"
-      aria-modal="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-[20px]"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !issueMutation.isPending) onClose();
-      }}
-      role="dialog"
-    >
-      <div className="max-h-[90vh] w-full max-w-[640px] overflow-y-auto rounded-[16px] bg-[var(--ui-bg)] p-[28px] shadow-xl">
+    <AdminModalFrame label={'쿠폰 발급'} size="coupon" busy={issueMutation.isPending} onClose={onClose}>
         <div className="flex items-start justify-between gap-[20px]">
           <div>
             <h2 className="Title3 font-bold text-[var(--ui-1000)]">쿠폰 발급</h2>
@@ -198,7 +190,7 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
                     생성된 코드 {generatedCodes.length}개
                   </h3>
                   <button
-                    className="Body1 cursor-pointer rounded-[8px] border border-[#4e49ff] px-[12px] py-[7px] text-[#4e49ff]"
+                    className="Body1 cursor-pointer rounded-[8px] border border-[#6654F5] px-[12px] py-[7px] text-[#6654F5]"
                     onClick={async () => {
                       await navigator.clipboard.writeText(generatedCodes.join('\n'));
                       setCopied(true);
@@ -222,7 +214,7 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
             )}
 
             <button
-              className="Heading2 mt-[24px] h-[52px] w-full cursor-pointer rounded-[10px] bg-[#4e49ff] font-medium text-white"
+              className="Heading2 mt-[24px] h-[52px] w-full cursor-pointer rounded-[10px] bg-[#6654F5] font-medium text-white"
               onClick={onClose}
               type="button"
             >
@@ -259,7 +251,7 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
                 이전
               </button>
               <button
-                className="Heading2 h-[52px] flex-1 cursor-pointer rounded-[10px] bg-[#4e49ff] text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="Heading2 h-[52px] flex-1 cursor-pointer rounded-[10px] bg-[#6654F5] text-white disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={issueMutation.isPending}
                 onClick={() => issueMutation.mutate(pendingRequest)}
                 type="button"
@@ -269,7 +261,7 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
             </div>
           </div>
         ) : (
-          <form className="mt-[28px]" onSubmit={handleSubmit}>
+          <form className="mt-[28px] lg:max-2xl:mt-[20px]" onSubmit={handleSubmit}>
             <fieldset>
               <legend className="Headline1 font-semibold text-[var(--ui-1000)]">발급 방식</legend>
               <div className="mt-[12px] grid grid-cols-1 gap-[8px] sm:grid-cols-3">
@@ -278,7 +270,7 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
                     className={cn(
                       'Body1 h-[48px] cursor-pointer rounded-[8px] border font-medium',
                       issueType === type.value
-                        ? 'border-[#4e49ff] bg-[#4e49ff] text-white'
+                        ? 'border-[#6654F5] bg-[#6654F5] text-white'
                         : 'border-[var(--ui-200)] bg-[var(--ui-bg)] text-[var(--ui-800)]',
                     )}
                     key={type.value}
@@ -360,7 +352,7 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
                                     </span>
                                   )}
                                 </span>
-                                <span className="Caption1 shrink-0 text-[#4e49ff]">
+                                <span className="Caption1 shrink-0 text-[#6654F5]">
                                   {isSelected ? '선택됨' : '선택'}
                                 </span>
                               </button>
@@ -426,7 +418,7 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
                       className={cn(
                         'Body1 h-[42px] flex-1 cursor-pointer rounded-[8px] border',
                         codeMode === mode.value
-                          ? 'border-[#4e49ff] text-[#4e49ff]'
+                          ? 'border-[#6654F5] text-[#6654F5]'
                           : 'border-[var(--ui-200)] text-[var(--ui-600)]',
                       )}
                       key={mode.value}
@@ -492,14 +484,13 @@ export function CouponIssueModal({ couponId, couponName, onClose }: CouponIssueM
             )}
 
             <button
-              className="Heading2 mt-[24px] h-[52px] w-full cursor-pointer rounded-[10px] bg-[#4e49ff] font-medium text-white"
+              className="Heading2 mt-[24px] h-[52px] w-full cursor-pointer rounded-[10px] bg-[#6654F5] font-medium text-white"
               type="submit"
             >
               발급 내용 확인
             </button>
           </form>
         )}
-      </div>
-    </div>
+    </AdminModalFrame>
   );
 }

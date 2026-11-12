@@ -59,7 +59,7 @@ function LinkCardView({ editor, node, getPos, deleteNode }: ReactNodeViewProps) 
               if (e.key === 'Escape') deleteNode();
             }}
             placeholder="URL을 입력하세요"
-            className="Caption1 flex-1 border-0 border-b border-[var(--ui-300)] bg-transparent pb-2 font-medium text-[var(--ui-900)] outline-none placeholder:text-[var(--ui-400)] focus:border-[#4E49FF]"
+            className="Caption1 flex-1 border-0 border-b border-[var(--ui-300)] bg-transparent pb-2 font-medium text-[var(--ui-900)] outline-none placeholder:text-[var(--ui-400)] focus:border-[var(--project-create-accent,#6654F5)]"
           />
           <button
             type="button"

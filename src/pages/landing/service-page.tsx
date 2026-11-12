@@ -1,234 +1,150 @@
-import { useEffect, type ReactNode } from 'react';
-import {useNavigate} from 'react-router-dom';
-import { landingImages } from '@assets/images/landing';
-import {cn} from '@libs/cn';
+import { useSectionReveal } from './use-section-reveal';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Helmet } from 'react-helmet-async';
+import Footer from '@layouts/footer';
+import BrandLogo from '@assets/images/devine-wordmark.png';
+import { Link } from 'react-router-dom';
+import Hero from './launch-ui/components/sections/hero/default';
+import baseCss from './launch-ui/launch-base.css?raw';
+import accentCss from './launch-ui/launch-accent.css?raw';
+import introUtilities from './launch-ui/intro-utilities.css?inline';
+import './service-page.css';
 
-interface SectionLabelProps {
-  index: string;
-}
-
-const SectionLabel = ({index}: SectionLabelProps) => {
-  return (
-    <p className="w-fit justify-start rounded-2xl border border-white/30 bg-blend-linear-dodge bg-indigo-800/30 px-[2rem] py-[1.2rem] text-center font-bold text-3xl text-badge-text-primary">{index}</p>
-  )
-}
-
-interface RevealImageProps {
-  src: string;
-  alt: string;
-  className?: string;
-  delayMs?: number;
-}
-
-const RevealImage = ({ src, alt, className, delayMs = 0 }: RevealImageProps) => {
-  return (
-    <img
-      src={src}
-      alt={alt}
-      data-scroll-reveal="image"
-      style={{ transitionDelay: `${delayMs}ms` }}
-      className={cn('scroll-reveal', className)}
-    />
-  );
-};
-
-interface RevealTextProps {
-  children: ReactNode;
-  direction?: 'left' | 'right';
-  className?: string;
-  delayMs?: number;
-}
-
-const RevealText = ({ children, direction = 'left', className, delayMs = 0 }: RevealTextProps) => {
-  return (
-    <div
-      data-scroll-reveal="text"
-      style={{ transitionDelay: `${delayMs}ms` }}
-      className={cn('scroll-reveal-text', direction === 'left' ? 'from-left' : 'from-right', className)}
-    >
-      {children}
-    </div>
-  );
-};
-
-const ServicePage = () => {
-  const landingImage: string[] = Object.values(landingImages);
-  const textColor = "text-[#F8F9FB]";
-  const navigate = useNavigate();
+function LandingContent() {
+  const [introRef, introVisible] = useSectionReveal(0.25);
+  const [reportRef, reportVisible] = useSectionReveal(0.2);
+  const [recommendRef, recommendVisible] = useSectionReveal(0.2);
+  const [connectionRef, connectionVisible] = useSectionReveal(0.2);
+  const [ctaRef, ctaVisible] = useSectionReveal(0.2);
+  const [heroVisible, setHeroVisible] = useState(false);
 
   useEffect(() => {
-    const rootEl = document.getElementById('root') as HTMLElement | null;
-    let prevMaxWidth: string | undefined;
-
-    if (rootEl) {
-      prevMaxWidth = rootEl.style.maxWidth;
-      rootEl.style.maxWidth = 'none';
-    }
-
-    const revealEls = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-scroll-reveal="image"], [data-scroll-reveal="text"]'),
-    );
-
-    let observer: IntersectionObserver | null = null;
-    if (revealEls.length > 0) {
-      observer = new IntersectionObserver(
-        (entries, obs) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-
-            entry.target.classList.add('is-visible');
-            obs.unobserve(entry.target);
-          });
-        },
-        {
-          threshold: 0.1,
-          rootMargin: '0px 0px -5% 0px',
-        },
-      );
-
-      revealEls.forEach((el) => observer?.observe(el));
-    }
-
-    return () => {
-      observer?.disconnect();
-      if (rootEl && typeof prevMaxWidth === 'string') {
-        rootEl.style.maxWidth = prevMaxWidth;
-      }
-    };
+    const timer = window.setTimeout(() => setHeroVisible(true), 400);
+    return () => window.clearTimeout(timer);
   }, []);
 
+
+
+
+
+
+
+
+
+
+
+  const reportRevealClass = reportVisible ? 'translate-y-0 opacity-100' : 'translate-y-[28px] opacity-0';
+  const revealClass = introVisible ? 'translate-y-0 opacity-100' : 'translate-y-[28px] opacity-0';
+  const revealMotion = 'transition-[opacity,transform] duration-[1200ms] ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none';
+  const textReveal = (visible: boolean) => `transition-[opacity,transform] duration-[900ms] ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none ${visible ? 'translate-y-0 opacity-100' : 'translate-y-[12px] opacity-0'}`;
+
   return (
-    <div
-      className="min-h-screen w-full bg-[#121212]"
-      style={{
-        backgroundImage:
-          'linear-gradient(180deg, rgba(78, 73, 255, 0.2) 0%, rgba(0, 0, 0, 0) 100%)',
-      }}
-    >
-      <div className="mx-auto w-full max-w-[1080px] flex-col gap-[20rem] px-[8rem]">
-
-        <section className="flex-col gap-[4rem] pt-[12rem]">
-          <RevealImage className="w-[30rem]" src={landingImage[0]} alt="랜딩페이지 아이콘" delayMs={0} />
-          <div>
-            <RevealText direction="left" className="flex-col gap-[2rem]" delayMs={0}>
-              <p
-                className="w-fit bg-gradient-to-r from-[#D4DAE7] to-[#4E49FF] bg-clip-text font-normal text-3xl text-transparent">
-                코드로 증명하고, 데이터로 연결하다.
-              </p>
-              <p className={cn('font-[\'Pretendard\'] font-bold text-6xl leading-[60px]', textColor)}>GitHub 코드 분석
-                기반<br />
-                사이드 프로젝트 매칭 플랫폼</p>
-            </RevealText>
-            <RevealImage src={landingImage[1]} alt="노트북 이미지" delayMs={60} />
-          </div>
-        </section>
-
-        <section className="relative flex-col gap-[14rem]">
-          <RevealText direction="left" className="relative z-10 flex-col gap-[3.8rem]" delayMs={0}>
-            <p className={cn('font-bold text-4xl', textColor)}>"사이드 프로젝트 매칭, 왜 이렇게 어려울까요?”</p>
-            <p className={cn('text-3xl', textColor)}>개발자는 수많은 프로젝트 게시글 속에서 자신의 실력과 관심사에 맞는 프로젝트를 찾기 어렵고, PM은 지원자의
-              GitHub를 봐도
-              실력을 판단할 수 없어 자신의 프로젝트에 적합한 개발자를 찾기 힘듭니다. 그 결과 오랜 시간 탐색하고 매칭되더라도 미스 매치가 반복되고 있었어요.</p>
-          </RevealText>
-          <RevealText direction="right" className="relative z-10 flex-col gap-[3.8rem] pb-[10rem]" delayMs={80}>
-            <p className={cn('font-bold text-4xl', textColor)}>"Devine은 이 문제를 데이터로 해결합니다”</p>
-            <p className={cn('text-3xl', textColor)}>Devine은 GitHub의 실제 코드를 AI가 분석하여 리포트를 제공합니다.
-              그리고 이 리포트를 바탕으로 개발자와 프로젝트를 추천합니다.</p>
-          </RevealText>
-        </section>
-
-        <section>
-          <div className="flex-col items-center gap-[4rem]">
-            <RevealText direction="left" className="flex-col items-center gap-[4rem]" delayMs={0}>
-              <SectionLabel index={'리포트'} />
-              <p className={cn('text-center font-bold text-4xl leading-[35px]', textColor)}>
-                GitHub 로그인 후<br />
-                원하는 내 프로젝트를 선택하고,<br />
-                AI가 분석한 리포트를 받아보세요<br />
-              </p>
-            </RevealText>
-            <div className="relative">
-              <RevealImage src={landingImage[2]} className="absolute top-20 z-0 w-220" alt="프로젝트 분석 리포트" delayMs={120} />
-              <RevealImage src={landingImage[3]} className="absolute right-0 z-0 w-220" alt="프로젝트 분석 리포트" delayMs={180} />
-              <RevealImage src={landingImage[4]} className="relative z-10 pt-60" alt="프로젝트 분석 리포트" delayMs={240} />
+    <div className="launch-content dark">
+      <main className="bg-background text-foreground min-h-screen w-full lg:max-2xl:[&>section]:px-[clamp(40px,5.2vw,80px)] lg:max-2xl:[&>section:not(:first-child)]:min-h-0 lg:max-2xl:[&>section:not(:first-child)]:py-[clamp(56px,9svh,88px)] lg:max-2xl:[&>section>div]:max-w-[min(1180px,100%)] lg:max-2xl:[&_h2]:text-[clamp(34px,3vw,46px)] lg:max-2xl:[&_h3]:text-[clamp(21px,1.8vw,26px)] lg:max-2xl:[&_article]:px-[clamp(20px,2.5vw,38px)] lg:max-2xl:[&_article:first-child]:pl-0 lg:max-2xl:[&_article:last-child]:pr-0 lg:max-2xl:[&_article>img]:max-w-[clamp(200px,20vw,280px)] lg:max-2xl:[&_article>p]:text-[15px]">
+        <Hero title={<><span className={`${textReveal(heroVisible)} block`}>코드로 증명하고,</span><span className={`${textReveal(heroVisible)} delay-[150ms] block text-[#ADA1FA] [-webkit-text-fill-color:#ADA1FA]`}>데이터로 연결하다.</span></>} />
+        <section ref={introRef} className="flex min-h-[105svh] items-center border-t border-white/[0.06] bg-[#101116] px-[24px] py-[80px] text-[#f5f5f7] [font-family:Pretendard,sans-serif] min-[801px]:px-[32px] min-[801px]:pt-[120px] min-[801px]:pb-[128px]" aria-labelledby="service-intro-title">
+          <div className="mx-auto w-full max-w-[1330px]">
+            <p className={`${textReveal(introVisible)} flex items-center gap-[12px] text-[15px] tracking-[.16em] text-[#d7d6df] before:h-[16px] before:w-[3px] before:rounded-full before:bg-[#ada1fa] before:content-['']`}>INTRODUCTION</p>
+            <h2 id="service-intro-title" className="mt-[26px] text-[clamp(34px,3vw,50px)] leading-[1.3] font-bold tracking-[-.04em] [word-break:keep-all]"><span className={`${textReveal(introVisible)} delay-[160ms] block`}>프로젝트를 찾기 전에,</span><span className={`${textReveal(introVisible)} delay-[310ms] block`}>먼저 <span className="text-[#ADA1FA]">프로젝트를 이해</span>할 수 있도록.</span></h2>
+            <p className={`${textReveal(introVisible)} delay-[360ms] mt-[18px] text-[16px] leading-[1.6] text-[#a8a8b2] [word-break:keep-all] min-[801px]:text-[19px]`}>GitHub 코드를 분석해 프로젝트를 이해하고, 더 적합한 팀과 개발자를 연결합니다.</p>
+            <div className="mt-[48px] grid grid-cols-1 gap-[44px] min-[801px]:mt-[84px] min-[801px]:grid-cols-3 min-[801px]:gap-0">
+              <article className={`${revealMotion} ${revealClass} delay-[420ms] min-w-0 border-b border-white/[0.07] pb-[36px] last:border-b-0 min-[801px]:border-b-0 min-[801px]:border-l min-[801px]:px-[48px] min-[801px]:pb-0 min-[801px]:first:border-l-0 min-[801px]:first:pl-0 min-[801px]:last:pr-0`}>
+                <img src="/launch-ui/intro-analysis.png" alt="" aria-hidden="true" className="mx-auto aspect-square w-full max-w-[300px] object-contain brightness-[1.12]" />
+                <p className="mt-[10px] text-[15px] tracking-[.14em] text-[#d1cfda]">01 / ANALYSIS</p>
+                <h3 className="mt-[14px] text-[27px] font-bold tracking-[-.035em]">코드 기반 분석</h3>
+                <p className="mt-[12px] text-[17px] leading-[1.7] text-[#c1c0c9] [word-break:keep-all]">GitHub 코드를 분석해 기술 스택과<br className="hidden min-[1400px]:block" /> 핵심 구현 내용을 리포트로 정리합니다.</p>
+              </article>
+              <article className={`${revealMotion} ${revealClass} delay-[600ms] min-w-0 border-b border-white/[0.07] pb-[36px] last:border-b-0 min-[801px]:border-b-0 min-[801px]:border-l min-[801px]:px-[48px] min-[801px]:pb-0 min-[801px]:first:border-l-0 min-[801px]:first:pl-0 min-[801px]:last:pr-0`}>
+                <img src="/launch-ui/intro-recommend.png" alt="" aria-hidden="true" className="mx-auto aspect-square w-full max-w-[300px] scale-[1.25] object-contain" />
+                <p className="mt-[10px] text-[15px] tracking-[.14em] text-[#d1cfda]">02 / RECOMMEND</p>
+                <h3 className="mt-[14px] text-[27px] font-bold tracking-[-.035em]">맥락 있는 추천</h3>
+                <p className="mt-[12px] text-[17px] leading-[1.7] text-[#c1c0c9] [word-break:keep-all]">관심 분야와 프로젝트 리포트를 바탕으로<br className="hidden min-[1400px]:block" /> 적합한 프로젝트와 개발자를 추천합니다.</p>
+              </article>
+              <article className={`${revealMotion} ${revealClass} delay-[780ms] min-w-0 border-b border-white/[0.07] pb-[36px] last:border-b-0 min-[801px]:border-b-0 min-[801px]:border-l min-[801px]:px-[48px] min-[801px]:pb-0 min-[801px]:first:border-l-0 min-[801px]:first:pl-0 min-[801px]:last:pr-0`}>
+                <img src="/launch-ui/intro-connect.png" alt="" aria-hidden="true" className="mx-auto aspect-square w-full max-w-[300px] scale-[1.4] object-contain brightness-[1.12]" />
+                <p className="mt-[10px] text-[15px] tracking-[.14em] text-[#d1cfda]">03 / CONNECT</p>
+                <h3 className="mt-[14px] text-[27px] font-bold tracking-[-.035em]">참여까지 연결</h3>
+                <p className="mt-[12px] text-[17px] leading-[1.7] text-[#c1c0c9] [word-break:keep-all]">프로젝트 지원 현황을 확인하고,<br className="hidden min-[1400px]:block" /> 필요한 개발자에게 직접 참여를 제안합니다.</p>
+              </article>
             </div>
           </div>
         </section>
-
-        <section>
-          <div className="flex-col items-center gap-[4rem]">
-            <RevealText direction="right" className="flex-col items-center gap-[4rem]" delayMs={0}>
-              <SectionLabel index={'추천 프로젝트/개발자'} />
-              <p className={cn('text-center font-bold text-4xl leading-[35px]', textColor)}>
-                나에게 딱 맞는 프로젝트와 개발자를 <br />
-                추천 받아보세요
-              </p>
-            </RevealText>
-            <div className="relative">
-              <RevealImage src={landingImage[5]} className="absolute top-0 left-0 w-300" alt="프로젝트 분석 리포트" delayMs={300} />
-              <RevealImage src={landingImage[6]} className="absolute top-70 right-0 w-300" alt="프로젝트 분석 리포트" delayMs={360} />
-              <RevealImage src={landingImage[7]} className="relative mx-auto mt-140" alt="프로젝트 분석 리포트" delayMs={420} />
+        <section ref={reportRef} className="overflow-hidden border-t border-white/[0.06] bg-[#101116] px-[24px] pt-[90px] pb-[20px] text-[#f5f5f7] [font-family:Pretendard,sans-serif] min-[801px]:px-[32px] min-[801px]:pt-[120px] min-[801px]:pb-[20px]" aria-labelledby="service-report-title">
+          <div className="mx-auto w-full max-w-[1330px]">
+            <p className={`${textReveal(reportVisible)} flex items-center gap-[12px] text-[15px] tracking-[.16em] text-[#d7d6df] before:h-[16px] before:w-[3px] before:rounded-full before:bg-[#ada1fa] before:content-['']`}>PROJECT REPORT</p>
+            <div className="mt-[26px]">
+              <h2 id="service-report-title" className="text-[clamp(34px,3vw,50px)] leading-[1.3] font-bold tracking-[-.04em] [word-break:keep-all]"><span className={`${textReveal(reportVisible)} delay-[160ms] block`}>GitHub 저장소부터,</span><span className={`${textReveal(reportVisible)} delay-[310ms] block text-[#c4c4ce]`}><span className="text-[#ADA1FA]">프로젝트 리포트</span>까지.</span></h2>
+              <p className={`${textReveal(reportVisible)} delay-[360ms] mt-[18px] text-[16px] leading-[1.6] text-[#a8a8b2] [word-break:keep-all] min-[801px]:text-[19px]`}>GitHub 코드를 분석해 기술 스택과 핵심 구현 내용을 하나의 리포트로 정리합니다.</p>
+            </div>
+            <div className={`${revealMotion} ${reportRevealClass} delay-[420ms]`}>
+              <div className="relative mt-[122px] min-[801px]:mt-[130px] min-[801px]:-translate-x-[35px] min-[801px]:scale-[1.23]">
+              <img src="/launch-ui/report-detail-v2.png" alt="DeVine 상세 리포트의 프로젝트 정보와 핵심 기술 스택 미리보기" loading="lazy" className="block h-auto w-full [mask-image:linear-gradient(to_bottom,black_58%,rgba(0,0,0,0.85)_72%,rgba(0,0,0,0.35)_88%,transparent_100%),linear-gradient(to_right,black_75%,transparent_100%)] [mask-composite:intersect]" />
+              <div aria-hidden="true" className="pointer-events-none absolute top-[2.7%] right-[9.3%] bottom-[2.9%] left-[9.4%] rounded-[20px] border border-white/[0.14] [mask-image:linear-gradient(to_bottom,black_58%,transparent_100%),linear-gradient(to_right,black_75%,transparent_100%)] [mask-composite:intersect]" />
+              </div>
             </div>
           </div>
         </section>
-
-        <section>
-          <div className="flex-col items-center gap-[4rem]">
-            <RevealText direction="left" className="flex-col items-center gap-[4rem]" delayMs={0}>
-              <SectionLabel index={'프로젝트 참여 제안'} />
-              <p className={cn('text-center font-bold text-4xl leading-[35px]', textColor)}>
-                더 이상 개발자의 지원을 기다리기만 하지 마세요! <br />
-                DeVine에서는 PM이 먼저 개발자에게<br />
-                프로젝트 참여를 제안할 수 있습니다<br />
-              </p>
-            </RevealText>
-            <div className="relative">
-              <RevealImage src={landingImage[8]} alt="프로젝트 분석 리포트" delayMs={480} />
-              <RevealImage src={landingImage[11]} className="absolute top-160 right-5 w-30" alt="프로젝트 분석 리포트" delayMs={540} />
+        <section ref={recommendRef} className="min-h-[100svh] overflow-hidden border-t border-white/[0.06] bg-[#101116] px-[24px] py-[90px] text-[#f5f5f7] [font-family:Pretendard,sans-serif] min-[801px]:px-[32px] min-[801px]:py-[120px]" aria-labelledby="service-recommend-title">
+          <div className="mx-auto w-full max-w-[1800px]">
+            <div className="mx-auto max-w-[1440px]"><p className={`${textReveal(recommendVisible)} flex items-center gap-[12px] text-[15px] font-semibold tracking-[.08em] text-[#d7d6df] before:h-[16px] before:w-[3px] before:rounded-full before:bg-[#ADA1FA] before:content-['']`}>RECOMMENDATION</p>
+            <div className="mt-[26px]">
+              <h2 id="service-recommend-title" className="text-[clamp(34px,3vw,50px)] leading-[1.3] font-bold tracking-[-.04em] [word-break:keep-all]"><span className={`${textReveal(recommendVisible)} delay-[160ms] block`}>프로젝트도, 개발자도.</span><span className={`${textReveal(recommendVisible)} delay-[310ms] block`}>더 <span className="text-[#ADA1FA]">적합한 연결</span>을 위해.</span></h2>
+              <p className={`${textReveal(recommendVisible)} delay-[360ms] mt-[18px] text-[16px] leading-[1.6] text-[#a8a8b2] [word-break:keep-all] min-[801px]:text-[19px]`}>관심 분야에 맞는 프로젝트를, 프로젝트 리포트를 바탕으로 적합한 개발자를 추천합니다.</p>
+            </div>
+            </div>
+            <div className={`${revealMotion} ${recommendVisible ? 'translate-y-0 opacity-100' : 'translate-y-[20px] opacity-0'} delay-[300ms] mx-auto mt-[32px] w-full max-w-[1440px] min-[801px]:mt-[40px]`}>
+              <img src="/launch-ui/recommendation-cluster.png" alt="관심 분야 설정과 추천 프로젝트 화면 미리보기" loading="lazy" className="block h-auto w-full [mask-image:linear-gradient(to_bottom,black_54%,rgba(0,0,0,0.9)_65%,transparent_84%)]" />
+            </div>
+            <div className="relative mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-y-[28px] pt-[30px] min-[600px]:grid-cols-2 min-[1100px]:grid-cols-4">
+              <span aria-hidden="true" className={`pointer-events-none absolute inset-x-0 top-0 h-px origin-left bg-white/[0.08] transition-transform duration-[1200ms] ease-out motion-reduce:scale-x-100 motion-reduce:transition-none ${recommendVisible ? 'scale-x-100' : 'scale-x-0'}`} />
+              <article className="min-w-0 min-[600px]:px-[24px] min-[600px]:first:pl-0 min-[1100px]:border-l min-[1100px]:border-white/[0.08] min-[1100px]:first:border-l-0"><h3 className="text-[18px] font-bold">01&nbsp;&nbsp; 관심 분야 설정</h3><p className="mt-[9px] text-[14px] leading-[1.6] text-[#b9bac5] [word-break:keep-all]">프로젝트 추천의 기준이 되는 관심 도메인과 기술 스택</p></article>
+              <article className="min-w-0 min-[600px]:px-[24px] min-[1100px]:border-l min-[1100px]:border-white/[0.08]"><h3 className="text-[18px] font-bold">02&nbsp;&nbsp; 추천 프로젝트</h3><p className="mt-[9px] text-[14px] leading-[1.6] text-[#b9bac5] [word-break:keep-all]">관심 분야에 맞춰 추천된 프로젝트 목록</p></article>
+              <article className="min-w-0 min-[600px]:px-[24px] min-[1100px]:border-l min-[1100px]:border-white/[0.08]"><h3 className="text-[18px] font-bold">03&nbsp;&nbsp; 추천 개발자</h3><p className="mt-[9px] text-[14px] leading-[1.6] text-[#b9bac5] [word-break:keep-all]">선택한 프로젝트를 기준으로 추천되는 개발자</p></article>
+              <article className="min-w-0 min-[600px]:px-[24px] min-[1100px]:border-l min-[1100px]:border-white/[0.08]"><h3 className="text-[18px] font-bold">04&nbsp;&nbsp; 개발자 상세 프로필</h3><p className="mt-[9px] text-[14px] leading-[1.6] text-[#b9bac5] [word-break:keep-all]">추천 결과에서 이어지는 기술 역량과 프로젝트 경험</p></article>
             </div>
           </div>
         </section>
-
-        <section className="flex-col items-start gap-[4rem]">
-          <RevealText direction="right" className="flex-col gap-[4rem]" delayMs={0}>
-            <p className={cn('text-3xl leading-[30px]', textColor)}>
-              <span className="font-bold">DeVine</span>은<br />
-              "어떤 프로젝트가 나한테 맞을까?" 고민하는 개발자와<br />
-              "이 개발자가 우리 프로젝트에 적합할까?" 궁금한 PM을 연결합니다.<br />
-            </p>
-            <p className={cn('text-3xl leading-[30px]', textColor)}>
-              작성한 코드를 AI가 분석해 메인 리포트와 상세 리포트를 여러분께<br />
-              제공합니다. 개발자는 기술 스택과 성장 방향성을, PM은 개발자의<br />
-              핵심 역량을 객관적으로 확인할 수 있습니다.
-            </p>
-            <p className={cn('text-3xl leading-[30px]', textColor)}>
-              더 이상 불완전한 정보로 시간 낭비하지 마세요.<br />
-              DeVine이 제공하는 리포트로 최적의 매칭을 찾아보세요.<br />
-              코드로 증명하는 사이드 프로젝트 매칭, <span className="font-bold">DeVine</span>입니다.
-            </p>
-          </RevealText>
-          <div className="flex h-180 w-full justify-end">
-            <RevealImage src={landingImage[10]} className="h-200 w-200" alt="프로젝트 분석 리포트"/>
+        <section ref={connectionRef} className="min-h-[100svh] overflow-hidden border-t border-white/[0.06] bg-[#101116] px-[24px] py-[90px] text-[#f5f5f7] [font-family:Pretendard,sans-serif] min-[801px]:px-[32px] min-[801px]:py-[120px]" aria-labelledby="service-connection-title">
+          <div className="mx-auto w-full max-w-[1440px]">
+            <p className={`${textReveal(connectionVisible)} flex items-center gap-[12px] text-[15px] font-semibold tracking-[.08em] text-[#d7d6df] before:h-[16px] before:w-[3px] before:rounded-full before:bg-[#ADA1FA] before:content-['']`}>CONNECTION</p>
+            <h2 id="service-connection-title" className="mt-[26px] text-[clamp(34px,3vw,50px)] leading-[1.3] font-bold tracking-[-.04em] [word-break:keep-all]"><span className={`${textReveal(connectionVisible)} delay-[160ms] block`}>지원부터 연결까지.</span><span className={`${textReveal(connectionVisible)} delay-[310ms] block`}><span className="text-[#ADA1FA]">하나의 흐름</span>으로.</span></h2>
+            <p className={`${textReveal(connectionVisible)} delay-[360ms] mt-[18px] text-[16px] leading-[1.6] text-[#a8a8b2] [word-break:keep-all] min-[801px]:text-[19px]`}>프로젝트 지원과 개발자 제안, 진행 현황까지.<br className="hidden min-[801px]:block" /> 협업을 위한 모든 연결을 한곳에서 관리하세요.</p>
+            <div className={`${revealMotion} ${connectionVisible ? 'translate-y-0 opacity-100' : 'translate-y-[20px] opacity-0'} delay-[420ms] mt-[48px] min-[801px]:mt-[64px]`}>
+              <img src="/launch-ui/connection-dashboard-v2.png" alt="프로젝트 지원 현황과 지원 상세 화면 미리보기" loading="lazy" className="block h-auto w-full [mask-image:linear-gradient(to_bottom,black_48%,rgba(0,0,0,0.95)_58%,rgba(0,0,0,0.65)_72%,transparent_92%)]" />
+            </div>
           </div>
         </section>
-
-        <section className="mb-[20rem] h-150 flex-col-center gap-[5rem]">
-          <RevealText direction="left" className="flex-col items-center gap-[4rem]" delayMs={0}>
-            <div className="flex-col-center gap-[1.2rem]">
-              <p className="text-center text-4xl text-white">더 이상 불완전한 정보로 시간 낭비하지 마세요</p>
-              <p className="text-center text-4xl text-white">코드로 증명된 매칭을 지금 바로 경험해보세요.</p>
+        <section ref={ctaRef} className="flex min-h-[460px] items-center justify-center border-t border-white/[0.06] bg-[#101116] px-[24px] py-[110px] text-center text-[#f5f5f7] [font-family:Pretendard,sans-serif] min-[801px]:min-h-[520px] min-[801px]:py-[140px]" aria-labelledby="service-cta-title">
+          <div className="mx-auto max-w-[800px]">
+            <h2 id="service-cta-title" className={`${textReveal(ctaVisible)} text-[clamp(32px,3.4vw,52px)] font-bold leading-[1.2] tracking-[-.045em] [word-break:keep-all]`}>함께 만들 다음 프로젝트,<br />지금 찾아보세요.</h2>
+            <div className={`${textReveal(ctaVisible)} delay-[200ms] mt-[36px] flex flex-wrap items-center justify-center gap-[12px]`}>
+              <a href="/login" target="_top" className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#f5f5f7] px-[24px] text-[14px] font-semibold text-[#191820] transition-colors duration-200 hover:bg-[#e3dfff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ada1fa]">DeVine 시작하기</a>
+              <a href="/home" target="_top" className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.06] px-[24px] text-[14px] font-semibold text-[#f5f5f7] transition-colors duration-200 hover:bg-white/[0.12] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ada1fa]">프로젝트 둘러보기</a>
             </div>
-          </RevealText>
-          <RevealText direction="right" delayMs={0}>
-            <button type="button" className="cursor-pointer rounded-full bg-primary px-[6rem] py-[1.6rem] font-bold text-2xl text-white" onClick={() => navigate("/")}>
-              Devine 시작하기
-            </button>
-          </RevealText>
-
+          </div>
         </section>
-      </div>
+      </main>
     </div>
   );
-};
+}
 
-export default ServicePage;
+export default function ServicePage() {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const [root, setRoot] = useState<ShadowRoot | null>(null);
+  useLayoutEffect(() => {
+    const host = hostRef.current;
+    if (host) setRoot(host.shadowRoot ?? host.attachShadow({ mode: 'open' }));
+  }, []);
+  return <>
+    <Helmet><title>Launch UI</title></Helmet>
+    <div className="launch-ui-shell">
+      <header className="launch-ui-header px-[24px] min-[801px]:px-[32px]"><Link to="/" aria-label="DeVine 홈" className="inline-flex items-center py-[16px]"><img src={BrandLogo} alt="DeVine" className="h-auto w-[112px]" /></Link></header>
+      <div className="launch-ui-page">
+        <div id="launch-ui-content-host" ref={hostRef} />
+        <Footer />
+      </div>
+      {root && createPortal(<><style>{baseCss}{'\n'}{introUtilities}{'\n'}{accentCss}{'\n'}{':host{display:block;min-height:100%;font-size:16px;font-family:Inter,system-ui,sans-serif}.launch-content{min-height:100%;background:var(--background);color:var(--foreground)}'}</style><LandingContent /></>, root)}
+    </div>
+  </>;
+}

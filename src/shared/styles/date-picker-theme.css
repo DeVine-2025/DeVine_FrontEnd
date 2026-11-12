@@ -3,12 +3,12 @@
 
 .date-picker-popover .rdp-root {
   /* 배경/글자: 다크 톤 */
-  --rdp-accent-color: #4E49FF;
-  --rdp-accent-background-color: #4E49FF;
-  --rdp-today-color: #4E49FF;
-  --rdp-range_middle-background-color: rgba(78, 73, 255, 0.2);
-  --rdp-range_start-date-background-color: #4E49FF;
-  --rdp-range_end-date-background-color: #4E49FF;
+  --rdp-accent-color: #6654F5;
+  --rdp-accent-background-color: #6654F5;
+  --rdp-today-color: #6654F5;
+  --rdp-range_middle-background-color: rgba(102,84,245,0.2);
+  --rdp-range_start-date-background-color: #6654F5;
+  --rdp-range_end-date-background-color: #6654F5;
 
   /* 둥글둥글: 날짜 셀 */
   --rdp-day_button-border-radius: 12px;

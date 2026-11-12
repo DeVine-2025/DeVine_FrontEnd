@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createReportSync } from '@apis/reports';
-import { ReportDetailRequest, ReportPatchVisibilityRequest } from '@apis/report/report';
+import type { ReportDetailRequest, ReportPatchVisibilityRequest } from '@apis/report/report';
 import { axiosInstance } from '@apis/instance';
 
 
@@ -13,6 +13,7 @@ export const patchReportVisibility = async ({ reportId, visibility }: ReportPatc
 
 export const useCreateReportMutation = () => {
   return useMutation({
+    mutationKey: ['report-create'],
     mutationFn: ({ gitRepoId, token }: ReportDetailRequest & { token: string }) =>
       createReportSync(gitRepoId, token),
   });

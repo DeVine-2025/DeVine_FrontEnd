@@ -1,0 +1,363 @@
+/* Dark home only. The route marker is removed when HomePage unmounts. */
+:root[data-home-colors='charcoal'] .devine-home {
+  --home-panel: var(--surface-card);
+  --home-text: var(--text-main);
+  --home-muted: var(--text-secondary);
+  --home-border: #2c303b;
+  --home-card-title: var(--text-main);
+  --home-card-body: var(--text-secondary);
+  --home-card-meta: #9097a5;
+  --home-card-surface: var(--surface-card);
+  --home-card-border: var(--surface-badge);
+  --home-card-border-hover: #454b58;
+  --home-card-chip: var(--surface-badge);
+  --home-card-shadow: inset 0 1px 0 #f1f2f506, 0 2px 4px #00000014, 0 4px 8px #00000014;
+}
+:root[data-home-colors='charcoal'] .home-editorial {
+  --editorial-glow: #22252d66;
+  border-color: #30343e;
+  background: radial-gradient(ellipse at 75% 52%, var(--editorial-glow), transparent 57%), linear-gradient(115deg, #181a20, #0b0c0f);
+  box-shadow: inset 0 1px 0 #f1f2f50a, 0 8px 24px #00000024;
+}
+:root[data-home-colors='charcoal'] .home-editorial h1,
+:root[data-home-colors='charcoal'] .home-editorial h1 span:last-child { color: #f1f2f5; }
+:root[data-home-colors='charcoal'] .home-editorial-copy > p { color: #b5bac5; }
+:root[data-home-colors='charcoal'] .home-editorial-meta > span:first-child { color: #b5bac5; background: #22252d; border-color: #30343e; }
+:root[data-home-colors='charcoal'] .home-editorial-meta > span:first-child::before { background: #9097a5; }
+:root[data-home-colors='charcoal'] .home-editorial-meta > span:last-child,
+:root[data-home-colors='charcoal'] .home-editorial-meta i { color: #9097a5; }
+:root[data-home-colors='charcoal'] .home-editorial-cta {
+  background: #8b75f5;
+  border-color: #8b75f5;
+  color: #0b0c0f;
+  box-shadow: inset 0 1px 0 #f1f2f51a, 0 4px 8px #00000024;
+  transition: background-color 200ms ease-out;
+}
+:root[data-home-colors='charcoal'] .home-editorial-cta:hover { background: #9c89ff; }
+:root[data-home-colors='charcoal'] .home-editorial-pause { color: #b5bac5; background: #181a20; border-color: #30343e; }
+:root[data-home-colors='charcoal'] .home-editorial-pagination button { background: #505764; }
+:root[data-home-colors='charcoal'] .home-editorial-pagination button[aria-pressed='true'] { background: #8b75f5; }
+:root[data-home-colors='charcoal'] .devine-home .home-project-card .home-project-art { background: var(--surface-image); }
+:root[data-home-colors='charcoal'] .home-preview-dialog { background: #22252d; color: #f1f2f5; border-color: #30343e; }
+:root[data-home-colors='charcoal'] .home-preview-info { background: #181a20; }
+:root[data-home-colors='charcoal'] :is(.home-preview-inner > p, .home-preview-info p) { color: #b5bac5; }
+:root[data-home-colors='charcoal'] :is(.home-preview-info span, .home-preview-inner .home-preview-note, .home-preview-eyebrow, .home-preview-close) { color: #9097a5; }
+:root[data-home-colors='charcoal'] .home-primary-link { background: #8b75f5; color: #0b0c0f; }
+:root[data-home-colors='charcoal'] :is(.home-editorial-cta, .home-card-open, .home-primary-link):focus-visible { outline-color: #8b75f5; }
+
+/* Shared solid surfaces for the dark home project and developer cards. */
+:root[data-home-colors='charcoal'] .devine-home .home-project-card .home-project-content {
+  background: var(--surface-card);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-card .home-tech-stacks img {
+  background: #242832;
+}
+
+/* Plain banner surface after removing artwork and copy. */
+:root[data-home-colors='charcoal'] .devine-home .home-editorial,
+:root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] {
+  background: #171a21;
+  background-image: none;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-editorial::before {
+  content: none;
+  background: none;
+}
+
+/* Clearer rhythm and hierarchy for the current home page. */
+:root[data-home-colors='charcoal'] .devine-home {
+  --home-space-cards: 16px;
+  --home-space-heading: 22px;
+  --home-space-section: 68px;
+  --home-muted: var(--text-secondary);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-editorial {
+  min-height: 280px;
+  aspect-ratio: 4.9;
+  border-color: #393549;
+  border-radius: 22px;
+  background: linear-gradient(125deg, #191b24 0%, #171923 68%, #15161e 100%);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-editorial-copy {
+  width: 100%;
+  padding: 24px 64px;
+  text-align: center;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-editorial-meta {
+  justify-content: center;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-editorial h1 {
+  font-size: clamp(32px, 3vw, 42px);
+  line-height: 1.18;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-editorial-copy > p {
+  color: #c3c6d0;
+  font-size: 15px;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-editorial-cta {
+  margin-inline: auto;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-section-heading h2 {
+  font-size: 24px;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-section-heading p {
+  color: var(--text-secondary);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-section-heading > a {
+  color: #9ca3b4;
+  padding: 6px 0;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-section-heading > a:hover {
+  color: #f4f5fa;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-card {
+  border-color: var(--surface-badge);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 #ffffff08, 0 8px 22px #00000018;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-card:hover {
+  border-color: #665b91;
+  box-shadow: inset 0 1px 0 #ffffff0a, 0 12px 28px #0000002c;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-content {
+  background: var(--surface-card);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-summary p {
+  color: var(--text-secondary);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-domain-badge {
+  background: var(--surface-badge);
+  color: var(--text-main);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-deadline strong {
+  color: var(--project-accent);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-recommended-projects .home-project-card {
+  background: var(--surface-card);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-recommended-projects .home-project-content {
+  background: var(--surface-card);
+  gap: 14px;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-match strong {
+  color: #c0b4ff;
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-fit p {
+  color: #d1caff;
+}
+
+@media (max-width: 760px) {
+  :root[data-home-colors='charcoal'] .devine-home .home-editorial {
+    min-height: 340px;
+    aspect-ratio: auto;
+  }
+  :root[data-home-colors='charcoal'] .devine-home .home-editorial-copy {
+    width: 100%;
+    padding: 28px 24px 72px;
+  }
+}
+
+/* Each slide has its own artwork behind the live, left-aligned copy. */
+.home-editorial[data-editorial='editorial'] { --editorial-image: url('./assets/discovery-illustration.png'); }
+.home-editorial[data-editorial='people'] { --editorial-image: url('./assets/team-illustration.png'); }
+.home-editorial[data-editorial='project'] { --editorial-image: url('./assets/start-illustration.png'); }
+.home-banner-eyebrow { color: #aaa3d5; font-size: 11px; font-weight: 700; letter-spacing: .12em; margin-bottom: 14px; }
+:root .devine-home .home-editorial[data-editorial],
+:root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] {
+  background-image: linear-gradient(90deg, #151720f7 0%, #171923db 35%, #17192333 72%), var(--editorial-image);
+  background-size: cover;
+  background-position: center;
+  color: #f4f5f8;
+}
+:root .devine-home .home-editorial[data-editorial] .home-editorial-copy,
+:root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] .home-editorial-copy {
+  width: 55%;
+  padding: 24px 4.5%;
+  text-align: left;
+}
+:root .devine-home .home-editorial[data-editorial] .home-editorial-meta,
+:root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] .home-editorial-meta {
+  justify-content: flex-start;
+}
+:root .devine-home .home-editorial[data-editorial] .home-editorial-cta {
+  margin-inline: 0;
+}
+@media (max-width: 760px) {
+  :root .devine-home .home-editorial[data-editorial],
+  :root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] {
+    background-image: linear-gradient(90deg, #171923f5 0%, #171923d9 50%, #17192380 100%), var(--editorial-image);
+    background-position: right center;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-copy,
+  :root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] .home-editorial-copy {
+    width: 100%;
+    padding: 28px 24px 72px;
+  }
+}
+
+/* Desktop editorial banner: a clear copy column and quieter carousel controls. */
+@media (min-width: 761px) {
+  :root .devine-home .home-editorial[data-editorial],
+  :root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] {
+    min-height: var(--home-banner-min-height);
+    aspect-ratio: auto;
+    border-color: #b9adf025;
+    box-shadow: inset 0 1px 0 #ffffff10, 0 12px 32px #00000026;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-copy,
+  :root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] .home-editorial-copy {
+    width: 52%;
+    padding: var(--home-banner-padding-y) 8.5%;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-meta {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-meta > span:first-child {
+    padding: 5px 10px;
+    border-color: #b7a8ff30;
+    background: #a78bfa0d;
+    color: #d7cffc;
+    font-weight: 650;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-meta > span:last-child {
+    color: #a6a4b8;
+    font-size: 10px;
+    letter-spacing: .08em;
+  }
+  :root .devine-home .home-editorial[data-editorial] h1,
+  :root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] h1 {
+    font-size: clamp(30px, 2.8vw, 40px);
+    line-height: 1.2;
+    letter-spacing: -.045em;
+    margin-bottom: 14px;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-copy > p,
+  :root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] .home-editorial-copy > p {
+    color: #c5c7d1;
+    line-height: 1.65;
+    margin-bottom: 22px;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-cta {
+    min-height: 44px;
+    padding: 11px 18px;
+    border-radius: 10px;
+    gap: 16px;
+    background: #a99aff;
+    border-color: #c8bdff50;
+    color: #18142a;
+    box-shadow: inset 0 1px 0 #ffffff40, 0 4px 16px #09071440;
+    transition: background-color .2s ease, box-shadow .2s ease;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-cta:hover {
+    background: #c2b7ff;
+    box-shadow: inset 0 1px 0 #ffffff60, 0 6px 20px #09071455;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-controls {
+    right: 20px;
+    bottom: 16px;
+    gap: 3px;
+    padding: 3px 5px;
+    border: 1px solid #ffffff16;
+    border-radius: 999px;
+    background: #10121bc9;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-pause {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    border-color: transparent;
+    background: transparent;
+    color: #d2cfdf;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-pagination { gap: 0; }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-pagination button,
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-pagination button[aria-pressed='true'] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 32px;
+    background: transparent;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-pagination button::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #77738b;
+    transition: width .25s ease, background-color .25s ease;
+  }
+  :root .devine-home .home-editorial[data-editorial] .home-editorial-pagination button[aria-pressed='true']::after {
+    width: 20px;
+    background: #b49bff;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :root .devine-home .home-editorial[data-editorial] .home-editorial-cta { transition: none; }
+    :root .devine-home .home-editorial[data-editorial] .home-editorial-pagination button::after { transition: none; }
+  }
+}
+
+/* Shared project surfaces and text match the explore palette. */
+:root[data-home-colors='charcoal'] .devine-home .home-recommended-content {
+  background: var(--surface-card);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-card .home-project-content h3,
+:root[data-home-colors='charcoal'] .devine-home .home-recommended-summary h3 {
+  color: var(--text-main);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-card .home-project-summary p,
+:root[data-home-colors='charcoal'] .devine-home .home-recommended-summary p,
+:root[data-home-colors='charcoal'] .devine-home .home-project-member-count,
+:root[data-home-colors='charcoal'] .devine-home .home-project-deadline small,
+:root[data-home-colors='charcoal'] .devine-home .home-recommended-date {
+  color: var(--text-secondary);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-project-progress > span.is-filled {
+  background: var(--project-progress);
+}
+:root[data-home-colors='charcoal'] .devine-home .home-recommended-deadline > strong {
+  color: var(--project-accent);
+}
+
+/* Desktop content hierarchy: personalized recommendations are the main section. */
+@media (min-width: 761px) {
+  :root[data-home-colors='charcoal'] .devine-home .home-section-heading { align-items: center; margin-bottom: 22px; }
+  :root[data-home-colors='charcoal'] .devine-home .home-section-heading h2 { margin-bottom: 7px; font-size: 24px; line-height: 1.35; }
+  :root[data-home-colors='charcoal'] .devine-home .home-section-heading p { font-size: 14px; line-height: 1.6; }
+  :root[data-home-colors='charcoal'] .devine-home .home-section-personalized .home-section-heading h2 { font-size: 27px; }
+  :root[data-home-colors='charcoal'] .devine-home .home-section-recent .home-section-heading h2 { margin-bottom: 0; font-size: 23px; }
+  :root[data-home-colors='charcoal'] .devine-home .home-section-heading > a { gap: 8px; font-size: 12px; font-weight: 500; }
+  :root[data-home-colors='charcoal'] .devine-home .home-section-heading > a svg { width: 15px; height: 15px; }
+  :root[data-home-colors='charcoal'] .devine-home .home-project-card { box-shadow: var(--home-card-shadow); }
+  :root[data-home-colors='charcoal'] .devine-home .home-project-card:hover,
+  :root[data-home-colors='charcoal'] .devine-home .home-developer-card:hover { border-color: var(--project-border-hover); box-shadow: var(--home-card-shadow); }
+  :root[data-home-colors='charcoal'] .devine-home .home-project-card .home-project-domain-badge { min-height: var(--project-badge-height); padding: 3px 7px; border-radius: var(--project-badge-radius); font-size: 11px; line-height: 1.2; gap: 5px; }
+  :root[data-home-colors='charcoal'] .devine-home .home-project-card .home-project-summary p,
+  :root[data-home-colors='charcoal'] .devine-home .home-recommended-summary p { font-size: 13px; line-height: 1.6; }
+  :root[data-home-colors='charcoal'] .devine-home .home-recommended-reason { min-height: 42px; font-size: 13px; line-height: 1.6; color: var(--text-main); }
+  :root[data-home-colors='charcoal'] .devine-home .home-project-deadline small,
+  :root[data-home-colors='charcoal'] .devine-home .home-recommended-date { font-size: 12px; }
+}
+
+@media screen and (1024px <= width < 1536px) {
+  :root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] .home-editorial-copy {
+    padding-right: 3%;
+  }
+
+  :root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] h1 {
+    font-size: clamp(30px, 2.6vw, 38px);
+    margin-bottom: 10px;
+  }
+
+  :root[data-home-colors='charcoal'] .devine-home .home-editorial[data-editorial] .home-editorial-copy > p {
+    margin-bottom: 16px;
+  }
+}

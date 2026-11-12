@@ -236,7 +236,7 @@ export default function ContentListPage() {
       actions={
         !isProject && (
           <button
-            className="Body1 inline-flex cursor-pointer items-center justify-center rounded-[8px] bg-[#4e49ff] px-[14px] py-[10px] font-normal text-white transition-opacity hover:opacity-90"
+            className="Body1 inline-flex cursor-pointer items-center justify-center rounded-[8px] bg-[#6654F5] px-[14px] py-[10px] font-normal text-white transition-opacity hover:opacity-90"
             onClick={() => setIsNoticeCreateOpen(true)}
             type="button"
           >
@@ -339,7 +339,7 @@ export default function ContentListPage() {
                 취소
               </button>
               <button
-                className="Heading2 h-[48px] flex-1 cursor-pointer rounded-[10px] bg-[#4e49ff] text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="Heading2 h-[48px] flex-1 cursor-pointer rounded-[10px] bg-[#6654F5] text-white disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={visibilityMutation.isPending}
                 onClick={() => visibilityMutation.mutate(visibilityTarget)}
                 type="button"

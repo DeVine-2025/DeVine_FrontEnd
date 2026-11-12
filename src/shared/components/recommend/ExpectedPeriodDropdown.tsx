@@ -95,7 +95,7 @@ export default function ExpectedPeriodDropdown({
                 aria-hidden
                 className={`relative z-10 inline-flex h-[20px] w-[20px] items-center justify-center rounded-[4px] border ${
                   isChecked
-                    ? 'border-[#4E49FF] bg-[#4E49FF] text-white'
+                    ? 'border-[#6654F5] bg-[#6654F5] text-white'
                     : 'border-[var(--ui-300)] bg-[var(--ui-bg)] text-transparent'
                 }`}
               >
@@ -124,7 +124,7 @@ export default function ExpectedPeriodDropdown({
             onApply?.();
             onClose();
           }}
-          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-[#4E49FF] px-[10px] text-white"
+          className="Label1 flex h-[36px] w-[60px] items-center justify-center rounded-[8px] bg-[#6654F5] px-[10px] text-white"
         >
           저장
         </button>

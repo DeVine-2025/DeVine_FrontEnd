@@ -1,18 +1,27 @@
 import type { Report, ReportDetailContent, ReportMainContent } from '@apis/report/report';
 import { reportQueries } from '@apis/report/report-queries';
+import { useElasticUnderline } from '@hooks/useElasticUnderline';
 import { useAuth } from '@clerk/clerk-react';
 import MainDetail from '@components/report/MainDetail';
+import { ReportWorkspaceLoading } from '@components/common/LoadingLayouts';
 import ReportDetail from '@components/report/ReportDetail';
 import { useQuery } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { useParams, useSearchParams } from 'react-router-dom';
-import PdfIcon from '@assets/icons/create-project/pdf.svg?react';
+import { useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { sampleMainReport, sampleDetailReport } from './report-sample-data';
 
 const ReportDetailPage = () => {
   const { getToken } = useAuth();
   const { reportId } = useParams();
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const fromFolder = Boolean((location.state as { fromReportFolder?: boolean } | null)?.fromReportFolder);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { navRef, indicatorRef } = useElasticUnderline(searchParams.get('type') || '');
+  const isSamplePreview = import.meta.env.DEV && searchParams.get('preview') === 'sample';
+  const isSample = isSamplePreview && searchParams.get('type') === 'MAIN';
+  const isSampleDetail = isSamplePreview && searchParams.get('type') === 'DETAIL';
+  const selectType = (nextType: 'MAIN' | 'DETAIL') => { const next = new URLSearchParams(searchParams); next.set('type', nextType); setSearchParams(next); };
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
@@ -52,8 +61,6 @@ const ReportDetailPage = () => {
 
   const type = searchParams.get('type');
   const gitRepoId = Number(reportId);
-  const title = type === 'MAIN' ? '메인' : '상세';
-
   const fetchReport = async (): Promise<Report> => {
     const token = (await getToken()) ?? undefined;
 
@@ -69,66 +76,41 @@ const ReportDetailPage = () => {
   };
 
   const {
-    data: report,
+    data: apiReport,
     isLoading,
     isError,
   } = useQuery<Report, Error>({
     queryKey: ['report-detail', gitRepoId, type],
     queryFn: fetchReport,
-    enabled: !!gitRepoId && !!type,
+    enabled: !!gitRepoId && !!type && !isSample && !isSampleDetail,
   });
+  const report = isSample ? sampleMainReport : isSampleDetail ? sampleDetailReport : apiReport;
+  const otherType = type === 'MAIN' ? 'DETAIL' : 'MAIN';
+  const otherReport = useQuery({
+    queryKey: ['report-detail', gitRepoId, otherType],
+    queryFn: async () => {
+      const token = (await getToken()) ?? undefined;
+      return otherType === 'MAIN' ? reportQueries.main({ gitRepoId, token }).queryFn() : reportQueries.detail({ gitRepoId, token }).queryFn();
+    },
+    enabled: !!gitRepoId && (type === 'MAIN' || type === 'DETAIL') && !isSamplePreview,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+  const otherMissing = !isSamplePreview && ((otherReport.isSuccess && !otherReport.data) || (otherReport.isError && /: 404$/.test(otherReport.error.message)));
+  const reportTabs = <nav ref={navRef} className="report-type-tabs" aria-label="리포트 종류">{(['MAIN', 'DETAIL'] as const).map(tabType => <button key={tabType} type="button" aria-current={type === tabType ? 'page' : undefined} disabled={tabType === otherType && otherMissing} title={tabType === otherType && otherMissing ? '아직 생성되지 않은 리포트입니다' : undefined} onClick={() => selectType(tabType)}>{tabType === 'MAIN' ? '메인 리포트' : '상세 리포트'}</button>)}<span ref={indicatorRef} className="report-type-indicator" aria-hidden="true" /></nav>;
 
-  if (isLoading) return null;
-  if (isError || !report) return null;
 
-  const content = report?.content;
-  if (!content) return null;
 
-  const displayTitle =
-    report.reportType === 'MAIN'
-      ? (content as { projectInfo?: { projectName?: string } })?.projectInfo?.projectName
-      : (content as { reportTitle?: string })?.reportTitle;
-
-  return (
-    <div className="mx-auto flex w-full max-w-[900px] flex-col gap-10">
-      {/* 제목 */}
-      <section className="relative flex flex-col gap-3">
-        <button
-          type="button"
-          onClick={() => handlePrint()}
-          title="인쇄 창에서 '머리글 및 바닥글' 옵션을 끄면 날짜, URL이 출력되지 않습니다."
-          className="group absolute right-0 top-[70px] flex h-12 w-[150px] items-center justify-center gap-3 rounded-lg bg-[var(--ui-50)] text-ui-600 transition-[color,opacity] hover:opacity-90"
-        >
-          <PdfIcon className="h-6 w-5 shrink-0 [&_path]:stroke-[var(--ui-500)] group-hover:[&_path]:stroke-[var(--ui-1000)]" />
-          <span className="text-base font-medium transition-colors group-hover:font-semibold group-hover:text-ui-1000">PDF로 출력하기</span>
-        </button>
-        <div
-          ref={printRef}
-          className={`report-print-content report-print-${report.reportType === 'MAIN' ? 'main' : 'detail'} flex flex-col gap-10`}
-          style={{ overflow: 'visible' }}
-        >
-          <div className="mb-20 flex flex-col gap-3">
-            <p className="text-center font-bold text-4xl text-ui-1000">
-              {displayTitle ?? '리포트'}{' '}
-              {title} 리포트
-            </p>
-            <p className="text-center text-lg text-ui-500">
-              프로젝트 분석 리포트 | {title} 리포트
-            </p>
-          </div>
-          <hr className="border-ui-200 py-[0.6rem]"/>
-          {report.reportType === 'MAIN' ? (
-            <MainDetail data={content as unknown as ReportMainContent} />
-          ) : (
-            <ReportDetail data={content as unknown as ReportDetailContent} />
-          )}
-        </div>
-        <hr className="border-ui-300"/>
-        <p className="pt-[3.3rem] text-center text-ui-400">본 리포트는 Devine의 AI 코드 분석 시스템이 생성했습니다.<br/>
-          상세한 분석 내용은 상세 리포트를 확인하세요.</p>
-      </section>
-    </div>
-  );
+  return <div className={`rw-full-page ${fromFolder ? 'report-folder-arrival' : ''}`}>
+    {reportTabs}
+    {!isSamplePreview && isLoading ? <ReportWorkspaceLoading /> :
+      ((!isSamplePreview && isError) || !report) ? <div className="report-type-message" role="alert">리포트를 불러오지 못했어요. 리포트가 생성되었는지 확인하거나 잠시 후 다시 시도해 주세요.{import.meta.env.DEV && <button className="rw-preview-link" onClick={() => setSearchParams({ type: 'MAIN', preview: 'sample' })}>샘플 리포트 보기</button>}</div> :
+      report.reportType === 'MAIN' ? <>
+        <div ref={printRef} className="report-print-content report-print-main"><MainDetail data={report.content as ReportMainContent} onPrint={handlePrint} repoUrl={report.gitRepoUrl} /></div>
+      </> : <>
+        <div ref={printRef} className="report-print-content report-print-detail"><ReportDetail data={report.content as ReportDetailContent} onPrint={handlePrint} repoUrl={report.gitRepoUrl}/></div>
+      </>}
+  </div>;
 };
 
 export default ReportDetailPage;

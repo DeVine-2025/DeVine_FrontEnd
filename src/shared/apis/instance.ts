@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { type AxiosInstance } from 'axios';
 import { BASE_URL } from '@constants/endpoints';
 
 type TokenGetter = () => Promise<string | null>;
@@ -38,3 +38,8 @@ export const createAxiosInstance = (): AxiosInstance => {
 };
 
 export const axiosInstance = createAxiosInstance();
+
+// Public catalog endpoints must not inherit an expired Clerk bearer token.
+export const publicAxiosInstance = axios.create({
+  baseURL: BASE_URL,
+});

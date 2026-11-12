@@ -1,21 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Lottie from 'lottie-react';
-import confettiAnimation from './Confetti.json';
-import LogoDark from '@assets/icons/logo-dark.svg?react';
-import LogoLight from '@assets/icons/logo-light.svg?react';
-import CheckboxCheckedIcon from '@assets/icons/checkbox-checked.svg?react';
-import CheckboxUncheckedIcon from '@assets/icons/checkbox-unchecked.svg?react';
-import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
+import SignupNotices from './signup-notices';
+import SignupAgreements from './signup-agreements';
+import { useSignupTerms } from './use-signup-terms';
+import BrandLogo from '@assets/images/devine-symbol.png';
+import { useCallback, useRef, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
-import { useThemeStore } from '@store/theme';
+import HorizonBackground from '@pages/landing/launch-ui/components/ui/horizon-background';
 import { getProfileImageKey } from '@utils/storage';
 import BasicProfileSection from './BasicProfileSection';
 import AdditionalProfileSection from './AdditionalProfileSection';
 import GithubRepoSelectionSection from './GithubRepoSelectionSection';
 import ProfilePage from '@pages/login/profile-page';
 import TermsDetailScreen from '@pages/signup/TermsDetailScreen';
-import { getMemberTerms, type MemberTermsItem } from '@apis/terms';
 
 type BasicProfileData = {
   nickname: string;
@@ -29,20 +25,16 @@ type ProfileData = {
 };
 
 type AgreementListProps = {
-  onConfirm: () => void;
+  onConfirm: () => Promise<void> | void;
   loginProvider: 'github' | 'google';
+  preview?: boolean;
 };
 
-const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
-  const { theme } = useThemeStore();
+const AgreementList = ({ onConfirm, loginProvider, preview = false }: AgreementListProps) => {
   const navigate = useNavigate();
   const { user } = useUser();
   const onboardingConfirmedRef = useRef(false);
   const logoSubmitHandlerRef = useRef<null | (() => void)>(null);
-  const [terms, setTerms] = useState<MemberTermsItem[]>([]);
-  const [agreedByTermsId, setAgreedByTermsId] = useState<Record<number, boolean>>({});
-  const [activeTermsId, setActiveTermsId] = useState<number | null>(null);
-  const [isTermsLoading, setIsTermsLoading] = useState(true);
   const [basicProfile, setBasicProfile] = useState<BasicProfileData>({
     nickname: '',
     imageUrl: null,
@@ -58,47 +50,8 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
     'agreements' | 'basicProfile' | 'profilePage' | 'additionalProfile' | 'signupComplete' | 'githubRepos'
   >('agreements');
 
-  const requiredTerms = useMemo(() => terms.filter((term) => term.required), [terms]);
-  const requiredAgreed = useMemo(
-    () =>
-      requiredTerms.length > 0 && requiredTerms.every((term) => agreedByTermsId[term.termsId] === true),
-    [agreedByTermsId, requiredTerms],
-  );
-  const allChecked = useMemo(
-    () => terms.length > 0 && terms.every((term) => agreedByTermsId[term.termsId] === true),
-    [agreedByTermsId, terms],
-  );
-  const activeTerm = useMemo(
-    () => terms.find((term) => term.termsId === activeTermsId) ?? null,
-    [activeTermsId, terms],
-  );
-
-  useEffect(() => {
-    const controller = new AbortController();
-    setIsTermsLoading(true);
-
-    void getMemberTerms(controller.signal)
-      .then((items) => {
-        setTerms(items);
-        setAgreedByTermsId(Object.fromEntries(items.map((item) => [item.termsId, false])));
-      })
-      .catch((error) => {
-        if ((error as Error)?.name !== 'AbortError') {
-          console.warn('[terms] API terms fetch failed', error);
-        }
-        setTerms([]);
-        setAgreedByTermsId({});
-      })
-      .finally(() => {
-        setIsTermsLoading(false);
-      });
-
-    return () => controller.abort();
-  }, []);
-
-  const handleAllChange = (checked: boolean) => {
-    setAgreedByTermsId(Object.fromEntries(terms.map((term) => [term.termsId, checked])));
-  };
+  const termsState = useSignupTerms(preview);
+  const { terms, agreedByTermsId, requiredAgreed, activeTerm, setActiveTermsId } = termsState;
 
   const handleConfirm = () => {
     if (!requiredAgreed || terms.length === 0) {
@@ -108,14 +61,14 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
   };
 
   const confirmOnboardingOnce = async () => {
-    if (onboardingConfirmedRef.current) return;
-    onboardingConfirmedRef.current = true;
-    await onConfirm();
+    if (onboardingConfirmedRef.current) return true;
     try {
-      const key = `onboarding_complete:${user?.id ?? 'unknown'}`;
-      localStorage.setItem(key, 'true');
-    } catch {
-      // ignore storage errors
+      await onConfirm();
+      onboardingConfirmedRef.current = true;
+      return true;
+    } catch (error) {
+      alert(error instanceof Error ? error.message : '회원가입 상태를 확인하지 못했습니다. 다시 시도해 주세요.');
+      return false;
     }
   };
 
@@ -123,21 +76,12 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
     logoSubmitHandlerRef.current = handler;
   }, []);
 
-  const backgroundStyle =
-    theme === 'dark'
-      ? {
-          backgroundColor: 'var(--ui-bg)',
-          backgroundImage:
-            'radial-gradient(circle at top center, rgba(78,73,255,0.18) 0%, rgba(78,73,255,0.08) 25%, rgba(78,73,255,0) 70%)',
-        }
-      : {
-          backgroundColor: 'var(--ui-bg)',
-          backgroundImage:
-            'radial-gradient(circle at top center, rgba(78,73,255,0.2) 0%, rgba(78,73,255,0.06) 25%, rgba(78,73,255,0) 70%)',
-        };
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" style={backgroundStyle}>
+    <div className="fixed inset-0 z-50 isolate overflow-y-auto bg-[#101116]">
+      <style>{`@keyframes signup-step-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden opacity-60 [&_.horizon-background]:!top-[26%] [&_.horizon-background]:!z-0 [&_.horizon-background]:!h-full">
+        <HorizonBackground />
+      </div>
 
       <div className="absolute left-1/2 top-0 h-[6rem] w-screen -translate-x-1/2">
         <div className="mx-auto flex h-full max-w-[144rem] items-center px-[12rem]">
@@ -153,7 +97,7 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
                 return;
               }
               if (step === 'signupComplete') {
-                void confirmOnboardingOnce().then(() => navigate('/'));
+                void confirmOnboardingOnce().then((confirmed) => { if (confirmed) navigate('/'); });
                 return;
               }
               setIsStayModalOpen(true);
@@ -161,20 +105,23 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
             className="flex items-center gap-[0.4rem] cursor-pointer"
             aria-label="메인으로 이동"
           >
-            {theme === 'dark' ? <LogoLight aria-hidden="true" /> : <LogoDark aria-hidden="true" />}
+            <img src={BrandLogo} alt="Devine" aria-hidden="true" className="h-[44px] w-[44px] object-contain" />
           </button>
         </div>
       </div>
+      <div className="flex min-h-[100svh] items-center justify-center px-4 pb-[124px] pt-[84px] lg:max-2xl:pt-[72px] lg:max-2xl:pb-[clamp(48px,10svh,84px)]">
+      <div key={step} className="w-full motion-safe:animate-[signup-step-enter_350ms_ease-out_both]">
       {step === 'basicProfile' ? (
-        <div className="mx-auto mt-[104px] w-full max-w-[632px]">
+        <div className="mx-auto w-full max-w-[632px] lg:max-2xl:max-w-[560px]">
           <BasicProfileSection
+            preview={preview}
             onNext={(data) => {
               setBasicProfile(data);
               const profileImageKey = getProfileImageKey(user?.id ?? null);
-              if (data.imageUrl) {
+              if (!preview && data.imageUrl) {
                 localStorage.setItem(profileImageKey, data.imageUrl);
                 window.dispatchEvent(new Event('profile-image-updated'));
-              } else {
+              } else if (!preview) {
                 localStorage.removeItem(profileImageKey);
                 window.dispatchEvent(new Event('profile-image-updated'));
               }
@@ -185,8 +132,9 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           />
         </div>
       ) : step === 'profilePage' ? (
-        <div className="mx-auto mt-[104px] w-full max-w-[632px]">
+        <div className="mx-auto w-full max-w-[632px] lg:max-2xl:max-w-[560px]">
           <ProfilePage
+            preview={preview}
             onNext={(data) => {
               setProfileInfo(data);
               setStep('additionalProfile');
@@ -197,12 +145,7 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           />
         </div>
       ) : step === 'signupComplete' ? (
-        <div className="relative mx-auto mt-[104px] flex h-[560px] w-[680px] flex-col items-center justify-center gap-8 px-10 py-14 text-center">
-          <Lottie
-            animationData={confettiAnimation}
-            loop
-            className="pointer-events-none absolute left-1/2 top-1/2 h-full w-[980px] -translate-x-1/2 -translate-y-1/2"
-          />
+        <div className="relative mx-auto flex h-[560px] w-full max-w-[680px] flex-col items-center justify-center gap-8 px-10 py-14 text-center">
           <div className="-mt-6 flex flex-col gap-4 text-[var(--ui-1000)]">
             <h2 className="text-[28px] font-semibold">회원가입이 완료되었어요!</h2>
             <p className="text-[16px] leading-7 text-[var(--ui-400)]">
@@ -222,8 +165,7 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
             <button
               type="button"
               onClick={async () => {
-                await confirmOnboardingOnce();
-                navigate('/');
+                if (await confirmOnboardingOnce()) navigate('/');
               }}
               className="inline-flex w-fit self-center text-[15px] font-medium text-[var(--ui-400)]"
             >
@@ -232,19 +174,20 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
           </div>
         </div>
       ) : step === 'githubRepos' ? (
-        <div className="mx-auto mt-[104px] w-full max-w-[632px]">
+        <div className="mx-auto w-full max-w-[632px] lg:max-2xl:max-w-[560px]">
           <GithubRepoSelectionSection
+            preview={preview}
             onBack={() => setStep('signupComplete')}
             onNext={async () => {
-              await confirmOnboardingOnce();
-              navigate('/');
+              if (await confirmOnboardingOnce()) navigate('/');
             }}
           />
         </div>
       ) : step === 'additionalProfile' ? (
-        <div className="mx-auto mt-[104px] w-full max-w-[632px]">
+        <div className="mx-auto w-full max-w-[632px] lg:max-2xl:max-w-[560px]">
           {terms.length > 0 ? (
             <AdditionalProfileSection
+              preview={preview}
               onBack={() => setStep('profilePage')}
               setLogoSubmitHandler={setAdditionalLogoHandler}
               signupData={{
@@ -257,148 +200,28 @@ const AgreementList = ({ onConfirm, loginProvider }: AgreementListProps) => {
                 mainType: profileInfo.mainType,
                 categoryIds: profileInfo.categoryIds,
               }}
-              onComplete={loginProvider === 'github' ? undefined : confirmOnboardingOnce}
+              onComplete={loginProvider === 'github' ? undefined : async () => {
+                if (!await confirmOnboardingOnce()) throw new Error('회원가입 상태를 다시 확인해 주세요.');
+              }}
               onNext={() => {
                 if (loginProvider === 'github') {
                   setStep('signupComplete');
                 } else {
-                  void confirmOnboardingOnce().then(() => navigate('/'));
+                  void confirmOnboardingOnce().then((confirmed) => { if (confirmed) navigate('/'); });
                 }
               }}
             />
           ) : null}
         </div>
       ) : (
-      <div className="mx-auto mt-[104px] flex h-[660px] w-[632px] flex-col rounded-[32px] bg-[var(--ui-bg)] px-8 pb-20 pt-8 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
-        <div className="flex flex-col gap-8">
-          <div className="flex flex-col gap-2 text-[var(--ui-1000)]">
-            <h2 className="Heading2 font-semibold">서비스 이용을 위해</h2>
-            <h2 className="Heading2 font-semibold">약관에 동의해주세요</h2>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              role="checkbox"
-              aria-checked={allChecked}
-              onClick={() => handleAllChange(!allChecked)}
-              className="relative flex items-center gap-3 rounded-2xl bg-[var(--ui-50)] px-6 py-5 text-left"
-            >
-              {allChecked ? (
-                <CheckboxCheckedIcon
-                  className="h-8 w-8 shrink-0 text-[var(--color-primary)]"
-                  aria-hidden="true"
-                />
-              ) : (
-                <CheckboxUncheckedIcon className="h-8 w-8 shrink-0" aria-hidden="true" />
-              )}
-              <span className="text-[17px] font-semibold text-[var(--ui-900)]">전체 동의</span>
-            </button>
-
-            <div className="flex flex-col gap-4 rounded-2xl border border-[var(--ui-100)] px-6 py-5">
-              {terms.map((term, index) => {
-                const checked = agreedByTermsId[term.termsId] === true;
-                return (
-                  <div
-                    key={term.termsId}
-                    className={`${index === 0 ? 'mt-1' : 'mt-4'} flex items-center justify-between gap-3`}
-                  >
-                    <button
-                      type="button"
-                      role="checkbox"
-                      aria-checked={checked}
-                      onClick={() =>
-                        setAgreedByTermsId((prev) => ({
-                          ...prev,
-                          [term.termsId]: !checked,
-                        }))
-                      }
-                      className="flex items-center gap-3 text-left"
-                    >
-                      {checked ? (
-                        <CheckboxCheckedIcon
-                          className="h-8 w-8 shrink-0 text-[var(--color-primary)]"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <CheckboxUncheckedIcon className="h-8 w-8 shrink-0" aria-hidden="true" />
-                      )}
-                      <span className="text-[16px] font-semibold text-[var(--ui-900)]">
-                        {term.title} ({term.required ? '필수' : '선택'})
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTermsId(term.termsId)}
-                      className="cursor-pointer text-[var(--ui-400)] hover:text-[var(--ui-600)]"
-                      aria-label={`${term.title} 보기`}
-                    >
-                      <ChevronLeftIcon className="h-5 w-5 rotate-180" aria-hidden="true" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-auto mb-24 flex flex-col gap-3">
-          <button
-            type="button"
-            onClick={handleConfirm}
-            disabled={!requiredAgreed || terms.length === 0 || isTermsLoading}
-            className={`Body1 h-[48px] w-full rounded-xl font-semibold ${
-              requiredAgreed && terms.length > 0 && !isTermsLoading
-                ? 'cursor-pointer bg-[var(--color-primary)] text-white'
-                : 'cursor-not-allowed bg-[var(--ui-50)] text-[var(--ui-300)]'
-            }`}
-          >
-            다음
-          </button>
-        </div>
+      <SignupAgreements termsState={termsState} preview={preview} onConfirm={handleConfirm} />
+      )}
       </div>
-      )}
 
-      {isStayModalOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">
-          <div className="w-full max-w-[360px] rounded-[24px] bg-[var(--ui-bg)] px-8 pb-8 pt-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
-            <h2 className="text-[18px] font-semibold text-[var(--ui-900)]">
-              회원정보 입력이 필요해요
-            </h2>
-            <p className="mt-2 text-[13px] text-[var(--ui-400)]">
-              계속 사용하려면 회원가입 정보를 입력해 주세요.
-            </p>
-            <button
-              type="button"
-              onClick={() => setIsStayModalOpen(false)}
-              className="mt-6 h-[48px] w-full cursor-pointer rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
-            >
-              회원가입 계속하기
-            </button>
-          </div>
-        </div>
-      )}
-
-      {isWaitModalOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-6">
-          <div className="w-full max-w-[360px] rounded-[24px] bg-[var(--ui-bg)] px-8 pb-8 pt-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
-            <h2 className="text-[18px] font-semibold text-[var(--ui-900)]">
-              리포트 제작 중이에요
-            </h2>
-            <p className="mt-2 text-[13px] text-[var(--ui-400)]">
-              제작이 끝날 때까지 잠시만 기다려 주세요.
-            </p>
-            <button
-              type="button"
-              onClick={() => setIsWaitModalOpen(false)}
-              className="mt-6 h-[48px] w-full rounded-[12px] bg-[#4E49FF] text-[16px] font-semibold text-white"
-            >
-              확인
-            </button>
-          </div>
-        </div>
-      )}
+      </div>
+      <SignupNotices isStayModalOpen={isStayModalOpen} isWaitModalOpen={isWaitModalOpen} onCloseStay={() => setIsStayModalOpen(false)} onCloseWait={() => setIsWaitModalOpen(false)} />
       <TermsDetailScreen
+        compactDesktop
         open={activeTerm !== null}
         title={activeTerm?.title ?? ''}
         content={activeTerm?.content ?? ''}

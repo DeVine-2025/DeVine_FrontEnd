@@ -1,8 +1,6 @@
+import BrandLogo from '@assets/images/devine-symbol.png';
 import ChevronLeftIcon from '@assets/icons/chevron-left.svg?react';
-import LogoDark from '@assets/icons/logo-dark.svg?react';
-import LogoLight from '@assets/icons/logo-light.svg?react';
 import { useAuth, useUser } from '@clerk/clerk-react';
-import { useThemeStore } from '@store/theme';
 import { getProfileImageKey, getUserRoleKey } from '@utils/storage';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +11,7 @@ type TermsDetailScreenProps = {
   content: string;
   onClose: () => void;
   onLogoClick?: () => void;
+  compactDesktop?: boolean;
 };
 
 const getMarkdownHeading = (line: string) => {
@@ -140,22 +139,16 @@ const TermsDetailScreen = ({
   content,
   onClose,
   onLogoClick,
+  compactDesktop = false,
 }: TermsDetailScreenProps) => {
-  const { theme } = useThemeStore();
   const { signOut } = useAuth();
   const { user } = useUser();
   const navigate = useNavigate();
   const backgroundStyle =
-    theme === 'dark'
-      ? {
+    {
           backgroundColor: 'var(--ui-bg)',
           backgroundImage:
-            'radial-gradient(circle at top center, rgba(78,73,255,0.18) 0%, rgba(78,73,255,0.08) 25%, rgba(78,73,255,0) 70%)',
-        }
-      : {
-          backgroundColor: 'var(--ui-bg)',
-          backgroundImage:
-            'radial-gradient(circle at top center, rgba(78,73,255,0.2) 0%, rgba(78,73,255,0.06) 25%, rgba(78,73,255,0) 70%)',
+            'radial-gradient(circle at top center, rgba(102,84,245,0.18) 0%, rgba(102,84,245,0.08) 25%, rgba(102,84,245,0) 70%)',
         };
 
   if (!open) return null;
@@ -185,12 +178,12 @@ const TermsDetailScreen = ({
             className="flex-items-center cursor-pointer gap-[0.4rem]"
             aria-label="메인으로 이동"
           >
-            {theme === 'dark' ? <LogoLight aria-hidden="true" /> : <LogoDark aria-hidden="true" />}
+            <img src={BrandLogo} alt="Devine" aria-hidden="true" className="h-[44px] w-[44px] object-contain" />
           </button>
         </div>
       </div>
 
-      <div className="mx-auto my-[100px] w-full max-w-[632px]">
+      <div className={`mx-auto my-[100px] w-full max-w-[632px] ${compactDesktop ? "lg:max-2xl:my-[clamp(68px,10svh,88px)] lg:max-2xl:max-w-[600px]" : ""}`}>
         <header className="flex items-center gap-3 text-[var(--ui-1000)]">
           <button
             type="button"
@@ -203,7 +196,7 @@ const TermsDetailScreen = ({
           <h2 className="font-semibold text-[23px]">{title}</h2>
         </header>
 
-        <div className="mt-6 flex max-h-[calc(70vh)] flex-col rounded-[32px] bg-[var(--ui-bg)] p-10 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
+        <div className={`mt-6 flex max-h-[calc(70vh)] flex-col rounded-[32px] bg-[var(--ui-bg)] p-10 shadow-[0_12px_30px_rgba(0,0,0,0.08)] ${compactDesktop ? "lg:max-2xl:p-7" : ""}`}>
           <div className="min-h-0 flex-1 overflow-y-auto whitespace-pre-wrap rounded-3xl bg-[var(--ui-bg)] px-8 py-6 pb-12 text-[14px] text-[var(--ui-700)] leading-7">
             <div className="mx-auto flex max-w-[640px] flex-col gap-5">{parsedContent}</div>
           </div>

@@ -40,7 +40,7 @@ const ACTION_OPTIONS = ['경고', '삭제', '정지', '기각'] as const;
 
 type ActionOption = (typeof ACTION_OPTIONS)[number];
 
-const CARD_CLASS = 'rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px]';
+const CARD_CLASS = 'rounded-[10px] border border-[var(--ui-200)] bg-[var(--ui-bg)] p-[24px] lg:max-2xl:p-[18px]';
 const SECTION_TITLE_CLASS = 'Headline1 font-semibold text-[var(--ui-1000)]';
 
 function InfoCell({ label, value }: { label: string; value: string }) {
@@ -72,8 +72,8 @@ export default function ReportDetailPage() {
 
       <AdminPageTitle className="mt-[8px]" title="신고 상세/처리" />
 
-      <div className="mt-[28px] grid grid-cols-1 gap-[24px] lg:grid-cols-2">
-        <div className="flex flex-col gap-[24px]">
+      <div className="mt-[28px] grid grid-cols-1 gap-[24px] lg:max-2xl:gap-[18px] lg:max-2xl:p-[18px] lg:grid-cols-2">
+        <div className="flex flex-col gap-[24px] lg:max-2xl:gap-[18px] lg:max-2xl:p-[18px]">
           <div
             className={cn(
               CARD_CLASS,
@@ -143,7 +143,7 @@ export default function ReportDetailPage() {
 
           <div className="relative mt-[16px]">
             <select
-              className="Body1 h-[50px] w-full cursor-pointer appearance-none rounded-[5px] border border-[var(--ui-200)] bg-[var(--ui-bg)] pr-[40px] pl-[16px] font-medium text-[var(--ui-800)] outline-none focus:border-[#4e49ff]"
+              className="Body1 h-[50px] w-full cursor-pointer appearance-none rounded-[5px] border border-[var(--ui-200)] bg-[var(--ui-bg)] pr-[40px] pl-[16px] font-medium text-[var(--ui-800)] outline-none focus:border-[#6654F5]"
               onChange={(event) => setStatus(event.target.value as (typeof STATUS_OPTIONS)[number])}
               value={status}
             >
@@ -171,7 +171,7 @@ export default function ReportDetailPage() {
                     'Body1 h-[50px] flex-1 cursor-pointer font-medium transition-colors',
                     index > 0 && 'border-[var(--ui-200)] border-l',
                     isSelected
-                      ? 'bg-[#4e49ff] text-white'
+                      ? 'bg-[#6654F5] text-white'
                       : 'bg-[var(--ui-bg)] text-[var(--ui-800)] hover:bg-[var(--ui-50)]',
                   )}
                   key={action}
@@ -187,14 +187,14 @@ export default function ReportDetailPage() {
           <h2 className={cn(SECTION_TITLE_CLASS, 'mt-[28px]')}>처리 사유</h2>
 
           <textarea
-            className="Body1 mt-[16px] h-[243px] w-full resize-none rounded-[5px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[16px] py-[14px] font-normal text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-300)] focus:border-[#4e49ff]"
+            className="Body1 mt-[16px] h-[243px] w-full resize-none rounded-[5px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[16px] py-[14px] font-normal text-[var(--ui-1000)] outline-none placeholder:text-[var(--ui-300)] focus:border-[#6654F5]"
             onChange={(event) => setReason(event.target.value)}
             placeholder="처리 사유를 입력해주세요."
             value={reason}
           />
 
           <button
-            className="Heading2 mt-[24px] h-[56px] w-full cursor-pointer rounded-[12px] bg-[#4e49ff] font-medium text-white transition-colors hover:bg-[#3e39e8]"
+            className="Heading2 mt-[24px] h-[56px] w-full cursor-pointer rounded-[12px] bg-[#6654F5] font-medium text-white transition-colors hover:bg-[#5544DB]"
             type="button"
           >
             저장

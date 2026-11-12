@@ -1,0 +1,192 @@
+- generic:
+  - generic:
+    - generic:
+      - banner:
+        - generic:
+          - generic:
+            - generic:
+              - button
+            - navigation:
+              - link:
+                - /url: /search/projects
+                - text: 탐색
+              - link:
+                - /url: /recommend
+                - text: 추천
+              - link:
+                - /url: /report
+                - text: 리포트
+              - link:
+                - /url: /my-project
+                - text: 지원 현황
+              - link:
+                - /url: /project/create
+                - text: 프로젝트 등록
+          - generic:
+            - button
+            - link:
+              - /url: /login
+              - generic: 회원가입/로그인
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=1]: 추천
+              - paragraph: 내 프로젝트에 함께할 개발자를 찾아보세요.
+            - navigation:
+              - link:
+                - /url: /recommend/project
+                - text: 프로젝트
+              - link:
+                - /url: /recommend/developer
+                - text: 개발자
+            - generic:
+              - complementary:
+                - generic:
+                  - heading [level=2]: 내 프로젝트
+                  - paragraph: 팀원을 찾을 프로젝트를 선택하세요.
+                - navigation:
+                  - button [pressed]:
+                    - generic: 플로우업
+                  - button:
+                    - generic: 그린로그
+                  - button:
+                    - generic: 커넥트업
+                  - button:
+                    - generic: 링크노트
+                - paragraph: 프로젝트를 바꾸면 추천 개발자도 함께 바뀝니다.
+              - generic:
+                - generic:
+                  - generic:
+                    - textbox:
+                      - /placeholder: 이름, 소개, 기술 스택 검색
+                  - group:
+                    - button
+                    - button [pressed]
+                - group:
+                  - button:
+                    - generic: 가능 시간대
+                  - button:
+                    - generic: 기술 스택
+                  - button:
+                    - generic: 포지션
+                  - button:
+                    - generic: 협업 방식
+                - generic:
+                  - article:
+                    - generic:
+                      - generic:
+                        - generic: 프론트엔드
+                        - heading [level=2]:
+                          - link:
+                            - /url: /developer-detail/%EA%B9%80%EB%AF%BC%EC%A4%80
+                            - text: 김민준
+                        - generic:
+                          - paragraph: 복잡한 협업 화면을 명확하고 빠르게 만드는 데 관심이 있어요.
+                    - button:
+                      - status
+                    - generic:
+                      - generic:
+                        - generic: 평일 저녁
+                        - generic: 온라인 협업
+                  - article:
+                    - generic:
+                      - generic:
+                        - generic: 백엔드
+                        - heading [level=2]:
+                          - link:
+                            - /url: /developer-detail/%EC%9D%B4%EC%84%9C%EC%97%B0
+                            - text: 이서연
+                        - generic:
+                          - paragraph: 안정적인 API와 데이터 구조를 설계합니다.
+                    - button:
+                      - status
+                    - generic:
+                      - generic:
+                        - generic: 평일 저녁
+                        - generic: 온·오프라인 협업
+                  - article:
+                    - generic:
+                      - generic:
+                        - generic: 프론트엔드
+                        - heading [level=2]:
+                          - link:
+                            - /url: /developer-detail/%EC%B5%9C%ED%95%98%EB%A6%B0
+                            - text: 최하린
+                        - generic:
+                          - paragraph: 접근성과 사용자 경험을 고민하며 화면을 구현해요.
+                    - button:
+                      - status
+                    - generic:
+                      - generic:
+                        - generic: 평일 저녁
+                        - generic: 온라인 협업
+                  - article:
+                    - generic:
+                      - generic:
+                        - generic: 백엔드
+                        - heading [level=2]:
+                          - link:
+                            - /url: /developer-detail/%EC%9E%84%EC%A4%80%EC%84%9C
+                            - text: 임준서
+                        - generic:
+                          - paragraph: 실시간 소통과 알림 시스템을 개발해 보고 싶어요.
+                    - button:
+                      - status
+                    - generic:
+                      - generic:
+                        - generic: 주말 중심
+                        - generic: 온·오프라인 협업
+                  - article:
+                    - generic:
+                      - generic:
+                        - generic: 인프라
+                        - heading [level=2]:
+                          - link:
+                            - /url: /developer-detail/%EC%84%9C%EC%A7%80%EB%AF%BC
+                            - text: 서지민
+                        - generic:
+                          - paragraph: 배포 자동화와 서비스 운영 환경을 설계합니다.
+                    - button:
+                      - status
+                    - generic:
+                      - generic:
+                        - generic: 주말 중심
+                        - generic: 오프라인 협업
+                - status: 추천 개발자를 모두 살펴봤어요.
+            - dialog "샘플 개발자 프로필" [ref=f1e244]:
+              - text: 샘플 개발자
+              - heading "김민준" [level=2] [ref=f1e245]
+              - paragraph [ref=f1e246]: 프론트엔드
+              - paragraph [ref=f1e247]: 복잡한 협업 화면을 명확하고 빠르게 만드는 데 관심이 있어요.
+              - paragraph [ref=f1e248]: React, TypeScript, Next.js
+              - button "닫기" [active] [ref=f1e249] [cursor=pointer]
+      - contentinfo:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - paragraph: GitHub 분석 기반 개발자 · PM 매칭 플랫폼 나에게 맞는 팀원을 만나보세요.
+              - generic:
+                - paragraph: 서비스
+                - list:
+                  - listitem:
+                    - button: 탐색
+                  - listitem:
+                    - button: 추천
+                  - listitem:
+                    - button: 리포트
+                  - listitem:
+                    - button: 서비스 소개
+              - generic:
+                - paragraph: 정책
+                - list:
+                  - listitem:
+                    - button: 이용약관
+                  - listitem:
+                    - button: 개인정보처리방침
+            - generic:
+              - generic:
+                - paragraph: "사업체명 : 디바인(DeVine) | 대표자명 : 정우주 | 대표전화 : 010-5349-7050 | 사업자 등록번호 : 743-57-01003 | 통신판매업신고번호: 2026-서울마포-1689"
+                - paragraph: "이메일 : projectdevine2025@gmail.com | 주소 : 서울특별시 마포구 와우산로 105, 5층-J433호 | 도메인: devine.kr"
+                - paragraph: © 2025 DeVine. All rights reserved.

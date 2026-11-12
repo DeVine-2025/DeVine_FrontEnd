@@ -1,5 +1,4 @@
 import SelectAllIcon from '@assets/icons/select-all.svg?react';
-import LoadingSpinner from '@components/common/LoadingSpinner';
 import { getTechBadgeByName } from '@constants/position-tech-stack';
 import {
   formatTechstackKey,
@@ -9,8 +8,9 @@ import {
   type TechstackItem,
 } from '@apis/techstacks';
 import { useTechstacks } from '@hooks/useTechstacks';
-import { useThemeStore } from '@store/theme';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { PositionKey as TabKey } from '@constants/position-tech-stack';
+import { buildGenreGroups, TAB_GROUP_NAME, TAB_LABEL } from '../common/tech-stack-groups';
 
 type PositionTechStackDropdownProps = {
   open: boolean;
@@ -25,83 +25,6 @@ type PositionTechStackDropdownProps = {
   valueType?: 'key' | 'id';
 };
 
-type TabKey = 'frontend' | 'backend' | 'infra';
-
-const TAB_LABEL: Record<TabKey, string> = {
-  frontend: '프론트엔드',
-  backend: '백엔드',
-  infra: '인프라',
-};
-
-const TAB_GROUP_NAME: Record<TabKey, string> = {
-  frontend: 'FRONTEND',
-  backend: 'BACKEND',
-  infra: 'INFRA',
-};
-
-const GENRE_LABEL_BY_TAB: Record<TabKey, Record<string, string>> = {
-  frontend: {
-    LANGUAGE: '언어/프레임워크',
-    FRAMEWORK: '언어/프레임워크',
-    LANGUAGE_FRAMEWORK: '언어/프레임워크',
-    MOBILE: '모바일',
-  },
-  backend: {
-    LANGUAGE: '언어',
-    FRAMEWORK: '프레임워크',
-    DATABASE: '데이터베이스',
-  },
-  infra: {
-    CLOUD: '클라우드',
-    CONTAINER: '컨테이너',
-  },
-};
-
-const GENRE_ORDER_BY_TAB: Record<TabKey, string[]> = {
-  frontend: ['LANGUAGE_FRAMEWORK', 'MOBILE'],
-  backend: ['LANGUAGE', 'FRAMEWORK', 'DATABASE'],
-  infra: ['CLOUD', 'CONTAINER'],
-};
-
-const buildGenreGroups = (tab: TabKey, group: TechstackGroup | undefined) => {
-  if (!group) return [] as Array<{ key: string; label: string; items: TechstackItem[] }>;
-
-  const genreMap = new Map<string, TechstackItem[]>();
-
-  group.list.forEach((item) => {
-    const rawGenre = normalizeTechstackName(item.genre);
-    const mergedGenre =
-      tab === 'frontend' && (rawGenre === 'LANGUAGE' || rawGenre === 'FRAMEWORK')
-        ? 'LANGUAGE_FRAMEWORK'
-        : rawGenre;
-
-    const current = genreMap.get(mergedGenre) ?? [];
-    current.push(item);
-    genreMap.set(mergedGenre, current);
-  });
-
-  const order = GENRE_ORDER_BY_TAB[tab];
-  const labelByGenre = GENRE_LABEL_BY_TAB[tab];
-
-  const knownGroups = order
-    .filter((genre) => (genreMap.get(genre)?.length ?? 0) > 0)
-    .map((genre) => ({
-      key: genre,
-      label: labelByGenre[genre] ?? genre,
-      items: genreMap.get(genre) ?? [],
-    }));
-
-  const customGroups = Array.from(genreMap.entries())
-    .filter(([genre]) => !order.includes(genre))
-    .map(([genre, items]) => ({
-      key: genre,
-      label: labelByGenre[genre] ?? genre,
-      items,
-    }));
-
-  return [...knownGroups, ...customGroups];
-};
-
 export default function PositionTechStackDropdown({
   open,
   value,
@@ -114,9 +37,9 @@ export default function PositionTechStackDropdown({
   showCloseButton = false,
   valueType = 'key',
 }: PositionTechStackDropdownProps) {
-  const { theme } = useThemeStore();
-  const { data: techstackGroups = [], isLoading } = useTechstacks();
+  const { data: techstackGroups = [], isLoading, isError, refetch } = useTechstacks();
   const ref = useRef<HTMLDivElement | null>(null);
+  const wasOpenRef = useRef(false);
   const selected = useMemo(() => new Set(value), [value]);
 
   const [activeTab, setActiveTab] = useState<TabKey>('frontend');
@@ -150,6 +73,15 @@ export default function PositionTechStackDropdown({
       document.removeEventListener('keydown', onKeyDown);
     };
   }, [open, onClose, asModal]);
+
+  useEffect(() => {
+    const justOpened = open && !wasOpenRef.current;
+    wasOpenRef.current = open;
+
+    if (justOpened && isError) {
+      void refetch();
+    }
+  }, [isError, open, refetch]);
 
   const groupByTab = useMemo(() => {
     const map = new Map<string, TechstackGroup>();
@@ -201,8 +133,8 @@ export default function PositionTechStackDropdown({
     const badge = getTechBadgeByName(item.name);
 
     if (badge) {
-      const offSrc = theme === 'dark' ? badge.offDark ?? badge.off : badge.off;
-      const onSrc = theme === 'dark' ? badge.onDark ?? badge.on : badge.on;
+      const offSrc = badge.offDark ?? badge.off;
+      const onSrc = badge.onDark ?? badge.on;
       return (
         <button
           key={`${item.techstackId}-${key}`}
@@ -228,7 +160,7 @@ export default function PositionTechStackDropdown({
         className={[
           'inline-flex h-[36px] items-center gap-[8px] rounded-[24px] px-[12px] py-[8px] text-left transition-transform duration-150 ease-out active:scale-[0.98]',
           'bg-[var(--ui-100)]',
-          isOn ? 'ring-[#4E49FF] ring-[1.5px]' : 'ring-[1.5px] ring-[var(--ui-200)]',
+          isOn ? 'ring-[#6654F5] ring-[1.5px]' : 'ring-[1.5px] ring-[var(--ui-200)]',
         ].join(' ')}
       >
         <span className="Caption1 font-medium text-[var(--ui-800)]">{label}</span>
@@ -369,8 +301,8 @@ export default function PositionTechStackDropdown({
           onClick={toggleAll}
           className={`inline-flex items-center gap-[4px] ${
             tabAllSelected
-              ? 'text-[#4E49FF] [&_path]:!stroke-[#4E49FF]'
-              : 'text-[var(--ui-500)] hover:text-[#4E49FF] hover:[&_path]:!stroke-[#4E49FF]'
+              ? 'text-[#6654F5] [&_path]:!stroke-[#6654F5]'
+              : 'text-[var(--ui-500)] hover:text-[#6654F5] hover:[&_path]:!stroke-[#6654F5]'
           }`}
         >
           <span aria-hidden className="inline-flex h-[20px] w-[20px] items-center justify-center">
@@ -385,7 +317,7 @@ export default function PositionTechStackDropdown({
       >
         {isLoading ? (
           <div className="flex justify-center py-10">
-            <LoadingSpinner size="md" />
+            <span role="status" className="text-sm text-[var(--text-secondary)]">불러오는 중...</span>
           </div>
         ) : genreGroups.length === 0 ? (
           <p className="Caption1 text-[var(--ui-400)]">기술스택 목록이 없습니다.</p>
@@ -420,7 +352,7 @@ export default function PositionTechStackDropdown({
             onApply?.();
             onClose();
           }}
-          className="Label1 flex h-[36px] w-[60px] cursor-pointer items-center justify-center rounded-[8px] bg-[#4E49FF] px-[10px] text-white"
+          className="Label1 flex h-[36px] w-[60px] cursor-pointer items-center justify-center rounded-[8px] bg-[#6654F5] px-[10px] text-white"
         >
           저장
         </button>

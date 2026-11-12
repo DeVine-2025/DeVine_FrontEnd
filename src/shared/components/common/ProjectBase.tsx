@@ -1,5 +1,5 @@
 import PersonIcon from '@assets/icons/person.svg?react';
-import DevineLogo from '@assets/images/Devine.svg';
+import DevineLogo from '@assets/images/devine-symbol.png';
 import BookmarkButton from '@components/common/BookmarkButton';
 import { badgeToneToClass } from '@t/badgeTone';
 import type { ProjectCardBaseProps } from '@t/project/ui';

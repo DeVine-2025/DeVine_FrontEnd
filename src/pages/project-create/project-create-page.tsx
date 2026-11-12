@@ -1,65 +1,38 @@
-import { confirmImage, getPresignedUrl } from '@apis/images';
+import ProjectContentEditor from './project-content-editor';
+import { useProjectContentEditor } from './use-project-content-editor';
+import { getMyProjectsCacheKey } from '@utils/storage';
+import { uploadProjectImage } from '@apis/images';
 import { getProjectDetail } from '@apis/project-detail';
 import { createProject, updateProject } from '@apis/projects';
-import AddImageLightIcon from '@assets/icons/create-project/addimage-light.svg?react';
 import PlusIcon from '@assets/icons/create-project/plus.svg?react';
-import TablerIconBold from '@assets/icons/create-project/tabler-icon-bold.svg?react';
-import TablerIconBoldHover from '@assets/icons/create-project/tabler-icon-bold-hover.svg?react';
-import TablerIconH1 from '@assets/icons/create-project/tabler-icon-h-1.svg?react';
-import TablerIconH1Hover from '@assets/icons/create-project/tabler-icon-h-1-hover.svg?react';
-import TablerIconH2 from '@assets/icons/create-project/tabler-icon-h-2.svg?react';
-import TablerIconH2Hover from '@assets/icons/create-project/tabler-icon-h-2-hover.svg?react';
-import TablerIconItalic from '@assets/icons/create-project/tabler-icon-italic.svg?react';
-import TablerIconItalicHover from '@assets/icons/create-project/tabler-icon-italic-hover.svg?react';
-import TablerIconLink from '@assets/icons/create-project/tabler-icon-link.svg?react';
-import TablerIconLinkHover from '@assets/icons/create-project/tabler-icon-link-hover.svg?react';
-import TablerIconList from '@assets/icons/create-project/tabler-icon-list.svg?react';
-import TablerIconListHover from '@assets/icons/create-project/tabler-icon-list-hover.svg?react';
-import TablerIconListNumbers from '@assets/icons/create-project/tabler-icon-list-numbers.svg?react';
-import TablerIconListNumbersHover from '@assets/icons/create-project/tabler-icon-list-numbers-hover.svg?react';
-import TablerIconPhoto from '@assets/icons/create-project/tabler-icon-photo.svg?react';
-import TablerIconPhotoHover from '@assets/icons/create-project/tabler-icon-photo-hover.svg?react';
-import TablerIconStrikethrough from '@assets/icons/create-project/tabler-icon-strikethrough.svg?react';
-import TablerIconStrikethroughHover from '@assets/icons/create-project/tabler-icon-strikethrough-hover.svg?react';
-import TablerIconUnderline from '@assets/icons/create-project/tabler-icon-underline.svg?react';
-import TablerIconUnderlineHover from '@assets/icons/create-project/tabler-icon-underline-hover.svg?react';
 import UnderVectorIcon from '@assets/icons/create-project/under-vector.svg?react';
 import XIcon from '@assets/icons/create-project/x.svg?react';
 import { useAuth } from '@clerk/clerk-react';
 import DatePickerPopover from '@components/common/DatePickerPopover';
-import PositionBasedTechStackDropdown from '@components/common/PositionBasedTechStackDropdown';
+import TechStackPicker from '@components/common/TechStackPicker';
 import SelectDropdown from '@components/common/SelectDropdown';
 import {
-  getKeysByPosition,
   type PositionKey,
   TECH_STACK_LABEL_BY_KEY,
 } from '@constants/position-tech-stack';
-import { TECHSTACK_KEY_TO_NAME } from '@mappers/projectFilters';
-import { LinkCardExtension } from '@pages/project-create/LinkCardNode';
-import { type SlotImage, useProjectCreateStore } from '@store/projectCreate';
-import { useThemeStore } from '@store/theme';
-import Image from '@tiptap/extension-image';
-import Link from '@tiptap/extension-link';
-import Underline from '@tiptap/extension-underline';
-import { EditorContent, useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import type { ChangeEvent, ComponentType, Ref, SVGProps } from 'react';
+import { createProjectDraftStore, type RecruitmentItem } from './project-draft.store';
+import { useStore } from 'zustand';
+import type { ChangeEvent, Ref } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { MY_RECRUITING_PROJECTS_QUERY_KEY } from '@hooks/useMyRecruitingProjects';
 import { cn } from '@libs/cn';
+import { fromProjectResponse, toProjectRequest } from './project-form-mapper';
+import { PROJECT_FORM_FIELD_ORDER, validateProjectForm, type ProjectFormFieldKey } from './project-form-validation';
+import './project-create-colors.css';
 
-type SvgIcon = ComponentType<SVGProps<SVGSVGElement>>;
-
-type RecruitmentItem = {
-  id: string;
-  positionLabel: string;
-  countLabel: string;
-  techStackKeys: string[];
-};
 
 const makeId = () => `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const recruitCountOptions = Array.from({ length: 8 }, (_, index) => ({
+  value: String(index + 1),
+  label: `${index + 1}명`,
+}));
 
 function Label({ children }: { children: string }) {
   return <p className="Headline1 font-medium text-[var(--ui-700)]">{children}</p>;
@@ -67,31 +40,6 @@ function Label({ children }: { children: string }) {
 
 function SubLabel({ children }: { children: string }) {
   return <p className="Label1 font-medium text-[var(--ui-700)]">{children}</p>;
-}
-
-function DropdownLike({ placeholder }: { placeholder: string }) {
-  return (
-    <button
-      type="button"
-      className="relative flex h-[44px] w-full items-center rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-[12px] text-left"
-    >
-      <span className="Caption1 text-[var(--ui-400)]">{placeholder}</span>
-      <span className="-translate-y-1/2 absolute top-1/2 right-[10px] inline-flex h-[28px] w-[28px] items-center justify-center text-[var(--ui-400)]">
-        <UnderVectorIcon aria-hidden className="h-[9px] w-[16px]" />
-      </span>
-    </button>
-  );
-}
-
-function InputLike({ placeholder, value }: { placeholder: string; value?: string }) {
-  return (
-    <input
-      value={value ?? ''}
-      placeholder={placeholder}
-      onChange={() => {}}
-      className="Caption1 h-[48px] w-full rounded-[12px] border border-[var(--ui-200)] bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:border-[#4E49FF] focus:outline-none"
-    />
-  );
 }
 
 function InputField({
@@ -117,8 +65,8 @@ function InputField({
       className={cn(
         'Caption1 h-[48px] w-full rounded-[12px] border bg-[var(--ui-50)] px-[12px] font-medium text-[var(--ui-900)] tracking-[0.0912px] transition-colors placeholder:text-[var(--ui-300)] focus:outline-none',
         error
-          ? 'border-form-error focus:border-[#4E49FF]'
-          : 'border-[var(--ui-200)] focus:border-[#4E49FF]',
+          ? 'border-form-error focus:border-[var(--project-create-accent,#6654F5)]'
+          : 'border-[var(--ui-200)] focus:border-[var(--project-create-accent,#6654F5)]',
       )}
     />
   );
@@ -139,8 +87,8 @@ function ImageSlot({
   onRemove?: () => void;
   loading?: boolean;
 }) {
-  const { theme } = useThemeStore();
-  const AddImageIcon = theme === 'light' ? AddImageLightIcon : PlusIcon;
+
+  const AddImageIcon = PlusIcon;
 
   return (
     <label
@@ -196,181 +144,23 @@ function ImageSlot({
   );
 }
 
-function ToolbarButton({
-  Icon,
-  HoverIcon,
-  label,
-  onClick,
-  onMouseDown,
-  active,
-  disabled,
-}: {
-  Icon: SvgIcon;
-  HoverIcon: SvgIcon;
-  label: string;
-  onClick?: () => void;
-  onMouseDown?: (e: React.MouseEvent) => void;
-  active?: boolean;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onMouseDown={(e) => {
-        e.preventDefault();
-        onMouseDown?.(e);
-      }}
-      onClick={onClick}
-      disabled={disabled}
-      className="group flex h-[28px] min-w-[28px] items-center justify-center rounded-md px-1 transition-colors hover:bg-[var(--ui-100)] hover:text-[var(--ui-700)] disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-[var(--ui-200)] data-[active]:text-[var(--ui-800)]"
-      data-active={active || undefined}
-      aria-label={label}
-    >
-      {active ? (
-        <HoverIcon aria-hidden className="h-[20px] w-[20px] shrink-0 text-[var(--ui-800)]" />
-      ) : (
-        <>
-          <Icon
-            aria-hidden
-            className="h-[20px] w-[20px] shrink-0 text-[var(--ui-500)] group-hover:hidden"
-          />
-          <HoverIcon
-            aria-hidden
-            className="hidden h-[20px] w-[20px] shrink-0 text-[var(--ui-700)] group-hover:block"
-          />
-        </>
-      )}
-    </button>
-  );
-}
-
-const projectFieldMap: Record<string, string> = {
-  웹: 'WEB',
-  '모바일/앱': 'MOBILE',
-  게임: 'GAME',
-  블록체인: 'BLOCKCHAIN',
-  기타: 'ETC',
-};
-const modeMap: Record<string, string> = {
-  온라인: 'ONLINE',
-  오프라인: 'OFFLINE',
-  '온/오프라인': 'HYBRID',
-};
-const positionMap: Record<string, string> = {
-  프론트엔드: 'FRONTEND',
-  백엔드: 'BACKEND',
-  인프라: 'INFRA',
-};
-const durationMonthsMap: Record<string, number> = {
-  '1개월 이하': 1,
-  '1-3개월': 2,
-  '3-6개월': 4,
-  '6개월 이상': 6,
-};
-const durationRangeMap: Record<string, string> = {
-  '1개월 이하': 'UNDER_ONE',
-  '1-3개월': 'ONE_TO_THREE',
-  '3-6개월': 'THREE_TO_SIX',
-  '6개월 이상': 'SIX_PLUS',
-};
-const domainToCategory: Record<string, string> = {
-  헬스케어: 'HEALTHCARE',
-  핀테크: 'FINTECH',
-  이커머스: 'ECOMMERCE',
-  교육: 'EDUCATION',
-  '소셜/커뮤니티': 'SOCIAL',
-  엔터테인먼트: 'ENTERTAINMENT',
-  'AI/데이터': 'AI_DATA',
-  기타: 'ETC',
-};
-const reverseProjectFieldMap: Record<string, string> = Object.fromEntries(
-  Object.entries(projectFieldMap).map(([k, v]) => [v, k]),
-);
-const reverseModeMap: Record<string, string> = Object.fromEntries(
-  Object.entries(modeMap).map(([k, v]) => [v, k]),
-);
-const reverseDurationRangeMap: Record<string, string> = Object.fromEntries(
-  Object.entries(durationRangeMap).map(([k, v]) => [v, k]),
-);
-const reverseDomainToCategory: Record<string, string> = Object.fromEntries(
-  Object.entries(domainToCategory).map(([k, v]) => [v, k]),
-);
-const reversePositionMap: Record<string, string> = Object.fromEntries(
-  Object.entries(positionMap).map(([k, v]) => [v, k]),
-);
-
-const normalizeTechKey = (k: string) =>
-  k
-    .trim()
-    .replace(/\s+/g, '')
-    .replace(/[^0-9a-zA-Z]/g, '')
-    .toUpperCase();
-
-/** API에서 오는 값(JAVASCRIPT 등) → UI 옵션 키(Javascript 등)로 변환. 수정 모드 복원 시 사용 */
-const BACKEND_NAME_TO_UI_KEY: Record<string, string> = (() => {
-  const positionKeys: PositionKey[] = ['frontend', 'backend', 'infra'];
-  const acc: Record<string, string> = {};
-  positionKeys.forEach((pos) => {
-    getKeysByPosition(pos).forEach((uiKey) => {
-      acc[normalizeTechKey(uiKey)] = uiKey;
-    });
-  });
-  acc['REACT_NATIVE'] = 'ReactNative';
-  return acc;
-})();
-
-const UI_KEY_TO_BACKEND_TECHSTACK: Record<string, string> = {
-  ...TECHSTACK_KEY_TO_NAME,
-  SPRINGBOOT: 'SPRINGBOOT',
-  SPRINGW: 'SPRINGBOOT',
-  SPRINGBOOTW: 'SPRINGBOOT',
-  SPRING: 'SPRINGBOOT',
-  REACTNATIVE: 'REACT_NATIVE',
-  MONGODB: 'MONGODB',
-  MYSQL: 'MYSQL',
-};
-
-function toTechStacksEnum(keys: string[]): string[] {
-  return keys
-    .map((k) => {
-      const normalized = normalizeTechKey(k);
-      return UI_KEY_TO_BACKEND_TECHSTACK[normalized] ?? normalized;
-    })
-    .filter(Boolean);
-}
-
-type ProjectFormFieldKey =
-  | 'projectType'
-  | 'domain'
-  | 'progressType'
-  | 'progressPeriod'
-  | 'location'
-  | 'deadline'
-  | 'recruitments'
-  | 'title'
-  | 'content';
-
-const PROJECT_FORM_FIELD_ORDER: ProjectFormFieldKey[] = [
-  'projectType',
-  'domain',
-  'progressType',
-  'progressPeriod',
-  'location',
-  'deadline',
-  'recruitments',
-  'title',
-  'content',
-];
-
 const ProjectCreatePage = () => {
+  const { userId } = useAuth();
+  const { state } = useLocation();
+  const routeState = state as { projectId?: number; mode?: string } | null;
+  const editProjectId = routeState?.mode === 'edit' ? routeState.projectId ?? null : null;
+  const formKey = `${userId ?? 'guest'}:${editProjectId ?? 'create'}`;
+
+  return <ProjectForm key={formKey} ownerId={userId ?? undefined} editProjectId={editProjectId} />;
+};
+
+function ProjectForm({ ownerId, editProjectId }: { ownerId?: string; editProjectId: number | null }) {
   const isDev = Boolean((import.meta as any).env?.DEV);
   const { getToken } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const location = useLocation();
-  const locState = location.state as { projectId?: number; mode?: string } | null;
-  const isEditMode = locState?.mode === 'edit' && locState?.projectId != null;
-  const editProjectId = locState?.projectId ?? null;
+  const isEditMode = editProjectId !== null;
+  const [draftStore] = useState(() => createProjectDraftStore(isEditMode ? undefined : ownerId));
   const [editDataLoaded, setEditDataLoaded] = useState(false);
 
   const {
@@ -382,6 +172,8 @@ const ProjectCreatePage = () => {
     setProjectTitle,
     projectContent,
     setProjectContent,
+    projectFeatures,
+    setProjectFeatures,
     projectType,
     setProjectType,
     domain,
@@ -401,9 +193,16 @@ const ProjectCreatePage = () => {
     slotImages,
     setSlotImages,
     clearDraft,
-  } = useProjectCreateStore();
+  } = useStore(draftStore);
 
   const [techStackOpen, setTechStackOpen] = useState(false);
+  const [featureInput, setFeatureInput] = useState('');
+  const addProjectFeature = () => {
+    const value = featureInput.trim();
+    if (!value) return;
+    setProjectFeatures([...projectFeatures.split('\n').filter(Boolean), value].join('\n'));
+    setFeatureInput('');
+  };
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<ProjectFormFieldKey, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fieldRefs = useRef<Partial<Record<ProjectFormFieldKey, HTMLElement | null>>>({});
@@ -411,12 +210,6 @@ const ProjectCreatePage = () => {
   const submitAreaRef = useRef<HTMLDivElement>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [imageUploadingSlot, setImageUploadingSlot] = useState<number | null>(null);
-  const [editorImageUploading, setEditorImageUploading] = useState(false);
-  const editorImageInputRef = useRef<HTMLInputElement | null>(null);
-  const [, setEditorSelectionKey] = useState(0);
-  useEffect(() => {
-    if (isEditMode) clearDraft();
-  }, [isEditMode]);
 
   const minDeadline = useMemo(() => {
     const t = new Date();
@@ -454,19 +247,7 @@ const ProjectCreatePage = () => {
       }
       setImageUploadingSlot(index);
       try {
-        const { imageId, presignedUrl, imageUrl } = await getPresignedUrl(
-          { imageType: 'PROJECT', fileName: file.name },
-          token,
-        );
-        const putRes = await fetch(presignedUrl, {
-          method: 'PUT',
-          body: file,
-          headers: file.type ? { 'Content-Type': file.type } : undefined,
-        });
-        if (!putRes.ok) {
-          throw new Error(`이미지 업로드 실패 (${putRes.status})`);
-        }
-        await confirmImage(imageId, token);
+        const { imageId, imageUrl } = await uploadProjectImage(file, token);
         setSlotImages((prev) => {
           const next = [...prev];
           next[index] = { imageId, imageUrl };
@@ -499,104 +280,54 @@ const ProjectCreatePage = () => {
     return null;
   }, [recruitPosition]);
 
-  const canSaveRecruitment = Boolean(recruitPosition && recruitCount && techStack.length > 0);
+  const savedCount = recruitCount?.replace(/명$/, '');
+  const selectedRecruitCount = recruitCountOptions.find(({ value }) => value === savedCount)?.value ?? null;
 
-  const onSaveRecruitment = () => {
-    if (!recruitPosition || !recruitCount || techStack.length === 0) return;
+  const addCompleteRecruitment = (position: string | null, count: string | null, stackKeys: string[]) => {
+    if (!position || !count || stackKeys.length === 0) return;
 
     const nextItem: RecruitmentItem = {
       id: makeId(),
-      positionLabel: recruitPosition,
-      countLabel: recruitCount,
-      techStackKeys: [...techStack],
+      positionLabel: position,
+      countLabel: `${count}명`,
+      techStackKeys: stackKeys,
     };
-
     setRecruitments((prev) => {
-      const same = prev.some(
-        (r) =>
-          r.positionLabel === nextItem.positionLabel &&
-          r.countLabel === nextItem.countLabel &&
-          r.techStackKeys.join('|') === nextItem.techStackKeys.join('|'),
+      const same = prev.some((item) =>
+        item.positionLabel === position &&
+        item.countLabel === nextItem.countLabel &&
+        item.techStackKeys.length === stackKeys.length &&
+        stackKeys.every((key) => item.techStackKeys.includes(key)),
       );
       return same ? prev : [...prev, nextItem];
     });
 
-    setFieldErrors((prev) => {
-      if (!prev.recruitments) return prev;
-      const next = { ...prev };
-      delete next.recruitments;
-      return next;
-    });
-
-    setTechStackOpen(false);
+    clearFieldError('recruitments');
     setRecruitPosition(null);
     setRecruitCount(null);
     setTechStack([]);
+  };
+
+  const handleRecruitCountChange = (value: string) => {
+    setRecruitCount(value);
+    addCompleteRecruitment(recruitPosition, value, techStack);
+  };
+
+  const handleRecruitPositionChange = (position: string) => {
+    if (position !== recruitPosition) setTechStack([]);
+    setRecruitPosition(position);
+  };
+
+  const handleRecruitStackApply = (stackKeys: string[]) => {
+    setTechStack(stackKeys);
+    addCompleteRecruitment(recruitPosition, selectedRecruitCount, stackKeys);
   };
 
   const onRemoveRecruitment = (id: string) => {
     setRecruitments((prev) => prev.filter((r) => r.id !== id));
   };
 
-  useEffect(() => {
-    if (!positionKey) {
-      if (techStack.length) setTechStack([]);
-      return;
-    }
-    const allowed = new Set(getKeysByPosition(positionKey));
-    const next = techStack.filter((k) => allowed.has(k));
-    if (next.length !== techStack.length) setTechStack(next);
-  }, [positionKey, techStack]);
-
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2] },
-      }),
-      Underline,
-      Link.configure({
-        openOnClick: false,
-        autolink: false,
-        linkOnPaste: true,
-        HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' },
-      }),
-      Image.configure({
-        inline: false,
-      }),
-      LinkCardExtension,
-    ],
-    content: projectContent || '',
-    onUpdate: ({ editor }) => {
-      setProjectContent(editor.getHTML());
-      if (editor.getText().trim().length > 0) {
-        setFieldErrors((prev) => {
-          if (!prev.content) return prev;
-          const next = { ...prev };
-          delete next.content;
-          return next;
-        });
-      }
-    },
-    editorProps: {
-      attributes: {
-        class:
-          'min-h-[380px] w-full bg-transparent outline-none ' +
-          'Caption1 font-medium tracking-[0.0912px] text-ui-900 ' +
-          '[&_ul]:list-disc [&_ul]:pl-[20px] [&_ul]:mt-[8px] [&_ul]:mb-[8px] ' +
-          '[&_ol]:list-decimal [&_ol]:pl-[20px] [&_ol]:mt-[8px] [&_ol]:mb-[8px] ' +
-          '[&_li]:my-[4px] ' +
-          '[&_h1]:text-[20px] [&_h1]:font-bold [&_h1]:leading-snug [&_h1]:my-[10px] ' +
-          '[&_h2]:text-[18px] [&_h2]:font-bold [&_h2]:leading-snug [&_h2]:my-[10px] ' +
-          '[&_a]:text-badge-text-primary [&_a]:underline [&_a]:underline-offset-2',
-      },
-    },
-  });
-
-  useEffect(() => {
-    if (!isEditMode && editor && projectContent && editor.isEmpty) {
-      editor.commands.setContent(projectContent, { emitUpdate: false });
-    }
-  }, [editor, projectContent, isEditMode]);
+  const { editor, editorImageUploading, editorImageInputRef, onToolbarPickImage, onToolbarLink, insertImageFromFile } = useProjectContentEditor({ projectContent, setProjectContent, setFieldErrors, isEditMode, getToken });
 
   useEffect(() => {
     if (!isEditMode || !editProjectId || editDataLoaded) return;
@@ -607,66 +338,21 @@ const ProjectCreatePage = () => {
         const project = await getProjectDetail(editProjectId, token);
         if (cancelled || !project) return;
 
-        setProjectTitle(project.title ?? '');
-        setProjectContent(project.content ?? '');
-        setLocationText(project.location ?? '');
-        setDeadlineText(project.recruitmentDeadline ?? '');
-
-        if (project.projectField) {
-          setProjectType(
-            reverseProjectFieldMap[project.projectField] ?? project.projectFieldName ?? null,
-          );
-        }
-        if (project.category) {
-          setDomain(reverseDomainToCategory[project.category] ?? project.categoryName ?? null);
-        }
-        if (project.mode) {
-          setProgressType(reverseModeMap[project.mode] ?? project.modeName ?? null);
-        }
-        if (project.durationRange) {
-          setProgressPeriod(
-            reverseDurationRangeMap[project.durationRange] ?? project.durationRangeName ?? null,
-          );
-        }
-
-        const rawRecruitments = project.recruitments ?? project.positions ?? [];
-        if (rawRecruitments.length > 0) {
-          const restored: RecruitmentItem[] = rawRecruitments.map((r) => {
-            const posLabel = reversePositionMap[r.position] ?? r.positionName ?? String(r.position);
-            const techKeys = Array.isArray(r.techStacks)
-              ? r.techStacks
-                  .map((ts) => {
-                    const name = (ts.techStackName ?? (ts as any).techStack ?? '').trim();
-                    if (!name) return '';
-                    const normalized = normalizeTechKey(name);
-                    return BACKEND_NAME_TO_UI_KEY[normalized] ?? normalized;
-                  })
-                  .filter(Boolean)
-              : [];
-            return {
-              id: makeId(),
-              positionLabel: posLabel,
-              countLabel: `${r.count ?? 1}명`,
-              techStackKeys: techKeys,
-            };
-          });
-          setRecruitments(restored);
-        }
-
-        const imgUrls =
-          project.imageUrls ??
-          project.images?.map((i) => i.imageUrl ?? i.url).filter(Boolean) ??
-          [];
-        if (imgUrls.length > 0) {
-          const slots: [SlotImage, SlotImage, SlotImage] = [null, null, null];
-          imgUrls.slice(0, 3).forEach((url, i) => {
-            if (url) slots[i] = { imageId: 0, imageUrl: url };
-          });
-          setSlotImages(slots);
-        }
+        const form = fromProjectResponse(project, makeId);
+        setProjectTitle(form.title);
+        setProjectContent(form.summary);
+        setProjectFeatures(form.features);
+        setLocationText(form.location);
+        setDeadlineText(form.deadline);
+        if (form.projectType !== undefined) setProjectType(form.projectType);
+        if (form.domain !== undefined) setDomain(form.domain);
+        if (form.progressType !== undefined) setProgressType(form.progressType);
+        if (form.progressPeriod !== undefined) setProgressPeriod(form.progressPeriod);
+        if (form.recruitments) setRecruitments(form.recruitments);
+        if (form.slotImages) setSlotImages(form.slotImages);
 
         if (editor && project.content) {
-          editor.commands.setContent(project.content, { emitUpdate: false });
+          editor.commands.setContent(form.summary, { emitUpdate: false });
         }
 
         setEditDataLoaded(true);
@@ -679,97 +365,15 @@ const ProjectCreatePage = () => {
     };
   }, [isEditMode, editProjectId, editDataLoaded, editor, getToken]);
 
-  useEffect(() => {
-    if (!editor) return;
-    const onSelectionUpdate = () => setEditorSelectionKey((k) => k + 1);
-    editor.on('selectionUpdate', onSelectionUpdate);
-    return () => {
-      editor.off('selectionUpdate', onSelectionUpdate);
-    };
-  }, [editor]);
-
-  const insertImageFromFile = async (file: File) => {
-    const token = await getToken();
-    if (!token) {
-      alert('로그인이 필요합니다.');
-      return;
-    }
-    setEditorImageUploading(true);
-    try {
-      const { imageId, presignedUrl, imageUrl } = await getPresignedUrl(
-        { imageType: 'PROJECT', fileName: file.name },
-        token,
-      );
-      const putRes = await fetch(presignedUrl, {
-        method: 'PUT',
-        body: file,
-        headers: file.type ? { 'Content-Type': file.type } : undefined,
-      });
-      if (!putRes.ok) {
-        throw new Error(`이미지 업로드 실패 (${putRes.status})`);
-      }
-      await confirmImage(imageId, token);
-      editor?.chain().focus().setImage({ src: imageUrl }).run();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.';
-      console.error('[project-create] editor image upload failed', msg, err);
-      alert(msg);
-    } finally {
-      setEditorImageUploading(false);
-    }
-  };
-
-  const onToolbarPickImage = () => {
-    editorImageInputRef.current?.click();
-  };
-
-  const onToolbarLink = () => {
-    if (!editor) return;
-    const linkCardType = editor.schema.nodes.linkCard;
-    if (!linkCardType) return;
-
-    let cardPos: number | null = null;
-    let cardSize = 0;
-    editor.state.doc.descendants((node, pos) => {
-      if (node.type === linkCardType) {
-        cardPos = pos;
-        cardSize = node.nodeSize;
-        return false;
-      }
-      return true;
-    });
-
-    if (cardPos !== null) {
-      editor
-        .chain()
-        .focus()
-        .deleteRange({ from: cardPos, to: cardPos + cardSize })
-        .run();
-      return;
-    }
-
-    editor.chain().focus().insertContent({ type: 'linkCard' }).run();
-  };
-
   const handleSubmit = async () => {
     if (isDev) console.log('[project-create] handleSubmit called');
     setSubmitError(null);
 
-    const nextErrors: Partial<Record<ProjectFormFieldKey, string>> = {};
-    if (!projectType) nextErrors.projectType = '프로젝트 유형을 선택해주세요.';
-    if (!domain) nextErrors.domain = '도메인을 선택해주세요.';
-    if (!progressType) nextErrors.progressType = '진행 방식을 선택해주세요.';
-    if (!progressPeriod) nextErrors.progressPeriod = '진행 기간을 선택해주세요.';
-    if (!locationText.trim()) nextErrors.location = '진행 장소를 입력해주세요.';
-    if (!deadlineText.trim()) nextErrors.deadline = '모집 마감일을 선택해주세요.';
-    if (recruitments.length === 0)
-      nextErrors.recruitments = '모집 분야를 1개 이상 등록해주세요.';
-    if (!projectTitle.trim()) nextErrors.title = '프로젝트 제목을 입력해주세요.';
-    const contentEmpty =
-      !editor ||
-      editor.isEmpty ||
-      editor.getText().replace(/\u00a0/g, ' ').trim().length === 0;
-    if (contentEmpty) nextErrors.content = '프로젝트 내용을 입력해주세요.';
+    const nextErrors = validateProjectForm({
+      projectType, domain, progressType, progressPeriod, locationText, deadlineText,
+      recruitments, projectTitle,
+      contentEmpty: !editor || editor.isEmpty || editor.getText().replace(/\u00a0/g, ' ').trim().length === 0,
+    });
 
     if (Object.keys(nextErrors).length > 0) {
       setFieldErrors(nextErrors);
@@ -807,48 +411,15 @@ const ProjectCreatePage = () => {
         console.log('recruitments(ui)', recruitments);
         console.log('techStack(keys)', techStack);
       }
-      const raw = deadlineText.trim();
-      let recruitmentDeadline = '2026-12-31';
-      if (raw) {
-        const normalized = raw.replace(/\./g, '-');
-        const d = new Date(normalized);
-        if (!Number.isNaN(d.getTime())) recruitmentDeadline = d.toISOString().slice(0, 10);
-      }
-      const recruitmentsPayload = recruitments.map((r) => {
-        const position = positionMap[r.positionLabel] ?? 'BACKEND';
-        const techStacksSent =
-          r.techStackKeys.length > 0
-            ? toTechStacksEnum(r.techStackKeys)
-            : position === 'INFRA'
-              ? []
-              : ['BACKEND'];
-        return {
-          position,
-          count: parseInt(r.countLabel, 10) || 1,
-          techStacks: techStacksSent,
-        };
+      const body = toProjectRequest({
+        projectType, domain, progressType, progressPeriod, locationText, deadlineText,
+        recruitments, projectTitle, projectContent, projectFeatures, slotImages,
       });
-      const body = {
-        projectField: projectFieldMap[projectType ?? ''] ?? 'WEB',
-        category: domainToCategory[domain ?? ''] ?? 'ETC',
-        mode: modeMap[progressType ?? ''] ?? 'ONLINE',
-        durationMonths: durationMonthsMap[progressPeriod ?? ''] ?? 1,
-        durationRange: durationRangeMap[progressPeriod ?? ''] ?? 'ONE_TO_THREE',
-        location: locationText.trim() || '미정',
-        recruitmentDeadline,
-        recruitments: recruitmentsPayload,
-        title: projectTitle.trim(),
-        content: projectContent || '',
-        imageIds: slotImages
-          .map((s) => s?.imageId)
-          .filter((id): id is number => id != null && id > 0)
-          .slice(0, 3),
-      };
       if (isDev) {
         console.log('createProject body(final)', body);
         console.groupCollapsed('[project-create] techStacks — 백엔드 enum과 비교용');
         recruitments.forEach((r, i) => {
-          const sent = recruitmentsPayload[i].techStacks;
+          const sent = body.recruitments[i].techStacks;
           console.log(
             `recruitments[${i}] ${r.positionLabel}: UI keys = [${r.techStackKeys.join(', ')}] → API로 전송 = [${sent.join(', ')}]`,
           );
@@ -866,17 +437,19 @@ const ProjectCreatePage = () => {
       try {
         await queryClient.invalidateQueries({ queryKey: MY_RECRUITING_PROJECTS_QUERY_KEY });
       } catch {}
-      try {
-        const cacheKey = 'devine_my_projects_cache_v1';
-        const raw = localStorage.getItem(cacheKey);
-        const parsed = raw ? (JSON.parse(raw) as unknown) : [];
-        const prev = Array.isArray(parsed) ? parsed : [];
-        const rest = prev.filter((p: any) => Number(p?.id) !== result.projectId);
-        const next = [{ id: result.projectId, name: body.title.trim() }, ...rest].filter(
-          (p: any) => Number.isFinite(Number(p?.id)) && String(p?.name ?? '').trim().length > 0,
-        );
-        localStorage.setItem(cacheKey, JSON.stringify(next));
-      } catch {}
+      if (ownerId) {
+        try {
+          const cacheKey = getMyProjectsCacheKey(ownerId);
+          const raw = localStorage.getItem(cacheKey);
+          const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+          const prev = Array.isArray(parsed) ? parsed : [];
+          const rest = prev.filter((p: any) => Number(p?.id) !== result.projectId);
+          const next = [{ id: result.projectId, name: body.title.trim() }, ...rest].filter(
+            (p: any) => Number.isFinite(Number(p?.id)) && String(p?.name ?? '').trim().length > 0,
+          );
+          localStorage.setItem(cacheKey, JSON.stringify(next));
+        } catch {}
+      }
 
       clearDraft();
       if (isEditMode) {
@@ -907,39 +480,32 @@ const ProjectCreatePage = () => {
   };
 
   return (
-    <div className="-mx-6 -my-8">
+    <div className="project-create-colors -mx-6 -my-8">
       <section className="bg-[var(--ui-bg)]">
-        <div className="mx-auto w-full max-w-[1018px] px-6 py-[36px]">
-          <h1 className="Title3 font-bold text-[var(--ui-900)]">
-            {isEditMode ? (
-              <>
-                <span className="block">프로젝트 정보를 수정하고</span>
-                <span className="block">업데이트해 보세요</span>
-              </>
-            ) : (
-              <>
-                <span className="block">프로젝트를 등록하고</span>
-                <span className="block">함께 성장할 개발자들을 만나보세요</span>
-              </>
-            )}
+        <div className="mx-auto desktop-content w-[var(--desktop-content-width,100%)] max-w-[1018px] lg:max-2xl:max-w-[clamp(850px,68vw,990px)] px-6 py-[32px] lg:max-2xl:py-[24px]">
+          <h1 className="text-[32px] leading-tight font-bold tracking-tight text-[var(--ui-900)] sm:text-[38px]">
+            {isEditMode ? '프로젝트 수정' : '프로젝트 등록'}
           </h1>
+          <p className="mt-[10px] text-[16px] leading-relaxed text-[var(--text-secondary)] sm:text-[18px]">
+            {isEditMode ? '프로젝트 정보를 수정하고 업데이트해 보세요.' : '프로젝트를 등록하고 함께 성장할 개발자들을 만나보세요.'}
+          </p>
         </div>
       </section>
 
-      <section className="-translate-x-1/2 relative left-1/2 w-screen bg-[var(--ui-50)] py-[64px]">
-        <div className="mx-auto w-full max-w-[1018px] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-6 py-[40px]">
+      <section className="-translate-x-1/2 relative left-1/2 w-screen bg-[var(--surface-page)] pt-[32px] pb-[64px] lg:max-2xl:pt-[24px]">
+        <div className="mx-auto desktop-content w-[var(--desktop-content-width,100%)] max-w-[1018px] lg:max-2xl:max-w-[clamp(850px,68vw,990px)] border border-[var(--ui-200)] bg-[var(--ui-bg)] px-6 py-[40px] lg:max-2xl:py-[28px]">
           <div className="mx-auto w-full max-w-[922px]">
-            <div className="flex flex-col gap-[64px]">
-              <section className="flex flex-col gap-[40px]">
+            <div className="flex flex-col gap-[64px] lg:max-2xl:gap-[clamp(44px,6svh,56px)]">
+              <section className="flex flex-col gap-[40px] lg:max-2xl:gap-[32px]">
                 <h2 className="Heading2 font-semibold text-[var(--ui-900)]">
                   1. 프로젝트 정보를 입력해주세요
                 </h2>
 
-                <div className="flex flex-col gap-[40px]">
-                  <div className="grid w-full grid-cols-2 gap-x-[240px] gap-y-[32px] max-[1100px]:grid-cols-1 max-[1100px]:gap-x-0">
+                <div className="flex flex-col gap-[40px] lg:max-2xl:gap-[30px]">
+                  <div className="grid w-full grid-cols-2 gap-x-[240px] gap-y-[32px] lg:max-2xl:gap-y-[24px] min-[1100px]:max-2xl:gap-x-[clamp(48px,10vw,144px)] max-[1100px]:grid-cols-1 max-[1100px]:gap-x-0">
                     <div
                       ref={fieldRefCallbacks.projectType}
-                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                      className="flex w-[320px] max-w-full flex-col gap-[16px] lg:max-2xl:gap-[12px] max-[1100px]:w-full"
                     >
                       <Label>프로젝트 유형</Label>
                       <SelectDropdown
@@ -965,7 +531,7 @@ const ProjectCreatePage = () => {
 
                     <div
                       ref={fieldRefCallbacks.domain}
-                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                      className="flex w-[320px] max-w-full flex-col gap-[16px] lg:max-2xl:gap-[12px] max-[1100px]:w-full"
                     >
                       <Label>도메인</Label>
                       <SelectDropdown
@@ -994,7 +560,7 @@ const ProjectCreatePage = () => {
 
                     <div
                       ref={fieldRefCallbacks.progressType}
-                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                      className="flex w-[320px] max-w-full flex-col gap-[16px] lg:max-2xl:gap-[12px] max-[1100px]:w-full"
                     >
                       <Label>진행 방식</Label>
                       <SelectDropdown
@@ -1018,7 +584,7 @@ const ProjectCreatePage = () => {
 
                     <div
                       ref={fieldRefCallbacks.progressPeriod}
-                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                      className="flex w-[320px] max-w-full flex-col gap-[16px] lg:max-2xl:gap-[12px] max-[1100px]:w-full"
                     >
                       <Label>진행 기간</Label>
                       <SelectDropdown
@@ -1043,7 +609,7 @@ const ProjectCreatePage = () => {
 
                     <div
                       ref={fieldRefCallbacks.location}
-                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                      className="flex w-[320px] max-w-full flex-col gap-[16px] lg:max-2xl:gap-[12px] max-[1100px]:w-full"
                     >
                       <Label>진행 장소</Label>
                       <InputField
@@ -1062,7 +628,7 @@ const ProjectCreatePage = () => {
 
                     <div
                       ref={fieldRefCallbacks.deadline}
-                      className="flex w-[320px] flex-col gap-[16px] max-[1100px]:w-full"
+                      className="flex w-[320px] max-w-full flex-col gap-[16px] lg:max-2xl:gap-[12px] max-[1100px]:w-full"
                     >
                       <Label>모집 마감일</Label>
                       <DatePickerPopover
@@ -1091,7 +657,7 @@ const ProjectCreatePage = () => {
                           <SelectDropdown
                             placeholder="포지션"
                             value={recruitPosition}
-                            onChange={setRecruitPosition}
+                            onChange={handleRecruitPositionChange}
                             options={[
                               { label: '프론트엔드', value: '프론트엔드' },
                               { label: '백엔드', value: '백엔드' },
@@ -1104,18 +670,9 @@ const ProjectCreatePage = () => {
                           <SubLabel>모집 인원</SubLabel>
                           <SelectDropdown
                             placeholder="모집 인원"
-                            value={recruitCount}
-                            onChange={setRecruitCount}
-                            options={[
-                              { label: '1명', value: '1명' },
-                              { label: '2명', value: '2명' },
-                              { label: '3명', value: '3명' },
-                              { label: '4명', value: '4명' },
-                              { label: '5명', value: '5명' },
-                              { label: '6명', value: '6명' },
-                              { label: '7명', value: '7명' },
-                              { label: '8명', value: '8명' },
-                            ]}
+                            value={selectedRecruitCount}
+                            onChange={handleRecruitCountChange}
+                            options={recruitCountOptions}
                           />
                         </div>
 
@@ -1125,9 +682,11 @@ const ProjectCreatePage = () => {
                             <button
                               type="button"
                               disabled={!positionKey}
-                              onClick={() => setTechStackOpen((v) => !v)}
+                              aria-haspopup="dialog"
+                              aria-label="기술 스택 선택"
+                              onClick={() => setTechStackOpen(true)}
                               className={`relative flex h-[44px] w-full items-center rounded-[12px] border bg-ui-bg px-[12px] text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-                                techStackOpen ? 'border-[#4E49FF]' : 'border-ui-200'
+                                techStackOpen ? 'border-[var(--project-create-accent,#6654F5)]' : 'border-ui-200'
                               }`}
                             >
                               {techStack.length ? (
@@ -1149,35 +708,19 @@ const ProjectCreatePage = () => {
                               </span>
                             </button>
 
-                            {positionKey ? (
-                              <PositionBasedTechStackDropdown
-                                open={techStackOpen}
-                                position={positionKey}
-                                value={techStack}
-                                onChange={setTechStack}
-                                onClose={() => setTechStackOpen(false)}
-                              />
-                            ) : null}
                           </div>
                         </div>
-
-                        <button
-                          type="button"
-                          disabled={!canSaveRecruitment}
-                          onClick={onSaveRecruitment}
-                          className={`flex h-[44px] w-[80px] items-center justify-center rounded-[12px] px-[12px] py-[10px] max-[1100px]:w-full ${
-                            canSaveRecruitment ? 'cursor-pointer bg-[#4E49FF]' : 'bg-[var(--ui-50)]'
-                          }`}
-                        >
-                          <span
-                            className={`Body1 font-base ${
-                              canSaveRecruitment ? 'text-white' : 'text-[var(--ui-400)]'
-                            }`}
-                          >
-                            저장
-                          </span>
-                        </button>
                       </div>
+                      {positionKey && techStackOpen && (
+                        <TechStackPicker
+                          title="기술 스택 선택"
+                          description={`${recruitPosition} 모집에 필요한 기술을 선택하세요.`}
+                          position={positionKey}
+                          value={techStack}
+                          onApply={handleRecruitStackApply}
+                          onClose={() => setTechStackOpen(false)}
+                        />
+                      )}
 
                       <div
                         className={cn(
@@ -1230,12 +773,12 @@ const ProjectCreatePage = () => {
                 </div>
               </section>
 
-              <section className="flex flex-col gap-[40px]">
+              <section className="flex flex-col gap-[40px] lg:max-2xl:gap-[32px]">
                 <h2 className="Heading2 font-semibold text-[var(--ui-900)]">
                   2. 프로젝트 내용을 입력해주세요
                 </h2>
 
-                <div className="flex flex-col gap-[40px]">
+                <div className="flex flex-col gap-[40px] lg:max-2xl:gap-[30px]">
                   <div className="relative flex flex-col gap-[12px]">
                     <Label>프로젝트 대표 사진</Label>
                     <div className="flex gap-[12px] max-[1100px]:flex-col">
@@ -1287,127 +830,41 @@ const ProjectCreatePage = () => {
                   </div>
 
                   <div className="flex flex-col gap-[12px]">
+                    <Label>주요 기능</Label>
+                    <div className="flex items-stretch gap-[8px]">
+                      <input
+                        aria-label="추가할 주요 기능"
+                        placeholder="예: 팀 일정과 마감일 관리"
+                        value={featureInput}
+                        onChange={(event) => setFeatureInput(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
+                          event.preventDefault();
+                          addProjectFeature();
+                        }}
+                        className="min-w-0 flex-1 rounded-[12px] border border-[var(--ui-300)] bg-[var(--ui-50)] px-[14px] py-[12px] text-[14px] text-ui-900 outline-none focus:border-[var(--project-accent)]"
+                      />
+                      <button type="button" disabled={!featureInput.trim()} onClick={addProjectFeature} className="rounded-[12px] border border-[var(--ui-300)] px-[18px] text-[14px] font-medium text-ui-900 hover:bg-[var(--ui-100)] disabled:opacity-40">추가</button>
+                    </div>
+                    {projectFeatures && (
+                      <ul className="overflow-hidden rounded-[12px] border border-[var(--ui-300)] bg-[var(--ui-50)] px-[14px]">
+                        {projectFeatures.split('\n').filter(Boolean).map((feature, index) => (
+                          <li key={index} className="flex items-center justify-between gap-[12px] border-b border-[var(--ui-300)] py-[11px] text-[14px] text-ui-900 last:border-b-0">
+                            <span className="flex min-w-0 items-baseline gap-[10px] break-words"><span aria-hidden="true" className="h-[6px] w-[6px] shrink-0 rounded-full bg-[var(--project-accent)]" />{feature}</span>
+                            <button type="button" aria-label={`${feature} 삭제`} onClick={() => setProjectFeatures(projectFeatures.split('\n').filter(Boolean).filter((_, itemIndex) => itemIndex !== index).join('\n'))} className="shrink-0 rounded-md px-[8px] py-[4px] text-[13px] text-ui-500 transition-colors hover:bg-[var(--ui-100)] hover:text-ui-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--project-accent)]">삭제</button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <p className="Caption1 text-ui-500">프로젝트의 주요 기능을 추가해주세요. 선택 사항입니다.</p>
+                  </div>
+
+                  <div className="flex flex-col gap-[12px]">
                     <Label>프로젝트 내용</Label>
 
-                    <div
-                      ref={fieldRefCallbacks.content}
-                      className={cn(
-                        'w-full overflow-hidden rounded-[12px] bg-[var(--ui-50)]',
-                        fieldErrors.content && 'ring-2 ring-form-error ring-offset-0',
-                      )}
-                    >
-                      <div className="flex h-[48px] items-center border-[var(--ui-300)] border-b px-[14px]">
-                        <div className="flex items-center gap-[22px]">
-                          <div className="flex items-center gap-[8px]">
-                            <ToolbarButton
-                              Icon={TablerIconH1}
-                              HoverIcon={TablerIconH1Hover}
-                              label="H1"
-                              active={!!editor?.isActive('heading', { level: 1 })}
-                              onClick={() =>
-                                editor?.chain().focus().toggleHeading({ level: 1 }).run()
-                              }
-                            />
-                            <ToolbarButton
-                              Icon={TablerIconH2}
-                              HoverIcon={TablerIconH2Hover}
-                              label="H2"
-                              active={!!editor?.isActive('heading', { level: 2 })}
-                              onClick={() =>
-                                editor?.chain().focus().toggleHeading({ level: 2 }).run()
-                              }
-                            />
-                          </div>
-                          <div className="flex items-center gap-[8px]">
-                            <ToolbarButton
-                              Icon={TablerIconBold}
-                              HoverIcon={TablerIconBoldHover}
-                              label="굵게"
-                              active={!!editor?.isActive('bold')}
-                              onClick={() => editor?.chain().focus().toggleBold().run()}
-                            />
-                            <ToolbarButton
-                              Icon={TablerIconItalic}
-                              HoverIcon={TablerIconItalicHover}
-                              label="기울임"
-                              active={!!editor?.isActive('italic')}
-                              onClick={() => editor?.chain().focus().toggleItalic().run()}
-                            />
-                            <ToolbarButton
-                              Icon={TablerIconStrikethrough}
-                              HoverIcon={TablerIconStrikethroughHover}
-                              label="취소선"
-                              active={!!editor?.isActive('strike')}
-                              onClick={() => editor?.chain().focus().toggleStrike().run()}
-                            />
-                            <ToolbarButton
-                              Icon={TablerIconUnderline}
-                              HoverIcon={TablerIconUnderlineHover}
-                              label="밑줄"
-                              active={!!editor?.isActive('underline')}
-                              onClick={() => editor?.chain().focus().toggleUnderline().run()}
-                            />
-                          </div>
-                          <div className="flex items-center gap-[8px]">
-                            <ToolbarButton
-                              Icon={TablerIconListNumbers}
-                              HoverIcon={TablerIconListNumbersHover}
-                              label="번호 목록"
-                              active={!!editor?.isActive('orderedList')}
-                              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                            />
-                            <ToolbarButton
-                              Icon={TablerIconList}
-                              HoverIcon={TablerIconListHover}
-                              label="불릿 목록"
-                              active={!!editor?.isActive('bulletList')}
-                              onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                            />
-                          </div>
-                          <div className="flex items-center gap-[8px]">
-                            <ToolbarButton
-                              Icon={TablerIconPhoto}
-                              HoverIcon={TablerIconPhotoHover}
-                              label="이미지"
-                              onClick={onToolbarPickImage}
-                              disabled={editorImageUploading}
-                            />
-                            <ToolbarButton
-                              Icon={TablerIconLink}
-                              HoverIcon={TablerIconLinkHover}
-                              label="링크"
-                              active={!!editor?.isActive('link')}
-                              onClick={onToolbarLink}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="relative min-h-[420px] px-[16px] pt-[16px]">
-                        <input
-                          ref={editorImageInputRef}
-                          type="file"
-                          accept="image/*"
-                          className="sr-only"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            e.target.value = '';
-                            await insertImageFromFile(file);
-                          }}
-                        />
-
-                        {editor ? (
-                          <>
-                            {editor.isEmpty ? (
-                              <p className="Caption1 pointer-events-none absolute top-[16px] left-[16px] font-medium text-ui-300 tracking-[0.0912px]">
-                                프로젝트 내용을 입력해주세요.
-                              </p>
-                            ) : null}
-                            <EditorContent editor={editor} />
-                          </>
-                        ) : null}
-                      </div>
-                    </div>
+                    <ProjectContentEditor editor={editor} fieldRef={fieldRefCallbacks.content} error={fieldErrors.content}
+                      editorImageUploading={editorImageUploading} editorImageInputRef={editorImageInputRef}
+                      onToolbarPickImage={onToolbarPickImage} onToolbarLink={onToolbarLink} insertImageFromFile={insertImageFromFile} />
                     {fieldErrors.content ? (
                       <p className="Caption1 text-form-error">{fieldErrors.content}</p>
                     ) : null}
@@ -1426,7 +883,7 @@ const ProjectCreatePage = () => {
                       type="button"
                       disabled={submitLoading}
                       onClick={handleSubmit}
-                      className="Body1 h-[48px] w-[270px] cursor-pointer rounded-[12px] bg-[#4E49FF] font-medium text-white transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
+                      className="Body1 h-[48px] w-[270px] cursor-pointer rounded-[12px] bg-[var(--project-create-accent,#6654F5)] font-medium text-[var(--surface-page)] transition-opacity hover:opacity-95 disabled:pointer-events-none disabled:opacity-60"
                     >
                       {submitLoading
                         ? isEditMode
@@ -1445,6 +902,6 @@ const ProjectCreatePage = () => {
       </section>
     </div>
   );
-};
+}
 
 export default ProjectCreatePage;

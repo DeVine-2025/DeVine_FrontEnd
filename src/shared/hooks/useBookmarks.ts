@@ -1,6 +1,6 @@
-import { getBookmarks, type BookmarkItem } from '@apis/bookmarks';
+import { createBookmark, deleteBookmark, getBookmarks, type BookmarkItem, type CreateBookmarkBody } from '@apis/bookmarks';
 import { useAuth } from '@clerk/clerk-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const BOOKMARKS_QUERY_KEY = ['bookmarks'] as const;
 
@@ -17,6 +17,19 @@ export function useBookmarks(options?: { enabled?: boolean }) {
     enabled: options?.enabled ?? isSignedIn ?? false,
     staleTime: 60_000,
   });
+}
+
+export function useChangeBookmark() {
+  const queryClient = useQueryClient();
+
+  return async (target: CreateBookmarkBody, next: boolean, bookmarkId: number | undefined, token: string) => {
+    if (next && bookmarkId === undefined) {
+      await createBookmark(target, token);
+    } else if (!next && bookmarkId !== undefined) {
+      await deleteBookmark(bookmarkId, token);
+    }
+    await queryClient.invalidateQueries({ queryKey: BOOKMARKS_QUERY_KEY });
+  };
 }
 
 export { BOOKMARKS_QUERY_KEY };

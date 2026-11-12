@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import { Navigate, Outlet, useOutletContext } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { Outlet, useOutletContext } from 'react-router-dom';
 import type { RootLayoutOutletContext } from '@layouts/root-layout';
 
 interface ProtectedRouteProps {

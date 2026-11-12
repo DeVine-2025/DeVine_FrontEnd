@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 
-const queryClient = new QueryClient({
+export const createQueryClient = () => new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false, // 윈도우가 다시 포커스 될때 새로고침 하는지 유뮤
@@ -8,5 +8,3 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-export default queryClient;

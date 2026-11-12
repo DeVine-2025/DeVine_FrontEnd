@@ -111,7 +111,7 @@ export default function ProjectFiltersBar({
     const appliedClass =
       'border border-[var(--badge-bg-primary)] bg-[var(--badge-bg-primary)] text-[var(--badge-text-primary)]';
     const defaultClass = 'border border-transparent bg-filter-bg text-filter-text';
-    const openClass = '!border-[#4E49FF]';
+    const openClass = '!border-[#6654F5]';
 
     return (
       <button

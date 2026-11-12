@@ -9,6 +9,8 @@ export type ChatDraftTarget = {
 type ChatWidgetState = {
   /** 기존 방 포커스 (한 번 소비) */
   focusRoomId: number | null;
+  openListVersion: number;
+  requestOpenList: () => void;
   /** 방 없이 UI만 열기 — 첫 전송 시 POST /rooms (한 번 소비) */
   focusDraft: ChatDraftTarget | null;
   requestOpenRoom: (roomId: number) => void;
@@ -18,6 +20,8 @@ type ChatWidgetState = {
 };
 
 export const useChatWidgetStore = create<ChatWidgetState>((set) => ({
+  openListVersion: 0,
+  requestOpenList: () => set(state => ({ openListVersion: state.openListVersion + 1, focusRoomId: null, focusDraft: null })),
   focusRoomId: null,
   focusDraft: null,
   requestOpenRoom: (roomId) => set({ focusRoomId: roomId, focusDraft: null }),
