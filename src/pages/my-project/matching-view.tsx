@@ -13,7 +13,7 @@ export default function MatchingView({
 
   return (
     <div className="pb-16">
-      {import.meta.env.DEV && (
+      {(import.meta.env.DEV || useMockData) && (
         <div className="mb-[8px] flex flex-wrap items-center justify-end gap-x-[12px] text-[12px] text-[var(--text-secondary)]">
           <button
             type="button"

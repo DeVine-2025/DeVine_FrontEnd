@@ -10,6 +10,7 @@ import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { sampleMainReport, sampleDetailReport } from './report-sample-data';
+import { useMockData } from '../../shared/config/data-mode';
 
 const ReportDetailPage = () => {
   const { getToken } = useAuth();
@@ -18,7 +19,7 @@ const ReportDetailPage = () => {
   const fromFolder = Boolean((location.state as { fromReportFolder?: boolean } | null)?.fromReportFolder);
   const [searchParams, setSearchParams] = useSearchParams();
   const { navRef, indicatorRef } = useElasticUnderline(searchParams.get('type') || '');
-  const isSamplePreview = import.meta.env.DEV && searchParams.get('preview') === 'sample';
+  const isSamplePreview = useMockData && searchParams.get('preview') === 'sample';
   const isSample = isSamplePreview && searchParams.get('type') === 'MAIN';
   const isSampleDetail = isSamplePreview && searchParams.get('type') === 'DETAIL';
   const selectType = (nextType: 'MAIN' | 'DETAIL') => { const next = new URLSearchParams(searchParams); next.set('type', nextType); setSearchParams(next); };

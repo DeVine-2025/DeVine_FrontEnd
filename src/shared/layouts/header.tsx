@@ -1,4 +1,5 @@
 import BrandLogo from '@assets/images/devine-wordmark.png';
+import { useMockData } from '../config/data-mode';
 import {
   getNotifications,
   getUnreadNotificationCount,
@@ -34,7 +35,7 @@ const Header = ({ navLocked = false, onLogoClick }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [sampleNotifications, setSampleNotifications] = useState<NotificationItem[]>(() => import.meta.env.DEV ? [
+  const [sampleNotifications, setSampleNotifications] = useState<NotificationItem[]>(() => useMockData ? [
     { id: 'sample-application', title: '[샘플] 새로운 프로젝트 지원', description: '플로우업 프로젝트에 새로운 지원자가 도착했어요.', timestamp: '5분 전', isRead: false },
     { id: 'sample-invitation', title: '[샘플] 협업 제안이 도착했어요', description: '커넥트업 팀에서 함께 프로젝트를 진행하고 싶어 해요.', timestamp: '2시간 전', isRead: false },
     { id: 'sample-report', title: '[샘플] 프로젝트 리포트 생성 완료', description: 'GitHub 프로젝트 분석이 완료됐어요. 리포트를 확인해 보세요.', timestamp: '어제', isRead: true },

@@ -26,7 +26,7 @@
 | 관리자 | src/admin/pages/, apis/, components/ |
 
 ## 데이터·이전 코드
-- 모드 설정: `src/shared/config/data-mode.ts`. 개발 기본 목데이터, `VITE_DATA_MODE=api`로 전환 후 서버 재시작. 모든 화면에 적용되는 설정은 아니다.
+- 모드 설정: `src/shared/config/data-mode.ts`. 로컬 개발과 정확한 `qa.devine.kr` 호스트에서는 기본 목데이터다. `VITE_DATA_MODE=api`로 실제 API 전환 후 서버 재시작·재빌드한다. 다른 배포 호스트는 실제 API를 사용한다. 모든 화면에 적용되는 설정은 아니다.
 - API·쿼리: `src/shared/apis/`. 공통 요청: `instance.ts`, `base/api.ts`. 상태 저장: `src/shared/store/`.
 - 이전 홈 /home-original, 이전 탐색 /search/project·/search/developer, 기존 매칭 /matching/*는 여전히 라우팅되어 있다.
 - 이전 추천 구현도 실제 연결 보존 여부를 확인하고 다룬다. “이전”이라는 이유만으로 삭제하지 않는다.
